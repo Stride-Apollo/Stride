@@ -3,7 +3,7 @@ language: cpp
 script: make test
 os:
   - linux
-  #- osx
+  - osx
 dist: trusty
 addons:
   apt:
@@ -16,11 +16,12 @@ addons:
       - libboost-all-dev
       - libhdf5-serial-dev
 compiler:
-  #- clang
+  - clang
   - gcc
 env:
   - OMP_NUM_THREADS=4
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost   ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/hdf5 ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5; fi
