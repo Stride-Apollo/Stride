@@ -3,7 +3,7 @@ language: cpp
 script: make test
 os:
   - linux
-  - osx
+  #- osx
 dist: trusty
 addons:
   apt:
@@ -23,5 +23,10 @@ env:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/hdf5 ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/hdf5; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 100; sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100; fi
+notifications:
+  slack: apollo-stride:u6J7UHJdtlvVNtnUjyRndtgh
+    on_failure: always
+    on_success: change
