@@ -19,10 +19,9 @@ addons:
 # Some advice on this configuration was taken from:
 # https://genbattle.bitbucket.io/blog/2016/01/17/c++-travis-ci/?
 
-compiler: gcc
 env: 
-  - COMPILER=g++-5
-  - OMP_NUM_THREADS=4
+  - CXX=g++-5
+    OMP_NUM_THREADS=4
 
 matrix:
   include:
@@ -36,7 +35,8 @@ matrix:
             - libboost-all-dev
             - libhdf5-serial-dev
       env: 
-        - COMPILER=clang++-3.8
+        - CXX=clang++-3.8
+          OMP_NUM_THREADS=4
 
 #before_install:
   #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5; fi
