@@ -1,3 +1,4 @@
+# TODO specify exact versions on which it has to work
 language: cpp
 script: make test
 os:
