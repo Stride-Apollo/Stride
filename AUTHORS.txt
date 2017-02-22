@@ -1,8 +1,8 @@
 #############################################################################
-#  This file is part of the Stride software. 
+#  This file is part of the Stride software.
 #  It is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by 
-#  the Free Software Foundation, either version 3 of the License, or any 
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or any
 #  later version.
 #  The software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,7 +23,7 @@ Philippe Beutels		 < philippe.beutels@uantwerp.be	  >
 Jan Broeckhove           < jan.broeckhove@uantwerp.be	  >
 Sean Stijven			 < sean.stijven@uantwerp.be		  >
 Lander Willem			 < lander.willem@uantwerp.be 	  >
- 
+
 At University of Antwerp and Hasselt University, Belgium
 Niel Hens				 < niel.hens@uantwerp.be		  >
 
@@ -31,7 +31,7 @@ Apollo Group, for Bachelor Thesis:
   - Stijn Janssens
   - Anthony Hermans
   - Sam Mylle
-  - Federico Quin whatever
+  - Federico Quin
   - Evert Heylen
 
 #############################################################################
