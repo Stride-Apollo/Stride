@@ -27,5 +27,11 @@ Lander Willem			 < lander.willem@uantwerp.be 	  >
 At University of Antwerp and Hasselt University, Belgium
 Niel Hens				 < niel.hens@uantwerp.be		  >
 
+Apollo Group, for Bachelor Thesis:
+  - Stijn Janssens
+  - Anthony Hermans
+  - Sam Mylle
+  - Federico Quin
+  - Evert Heylen
 
 #############################################################################
