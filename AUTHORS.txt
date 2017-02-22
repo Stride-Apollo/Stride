@@ -31,7 +31,7 @@ Apollo Group, for Bachelor Thesis:
   - Stijn Janssens
   - Anthony Hermans
   - Sam Mylle
-  - Federico Quin
+  - Federico Quin whatever
   - Evert Heylen
 
 #############################################################################
