@@ -31,20 +31,20 @@ using boost::to_upper;
 using namespace std;
 
 map<ClusterType, string> g_cluster_type_name {
-                make_pair(ClusterType::Household,      "household"),
-                make_pair(ClusterType::School,         "school"),
-                make_pair(ClusterType::Work,           "work"),
-                make_pair(ClusterType::HomeDistrict,   "home_district"),
-                make_pair(ClusterType::DayDistrict,    "day_district"),
-                make_pair(ClusterType::Null,           "null")
+                make_pair(ClusterType::Household,          "household"),
+                make_pair(ClusterType::School,             "school"),
+                make_pair(ClusterType::Work,               "work"),
+                make_pair(ClusterType::PrimaryCommunity,   "primary_community"),
+                make_pair(ClusterType::SecondaryCommunity, "secondary_community"),
+                make_pair(ClusterType::Null,               "null")
 };
 
 map<string, ClusterType> g_name_cluster_type {
                 make_pair("HOUSEHOLD",            ClusterType::Household),
                 make_pair("SCHOOL",               ClusterType::School),
                 make_pair("WORK",                 ClusterType::Work),
-                make_pair("HOME_DISTRICT",        ClusterType::HomeDistrict),
-                make_pair("DAY_DISTRICT",         ClusterType::DayDistrict),
+                make_pair("PRIMARY_COMMUNITY",    ClusterType::PrimaryCommunity),
+                make_pair("SECONDARY_COMMUNITY",  ClusterType::SecondaryCommunity),
                 make_pair("NULL",                 ClusterType::Null)
 };
 

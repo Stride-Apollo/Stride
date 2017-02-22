@@ -77,14 +77,14 @@ void Simulator::UpdateClusters()
                                 m_work_clusters[i], m_disease_profile, m_rng_handler[thread], m_calendar);
                 }
                 #pragma omp for schedule(runtime)
-                for (size_t i = 0; i < m_home_districts.size(); i++) {
+                for (size_t i = 0; i < m_primary_community.size(); i++) {
                         Infector<log_level, track_index_case>::Execute(
-                                m_home_districts[i], m_disease_profile, m_rng_handler[thread], m_calendar);
+                                m_primary_community[i], m_disease_profile, m_rng_handler[thread], m_calendar);
                 }
                 #pragma omp for schedule(runtime)
-                for (size_t i = 0; i < m_day_districts.size(); i++) {
+                for (size_t i = 0; i < m_secondary_community.size(); i++) {
                         Infector<log_level, track_index_case>::Execute(
-                                m_day_districts[i], m_disease_profile, m_rng_handler[thread], m_calendar);
+                                m_secondary_community[i], m_disease_profile, m_rng_handler[thread], m_calendar);
                 }
         }
 }

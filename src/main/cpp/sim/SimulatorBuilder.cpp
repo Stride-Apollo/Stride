@@ -129,8 +129,8 @@ shared_ptr<Simulator> SimulatorBuilder::Build(const ptree& pt_config,
         Cluster::AddContactProfile(ClusterType::Household,     ContactProfile(ClusterType::Household, pt_contact));
         Cluster::AddContactProfile(ClusterType::School,        ContactProfile(ClusterType::School, pt_contact));
         Cluster::AddContactProfile(ClusterType::Work,          ContactProfile(ClusterType::Work, pt_contact));
-        Cluster::AddContactProfile(ClusterType::HomeDistrict,  ContactProfile(ClusterType::HomeDistrict, pt_contact));
-        Cluster::AddContactProfile(ClusterType::DayDistrict,   ContactProfile(ClusterType::DayDistrict, pt_contact));
+        Cluster::AddContactProfile(ClusterType::PrimaryCommunity,  ContactProfile(ClusterType::PrimaryCommunity, pt_contact));
+        Cluster::AddContactProfile(ClusterType::SecondaryCommunity,   ContactProfile(ClusterType::SecondaryCommunity, pt_contact));
 
         // Done.
         return sim;
@@ -138,20 +138,20 @@ shared_ptr<Simulator> SimulatorBuilder::Build(const ptree& pt_config,
 
 void SimulatorBuilder::InitializeClusters(shared_ptr<Simulator> sim)
 {
-	// Determine number of clusters and districts.
-	unsigned int max_id_households         = 0U;
-	unsigned int max_id_school_clusters    = 0U;
-	unsigned int max_id_work_clusters      = 0U;
-	unsigned int max_id_home_districts     = 0U;
-	unsigned int max_id_day_districts      = 0U;
-	Population& population              = *sim->m_population;
+	// Determine number of clusters.
+	unsigned int max_id_households           = 0U;
+	unsigned int max_id_school_clusters      = 0U;
+	unsigned int max_id_work_clusters        = 0U;
+	unsigned int max_id_primary_community    = 0U;
+	unsigned int max_id_secondary_community  = 0U;
+	Population& population                   = *sim->m_population;
 
 	for (const auto& p : population) {
-		max_id_households      = std::max(max_id_households,      p.GetClusterId(ClusterType::Household));
-		max_id_school_clusters = std::max(max_id_school_clusters, p.GetClusterId(ClusterType::School));
-		max_id_work_clusters   = std::max(max_id_work_clusters,   p.GetClusterId(ClusterType::Work));
-		max_id_home_districts  = std::max(max_id_home_districts,  p.GetClusterId(ClusterType::HomeDistrict));
-		max_id_day_districts   = std::max(max_id_day_districts,   p.GetClusterId(ClusterType::DayDistrict));
+		max_id_households            = std::max(max_id_households,          p.GetClusterId(ClusterType::Household));
+		max_id_school_clusters       = std::max(max_id_school_clusters,     p.GetClusterId(ClusterType::School));
+		max_id_work_clusters         = std::max(max_id_work_clusters,       p.GetClusterId(ClusterType::Work));
+		max_id_primary_community     = std::max(max_id_primary_community,   p.GetClusterId(ClusterType::PrimaryCommunity));
+		max_id_secondary_community   = std::max(max_id_secondary_community, p.GetClusterId(ClusterType::SecondaryCommunity));
 
 	}
 
@@ -170,12 +170,12 @@ void SimulatorBuilder::InitializeClusters(shared_ptr<Simulator> sim)
 		sim->m_work_clusters.emplace_back(Cluster(cluster_id, ClusterType::Work));
 		cluster_id++;
 	}
-	for (size_t i = 0; i <= max_id_home_districts; i++) {
-		sim->m_home_districts.emplace_back(Cluster(cluster_id, ClusterType::HomeDistrict));
+	for (size_t i = 0; i <= max_id_primary_community; i++) {
+		sim->m_primary_community.emplace_back(Cluster(cluster_id, ClusterType::PrimaryCommunity));
 		cluster_id++;
 	}
-	for (size_t i = 0; i <= max_id_day_districts; i++) {
-		sim->m_day_districts.emplace_back(Cluster(cluster_id, ClusterType::DayDistrict));
+	for (size_t i = 0; i <= max_id_secondary_community; i++) {
+		sim->m_secondary_community.emplace_back(Cluster(cluster_id, ClusterType::SecondaryCommunity));
 		cluster_id++;
 	}
 
@@ -193,13 +193,13 @@ void SimulatorBuilder::InitializeClusters(shared_ptr<Simulator> sim)
 		if (wo_id > 0) {
 				sim->m_work_clusters[wo_id].AddPerson(&p);
 		}
-		const auto hd_id = p.GetClusterId(ClusterType::HomeDistrict);
-		if (hd_id > 0) {
-		        sim->m_home_districts[hd_id].AddPerson(&p);
+		const auto primCom_id = p.GetClusterId(ClusterType::PrimaryCommunity);
+		if (primCom_id > 0) {
+		        sim->m_primary_community[primCom_id].AddPerson(&p);
 		}
-		const auto dd_id = p.GetClusterId(ClusterType::DayDistrict);
-		if (dd_id > 0) {
-		        sim->m_day_districts[dd_id].AddPerson(&p);
+		const auto secCom_id = p.GetClusterId(ClusterType::SecondaryCommunity);
+		if (secCom_id > 0) {
+		        sim->m_secondary_community[secCom_id].AddPerson(&p);
 		}
 	}
 }

@@ -39,12 +39,12 @@ class Person
 public:
 	/// Constructor: set the person data.
 	Person(unsigned int id, double age, unsigned int household_id, unsigned int school_id,
-			unsigned int work_id,unsigned int home_district_id, unsigned int day_district_id, unsigned int start_infectiousness,
+			unsigned int work_id,unsigned int primary_community_id, unsigned int secondary_community_id, unsigned int start_infectiousness,
 			unsigned int start_symptomatic, unsigned int time_infectious, unsigned int time_symptomatic)
 		: m_id(id), m_age(age), m_gender('M'),
 		  m_household_id(household_id), m_school_id(school_id),
-		  m_work_id(work_id), m_home_district_id(home_district_id), m_day_district_id(day_district_id),
-		  m_in_household(true), m_in_home_district(true), m_in_day_cluster(true), m_in_day_district(true),
+		  m_work_id(work_id), m_primary_community_id(primary_community_id), m_secondary_community_id(secondary_community_id),
+		  m_at_household(true), m_at_school(true),m_at_work(true),m_at_primary_community(true), m_at_secondary_community(true),
 		  m_health(start_infectiousness, start_symptomatic, time_infectious, time_symptomatic),
 		  m_is_participant(false) {}
 
@@ -57,7 +57,7 @@ public:
 	/// Get cluster ID of cluster_type
 	unsigned int GetClusterId(ClusterType cluster_type) const;
 
-        /// Return person's gender.
+    /// Return person's gender.
 	char GetGender() const { return m_gender; }
 
   	/// Return person's health status.
@@ -69,8 +69,8 @@ public:
 	/// Get the id.
         unsigned int GetId() const { return m_id; }
 
-        /// Check if a person is present today in a given cluster
-        bool IsInCluster(ClusterType c) const;
+    /// Check if a person is present today in a given cluster
+    bool IsInCluster(ClusterType c) const;
 
 	/// Does this person participates in the social contact study?
 	bool IsParticipatingInSurvey() const { return m_is_participant; }
@@ -82,20 +82,21 @@ public:
 	void Update(bool is_work_off, bool is_school_off);
 
 private:
-	unsigned int    m_id;                    ///< The id.
-	double          m_age;                   ///< The age.
-	char            m_gender;                ///< The gender.
+	unsigned int    m_id;                     ///< The id.
+	double          m_age;                    ///< The age.
+	char            m_gender;                 ///< The gender.
 
-	unsigned int    m_household_id;          ///< The household id.
-	unsigned int    m_school_id;             ///< The school cluster id
-	unsigned int    m_work_id;               ///< The work cluster id
-	unsigned int    m_home_district_id;   	 ///< The home district id
-	unsigned int    m_day_district_id;       ///< The day district id
+	unsigned int    m_household_id;           ///< The household id.
+	unsigned int    m_school_id;              ///< The school cluster id
+	unsigned int    m_work_id;                ///< The work cluster id
+	unsigned int    m_primary_community_id;   ///< The primary community id
+	unsigned int    m_secondary_community_id; ///< The secondary community id
 
-	bool            m_in_household;          ///< Is person present in household today?
-	bool            m_in_home_district;      ///< Is person present in home_district today?
-	bool            m_in_day_cluster;        ///< Is person present in day_cluster today?
-	bool            m_in_day_district;       ///< Is person present in day_district today?
+	bool            m_at_household;           ///< Is person present at household today?
+	bool            m_at_school;              ///< Is person present at school today?
+	bool            m_at_work;                ///< Is person present at work today?
+	bool            m_at_primary_community;   ///< Is person present at primary_community today?
+	bool            m_at_secondary_community;  ///< Is person present at secundary_community today?
 
 	Health          m_health;                ///< Health info for this person.
 

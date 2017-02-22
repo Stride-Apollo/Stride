@@ -37,10 +37,14 @@
 	Stride is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version. Indismo2 is distributed in the 
+	(at your option) any later version. Stride is distributed in the 
 	hope that it will be useful, but without any warranty, without even the 
 	implied warranty of merchantability or fitness for a particular purpose.  
 	See the GNU General Public License for more details.
+	
+	Citation: Willem L, Stijven S, Tijskens E, Beutels P, Hens N and 
+	Broeckhove J. (2015) Optimizing agent-based transmission models for  
+	infectious diseases, BMC Bioinformatics.
 
 	A copy of the GNU General Public License can be found in the indismo
 	project directories (file gpl3.txt) in a directory named doc.

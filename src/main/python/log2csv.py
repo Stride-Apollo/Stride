@@ -49,7 +49,7 @@ def prepare_csv(log_file_path):
         p_writer = csv.DictWriter(p, fieldnames=p_fieldnames)
         p_writer.writeheader()
         
-        c_fieldnames = ['local_id', 'part_age', 'cnt_age', 'cnt_home', 'cnt_school', 'cnt_work', 'cnt_other', 'sim_day']
+        c_fieldnames = ['local_id', 'part_age', 'cnt_age', 'cnt_home', 'cnt_school', 'cnt_work', 'cnt_prim_comm', 'cnt_sec_comm', 'sim_day']
         c_writer = csv.DictWriter(c, fieldnames=c_fieldnames)
         c_writer.writeheader()
         

@@ -31,7 +31,7 @@ def createFromCSV(household_file, work_file, school_file, community_file_week, c
         Create contact matrices from files with diary-study results.
         """
     root = ET.Element("matrices")
-    cluster_types = ["household", "home_district", "work", "school", "day_district"]
+    cluster_types = ["household", "primary_community", "work", "school", "secondary_community"]
     for cluster_type in cluster_types:
         cluster_root = ET.SubElement(root, cluster_type)
         cluster_file = None
@@ -41,7 +41,7 @@ def createFromCSV(household_file, work_file, school_file, community_file_week, c
             cluster_file = work_file
         elif cluster_type == "school":
             cluster_file = school_file
-        elif cluster_type == "home_district":
+        elif cluster_type == "primary_community":
             cluster_file = community_file_weekend
         else:
             cluster_file = community_file_week
@@ -82,7 +82,7 @@ def main(argv):
         createFromCSV(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5])
     else:
         print ""
-        print "!! ERROR: Program requires 5 input files: household, home_district, work, school, day_district, PREFIX"
+        print "!! ERROR: Program requires 5 input files: household, primary_community, work, school, secondary_community, PREFIX"
         print ""
 
 if __name__ == "__main__":

@@ -58,11 +58,11 @@ public:
 	/// Get the current year
 	std::size_t GetYear() const { return m_date.year(); }
 
-        /// Check if it's a holiday
-        bool IsHoliday() const { return (std::find(m_holidays.begin(), m_holidays.end(), m_date) != m_holidays.end()); }
+    /// Check if it's a holiday
+    bool IsHoliday() const { return (std::find(m_holidays.begin(), m_holidays.end(), m_date) != m_holidays.end()); }
 
-        /// Check if it's a school holiday
-        bool IsSchoolHoliday() const { return (std::find(m_school_holidays.begin(), m_school_holidays.end(), m_date) != m_school_holidays.end()); }
+    /// Check if it's a school holiday
+    bool IsSchoolHoliday() const { return (std::find(m_school_holidays.begin(), m_school_holidays.end(), m_date) != m_school_holidays.end()); }
 
 	/// Check if it's the weekend
 	bool IsWeekend() const { return (GetDayOfTheWeek() == 6 || GetDayOfTheWeek() == 0); }

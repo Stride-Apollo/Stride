@@ -34,11 +34,11 @@ using namespace std;
 unsigned int Person::GetClusterId(ClusterType cluster_type) const
 {
         switch (cluster_type) {
-                case ClusterType::Household:        return m_household_id;
-                case ClusterType::School:           return m_school_id;
-                case ClusterType::Work:             return m_work_id;
-                case ClusterType::HomeDistrict:     return m_home_district_id;
-                case ClusterType::DayDistrict:      return m_day_district_id;
+                case ClusterType::Household:          return m_household_id;
+                case ClusterType::School:             return m_school_id;
+                case ClusterType::Work:               return m_work_id;
+                case ClusterType::PrimaryCommunity:   return m_primary_community_id;
+                case ClusterType::SecondaryCommunity: return m_secondary_community_id;
                 default: throw runtime_error(string(__func__)  + "> Should not reach default.");
         }
 }
@@ -46,11 +46,11 @@ unsigned int Person::GetClusterId(ClusterType cluster_type) const
 bool Person::IsInCluster(ClusterType c) const
 {
         switch(c) {
-                case ClusterType::Household:         return m_in_household;
-                case ClusterType::School:            return m_in_day_cluster;
-                case ClusterType::Work:              return m_in_day_cluster;
-                case ClusterType::HomeDistrict:      return m_in_home_district;
-                case ClusterType::DayDistrict:       return m_in_day_district;
+                case ClusterType::Household:           return m_at_household;
+                case ClusterType::School:              return m_at_school;
+                case ClusterType::Work:                return m_at_work;
+                case ClusterType::PrimaryCommunity:    return m_at_primary_community;
+                case ClusterType::SecondaryCommunity:  return m_at_secondary_community;
                 default: throw runtime_error(string(__func__)  + "> Should not reach default.");
         }
 }
@@ -61,13 +61,15 @@ void Person::Update(bool is_work_off, bool is_school_off)
 
         // Update presence in clusters.
         if (is_work_off || (m_age <= MinAdultAge() && is_school_off)) {
-                m_in_day_cluster   = false;
-                m_in_day_district  = false;
-                m_in_home_district = true;
+        		m_at_school             = false;
+                m_at_work               = false;
+                m_at_secondary_community = false;
+                m_at_primary_community  = true;
         } else {
-                m_in_day_cluster   = true;
-                m_in_day_district  = true;
-                m_in_home_district = false;
+        		m_at_school             = true;
+        		m_at_work               = true;
+                m_at_secondary_community = true;
+                m_at_primary_community  = false;
         }
 }
 

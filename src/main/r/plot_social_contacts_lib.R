@@ -47,7 +47,7 @@ plot_social_contacts <- function(data_tag,project_dir)
     sum(cdata$cnt_home)
     sum(cdata$cnt_school)
     sum(cdata$cnt_work)
-    sum(cdata$cnt_other)
+    sum(cdata$cnt_prim_comm)
     
     
     if(dim(cdata)[1]>0 && dim(pdata)[1]>0)
@@ -139,21 +139,25 @@ plot_social_contacts <- function(data_tag,project_dir)
       ## WORK
       mij_work <- plot_cnt_matrix(cdata$cnt_work==1,'work',num_days)
       
-      ## OTHER
-      mij_other <- plot_cnt_matrix(cdata$cnt_other==1,'other',num_days)
-      dim(mij_other)
+      ## PRIMARY COMMUNITY
+      mij_prim_comm <- plot_cnt_matrix(cdata$cnt_prim_comm==1,'prim_comm',num_days)
+      dim(mij_prim_comm)
+      
+      ## SECUNDARY COMMUNITY
+      mij_sec_comm <- plot_cnt_matrix(cdata$cnt_sec_comm==1,'sec_comm',num_days)
+      dim(mij_sec_comm)
       
       ## LOAD SURVEY DATA FROM FLANDERS AND FULLY CONNECTED HOUSEHOLDS
-      survey_mij_hh     <- read.table(file=paste0(project_dir,'/data/ref_miami_household_gam_mij_rec.csv'),sep=';',dec=',',header=T)
-      survey_mij_school <- read.table(file=paste0(project_dir,'/data/ref_fl2010_regular_weekday_school_gam_mij_rec.csv'),sep=';',dec=',',header=T)
-      survey_mij_work   <- read.table(file=paste0(project_dir,'/data/ref_fl2010_regular_weekday_workplace_gam_mij_rec.csv'),sep=';',dec=',',header=T)
-      survey_mij_other  <- read.table(file=paste0(project_dir,'/data/ref_fl2010_regular_weekday_community_gam_mij_rec.csv'),sep=';',dec=',',header=T)
-      survey_mij_total  <- survey_mij_hh + survey_mij_work + survey_mij_school + survey_mij_other
+      survey_mij_hh         <- read.table(file=paste0(project_dir,'/data/ref_miami_household_gam_mij_rec.csv'),sep=';',dec=',',header=T)
+      survey_mij_school     <- read.table(file=paste0(project_dir,'/data/ref_fl2010_regular_weekday_school_gam_mij_rec.csv'),sep=';',dec=',',header=T)
+      survey_mij_work       <- read.table(file=paste0(project_dir,'/data/ref_fl2010_regular_weekday_workplace_gam_mij_rec.csv'),sep=';',dec=',',header=T)
+      survey_mij_community  <- read.table(file=paste0(project_dir,'/data/ref_fl2010_regular_weekday_community_gam_mij_rec.csv'),sep=';',dec=',',header=T)
+      survey_mij_total      <- survey_mij_hh + survey_mij_work + survey_mij_school + survey_mij_community
       
-      survey_mij_school_weekend <- survey_mij_school*0
-      survey_mij_work_weekend <- survey_mij_work*0
-      survey_mij_other_weekend <- read.table(file=paste0(project_dir,'/data/ref_fl2010_weekend_community_gam_mij_rec.csv'),sep=';',dec=',',header=T)
-      survey_mij_total_weekend <- survey_mij_hh + survey_mij_other_weekend 
+      survey_mij_school_weekend    <- survey_mij_school*0
+      survey_mij_work_weekend      <- survey_mij_work*0
+      survey_mij_community_weekend  <- read.table(file=paste0(project_dir,'/data/ref_fl2010_weekend_community_gam_mij_rec.csv'),sep=';',dec=',',header=T)
+      survey_mij_total_weekend     <- survey_mij_hh + survey_mij_community_weekend 
       
       ## COMPARE
       par(mfrow=c(3,2))
@@ -177,9 +181,14 @@ plot_social_contacts <- function(data_tag,project_dir)
       points(colSums(mij_work),col=2)
       legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8)
       
-      plot(colSums(survey_mij_other),main='other',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,15))
-      lines(colSums(survey_mij_other_weekend),type='l',lty=2)
-      points(colSums(mij_other),col=2)
+      plot(colSums(survey_mij_community),main='primary community',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,15))
+      lines(colSums(survey_mij_community_weekend),type='l',lty=2)
+      points(colSums(mij_prim_comm),col=2)
+      legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8)
+      
+      plot(colSums(survey_mij_community),main='secondary community',xlab='age',ylab='contacts',type='l',ylim=c(-0.1,15))
+      lines(colSums(survey_mij_community_weekend),type='l',lty=2)
+      points(colSums(mij_sec_comm),col=2)
       legend('topright',c('week','weekend','model'),col=c(1,1,2),lty=c(1,2,0),pch=c(-1,-1,1),cex=0.8)
       
       dev.off()

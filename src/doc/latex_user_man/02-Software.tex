@@ -9,12 +9,13 @@
 \section{System Requirements}
 \label{section:system}
 
-Indismo is written in C++ and portable over all platforms that have the GNU C++ compiler. 
+Stride is written in C++ and portable over all platforms that have the GNU C++ compiler. 
 De software has no dependencies on external libraries. The following tools needs to be installed:
 \begin{compactitem}
     \item g++
     \item make
     \item CMake
+    \item Boost
     \item Python (optional, for automatization)
     \item Doxygen (optional, for documentation)
     \item LaTeX (optional, for documentation)
@@ -27,10 +28,9 @@ De software has no dependencies on external libraries. The following tools needs
 \section{Installation}
 \label{section:Installation}
 
-To install the project, first obtain the source code by cloning the repository to a directory (e.g., ``git clone
-https://bitbucket.org/indismo/indismo'') or download a zip file with all project
+To install the project, first obtain the source code by cloning the repository to a directory or download a zip file with all project
 material from the Bitbucket website and de-compress the archive. 
-The build system for indismo uses the CMake tool. This is used to build and install the software at a high level of abstraction and almost platform independent (see \url{http://www.cmake.org/}). 
+The build system for Stride uses the CMake tool. This is used to build and install the software at a high level of abstraction and almost platform independent (see \url{http://www.cmake.org/}). 
 The project includes the conventional make targets to ``build'', ``install'', ``test'' and ``clean'' the project. There is one additional target ``configure'' to set up the CMake/make structure that will actually do all the work.
 For those users that do not have a working knowledge of CMake, a front end Makefile has been provided that invokes the appropriate CMake commands.
 More details on building the software can be found in ``INSTALL.txt'' in the source folder.
@@ -44,18 +44,10 @@ More details on building the software can be found in ``INSTALL.txt'' in the sou
 
 The Application Programmer Interface (API) documentation is generated automatically 
 using the Doxygen tool ((see \url{www.doxygen.org}) from documentation instructions 
-embedded in the code . Figure \ref{fig:doxygenapi} presents the home page of the API 
-documentation.
+embedded in the code . 
 
 The user manual distributed with the source code has been written in \LaTeX (see \url{www.latex-project.org}).
 
-\begin{figure}[h]
-	\begin{center}
-		\includegraphics[width=0.8\textwidth]{images/screen_shot_doxygen_API.pdf}  
-	\end{center}
-	\caption{Screenshot of API documentation generated with Doxygen.}
-	\label{fig:doxygenapi}
-\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,12 +77,18 @@ Everything used to build the software is stored in the directory \texttt{./src}:
 \section{File formats}
 \label{section:FileFormats}
 
-The stride software supports two file formats: 
+The Stride software supports different file formats: 
 \begin{description}
 	\item [CSV] \ \\
-	Comma separated values, used for population input data and the simulator output.
+	Comma separated values, used for population input data and simulator output.
+	\item [HDF5] \ \\
+	Hierarchical Data Format 5, designed to store and organize large amounts of data.
 	\item [JSON] \ \\
 	JavaScript Object Notation, an open standard format that uses human-readable text to transmit objects consisting of attribute-value pairs. 	 \mbox{(see \url{www.json.org})}
+	\item [TXT] \ \\
+	Text files, for the logger. 
+	\item [XML] \ \\
+	Extensible Markup Language, a markup language (both human-readable and machine-readable) that defines a set of rules for encoding documents.
 \end{description}
 
 
@@ -98,7 +96,7 @@ The stride software supports two file formats:
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Testing}
-Unit tests and install checks are added to indismo based on Google's ``gtest" framework and CMake's ``ctest" tool. 
+Unit tests and install checks are added to Stride based on Google's ``gtest" framework and CMake's ``ctest" tool. 
 In addition, the code base contains assertions to verify the simulator logic. 
 They are activated when the application is built in debug mode and can be used to catch errors at run time. 
 
@@ -109,12 +107,16 @@ They are activated when the application is built in debug mode and can be used t
 \section{Results}
 \label{section:Results}
 
-The software generates two output files:
+The software can generates different output files:
 \begin{description}
-	\item [Log] \ \\
+	\item [cases.csv] \ \\
 	Cumulative number of cases per day.
-	\item [Output] \ \\
+	\item [summary.csv] \ \\
 	Aggregated results on the number of cases, configuration details and timings.
+	\item [person.csv] \ \\
+	Individual details on infection characteristics.
+	\item [logfile.txt] \ \\
+	Details on transmission and/or social contacts events.
 \end{description}	
 	
 	

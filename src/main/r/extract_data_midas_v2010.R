@@ -154,7 +154,7 @@ extract_data <- function(data_tag,geo_tag)
   ##########################
   
   ## HELPER FUNCTION
-  f_original_id <- data$home_district
+  f_original_id <- data$primary_community
   getSortedId <- function(f_original_id){
     
     # create new variable
@@ -191,7 +191,7 @@ extract_data <- function(data_tag,geo_tag)
   
   
   ##########################
-  ## CREATE DISTRICTS     ##
+  ## CREATE COMMUNITIES   ##
   ##########################
   
   f_cluster_id <- data$sp_hh_id
@@ -201,69 +201,69 @@ extract_data <- function(data_tag,geo_tag)
   names(data)
   
   # FUNCTION: get neighborhood based on given cluster_id's. Start from id 1 and loop untill max id and start new neighborhood if maximum number of members is reached.
-  getDistrict <- function(f_cluster_id,f_popSize){
+  getCommunity <- function(f_cluster_id,f_popSize){
     
-    districtSize = 2000;
-    maxNbDistricts = round(f_popSize / districtSize)
+    communitySize = 2000;
+    maxNbCommunities = round(f_popSize / communitySize)
     
     
     # 1. GET FIRST AND LAST cluster_id FOR EACH NEIGHBORHOOD
-    district_start = rep(0,maxNbDistricts)
-    district_end = rep(0,maxNbDistricts) 
+    community_start = rep(0,maxNbCommunities)
+    community_end = rep(0,maxNbCommunities) 
     
     sizes <- table(f_cluster_id)
     counter <- 0
-    districtId <- 1;
-    district_start[1] <- 0    #start with first cluster
+    communityId <- 1;
+    community_start[1] <- 0    #start with first cluster
     i<-597
     for(i in 1:length(sizes)){
       
       counter = counter + sizes[i]
       
-      if(counter > districtSize){
+      if(counter > communitySize){
         counter <- 0;
-        district_end[districtId] = i;
+        community_end[communityId] = i;
         
         # next neighborhood
-        districtId = districtId + 1;
-        district_start[districtId] = i+1;
+        communityId = communityId + 1;
+        community_start[communityId] = i+1;
         
       }	
     }
-    district_end[districtId] <- length(sizes) # end with last cluster_id
+    community_end[communityId] <- length(sizes) # end with last cluster_id
     
-    district_start[1:10]
-    district_end[1:10]
-    district_start==district_end
-    district_end - district_start
+    community_start[1:10]
+    community_end[1:10]
+    community_start==community_end
+    community_end - community_start
     
     
-    # ASSIGN THE cluster_id's TO THEIR district
-    district_id = rep(NA,popSize)
+    # ASSIGN THE cluster_id's TO THEIR community
+    community_id = rep(NA,popSize)
     i<-1
-    for(i in 1:maxNbDistricts){
-      flag <- f_cluster_id >= district_start[i] & f_cluster_id <= district_end[i]
+    for(i in 1:maxNbCommunities){
+      flag <- f_cluster_id >= community_start[i] & f_cluster_id <= community_end[i]
       sum(flag)
-      district_id[flag] = i
+      community_id[flag] = i
       
     }
-    sum(!is.na(district_id))
-    sum(is.na(district_id))
+    sum(!is.na(community_id))
+    sum(is.na(community_id))
     
     # RETURN
-    return(district_id)
+    return(community_id)
   }
   
-  # GET HOME district
-  data$home_district <- getDistrict(data$sp_hh_id,popSize)
-  tmp <- table(table(data$home_district))
+  # GET HOME community
+  data$primary_community <- getCommunity(data$sp_hh_id,popSize)
+  tmp <- table(table(data$primary_community))
   #plot(tmp,main=paste('geo_tag,': 'home neighborhood size',sep=""),xlab='size',ylab='freq')
   barplot(tmp,main=paste('home neighborhood size',sep=""),xlab='size',ylab='freq',cex.names=0.8)
   
   
-  # GET DAY district = HOME district
-  data$day_district <- data$home_district                                                           # NEW !!!
-  tmp <- table(table(data$day_district[data$day_district>0]))
+  # GET DAY community = HOME community
+  data$secundary_community <- data$primary_community                                                           # NEW !!!
+  tmp <- table(table(data$secundary_community[data$secundary_community>0]))
   #plot(tmp,main=paste(geo_tag,': day neighborhood size',sep=""),xlab='size',ylab='freq')
   #barplot(tmp,main=paste('home neighborhood size',sep=""),xlab='size',ylab='freq')
   
@@ -283,26 +283,26 @@ extract_data <- function(data_tag,geo_tag)
   hub_stat_legend[5] <- paste('>',hub_stat[4,1],sep="")
   
   row.names(hub_stat) <- hub_stat_legend
-  barplot(hub_stat[,2], main=paste('day district size',sep=""),xlab='size',ylab='freq')
+  barplot(hub_stat[,2], main=paste('day community size',sep=""),xlab='size',ylab='freq')
   legend(x=4,y=max(hub_stat[,2]),paste('max size:', row.names(tmp)[length(tmp)]))
   
   
   ############################
-  ## REFORMAT DISTRICT ID's	##
+  ## REFORMAT COMMUNITY ID's	##
   ############################
   
   # id ranges, initial
-  c(min(data$home_district),max(data$home_district))
-  c(min(data$day_district),max(data$day_district))
+  c(min(data$primary_community),max(data$primary_community))
+  c(min(data$secundary_community),max(data$secundary_community))
   
   # adjust: start with id 0
-  data$home_district <- getSortedId(data$home_district)
-  data$day_district  <- getSortedId(data$day_district)
+  data$primary_community <- getSortedId(data$primary_community)
+  data$secundary_community  <- getSortedId(data$secundary_community)
   
   
   # id ranges, final
-  c(min(data$home_district),max(data$home_district))
-  c(min(data$day_district),max(data$day_district))
+  c(min(data$primary_community),max(data$primary_community))
+  c(min(data$secundary_community),max(data$secundary_community))
   
   
   ##########################
@@ -328,17 +328,17 @@ extract_data <- function(data_tag,geo_tag)
     plot(f_out$hh_id,main='hh id'); abline(0,0,0,c(which(steps==1)),lty=3)
     plot(f_out$school_id,main='school id') ;abline(0,0,0,c(which(steps==1)),lty=3)
     plot(f_out$work_id,main='work id') ;abline(0,0,0,c(which(steps==1)),lty=3)
-    plot(f_out$home_district,main='home district') ;abline(0,0,0,c(which(steps==1)),lty=3)
-    plot(f_out$day_district,main='day district') ;abline(0,0,0,c(which(steps==1)),lty=3)
+    plot(f_out$primary_community,main='primary community') ;abline(0,0,0,c(which(steps==1)),lty=3)
+    plot(f_out$secundary_community,main='secondary community') ;abline(0,0,0,c(which(steps==1)),lty=3)
     
     par(mfrow=c(1,1))
   }
   
   #-------------------------------------------------------------
   
-  out <- data.frame(cbind(data$age,data$sp_hh_id,data$sp_school_id,data$sp_work_id,data$home_district,data$day_district))
+  out <- data.frame(cbind(data$age,data$sp_hh_id,data$sp_school_id,data$sp_work_id,data$primary_community,data$secundary_community))
   dim(out)
-  names(out) <- c("age","hh_id","school_id","work_id","home_district","day_district")
+  names(out) <- c("age","hh_id","school_id","work_id","primary_community","secundary_community")
   
   # set NA id's to ""
   out[is.na(out)] <- 0
@@ -348,10 +348,10 @@ extract_data <- function(data_tag,geo_tag)
   # plotIndices(out_new, out_new$hh_id,-3000)
   # write.table(out_new,file=paste("pop_",geo_tag,"_orig.csv",sep=""),sep=",",row.names=FALSE)
   
-  # SORT: home_district, household
-  index <- with(out, order(home_district, hh_id))
+  # SORT: primary_community, household
+  index <- with(out, order(primary_community, hh_id))
   out_new <- out[index,]
-  #plotIndices(out_new, out_new$home_district,-4000)
+  #plotIndices(out_new, out_new$primary_community,-4000)
   write.table(out_new,file=paste("pop_",geo_tag,"_home_hh.csv",sep=""),sep=",",row.names=FALSE)
   
  

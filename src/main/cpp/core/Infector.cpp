@@ -93,13 +93,14 @@ public:
         static void Execute(shared_ptr<spdlog::logger> logger, Person* p1, Person* p2,
                 ClusterType cluster_type, shared_ptr<const Calendar> calendar)
         {
-                unsigned int home   = (cluster_type == ClusterType::Household);
-                unsigned int work   = (cluster_type == ClusterType::Work);
-                unsigned int school = (cluster_type == ClusterType::School);
-                unsigned int other  = (cluster_type == ClusterType::HomeDistrict || cluster_type == ClusterType::DayDistrict);
+                unsigned int home                 = (cluster_type == ClusterType::Household);
+                unsigned int work                 = (cluster_type == ClusterType::Work);
+                unsigned int school               = (cluster_type == ClusterType::School);
+                unsigned int primary_community    = (cluster_type == ClusterType::PrimaryCommunity);
+				unsigned int secundary_community  = (cluster_type == ClusterType::SecondaryCommunity);
 
-                logger->info("[CONT] {} {} {} {} {} {} {} {}",
-                        p1->GetId(), p1->GetAge(), p2->GetAge(), home, school, work, other, calendar->GetSimulationDay());
+                logger->info("[CONT] {} {} {} {} {} {} {} {} {}",
+                        p1->GetId(), p1->GetAge(), p2->GetAge(), home, school, work, primary_community, secundary_community, calendar->GetSimulationDay());
         }
 };
 
