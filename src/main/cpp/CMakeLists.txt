@@ -42,6 +42,8 @@ set(LIB_SRC
 	sim/SimulatorBuilder.cpp
 #---
 	util/InstallDirs.cpp
+#---
+	patterns/Publisher.cpp
 )
 
 set(MAIN_SRC
