@@ -1,0 +1,50 @@
+# TODO specify exact versions on which it has to work
+language: none
+script: make test
+os:
+  - linux
+  #- osx
+dist: trusty
+sudo: required
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:ubuntu-toolchain-r/test'
+    packages:
+      - gcc-5
+      - g++-5
+      - libboost-all-dev
+      - libhdf5-serial-dev
+
+# Some advice on this configuration was taken from:
+# https://genbattle.bitbucket.io/blog/2016/01/17/c++-travis-ci/?
+
+env: 
+  - CXX=g++-5
+    OMP_NUM_THREADS=4
+
+matrix:
+  include:
+    - addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          packages:
+            - clang-3.8
+            - libboost-all-dev
+            - libhdf5-serial-dev
+      env: 
+        - CXX=clang++-3.8
+          OMP_NUM_THREADS=4
+
+#before_install:
+  #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5; fi
+  #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 60 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-3.8; fi
+
+notifications:
+  slack: 
+    rooms:
+      - apollo-stride:u6J7UHJdtlvVNtnUjyRndtgh#code
+    on_failure: always
+    on_success: change
+  email: false

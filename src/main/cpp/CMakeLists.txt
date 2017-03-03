@@ -19,30 +19,32 @@
 # Sources.
 #============================================================================
 set(LIB_SRC
-        #---
-        calendar/Calendar.cpp
-        #---
-        core/Cluster.cpp
-        core/ClusterType.cpp
-        core/ContactProfile.cpp
-        core/DiseaseProfile.cpp
-        core/Health.cpp
-        core/Infector.cpp
-        core/LogMode.cpp
-        #---
-        output/CasesFile.cpp
-        output/PersonFile.cpp
-        output/SummaryFile.cpp
-        #---
-        pop/Person.cpp
-        pop/PopulationBuilder.cpp
-        #---
-        sim/run_stride.cpp
-        sim/Simulator.cpp
-        sim/SimulatorBuilder.cpp
-        #---
-        util/InstallDirs.cpp
-        )
+#---
+    calendar/Calendar.cpp
+#---
+    core/Cluster.cpp
+    core/ClusterType.cpp
+    core/ContactProfile.cpp
+    core/DiseaseProfile.cpp
+    core/Health.cpp
+    core/Infector.cpp
+    core/LogMode.cpp
+#---
+	output/CasesFile.cpp
+	output/PersonFile.cpp
+	output/SummaryFile.cpp
+#---	
+    pop/Person.cpp
+    pop/PopulationBuilder.cpp
+#---
+	sim/run_stride.cpp
+	sim/Simulator.cpp
+	sim/SimulatorBuilder.cpp
+#---
+	util/InstallDirs.cpp
+#---
+	patterns/Publisher.cpp
+)
 
 set(MAIN_SRC
         sim/main.cpp
