@@ -33,8 +33,7 @@ namespace stride {
 /**
  * Initializes Population objects.
  */
-class PopulationBuilder
-{
+class PopulationBuilder {
 public:
 	/**
 	 * Initializes a Population: add persons, set immunity, seed infection.
@@ -44,9 +43,9 @@ public:
 	 * @return                Pointer to the initialized population.
 	 */
 	static std::shared_ptr<Population> Build(
-	        const boost::property_tree::ptree& pt_config,
-	        const boost::property_tree::ptree& pt_disease,
-	        util::Random& rng);
+			const boost::property_tree::ptree& pt_config,
+			const boost::property_tree::ptree& pt_disease,
+			util::Random& rng);
 
 private:
 	/// Get distribution associateed with tag values.

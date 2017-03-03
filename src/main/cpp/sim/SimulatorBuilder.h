@@ -29,37 +29,37 @@
 namespace stride {
 
 class Population;
+
 class Calendar;
 
 /**
  * Main class that contains and direct the virtual world.
  */
-class SimulatorBuilder
-{
+class SimulatorBuilder {
 public:
 	/// Build simulator.
 	static std::shared_ptr<Simulator> Build(
-	        const std::string& config_file_name,
-	        unsigned int num_threads =1U,
-	        bool track_index_case =false);
+			const std::string& config_file_name,
+			unsigned int num_threads = 1U,
+			bool track_index_case = false);
 
-        /// Build simulator.
-        static std::shared_ptr<Simulator> Build(
-                const boost::property_tree::ptree& pt_config,
-                unsigned int num_threads =1U,
-                bool track_index_case =false);
+	/// Build simulator.
+	static std::shared_ptr<Simulator> Build(
+			const boost::property_tree::ptree& pt_config,
+			unsigned int num_threads = 1U,
+			bool track_index_case = false);
 
-        /// Build simulator.
-        static std::shared_ptr<Simulator> Build(
-                const boost::property_tree::ptree& pt_config,
-                const boost::property_tree::ptree& pt_disease,
-                const boost::property_tree::ptree& pt_contact,
-                unsigned int number_of_threads = 1U,
-                bool track_index_case =false);
+	/// Build simulator.
+	static std::shared_ptr<Simulator> Build(
+			const boost::property_tree::ptree& pt_config,
+			const boost::property_tree::ptree& pt_disease,
+			const boost::property_tree::ptree& pt_contact,
+			unsigned int number_of_threads = 1U,
+			bool track_index_case = false);
 
 private:
-        /// Initialize the clusters.
-        static void initializeClusters(std::shared_ptr<Simulator> sim);
+	/// Initialize the clusters.
+	static void initializeClusters(std::shared_ptr<Simulator> sim);
 };
 
 } // end_of_namespace

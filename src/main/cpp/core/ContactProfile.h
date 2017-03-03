@@ -28,14 +28,13 @@
 
 namespace stride {
 
-class ContactProfile : public std::array<double, maximumAge() + 1>
-{
+class ContactProfile : public std::array<double, maximumAge() + 1> {
 public:
-        /// Need to keep the default constructor available.
-        ContactProfile() {};
+	/// Need to keep the default constructor available.
+	ContactProfile() {};
 
-        /// Explicitly initialize
-        ContactProfile(ClusterType cluster_type,  const boost::property_tree::ptree& pt_contacts);
+	/// Explicitly initialize
+	ContactProfile(ClusterType cluster_type, const boost::property_tree::ptree& pt_contacts);
 };
 
 } // namespace

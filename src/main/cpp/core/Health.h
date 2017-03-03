@@ -20,18 +20,19 @@ namespace stride {
 /*
  *
  */
-enum class HealthStatus {Susceptible = 0U, Exposed = 1U, Infectious = 2U,
-        Symptomatic = 3U, InfectiousAndSymptomatic = 4U, Recovered = 5U, Immune = 6U, Null};
+enum class HealthStatus {
+	Susceptible = 0U, Exposed = 1U, Infectious = 2U,
+	Symptomatic = 3U, InfectiousAndSymptomatic = 4U, Recovered = 5U, Immune = 6U, Null
+};
 
 /*
  *
  */
-class Health
-{
+class Health {
 public:
 	///
 	Health(unsigned int start_infectiousness, unsigned int start_symptomatic,
-	        unsigned int time_infectious, unsigned int time_symptomatic);
+		   unsigned int time_infectious, unsigned int time_symptomatic);
 
 	///
 	HealthStatus getHealthStatus() const { return m_status; }
@@ -48,37 +49,34 @@ public:
 	///
 	unsigned int getStartSymptomatic() const { return m_start_symptomatic; }
 
-        ///
-        bool isImmune() const { return m_status == HealthStatus::Immune; }
+	///
+	bool isImmune() const { return m_status == HealthStatus::Immune; }
 
-        ///
-        bool isInfected() const
-        {
-                return m_status == HealthStatus::Exposed
-                        || m_status == HealthStatus::Infectious
-                        || m_status == HealthStatus::InfectiousAndSymptomatic
-                        || m_status == HealthStatus::Symptomatic;
-        }
+	///
+	bool isInfected() const {
+		return m_status == HealthStatus::Exposed
+			   || m_status == HealthStatus::Infectious
+			   || m_status == HealthStatus::InfectiousAndSymptomatic
+			   || m_status == HealthStatus::Symptomatic;
+	}
 
-        ///
-        bool isInfectious() const
-        {
-                return m_status == HealthStatus::Infectious
-                        || m_status == HealthStatus::InfectiousAndSymptomatic;
-        }
+	///
+	bool isInfectious() const {
+		return m_status == HealthStatus::Infectious
+			   || m_status == HealthStatus::InfectiousAndSymptomatic;
+	}
 
-        ///
-        bool isRecovered() const { return m_status == HealthStatus::Recovered; }
+	///
+	bool isRecovered() const { return m_status == HealthStatus::Recovered; }
 
-        /// Is this person susceptible?
-        bool isSusceptible() const { return m_status == HealthStatus::Susceptible; }
+	/// Is this person susceptible?
+	bool isSusceptible() const { return m_status == HealthStatus::Susceptible; }
 
-        /// Is this person symptomatic?
-        bool isSymptomatic() const
-        {
-                return m_status == HealthStatus::Symptomatic
-                        || m_status == HealthStatus::InfectiousAndSymptomatic;
-        }
+	/// Is this person symptomatic?
+	bool isSymptomatic() const {
+		return m_status == HealthStatus::Symptomatic
+			   || m_status == HealthStatus::InfectiousAndSymptomatic;
+	}
 
 	/// Set immune to true.
 	void setImmune();
@@ -103,13 +101,13 @@ private:
 	void resetDiseaseCounter() { m_disease_counter = 0U; }
 
 private:
-	unsigned int            m_disease_counter;              ///< The disease counter.
-	HealthStatus		m_status;                       ///< The current status of the person w.r.t. the disease.
+	unsigned int m_disease_counter;              ///< The disease counter.
+	HealthStatus m_status;                       ///< The current status of the person w.r.t. the disease.
 
-	unsigned int		m_start_infectiousness;         ///< Days after infection to become infectious.
-	unsigned int		m_start_symptomatic;            ///< Days after infection to become symptomatic.
-	unsigned int		m_end_infectiousness;           ///< Days after infection to end infectious state.
-	unsigned int		m_end_symptomatic;              ///< Days after infection to end symptomatic state.
+	unsigned int m_start_infectiousness;         ///< Days after infection to become infectious.
+	unsigned int m_start_symptomatic;            ///< Days after infection to become symptomatic.
+	unsigned int m_end_infectiousness;           ///< Days after infection to end infectious state.
+	unsigned int m_end_symptomatic;              ///< Days after infection to end symptomatic state.
 
 };
 

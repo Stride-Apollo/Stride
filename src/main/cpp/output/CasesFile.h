@@ -30,8 +30,7 @@ namespace output {
 /**
  * Produces a file with daily cases count.
  */
-class CasesFile
-{
+class CasesFile {
 public:
 	/// Constructor: initialize.
 	CasesFile(const std::string& file = "stride_cases");
@@ -47,7 +46,7 @@ private:
 	void initialize(const std::string& file);
 
 private:
-	std::ofstream 	m_fstream;  ///< The file stream.
+	std::ofstream m_fstream;  ///< The file stream.
 };
 
 } // end_of_namespace

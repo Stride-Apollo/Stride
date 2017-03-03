@@ -20,46 +20,35 @@
 
 #include "PersonFile.h"
 
-#include "core/Health.h"
-
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-
 
 namespace stride {
 namespace output {
 
 using namespace std;
 
-PersonFile::PersonFile(const std::string& file)
-{
+PersonFile::PersonFile(const std::string& file) {
 	initialize(file);
 }
 
-PersonFile::~PersonFile()
-{
+PersonFile::~PersonFile() {
 	m_fstream.close();
 }
 
-void PersonFile::initialize(const std::string& file)
-{
+void PersonFile::initialize(const std::string& file) {
 	m_fstream.open((file + "_person.csv").c_str());
 
 	// add header
 	m_fstream << "id,is_recovered,is_immune,start_infectiousness;"
-			<< "end_infectiousness,start_symptomatic,end_symptomatic" << endl;
+			  << "end_infectiousness,start_symptomatic,end_symptomatic" << endl;
 }
 
-void PersonFile::print(const std::shared_ptr<const Population> population)
-{
-	for(const auto& p : *population) {
-	        const auto& h = p.getHealth();
-		if ( !h.isSusceptible() ) {
-			m_fstream << p.getId() << ","  << h.isRecovered() << "," << h.isImmune() << ","
-			        << h.getStartInfectiousness() << "," << h.getEndInfectiousness() << ","
-			        << h.getStartSymptomatic() << "," << h.getEndSymptomatic()  << endl;
+void PersonFile::print(const std::shared_ptr<const Population> population) {
+	for (const auto& p : *population) {
+		const auto& h = p.getHealth();
+		if (!h.isSusceptible()) {
+			m_fstream << p.getId() << "," << h.isRecovered() << "," << h.isImmune() << ","
+					  << h.getStartInfectiousness() << "," << h.getEndInfectiousness() << ","
+					  << h.getStartSymptomatic() << "," << h.getEndSymptomatic() << endl;
 		}
 	}
 }

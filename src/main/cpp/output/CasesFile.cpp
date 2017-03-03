@@ -21,36 +21,29 @@
 #include "CasesFile.h"
 
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
 
 namespace stride {
 namespace output {
 
 using namespace std;
 
-CasesFile::CasesFile(const std::string& file)
-{
+CasesFile::CasesFile(const std::string& file) {
 	initialize(file);
 }
 
-CasesFile::~CasesFile()
-{
+CasesFile::~CasesFile() {
 	m_fstream.close();
 }
 
-void CasesFile::initialize(const std::string& file)
-{
+void CasesFile::initialize(const std::string& file) {
 	m_fstream.open((file + "_cases.csv").c_str());
 }
 
-void CasesFile::print(const vector<unsigned int>& cases)
-{
-	for(unsigned int i = 0; i < (cases.size()-1); i++) {
-		m_fstream << cases[i] << "," ;
+void CasesFile::print(const vector<unsigned int>& cases) {
+	for (unsigned int i = 0; i < (cases.size() - 1); i++) {
+		m_fstream << cases[i] << ",";
 	}
-	m_fstream << cases[cases.size()-1] << endl;
+	m_fstream << cases[cases.size() - 1] << endl;
 }
 
 } // end_of_namespace

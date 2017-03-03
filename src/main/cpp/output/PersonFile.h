@@ -33,8 +33,7 @@ namespace output {
 /**
  * Produces a file with daily cases count.
  */
-class PersonFile
-{
+class PersonFile {
 public:
 	/// Constructor: initialize.
 	PersonFile(const std::string& file = "stride_person");
@@ -50,7 +49,7 @@ private:
 	void initialize(const std::string& file);
 
 private:
-	std::ofstream 	m_fstream;  ///< The file stream.
+	std::ofstream m_fstream;  ///< The file stream.
 };
 
 } // end_of_namespace
