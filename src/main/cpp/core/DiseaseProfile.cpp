@@ -25,7 +25,7 @@ namespace stride {
 using namespace std;
 using namespace boost::property_tree;
 
-void DiseaseProfile::Initialize(const ptree& pt_config, const ptree& pt_disease)
+void DiseaseProfile::initialize(const ptree& pt_config, const ptree& pt_disease)
 {
         // Use linear model fitted to simulation data: Expected(R0) = (b0+b1*transm_rate).
         const double r0   = pt_config.get<double>("run.r0");

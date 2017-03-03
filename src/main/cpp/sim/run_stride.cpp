@@ -57,23 +57,23 @@ using namespace std::chrono;
 void run_stride(bool track_index_case, const string& config_file_name)
 {
         // -----------------------------------------------------------------------------------------
-        // Print output to command line.
+        // print output to command line.
         // -----------------------------------------------------------------------------------------
         cout << "\n*************************************************************" << endl;
-        cout << "Starting up at:      " << TimeStamp().ToString() << endl;
-        cout << "Executing:           " << InstallDirs::GetExecPath().string() << endl;
-        cout << "Current directory:   " << InstallDirs::GetCurrentDir().string() << endl;
-        cout << "Install directory:   " << InstallDirs::GetRootDir().string() << endl;
-        cout << "Data    directory:   " << InstallDirs::GetDataDir().string() << endl;
+        cout << "Starting up at:      " << TimeStamp().toString() << endl;
+        cout << "Executing:           " << InstallDirs::getExecPath().string() << endl;
+        cout << "Current directory:   " << InstallDirs::getCurrentDir().string() << endl;
+        cout << "Install directory:   " << InstallDirs::getRootDir().string() << endl;
+        cout << "Data    directory:   " << InstallDirs::getDataDir().string() << endl;
 
 
         // -----------------------------------------------------------------------------------------
-        // Check execution environment.
+        // check execution environment.
         // -----------------------------------------------------------------------------------------
-        if ( InstallDirs::GetCurrentDir().compare(InstallDirs::GetRootDir()) != 0 ) {
+        if (InstallDirs::getCurrentDir().compare(InstallDirs::getRootDir()) != 0 ) {
                 throw runtime_error(string(__func__) + "> Current directory is not install root! Aborting.");
         }
-        if ( InstallDirs::GetDataDir().empty() ) {
+        if (InstallDirs::getDataDir().empty() ) {
                 throw runtime_error(string(__func__) + "> Data directory not present! Aborting.");
         }
 
@@ -97,7 +97,7 @@ void run_stride(bool track_index_case, const string& config_file_name)
         {
                 num_threads = omp_get_num_threads();
         }
-        if (ConfigInfo::HaveOpenMP()) {
+        if (ConfigInfo::haveOpenMP()) {
                 cout << "Using OpenMP threads:  " << num_threads << endl;
         } else {
                 cout << "Not using OpenMP threads." << endl;
@@ -107,7 +107,7 @@ void run_stride(bool track_index_case, const string& config_file_name)
         // -----------------------------------------------------------------------------------------
         auto output_prefix = pt_config.get<string>("run.output_prefix", "");
         if (output_prefix.length() == 0) {
-                output_prefix = TimeStamp().ToTag();
+                output_prefix = TimeStamp().toTag();
         }
         cout << "Project output tag:  " << output_prefix << endl << endl;
 
@@ -149,11 +149,11 @@ void run_stride(bool track_index_case, const string& config_file_name)
         vector<unsigned int> cases(num_days);
         for (unsigned int i = 0; i < num_days; i++) {
                 cout << "Simulating day: " << setw(5) << i;
-                run_clock.Start();
-                sim->TimeStep();
-                run_clock.Stop();
+                run_clock.start();
+                sim->timeStep();
+                run_clock.stop();
                 cout << "     Done, infected count: ";
-                cases[i] = sim->GetPopulation()->GetInfectedCount();
+                cases[i] = sim->getPopulation()->getInfectedCount();
                 cout << setw(10) << cases[i] << endl;
         }
 
@@ -162,28 +162,28 @@ void run_stride(bool track_index_case, const string& config_file_name)
         // -----------------------------------------------------------------------------------------
         // Cases
         CasesFile    cases_file(output_prefix);
-        cases_file.Print(cases);
+	cases_file.print(cases);
 
         // Summary
         SummaryFile  summary_file(output_prefix);
-        summary_file.Print(pt_config,
-                sim->GetPopulation()->size(), sim->GetPopulation()->GetInfectedCount(),
-                duration_cast<milliseconds>(run_clock.Get()).count(),
-                duration_cast<milliseconds>(total_clock.Get()).count());
+        summary_file.print(pt_config,
+                           sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
+                           duration_cast<milliseconds>(run_clock.get()).count(),
+                           duration_cast<milliseconds>(total_clock.get()).count());
 
         // Persons
         if (pt_config.get<double>("run.generate_person_file") == 1) {
                 PersonFile	 person_file(output_prefix);
-                person_file.Print(sim->GetPopulation());
+                person_file.print(sim->getPopulation());
         }
 
         // -----------------------------------------------------------------------------------------
-        // Print final message to command line.
+        // print final message to command line.
         // -----------------------------------------------------------------------------------------
         cout << endl << endl;
-        cout << "  run_time: " << run_clock.ToString()
-                                << "  -- total time: " << total_clock.ToString() << endl << endl;
-        cout << "Exiting at:         " << TimeStamp().ToString() << endl << endl;
+        cout << "  run_time: " << run_clock.toString()
+                                << "  -- total time: " << total_clock.toString() << endl << endl;
+        cout << "Exiting at:         " << TimeStamp().toString() << endl << endl;
 }
 
 } // end_of_namespace

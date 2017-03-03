@@ -31,7 +31,7 @@ namespace stride {
 
 using namespace std;
 
-unsigned int Person::GetClusterId(ClusterType cluster_type) const
+unsigned int Person::getClusterId(ClusterType cluster_type) const
 {
         switch (cluster_type) {
                 case ClusterType::Household:          return m_household_id;
@@ -43,7 +43,7 @@ unsigned int Person::GetClusterId(ClusterType cluster_type) const
         }
 }
 
-bool Person::IsInCluster(ClusterType c) const
+bool Person::isInCluster(ClusterType c) const
 {
         switch(c) {
                 case ClusterType::Household:           return m_at_household;
@@ -55,12 +55,12 @@ bool Person::IsInCluster(ClusterType c) const
         }
 }
 
-void Person::Update(bool is_work_off, bool is_school_off)
+void Person::update(bool is_work_off, bool is_school_off)
 {
-        m_health.Update();
+	m_health.update();
 
-        // Update presence in clusters.
-        if (is_work_off || (m_age <= MinAdultAge() && is_school_off)) {
+        // update presence in clusters.
+        if (is_work_off || (m_age <= minAdultAge() && is_school_off)) {
         		m_at_school             = false;
                 m_at_work               = false;
                 m_at_secondary_community = false;

@@ -34,13 +34,13 @@ public:
         DaysOffSchool(std::shared_ptr<Calendar> cal) : m_calendar(cal) {}
 
         /// See DaysOffInterface.
-        bool IsWorkOff() override
+        bool isWorkOff() override
         {
-                return m_calendar->IsWeekend() || m_calendar->IsHoliday();
+                return m_calendar->isWeekend() || m_calendar->isHoliday();
         }
 
         /// See DaysOffInterface.
-        virtual bool IsSchoolOff() override { return true; }
+        virtual bool isSchoolOff() override { return true; }
 
 private:
         std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.

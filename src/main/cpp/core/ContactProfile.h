@@ -28,7 +28,7 @@
 
 namespace stride {
 
-class ContactProfile : public std::array<double, MaximumAge() + 1>
+class ContactProfile : public std::array<double, maximumAge() + 1>
 {
 public:
         /// Need to keep the default constructor available.

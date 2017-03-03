@@ -35,7 +35,7 @@ namespace util{
 struct TimeToString
 {
 	/// Procude string in hh:mm:ss format.
-	static std::string ToColonString(std::chrono::seconds d)
+	static std::string toColonString(std::chrono::seconds d)
 	{
 		using namespace std;
 		using namespace std::chrono;
@@ -51,7 +51,7 @@ struct TimeToString
 	}
 
 	/// Produce string in hh:mm:ss:mus format
-	static std::string ToColonString(std::chrono::milliseconds d)
+	static std::string toColonString(std::chrono::milliseconds d)
 	{
 		using namespace std;
 		using namespace std::chrono;
@@ -68,7 +68,7 @@ struct TimeToString
 	}
 
 	/// Produce string in hh:mm:ss:ms:mus format.
-	static std::string ToColonString(std::chrono::microseconds d)
+	static std::string toColonString(std::chrono::microseconds d)
 	{
 		using namespace std;
 		using namespace std::chrono;
@@ -86,7 +86,7 @@ struct TimeToString
 	}
 
 	/// Produce string in hh:mm:ss:ms:mus:ns format.
-	static std::string ToColonString(std::chrono::nanoseconds d)
+	static std::string toColonString(std::chrono::nanoseconds d)
 	{
 		using namespace std;
 		using namespace std::chrono;

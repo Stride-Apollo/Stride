@@ -48,19 +48,19 @@ map<string, LogMode> g_name_log_mode {
 
 namespace stride {
 
-string ToString(LogMode l)
+string toString(LogMode l)
 {
 	return (g_log_mode_name.count(l) == 1) ? g_log_mode_name[l] : "Null";
 }
 
-bool IsLogMode(const string& s)
+bool isLogMode(const string& s)
 {
         std::string t {s};
         to_upper(t);
         return (g_name_log_mode.count(t) == 1);
 }
 
-LogMode ToLogMode(const string& s)
+LogMode toLogMode(const string& s)
 {
         std::string t {s};
         to_upper(t);

@@ -61,7 +61,7 @@ shared_ptr<Population> PopulationBuilder::Build(
         const string disease_config_file  = pt_config.get<string>("run.disease_config_file");
 
         //------------------------------------------------
-        // Check input.
+        // check input.
         //------------------------------------------------
         bool status = (seeding_rate <= 1) && (immunity_rate <= 1) && ((seeding_rate + immunity_rate) <= 1);
         if ( !status ) {
@@ -72,7 +72,7 @@ shared_ptr<Population> PopulationBuilder::Build(
         // Add persons to population.
         //------------------------------------------------
         const auto file_name = pt_config.get<string>("run.population_file");;
-        const auto file_path = InstallDirs::GetDataDir() /= file_name;
+        const auto file_path = InstallDirs::getDataDir() /= file_name;
         if ( !is_regular_file(file_path) ) {
                 throw runtime_error(string(__func__)
                         + "> Population file " + file_path.string() + " not present.");
@@ -85,28 +85,28 @@ shared_ptr<Population> PopulationBuilder::Build(
                         + "> Error opening population file " + file_path.string());
         }
 
-        const auto distrib_start_infectiousness = GetDistribution(pt_disease, "disease.start_infectiousness");
-        const auto distrib_start_symptomatic    = GetDistribution(pt_disease, "disease.start_symptomatic");
-        const auto distrib_time_infectious      = GetDistribution(pt_disease, "disease.time_infectious");
-        const auto distrib_time_symptomatic     = GetDistribution(pt_disease, "disease.time_symptomatic");
+        const auto distrib_start_infectiousness = getDistribution(pt_disease, "disease.start_infectiousness");
+        const auto distrib_start_symptomatic    = getDistribution(pt_disease, "disease.start_symptomatic");
+        const auto distrib_time_infectious      = getDistribution(pt_disease, "disease.time_infectious");
+        const auto distrib_time_symptomatic     = getDistribution(pt_disease, "disease.time_symptomatic");
 
         string line;
         getline(pop_file, line); // step over file header
         unsigned int person_id = 0U;
         while (getline(pop_file, line)) {
                 // Make use of stochastic disease characteristics.
-                const auto start_infectiousness = Sample(rng, distrib_start_infectiousness);
-                const auto start_symptomatic    = Sample(rng, distrib_start_symptomatic);
-                const auto time_infectious      = Sample(rng, distrib_time_infectious);
-                const auto time_symptomatic     = Sample(rng, distrib_time_symptomatic);
-                const auto values = StringUtils::Split(line, ",");
+                const auto start_infectiousness = sample(rng, distrib_start_infectiousness);
+                const auto start_symptomatic    = sample(rng, distrib_start_symptomatic);
+                const auto time_infectious      = sample(rng, distrib_time_infectious);
+                const auto time_symptomatic     = sample(rng, distrib_time_symptomatic);
+                const auto values = StringUtils::split(line, ",");
                 population.emplace_back(Person(person_id,
-                        StringUtils::FromString<unsigned int>(values[0]),
-                        StringUtils::FromString<unsigned int>(values[1]),
-                        StringUtils::FromString<unsigned int>(values[2]),
-                        StringUtils::FromString<unsigned int>(values[3]),
-                        StringUtils::FromString<unsigned int>(values[4]),
-                        StringUtils::FromString<unsigned int>(values[5]),
+                                               StringUtils::fromString<unsigned int>(values[0]),
+                                               StringUtils::fromString<unsigned int>(values[1]),
+                                               StringUtils::fromString<unsigned int>(values[2]),
+                                               StringUtils::fromString<unsigned int>(values[3]),
+                                               StringUtils::fromString<unsigned int>(values[4]),
+                                               StringUtils::fromString<unsigned int>(values[5]),
                         start_infectiousness, start_symptomatic, time_infectious, time_symptomatic));
                 ++person_id;
         }
@@ -134,9 +134,9 @@ shared_ptr<Population> PopulationBuilder::Build(
                 const shared_ptr<spdlog::logger> logger = spdlog::get("contact_logger");
                 while(num_samples < num_participants){
                         Person& p = population[rng(max_population_index)];
-                        if ( !p.IsParticipatingInSurvey() ) {
-                                p.ParticipateInSurvey();
-                                logger->info("[PART] {} {} {}", p.GetId(), p.GetAge(), p.GetGender());
+                        if ( !p.isParticipatingInSurvey() ) {
+                                p.participateInSurvey();
+                                logger->info("[PART] {} {} {}", p.getId(), p.getAge(), p.getGender());
                                 num_samples++;
                         }
                 }
@@ -148,8 +148,8 @@ shared_ptr<Population> PopulationBuilder::Build(
         unsigned int num_immune = floor(static_cast<double>(population.size()) * immunity_rate);
         while (num_immune > 0) {
                 Person& p = population[rng(max_population_index)];
-                if (p.GetHealth().IsSusceptible()) {
-                        p.GetHealth().SetImmune();
+                if (p.getHealth().isSusceptible()) {
+                        p.getHealth().setImmune();
                         num_immune--;
                 }
         }
@@ -160,8 +160,8 @@ shared_ptr<Population> PopulationBuilder::Build(
         unsigned int num_infected = floor(static_cast<double> (population.size()) * seeding_rate);
         while (num_infected > 0) {
                 Person& p = population[rng(max_population_index)];
-                if (p.GetHealth().IsSusceptible()) {
-                        p.GetHealth().StartInfection();
+                if (p.getHealth().isSusceptible()) {
+                        p.getHealth().startInfection();
                         num_infected--;
                 }
         }
@@ -173,7 +173,7 @@ shared_ptr<Population> PopulationBuilder::Build(
 }
 
 
-vector<double> PopulationBuilder::GetDistribution(const boost::property_tree::ptree& pt_root, const string& xml_tag)
+vector<double> PopulationBuilder::getDistribution(const boost::property_tree::ptree& pt_root, const string& xml_tag)
 {
         vector<double> values;
         boost::property_tree::ptree subtree = pt_root.get_child(xml_tag);
@@ -183,9 +183,9 @@ vector<double> PopulationBuilder::GetDistribution(const boost::property_tree::pt
         return values;
 }
 
-unsigned int PopulationBuilder::Sample(Random& rng, const vector<double>& distribution)
+unsigned int PopulationBuilder::sample(Random& rng, const vector<double>& distribution)
 {
-        double random_value = rng.NextDouble();
+        double random_value = rng.nextDouble();
         for(unsigned int i = 0; i < distribution.size(); i++) {
                 if (random_value <= distribution[i]) {
                         return i;

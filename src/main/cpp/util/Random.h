@@ -41,7 +41,7 @@ public:
 	}
 
 	/// Get random double.
-	double NextDouble()
+	double nextDouble()
 	{
 		return m_uniform_dist(m_engine);
 
@@ -60,7 +60,7 @@ public:
 	 * => stream A: 0 2 4...
 	 * => stream B: 1 3 5...
 	 */
-	void Split(unsigned int total, unsigned int id)
+	void split(unsigned int total, unsigned int id)
 	{
 		m_engine.split(total,id);
 	}

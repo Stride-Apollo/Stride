@@ -39,8 +39,8 @@ class Infector
 {
 public:
 	///
-	static void Execute(Cluster& cluster, DiseaseProfile disease_profile,
-	        RngHandler& contact_handler, std::shared_ptr<const Calendar> sim_state);
+	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
+						RngHandler& contact_handler, std::shared_ptr<const Calendar> sim_state);
 };
 
 /**
@@ -51,8 +51,8 @@ class Infector<LogMode::Contacts, track_index_case>
 {
 public:
         ///
-        static void Execute(Cluster& cluster, DiseaseProfile disease_profile,
-                RngHandler& contact_handler, std::shared_ptr<const Calendar> calendar);
+        static void execute(Cluster& cluster, DiseaseProfile disease_profile,
+							RngHandler& contact_handler, std::shared_ptr<const Calendar> calendar);
 };
 
 /// Explicit instantiation in cpp file.

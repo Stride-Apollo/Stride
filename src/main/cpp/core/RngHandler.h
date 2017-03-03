@@ -35,25 +35,25 @@ public:
 	RngHandler(unsigned int seed, unsigned int stream_count, unsigned int id)
 			: m_rng(seed)
 	{
-		m_rng.Split(stream_count, id);
+		m_rng.split(stream_count, id);
 	}
 
 	/// Convert rate into probability
-	double RateToProbability(double rate)
+	double rateToProbability(double rate)
 	{
 		return 1 - exp(-rate);
 	}
 
 	/// Check if two individuals have transmission.
-    bool HasTransmission(double contact_rate, double transmission_rate)
+    bool hasTransmission(double contact_rate, double transmission_rate)
 	{
-			return m_rng.NextDouble() < RateToProbability(transmission_rate * contact_rate);
+			return m_rng.nextDouble() < rateToProbability(transmission_rate * contact_rate);
 	}
 
 	/// Check if two individuals have contact.
-	bool HasContact(double contact_rate)
+	bool hasContact(double contact_rate)
 	{
-			return m_rng.NextDouble() < RateToProbability(contact_rate);
+			return m_rng.nextDouble() < rateToProbability(contact_rate);
 	}
 
 private:

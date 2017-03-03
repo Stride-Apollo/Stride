@@ -35,7 +35,7 @@ using namespace std;
 
 PersonFile::PersonFile(const std::string& file)
 {
-	Initialize(file);
+	initialize(file);
 }
 
 PersonFile::~PersonFile()
@@ -43,7 +43,7 @@ PersonFile::~PersonFile()
 	m_fstream.close();
 }
 
-void PersonFile::Initialize(const std::string& file)
+void PersonFile::initialize(const std::string& file)
 {
 	m_fstream.open((file + "_person.csv").c_str());
 
@@ -52,14 +52,14 @@ void PersonFile::Initialize(const std::string& file)
 			<< "end_infectiousness,start_symptomatic,end_symptomatic" << endl;
 }
 
-void PersonFile::Print(const std::shared_ptr<const Population> population)
+void PersonFile::print(const std::shared_ptr<const Population> population)
 {
 	for(const auto& p : *population) {
-	        const auto& h = p.GetHealth();
-		if ( !h.IsSusceptible() ) {
-			m_fstream << p.GetId() << ","  << h.IsRecovered() << "," << h.IsImmune() << ","
-			        << h.GetStartInfectiousness() << "," << h.GetEndInfectiousness() << ","
-			        << h.GetStartSymptomatic() << "," << h.GetEndSymptomatic()  << endl;
+	        const auto& h = p.getHealth();
+		if ( !h.isSusceptible() ) {
+			m_fstream << p.getId() << ","  << h.isRecovered() << "," << h.isImmune() << ","
+			        << h.getStartInfectiousness() << "," << h.getEndInfectiousness() << ","
+			        << h.getStartSymptomatic() << "," << h.getEndSymptomatic()  << endl;
 		}
 	}
 }

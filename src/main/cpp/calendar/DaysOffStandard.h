@@ -37,15 +37,15 @@ public:
         DaysOffStandard(std::shared_ptr<Calendar> cal) : m_calendar(cal) {}
 
         /// See DaysOffInterface.
-        bool IsWorkOff() override
+        bool isWorkOff() override
         {
-                return m_calendar->IsWeekend() || m_calendar->IsHoliday();
+                return m_calendar->isWeekend() || m_calendar->isHoliday();
         }
 
         /// See DaysOffInterface.
-        virtual bool IsSchoolOff() override
+        virtual bool isSchoolOff() override
         {
-                return m_calendar->IsWeekend() || m_calendar->IsHoliday() || m_calendar->IsSchoolHoliday();
+                return m_calendar->isWeekend() || m_calendar->isHoliday() || m_calendar->isSchoolHoliday();
         }
 
 private:

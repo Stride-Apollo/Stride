@@ -46,7 +46,7 @@ public:
 	}
 
 	/// Starts stopwatch if it was stopped.
-	Stopwatch& Start()
+	Stopwatch& start()
 	{
 		if (!m_running) {
 			m_running = true;
@@ -56,7 +56,7 @@ public:
 	}
 
 	/// Stops the stopwatch if it was running.
-	Stopwatch& Stop()
+	Stopwatch& stop()
 	{
 		if (m_running) {
 			m_accumulated += (T::now() - m_last_start);
@@ -66,7 +66,7 @@ public:
 	}
 
 	/// Resets stopwatch i.e. stopwatch is stopped and time accumulator is cleared.
-	Stopwatch& Reset()
+	Stopwatch& reset()
 	{
 		m_accumulated = T::duration::zero();
 		m_running = false;
@@ -74,19 +74,19 @@ public:
 	}
 
 	/// Reports whether stopwatch has been started.
-	bool IsRunning() const
+	bool isRunning() const
 	{
 		return (m_running);
 	}
 
 	/// Return name of this stopwatch
-	std::string GetName() const
+	std::string getName() const
 	{
 		return m_name;
 	}
 
 	/// Returns the accumulated value without altering the stopwatch state.
-	typename T::duration Get() const
+	typename T::duration get() const
 	{
 		auto fTemp = m_accumulated;
 		if (m_running) {
@@ -96,7 +96,7 @@ public:
 	}
 
 	/// Returns string representation of readout
-	std::string ToString() const
+	std::string toString() const
 	{
 		using namespace std;
 		using namespace std::chrono;
@@ -104,14 +104,14 @@ public:
 		string colon_string;
 		typedef typename TClock::period TPeriod;
 		if (ratio_less_equal<TPeriod, micro>::value) {
-			microseconds d = duration_cast < microseconds > (Get());
-			colon_string = TimeToString::ToColonString(d);
+			microseconds d = duration_cast < microseconds > (get());
+			colon_string = TimeToString::toColonString(d);
 		} else if (ratio_less_equal<TPeriod, milli>::value) {
-			milliseconds d = duration_cast < milliseconds > (Get());
-			colon_string = TimeToString::ToColonString(d);
+			milliseconds d = duration_cast < milliseconds > (get());
+			colon_string = TimeToString::toColonString(d);
 		} else {
-			seconds d = duration_cast < seconds > (Get());
-			colon_string = TimeToString::ToColonString(d);
+			seconds d = duration_cast < seconds > (get());
+			colon_string = TimeToString::toColonString(d);
 		}
 		return colon_string;
 	}

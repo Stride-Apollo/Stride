@@ -34,25 +34,25 @@ public:
 	        unsigned int time_infectious, unsigned int time_symptomatic);
 
 	///
-	HealthStatus GetHealthStatus() const { return m_status; }
+	HealthStatus getHealthStatus() const { return m_status; }
 
 	///
-	unsigned int GetEndInfectiousness() const { return m_end_infectiousness; }
+	unsigned int getEndInfectiousness() const { return m_end_infectiousness; }
 
 	///
-	unsigned int GetEndSymptomatic() const { return m_end_symptomatic; }
+	unsigned int getEndSymptomatic() const { return m_end_symptomatic; }
 
 	///
-	unsigned int GetStartInfectiousness() const { return m_start_infectiousness; }
+	unsigned int getStartInfectiousness() const { return m_start_infectiousness; }
 
 	///
-	unsigned int GetStartSymptomatic() const { return m_start_symptomatic; }
+	unsigned int getStartSymptomatic() const { return m_start_symptomatic; }
 
         ///
-        bool IsImmune() const { return m_status == HealthStatus::Immune; }
+        bool isImmune() const { return m_status == HealthStatus::Immune; }
 
         ///
-        bool IsInfected() const
+        bool isInfected() const
         {
                 return m_status == HealthStatus::Exposed
                         || m_status == HealthStatus::Infectious
@@ -61,46 +61,46 @@ public:
         }
 
         ///
-        bool IsInfectious() const
+        bool isInfectious() const
         {
                 return m_status == HealthStatus::Infectious
                         || m_status == HealthStatus::InfectiousAndSymptomatic;
         }
 
         ///
-        bool IsRecovered() const { return m_status == HealthStatus::Recovered; }
+        bool isRecovered() const { return m_status == HealthStatus::Recovered; }
 
         /// Is this person susceptible?
-        bool IsSusceptible() const { return m_status == HealthStatus::Susceptible; }
+        bool isSusceptible() const { return m_status == HealthStatus::Susceptible; }
 
         /// Is this person symptomatic?
-        bool IsSymptomatic() const
+        bool isSymptomatic() const
         {
                 return m_status == HealthStatus::Symptomatic
                         || m_status == HealthStatus::InfectiousAndSymptomatic;
         }
 
 	/// Set immune to true.
-	void SetImmune();
+	void setImmune();
 
 	/// Start the infection.
-	void StartInfection();
+	void startInfection();
 
 	/// Stop the infection.
-	void StopInfection();
+	void stopInfection();
 
 	/// Update progress of the disease.
-	void Update();
+	void update();
 
 private:
 	/// Get the disease counter.
-	unsigned int GetDiseaseCounter() const { return m_disease_counter; }
+	unsigned int getDiseaseCounter() const { return m_disease_counter; }
 
 	/// Increment disease counter.
-	void IncrementDiseaseCounter() { m_disease_counter++; }
+	void incrementDiseaseCounter() { m_disease_counter++; }
 
 	/// Reset the disease counter.
-	void ResetDiseaseCounter() { m_disease_counter = 0U; }
+	void resetDiseaseCounter() { m_disease_counter = 0U; }
 
 private:
 	unsigned int            m_disease_counter;              ///< The disease counter.

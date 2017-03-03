@@ -34,39 +34,39 @@ namespace stride {
 
 using namespace std;
 
-std::array<ContactProfile, NumOfClusterTypes()> Cluster::g_profiles;
+std::array<ContactProfile, numOfClusterTypes()> Cluster::g_profiles;
 
 Cluster::Cluster(std::size_t cluster_id, ClusterType cluster_type)
         : m_cluster_id(cluster_id), m_cluster_type(cluster_type),
-          m_index_immune(0), m_profile(g_profiles.at(ToSizeType(m_cluster_type)))
+          m_index_immune(0), m_profile(g_profiles.at(toSizeType(m_cluster_type)))
 {
 }
 
-void Cluster::AddContactProfile(ClusterType cluster_type, const ContactProfile& profile)
+void Cluster::addContactProfile(ClusterType cluster_type, const ContactProfile& profile)
 {
-        g_profiles.at(ToSizeType(cluster_type)) = profile;
+        g_profiles.at(toSizeType(cluster_type)) = profile;
 }
 
 
-void Cluster::AddPerson(Person* p)
+void Cluster::addPerson(Person* p)
 {
         m_members.emplace_back(std::make_pair(p, true));
         m_index_immune++;
 }
 
-tuple<bool, size_t> Cluster::SortMembers()
+tuple<bool, size_t> Cluster::sortMembers()
 {
         bool infectious_cases = false;
         size_t num_cases = 0;
 
         for (size_t i_member = 0; i_member < m_index_immune; i_member++) {
                 // if immune, move to back
-                if (m_members[i_member].first->GetHealth().IsImmune()) {
+                if (m_members[i_member].first->getHealth().isImmune()) {
                         bool swapped = false;
                         size_t new_place = m_index_immune - 1;
                         m_index_immune--;
                         while(! swapped && new_place > i_member) {
-                                if (m_members[new_place].first->GetHealth().IsImmune()) {
+                                if (m_members[new_place].first->getHealth().isImmune()) {
                                         m_index_immune--;
                                         new_place--;
                                 } else {
@@ -76,8 +76,8 @@ tuple<bool, size_t> Cluster::SortMembers()
                         }
                 }
                 // else, if not susceptible, move to front
-                else if (!m_members[i_member].first->GetHealth().IsSusceptible()) {
-                        if (!infectious_cases && m_members[i_member].first->GetHealth().IsInfectious()) {
+                else if (!m_members[i_member].first->getHealth().isSusceptible()) {
+                        if (!infectious_cases && m_members[i_member].first->getHealth().isInfectious()) {
                                 infectious_cases = true;
                         }
                         if (i_member > num_cases) {
@@ -90,10 +90,10 @@ tuple<bool, size_t> Cluster::SortMembers()
         return make_tuple(infectious_cases, num_cases);
 }
 
-void Cluster::UpdateMemberPresence()
+void Cluster::updateMemberPresence()
 {
         for (auto& member: m_members) {
-                member.second = member.first->IsInCluster(m_cluster_type);
+                member.second = member.first->isInCluster(m_cluster_type);
         }
 }
 

@@ -44,12 +44,12 @@ Simulator::Simulator()
 {
 }
 
-const shared_ptr<const Population> Simulator::GetPopulation() const
+const shared_ptr<const Population> Simulator::getPopulation() const
 {
         return m_population;
 }
 
-void Simulator::SetTrackIndexCase(bool track_index_case)
+void Simulator::setTrackIndexCase(bool track_index_case)
 {
         m_track_index_case = track_index_case;
 }
@@ -63,46 +63,46 @@ void Simulator::UpdateClusters()
 
                 #pragma omp for schedule(runtime)
                 for (size_t i = 0; i < m_households.size(); i++) {
-                        Infector<log_level, track_index_case>::Execute(
+                        Infector<log_level, track_index_case>::execute(
                                 m_households[i], m_disease_profile, m_rng_handler[thread], m_calendar);
                 }
                 #pragma omp for schedule(runtime)
                 for (size_t i = 0; i < m_school_clusters.size(); i++) {
-                        Infector<log_level, track_index_case>::Execute(
+                        Infector<log_level, track_index_case>::execute(
                                 m_school_clusters[i], m_disease_profile, m_rng_handler[thread], m_calendar);
                 }
                 #pragma omp for schedule(runtime)
                 for (size_t i = 0; i < m_work_clusters.size(); i++) {
-                        Infector<log_level, track_index_case>::Execute(
+                        Infector<log_level, track_index_case>::execute(
                                 m_work_clusters[i], m_disease_profile, m_rng_handler[thread], m_calendar);
                 }
                 #pragma omp for schedule(runtime)
                 for (size_t i = 0; i < m_primary_community.size(); i++) {
-                        Infector<log_level, track_index_case>::Execute(
+                        Infector<log_level, track_index_case>::execute(
                                 m_primary_community[i], m_disease_profile, m_rng_handler[thread], m_calendar);
                 }
                 #pragma omp for schedule(runtime)
                 for (size_t i = 0; i < m_secondary_community.size(); i++) {
-                        Infector<log_level, track_index_case>::Execute(
+                        Infector<log_level, track_index_case>::execute(
                                 m_secondary_community[i], m_disease_profile, m_rng_handler[thread], m_calendar);
                 }
         }
 }
 
-void Simulator::TimeStep()
+void Simulator::timeStep()
 {
         shared_ptr<DaysOffInterface> days_off {nullptr};
 
         // Logic where you compute (on the basis of input/config for initial day
         // or on the basis of number of sick persons, duration of epidemic etc)
         // what kind of DaysOff scheme you apply. If we want to make this cluster
-        // dependent then the days_off object has to be passed into the Update function.
+        // dependent then the days_off object has to be passed into the update function.
         days_off = make_shared<DaysOffStandard>(m_calendar);
-        const bool is_work_off {days_off->IsWorkOff() };
-        const bool is_school_off { days_off->IsSchoolOff() };
+        const bool is_work_off {days_off->isWorkOff() };
+        const bool is_school_off {days_off->isSchoolOff() };
 
         for (auto& p : *m_population) {
-                p.Update(is_work_off, is_school_off);
+                p.update(is_work_off, is_school_off);
         }
 
         if (m_track_index_case) {
@@ -129,6 +129,6 @@ void Simulator::TimeStep()
                 }
         }
 
-        m_calendar->AdvanceDay();
+        m_calendar->advanceDay();
 }
 } // end_of_namespace

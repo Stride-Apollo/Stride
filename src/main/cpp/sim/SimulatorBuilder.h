@@ -59,7 +59,7 @@ public:
 
 private:
         /// Initialize the clusters.
-        static void InitializeClusters(std::shared_ptr<Simulator> sim);
+        static void initializeClusters(std::shared_ptr<Simulator> sim);
 };
 
 } // end_of_namespace

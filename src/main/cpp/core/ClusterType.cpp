@@ -52,19 +52,19 @@ map<string, ClusterType> g_name_cluster_type {
 
 namespace stride {
 
-string ToString(ClusterType c)
+string toString(ClusterType c)
 {
 	return (g_cluster_type_name.count(c) == 1)  ? g_cluster_type_name[c] : "Null";
 }
 
-bool IsClusterType(const string& s)
+bool isClusterType(const string& s)
 {
         std::string t {s};
         to_upper(t);
         return (g_name_cluster_type.count(t) == 1);
 }
 
-ClusterType ToClusterType(const string& s)
+ClusterType toClusterType(const string& s)
 {
         std::string t {s};
         to_upper(t);

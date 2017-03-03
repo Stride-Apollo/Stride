@@ -29,10 +29,10 @@ class DaysOffInterface
 {
 public:
         /// Whether today is a work day.
-        virtual bool IsWorkOff() =0;
+        virtual bool isWorkOff() =0;
 
         /// Whether today is school day.
-        virtual bool IsSchoolOff() =0;
+        virtual bool isSchoolOff() =0;
 
         /// Virtual destructor.
         virtual ~DaysOffInterface() {}

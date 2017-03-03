@@ -34,10 +34,10 @@ public:
         DaysOffNone(std::shared_ptr<Calendar> cal) {}
 
         /// See DaysOffInterface.
-        bool IsWorkOff() override { return false; }
+        bool isWorkOff() override { return false; }
 
         /// See DaysOffInterface.
-        bool IsSchoolOff() override { return false; }
+        bool isSchoolOff() override { return false; }
 };
 
 } // end_of_namespace

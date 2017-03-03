@@ -27,7 +27,7 @@ using namespace boost::property_tree;
 
 ContactProfile::ContactProfile(ClusterType cluster_type,  const ptree& pt_contacts)
 {
-        const string key = "matrices." + ToString(cluster_type);
+        const string key = "matrices." + toString(cluster_type);
         ContactProfile mean_nums;
         unsigned int i = 0U;
         for(const auto& participant: pt_contacts.get_child(key)) {

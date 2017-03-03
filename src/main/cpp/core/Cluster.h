@@ -48,34 +48,34 @@ public:
         //Cluster(const Cluster& rhs);
 
 	/// Add the given Person to the Cluster.
-	void AddPerson(Person* p);
+	void addPerson(Person* p);
 
 	/// Return number of persons in this cluster.
-	std::size_t GetSize() const { return m_members.size(); }
+	std::size_t getSize() const { return m_members.size(); }
 
 	/// Return the type of this cluster.
-	ClusterType GetClusterType() const { return m_cluster_type; }
+	ClusterType getClusterType() const { return m_cluster_type; }
 
 	/// Get basic contact rate in this cluster.
-	double GetContactRate(const Person* p) const
+	double getContactRate(const Person* p) const
 	{
-		return g_profiles.at(ToSizeType(m_cluster_type))[EffectiveAge(p->GetAge())] / m_members.size();;
+		return g_profiles.at(toSizeType(m_cluster_type))[effectiveAge(p->getAge())] / m_members.size();;
 	}
 
 public:
         /// Add contact profile.
-        static void AddContactProfile(ClusterType cluster_type, const ContactProfile& profile);
+        static void addContactProfile(ClusterType cluster_type, const ContactProfile& profile);
 
 private:
 	/// Sort members w.r.t. health status (order: exposed/infected/recovered, susceptible, immune).
-	std::tuple<bool, size_t> SortMembers();
+	std::tuple<bool, size_t> sortMembers();
 
 	/// Infector calculates contacts and transmissions.
         template<LogMode log_level, bool track_index_case>
         friend class Infector;
 
 	/// Calculate which members are present in the cluster on the current day.
-	void UpdateMemberPresence();
+	void updateMemberPresence();
 
 private:
 	std::size_t                               m_cluster_id;     ///< The ID of the Cluster (for logging purposes).
@@ -84,7 +84,7 @@ private:
 	std::vector<std::pair<Person*, bool>>     m_members;        ///< Container with pointers to Cluster members.
 	const ContactProfile&                     m_profile;
 private:
-	static std::array<ContactProfile, NumOfClusterTypes()> g_profiles;
+	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
 };
 
 } // end_of_namespace

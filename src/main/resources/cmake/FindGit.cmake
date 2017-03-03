@@ -69,7 +69,7 @@ if(WIN32)
     # Note: Due to a bug in 'git.cmd' preventing it from returning the exit code of 'git',
     #       we excluded it from the list of executables to search.
     # See http://code.google.com/p/msysgit/issues/detail?id=428
-    # TODO Check if 'git' exists, get the associated version, if the corresponding version
+    # TODO check if 'git' exists, get the associated version, if the corresponding version
     #      is known to have a working version of 'git.cmd', use it.
     set(git_names git eg.cmd eg)
   endif()
@@ -113,7 +113,7 @@ if(GIT_EXECUTABLE)
 
     set(${prefix}_WC_GITSVN False)
 
-    # Check if this git is likely to be a git-svn repository
+    # check if this git is likely to be a git-svn repository
     execute_process(COMMAND ${GIT_EXECUTABLE} config --get-regexp "^svn-remote"
       WORKING_DIRECTORY ${dir}
       OUTPUT_VARIABLE git_config_output

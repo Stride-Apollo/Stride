@@ -45,13 +45,13 @@ public:
         Simulator();
 
         /// Get the population.
-        const std::shared_ptr<const Population> GetPopulation() const;
+        const std::shared_ptr<const Population> getPopulation() const;
 
         /// Change track_index_case setting.
-        void SetTrackIndexCase(bool track_index_case);
+        void setTrackIndexCase(bool track_index_case);
 
         /// Run one time step, computing full simulation (default) or only index case.
-        void TimeStep();
+        void timeStep();
 
 private:
         /// Update the contacts in the given clusters.

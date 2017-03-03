@@ -48,16 +48,16 @@ path     InstallDirs::g_data_dir;
 path     InstallDirs::g_exec_path;
 path     InstallDirs::g_root_dir;
 
-inline void InstallDirs::Check()
+inline void InstallDirs::check()
 {
         static bool initialized = false;
 	if (!initialized) {
-		Initialize();
+		initialize();
 		initialized = true;
 	}
 }
 
-void InstallDirs::Initialize()
+void InstallDirs::initialize()
 {
 	//------- Retrieving path of executable
 	{
@@ -99,8 +99,8 @@ void InstallDirs::Initialize()
                                         g_root_dir = exec_dir.parent_path();
                                 } else
                         #endif
-                                if (StringUtils::ToLower(exec_dir.filename().string()) == "debug"
-                                        || StringUtils::ToLower(exec_dir.filename().string()) == "release") {
+                                if (StringUtils::toLower(exec_dir.filename().string()) == "debug"
+                                        || StringUtils::toLower(exec_dir.filename().string()) == "release") {
                                         //x/exec                <-Root Path
                                         //      -bin
                                         //              -release/debug
@@ -136,33 +136,33 @@ void InstallDirs::Initialize()
 	}
 }
 
-path InstallDirs::GetBinDir()
+path InstallDirs::getBinDir()
 {
-        Check();
+	check();
         return g_bin_dir;
 }
 
-path InstallDirs::GetCurrentDir()
+path InstallDirs::getCurrentDir()
 {
-        Check();
+	check();
         return g_current_dir;
 }
 
-path InstallDirs::GetDataDir()
+path InstallDirs::getDataDir()
 {
-	Check();
+	check();
 	return g_data_dir;
 }
 
-path InstallDirs::GetExecPath()
+path InstallDirs::getExecPath()
 {
-        Check();
+	check();
         return g_exec_path;
 }
 
-path InstallDirs::GetRootDir()
+path InstallDirs::getRootDir()
 {
-	Check();
+	check();
 	return g_root_dir;
 }
 

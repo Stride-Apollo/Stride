@@ -52,34 +52,34 @@ public:
 	bool operator!=(const Person& p) const { return p.m_id != m_id; }
 
 	/// Get the age.
-	double GetAge() const { return m_age; }
+	double getAge() const { return m_age; }
 
 	/// Get cluster ID of cluster_type
-	unsigned int GetClusterId(ClusterType cluster_type) const;
+	unsigned int getClusterId(ClusterType cluster_type) const;
 
     /// Return person's gender.
-	char GetGender() const { return m_gender; }
+	char getGender() const { return m_gender; }
 
   	/// Return person's health status.
-	Health& GetHealth()  { return m_health; }
+	Health& getHealth()  { return m_health; }
 
 	/// Return person's health status.
-	const Health& GetHealth() const { return m_health; }
+	const Health& getHealth() const { return m_health; }
 
 	/// Get the id.
-        unsigned int GetId() const { return m_id; }
+        unsigned int getId() const { return m_id; }
 
     /// Check if a person is present today in a given cluster
-    bool IsInCluster(ClusterType c) const;
+    bool isInCluster(ClusterType c) const;
 
 	/// Does this person participates in the social contact study?
-	bool IsParticipatingInSurvey() const { return m_is_participant; }
+	bool isParticipatingInSurvey() const { return m_is_participant; }
 
 	/// Participate in social contact study and log person details
-	void ParticipateInSurvey() { m_is_participant = true; }
+	void participateInSurvey() { m_is_participant = true; }
 
 	/// Update the health status and presence in clusters.
-	void Update(bool is_work_off, bool is_school_off);
+	void update(bool is_work_off, bool is_school_off);
 
 private:
 	unsigned int    m_id;                     ///< The id.

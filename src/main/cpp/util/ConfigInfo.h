@@ -32,7 +32,7 @@ class ConfigInfo
 {
 public:
 	///
-	static constexpr bool HaveOpenMP()
+	static constexpr bool haveOpenMP()
 	{
 #ifdef _OPENMP
 	        return true;
