@@ -25,6 +25,7 @@
 
 #include <spdlog/spdlog.h>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 namespace stride {
 
