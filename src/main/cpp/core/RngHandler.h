@@ -1,5 +1,4 @@
-#ifndef RNG_HANDLER_H_INCLUDED
-#define RNG_HANDLER_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -55,6 +54,5 @@ private:
 	util::Random m_rng;                        ///< Random number engine.
 };
 
-} // end_of_namespace
+}
 
-#endif // include guard

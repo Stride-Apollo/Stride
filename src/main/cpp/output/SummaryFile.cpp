@@ -70,6 +70,6 @@ void SummaryFile::print(
 						   << static_cast<double>(num_cases) / population_size << endl;
 }
 
-} // end namespace
-} // end namespace
+}
+}
 

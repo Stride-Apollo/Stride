@@ -179,4 +179,4 @@ unsigned int PopulationBuilder::sample(Random& rng, const vector<double>& distri
 	return distribution.size();
 }
 
-} // end_of_namespace
+}

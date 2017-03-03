@@ -1,5 +1,4 @@
-#ifndef POPULATION_H_INCLUDED
-#define POPULATION_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -45,6 +44,5 @@ public:
 
 };
 
-} // end_of_namespace
+}
 
-#endif // end of include guard

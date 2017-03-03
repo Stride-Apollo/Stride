@@ -78,4 +78,4 @@ void Person::update(bool is_work_off, bool is_school_off) {
 	}
 }
 
-} // end_of_namespace
+}

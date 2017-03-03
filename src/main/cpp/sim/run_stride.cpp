@@ -177,4 +177,4 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	cout << "Exiting at:         " << TimeStamp().toString() << endl << endl;
 }
 
-} // end_of_namespace
+}

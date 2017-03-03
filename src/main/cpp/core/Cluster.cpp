@@ -87,4 +87,4 @@ void Cluster::updateMemberPresence() {
 	}
 }
 
-} // end_of_namespace
+}

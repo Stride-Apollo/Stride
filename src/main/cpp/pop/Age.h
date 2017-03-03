@@ -1,5 +1,4 @@
-#ifndef AGE_H_INCLUDED
-#define AGE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -33,6 +32,5 @@ inline constexpr unsigned int minAdultAge() { return 18U; }
 /// Effective age (topping of at maximum).
 inline unsigned int effectiveAge(unsigned int age) { return (age <= maximumAge()) ? age : maximumAge(); }
 
-} // namespace
+}
 
-#endif // end-of-include-guard

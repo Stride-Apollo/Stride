@@ -1,5 +1,4 @@
-#ifndef SRC_MAIN_CALENDAR_DAYS_OFF_ALL_H_
-#define SRC_MAIN_CALENDAR_DAYS_OFF_ALL_H_
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -33,12 +32,11 @@ public:
 	DaysOffAll(std::shared_ptr <Calendar> cal) {}
 
 	/// See DaysOffInterface.
-	bool IsWorkOff() override { return true; }
+	bool isWorkOff() override { return true; }
 
 	/// See DaysOffInterface.
-	bool IsSchoolOff() override { return true; }
+	bool isSchoolOff() override { return true; }
 };
 
-} // end_of_namespace
+}
 
-#endif // end of include guard

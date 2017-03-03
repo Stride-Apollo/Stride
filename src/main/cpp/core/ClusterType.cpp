@@ -67,4 +67,4 @@ ClusterType toClusterType(const string& s) {
 	return (g_name_cluster_type.count(s) == 1) ? g_name_cluster_type[s] : ClusterType::Null;
 }
 
-} // namespace
+}

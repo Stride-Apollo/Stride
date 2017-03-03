@@ -38,5 +38,5 @@ ContactProfile::ContactProfile(ClusterType cluster_type, const ptree& pt_contact
 	}
 }
 
-} // namespace
+}
 

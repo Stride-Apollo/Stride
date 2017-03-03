@@ -1,5 +1,4 @@
-#ifndef SRC_MAIN_CPP_CALENDAR_CALENDAR_H_
-#define SRC_MAIN_CPP_CALENDAR_CALENDAR_H_
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -79,6 +78,5 @@ private:
 	std::vector<boost::gregorian::date> m_school_holidays;         ///< Vector of school holidays
 };
 
-} // end_of_namespace
+}
 
-#endif // end of include guard

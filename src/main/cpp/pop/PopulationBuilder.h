@@ -1,5 +1,4 @@
-#ifndef POPULATION_BUILDER_H_INCLUDED
-#define POPULATION_BUILDER_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -55,6 +54,5 @@ private:
 	static unsigned int sample(util::Random& rng, const std::vector<double>& distribution);
 };
 
-} // end_of_namespace
+}
 
-#endif // include guard

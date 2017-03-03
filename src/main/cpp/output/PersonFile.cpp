@@ -53,5 +53,5 @@ void PersonFile::print(const std::shared_ptr<const Population> population) {
 	}
 }
 
-} // end_of_namespace
-} // end_of_namespace
+}
+}

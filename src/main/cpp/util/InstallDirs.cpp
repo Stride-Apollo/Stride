@@ -155,5 +155,5 @@ path InstallDirs::getRootDir() {
 	return g_root_dir;
 }
 
-} // namespace
-} // namespace
+}
+}

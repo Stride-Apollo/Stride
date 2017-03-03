@@ -87,5 +87,5 @@ void Health::update() {
 	}
 }
 
-} /* namespace stride */
+}
 

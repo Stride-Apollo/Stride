@@ -1,5 +1,4 @@
-#ifndef CONTACT_PROFILE_H_INCLUDED
-#define CONTACT_PROFILE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -37,6 +36,5 @@ public:
 	ContactProfile(ClusterType cluster_type, const boost::property_tree::ptree& pt_contacts);
 };
 
-} // namespace
+}
 
-#endif // end-of-include-guard

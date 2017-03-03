@@ -33,5 +33,5 @@ void DiseaseProfile::initialize(const ptree& pt_config, const ptree& pt_disease)
 	m_transmission_rate = (r0 - b0) / b1;
 }
 
-} // namespace
+}
 

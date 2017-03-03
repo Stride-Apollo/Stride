@@ -63,4 +63,4 @@ LogMode toLogMode(const string& s) {
 	return (g_name_log_mode.count(t) == 1) ? g_name_log_mode[t] : LogMode::Null;
 }
 
-} // namespace
+}

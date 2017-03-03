@@ -196,4 +196,4 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim) {
 	}
 }
 
-} // end_of_namespace
+}

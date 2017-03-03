@@ -1,5 +1,4 @@
-#ifndef LOGMODE_H_INCLUDED
-#define LOGMODE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -43,6 +42,5 @@ bool isLogMode(const std::string& s);
 /// Converts a string with name to LogMode value.
 LogMode toLogMode(const std::string& s);
 
-} // end_of_namespace
+}
 
-#endif // include-guard

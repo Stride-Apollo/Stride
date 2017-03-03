@@ -1,5 +1,4 @@
-#ifndef TIMEKEEPER_TIME_TO_STRING_H_INCLUDED
-#define TIMEKEEPER_TIME_TO_STRING_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -33,7 +32,7 @@ namespace util {
  * Utilities to tag clocks and to reformat number of ticks to a string.
  */
 struct TimeToString {
-	/// Procude string in hh:mm:ss format.
+	/// Produce string in hh:mm:ss format.
 	static std::string toColonString(std::chrono::seconds d) {
 		using namespace std;
 		using namespace std::chrono;
@@ -101,7 +100,6 @@ struct TimeToString {
 	}
 };
 
-} // end namespace
-} // end namespace
+}
+}
 
-#endif // end of include guard

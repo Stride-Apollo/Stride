@@ -1,5 +1,4 @@
-#ifndef INC_STRINGUTILS_H
-#define INC_STRINGUTILS_H
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -126,7 +125,6 @@ public:
 	}
 };
 
-} // end namespace
-} // end namespace
+}
+}
 
-#endif // end-of-include-guard

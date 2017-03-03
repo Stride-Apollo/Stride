@@ -214,4 +214,4 @@ class Infector<LogMode::Contacts, false>;
 template
 class Infector<LogMode::Contacts, true>;
 
-} // end_of_namespace
+}

@@ -127,4 +127,4 @@ void Simulator::timeStep() {
 
 	m_calendar->advanceDay();
 }
-} // end_of_namespace
+}

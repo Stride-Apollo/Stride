@@ -1,5 +1,4 @@
-#ifndef CLUSTER_TYPE_H_INCLUDED
-#define CLUSTER_TYPE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -45,6 +44,5 @@ bool isClusterType(const std::string& s);
 /// Converts a string with name to ClusterType value.
 ClusterType toClusterType(const std::string& s);
 
-} // namespace
+}
 
-#endif // end-of-include-guard

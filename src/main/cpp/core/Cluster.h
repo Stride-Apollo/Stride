@@ -1,5 +1,4 @@
-#ifndef CLUSTER_H_INCLUDED
-#define CLUSTER_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -87,6 +86,5 @@ private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
 };
 
-} // end_of_namespace
+}
 
-#endif // include-guard

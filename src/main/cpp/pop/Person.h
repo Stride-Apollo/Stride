@@ -1,5 +1,4 @@
-#ifndef PERSON_H_INCLUDED
-#define PERSON_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -106,6 +105,5 @@ private:
 	bool m_is_participant;        ///< Is participating in the social contact study
 };
 
-} // end_of_namespace
+}
 
-#endif // end of include guard
