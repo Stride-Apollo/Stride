@@ -47,21 +47,21 @@ set(LIB_SRC
 )
 
 set(MAIN_SRC
-	sim/main.cpp
-)
+        sim/main.cpp
+        )
 
 #============================================================================
 # Build & install the (OpenMP enabled if OpenMP available) executable.
 #============================================================================
-add_library(libstride  OBJECT  ${LIB_SRC})
+add_library(libstride OBJECT ${LIB_SRC})
 #target_compile_options(libstride PUBLIC "-flto")
 #
-add_executable(stride  ${MAIN_SRC} $<TARGET_OBJECTS:libstride> $<TARGET_OBJECTS:trng>)
+add_executable(stride ${MAIN_SRC} $<TARGET_OBJECTS:libstride> $<TARGET_OBJECTS:trng>)
 #target_compile_options(stride PUBLIC "-flto")
 #
 target_link_libraries(stride ${LIBS})
 #set_target_properties(stride PROPERTIES LINK_FLAGS_RELEASE "-flto")
-install(TARGETS stride  DESTINATION   ${BIN_INSTALL_LOCATION})
+install(TARGETS stride DESTINATION ${BIN_INSTALL_LOCATION})
 
 #============================================================================
 # Clean up.

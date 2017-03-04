@@ -1,5 +1,4 @@
-#ifndef INFECTOR_H_INCLUDED
-#define INFECTOR_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -28,51 +27,56 @@
 namespace stride {
 
 class Cluster;
+
 class RngHandler;
+
 class Calendar;
 
 /**
  * Actual contacts and transmission in cluster (primary template).
  */
 template<LogMode log_level, bool track_index_case>
-class Infector
-{
+class Infector {
 public:
 	///
-	static void Execute(Cluster& cluster, DiseaseProfile disease_profile,
-	        RngHandler& contact_handler, std::shared_ptr<const Calendar> sim_state);
+	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
+						RngHandler& contact_handler, std::shared_ptr<const Calendar> sim_state);
 };
 
 /**
  * Actual contacts and transmission in cluster (specialisation for logging all contacts).
  */
 template<bool track_index_case>
-class Infector<LogMode::Contacts, track_index_case>
-{
+class Infector<LogMode::Contacts, track_index_case> {
 public:
-        ///
-        static void Execute(Cluster& cluster, DiseaseProfile disease_profile,
-                RngHandler& contact_handler, std::shared_ptr<const Calendar> calendar);
+	///
+	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
+						RngHandler& contact_handler, std::shared_ptr<const Calendar> calendar);
 };
 
 /// Explicit instantiation in cpp file.
-extern template class Infector<LogMode::None, false>;
+extern template
+class Infector<LogMode::None, false>;
 
 /// Explicit instantiation in cpp file.
-extern template class Infector<LogMode::None, true>;
+extern template
+class Infector<LogMode::None, true>;
 
 /// Explicit instantiation in cpp file.
-extern template class Infector<LogMode::Transmissions, false>;
+extern template
+class Infector<LogMode::Transmissions, false>;
 
 /// Explicit instantiation in cpp file.
-extern template class Infector<LogMode::Transmissions, true>;
+extern template
+class Infector<LogMode::Transmissions, true>;
 
 /// Explicit instantiation in cpp file.
-extern template class Infector<LogMode::Contacts, false>;
+extern template
+class Infector<LogMode::Contacts, false>;
 
 /// Explicit instantiation in cpp file.
-extern template class Infector<LogMode::Contacts, true>;
+extern template
+class Infector<LogMode::Contacts, true>;
 
-} // end_of_namespace
+}
 
-#endif // include-guard

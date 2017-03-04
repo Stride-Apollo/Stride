@@ -1,5 +1,4 @@
-#ifndef DISEASE_PROFILE_H_INCLUDED
-#define DISEASE_PROFILE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -24,22 +23,20 @@
 
 namespace stride {
 
-class DiseaseProfile
-{
+class DiseaseProfile {
 public:
-        /// Initialize.
-        DiseaseProfile() : m_transmission_rate(0.0) {}
+	/// Initialize.
+	DiseaseProfile() : m_transmission_rate(0.0) {}
 
-        /// Return transmission rate.
-        double GetTransmissionRate() { return m_transmission_rate;}
+	/// Return transmission rate.
+	double getTransmissionRate() { return m_transmission_rate; }
 
-        /// Initialize.
-        void Initialize(const boost::property_tree::ptree& pt_config, const boost::property_tree::ptree& pt_disease);
+	/// Initialize.
+	void initialize(const boost::property_tree::ptree& pt_config, const boost::property_tree::ptree& pt_disease);
 
 private:
-        double m_transmission_rate;
+	double m_transmission_rate;
 };
 
-} // namespace
+}
 
-#endif // end-of-include-guard

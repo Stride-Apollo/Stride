@@ -23,54 +23,59 @@
 
 #include "core/ClusterType.h"
 
-#include <stdexcept>
-#include <string>
-#include <memory>
-
 namespace stride {
 
 using namespace std;
 
-unsigned int Person::GetClusterId(ClusterType cluster_type) const
-{
-        switch (cluster_type) {
-                case ClusterType::Household:          return m_household_id;
-                case ClusterType::School:             return m_school_id;
-                case ClusterType::Work:               return m_work_id;
-                case ClusterType::PrimaryCommunity:   return m_primary_community_id;
-                case ClusterType::SecondaryCommunity: return m_secondary_community_id;
-                default: throw runtime_error(string(__func__)  + "> Should not reach default.");
-        }
+unsigned int Person::getClusterId(ClusterType cluster_type) const {
+	switch (cluster_type) {
+		case ClusterType::Household:
+			return m_household_id;
+		case ClusterType::School:
+			return m_school_id;
+		case ClusterType::Work:
+			return m_work_id;
+		case ClusterType::PrimaryCommunity:
+			return m_primary_community_id;
+		case ClusterType::SecondaryCommunity:
+			return m_secondary_community_id;
+		default:
+			throw runtime_error(string(__func__) + "> Should not reach default.");
+	}
 }
 
-bool Person::IsInCluster(ClusterType c) const
-{
-        switch(c) {
-                case ClusterType::Household:           return m_at_household;
-                case ClusterType::School:              return m_at_school;
-                case ClusterType::Work:                return m_at_work;
-                case ClusterType::PrimaryCommunity:    return m_at_primary_community;
-                case ClusterType::SecondaryCommunity:  return m_at_secondary_community;
-                default: throw runtime_error(string(__func__)  + "> Should not reach default.");
-        }
+bool Person::isInCluster(ClusterType c) const {
+	switch (c) {
+		case ClusterType::Household:
+			return m_at_household;
+		case ClusterType::School:
+			return m_at_school;
+		case ClusterType::Work:
+			return m_at_work;
+		case ClusterType::PrimaryCommunity:
+			return m_at_primary_community;
+		case ClusterType::SecondaryCommunity:
+			return m_at_secondary_community;
+		default:
+			throw runtime_error(string(__func__) + "> Should not reach default.");
+	}
 }
 
-void Person::Update(bool is_work_off, bool is_school_off)
-{
-        m_health.Update();
+void Person::update(bool is_work_off, bool is_school_off) {
+	m_health.update();
 
-        // Update presence in clusters.
-        if (is_work_off || (m_age <= MinAdultAge() && is_school_off)) {
-        		m_at_school             = false;
-                m_at_work               = false;
-                m_at_secondary_community = false;
-                m_at_primary_community  = true;
-        } else {
-        		m_at_school             = true;
-        		m_at_work               = true;
-                m_at_secondary_community = true;
-                m_at_primary_community  = false;
-        }
+	// update presence in clusters.
+	if (is_work_off || (m_age <= minAdultAge() && is_school_off)) {
+		m_at_school = false;
+		m_at_work = false;
+		m_at_secondary_community = false;
+		m_at_primary_community = true;
+	} else {
+		m_at_school = true;
+		m_at_work = true;
+		m_at_secondary_community = true;
+		m_at_primary_community = false;
+	}
 }
 
-} // end_of_namespace
+}

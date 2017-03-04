@@ -200,7 +200,7 @@ extract_data <- function(data_tag,geo_tag)
   f_popSize <- dim(data)[1]
   names(data)
   
-  # FUNCTION: get neighborhood based on given cluster_id's. Start from id 1 and loop untill max id and start new neighborhood if maximum number of members is reached.
+  # FUNCTION: get neighborhood based on given cluster_id's. start from id 1 and loop untill max id and start new neighborhood if maximum number of members is reached.
   getCommunity <- function(f_cluster_id,f_popSize){
     
     communitySize = 2000;

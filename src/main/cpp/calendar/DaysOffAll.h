@@ -1,5 +1,4 @@
-#ifndef SRC_MAIN_CALENDAR_DAYS_OFF_ALL_H_
-#define SRC_MAIN_CALENDAR_DAYS_OFF_ALL_H_
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -27,19 +26,17 @@ namespace stride {
 /**
  * No  days off work or school.
  */
-class DaysOffAll : public DaysOffInterface
-{
+class DaysOffAll : public DaysOffInterface {
 public:
-        /// Initialize calendar.
-        DaysOffAll(std::shared_ptr<Calendar> cal) {}
+	/// Initialize calendar.
+	DaysOffAll(std::shared_ptr <Calendar> cal) {}
 
-        /// See DaysOffInterface.
-        bool IsWorkOff() override { return true; }
+	/// See DaysOffInterface.
+	bool isWorkOff() override { return true; }
 
-        /// See DaysOffInterface.
-        bool IsSchoolOff() override { return true; }
+	/// See DaysOffInterface.
+	bool isSchoolOff() override { return true; }
 };
 
-} // end_of_namespace
+}
 
-#endif // end of include guard

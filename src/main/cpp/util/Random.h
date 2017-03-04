@@ -1,5 +1,4 @@
-#ifndef RANDOM_H_INCLUDED
-#define RANDOM_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -30,26 +29,22 @@ namespace util {
 /**
  * The random number generator.
  */
-class Random
-{
+class Random {
 public:
 	/// Constructor: initialize the random number engine and distribution.
-	Random(const unsigned long seed)
-	{
+	Random(const unsigned long seed) {
 		m_engine.seed(seed);
 		m_uniform_dist = trng::uniform01_dist<double>();
 	}
 
 	/// Get random double.
-	double NextDouble()
-	{
+	double nextDouble() {
 		return m_uniform_dist(m_engine);
 
 	}
 
 	/// Get random unsigned int from [0, max[.
-	unsigned int operator()(unsigned int max)
-	{
+	unsigned int operator()(unsigned int max) {
 		trng::uniform_int_dist dis(0, max);
 		return dis(m_engine);
 	}
@@ -60,17 +55,15 @@ public:
 	 * => stream A: 0 2 4...
 	 * => stream B: 1 3 5...
 	 */
-	void Split(unsigned int total, unsigned int id)
-	{
-		m_engine.split(total,id);
+	void split(unsigned int total, unsigned int id) {
+		m_engine.split(total, id);
 	}
 
 private:
-	trng::mrg2               	m_engine;         ///< The random number engine.
-	trng::uniform01_dist<double>	m_uniform_dist;   ///< The random distribution.
+	trng::mrg2 m_engine;         ///< The random number engine.
+	trng::uniform01_dist<double> m_uniform_dist;   ///< The random distribution.
 };
 
-} // end namespace
-} // end namespace
+}
+}
 
-#endif // include guard

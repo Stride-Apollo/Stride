@@ -1,5 +1,4 @@
-#ifndef CASES_FILE_H_INCLUDED
-#define CASES_FILE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -30,8 +29,7 @@ namespace output {
 /**
  * Produces a file with daily cases count.
  */
-class CasesFile
-{
+class CasesFile {
 public:
 	/// Constructor: initialize.
 	CasesFile(const std::string& file = "stride_cases");
@@ -40,17 +38,16 @@ public:
 	~CasesFile();
 
 	/// Print the given cases with corresponding tag.
-	void Print(const std::vector<unsigned int>& cases);
+	void print(const std::vector<unsigned int>& cases);
 
 private:
 	/// Generate file name and open the file stream.
-	void Initialize(const std::string& file);
+	void initialize(const std::string& file);
 
 private:
-	std::ofstream 	m_fstream;  ///< The file stream.
+	std::ofstream m_fstream;  ///< The file stream.
 };
 
-} // end_of_namespace
-} // end_of_namespace
+}
+}
 
-#endif // end of include guard

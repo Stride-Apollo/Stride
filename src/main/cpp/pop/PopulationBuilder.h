@@ -1,5 +1,4 @@
-#ifndef POPULATION_BUILDER_H_INCLUDED
-#define POPULATION_BUILDER_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -33,8 +32,7 @@ namespace stride {
 /**
  * Initializes Population objects.
  */
-class PopulationBuilder
-{
+class PopulationBuilder {
 public:
 	/**
 	 * Initializes a Population: add persons, set immunity, seed infection.
@@ -44,18 +42,17 @@ public:
 	 * @return                Pointer to the initialized population.
 	 */
 	static std::shared_ptr<Population> Build(
-	        const boost::property_tree::ptree& pt_config,
-	        const boost::property_tree::ptree& pt_disease,
-	        util::Random& rng);
+			const boost::property_tree::ptree& pt_config,
+			const boost::property_tree::ptree& pt_disease,
+			util::Random& rng);
 
 private:
 	/// Get distribution associateed with tag values.
-	static std::vector<double> GetDistribution(const boost::property_tree::ptree& pt_root, const std::string& xml_tag);
+	static std::vector<double> getDistribution(const boost::property_tree::ptree& pt_root, const std::string& xml_tag);
 
 	/// Sample from the distribution.
-	static unsigned int Sample(util::Random& rng, const std::vector<double>& distribution);
+	static unsigned int sample(util::Random& rng, const std::vector<double>& distribution);
 };
 
-} // end_of_namespace
+}
 
-#endif // include guard

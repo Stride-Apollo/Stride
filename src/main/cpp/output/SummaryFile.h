@@ -1,5 +1,4 @@
-#ifndef SUMMARY_FILE_H_INCLUDED
-#define SUMMARY_FILE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -32,8 +31,7 @@ namespace output {
 /**
  * Produces a file with simulation summary output.
  */
-class SummaryFile
-{
+class SummaryFile {
 public:
 	/// Constructor: initialize.
 	SummaryFile(const std::string& file = "stride_summary");
@@ -42,18 +40,17 @@ public:
 	~SummaryFile();
 
 	/// Print the given output with corresponding tag.
-	void Print(const boost::property_tree::ptree& pt_config, unsigned int population_size,
-	        unsigned int num_cases, unsigned int run_time, unsigned int total_time);
+	void print(const boost::property_tree::ptree& pt_config, unsigned int population_size,
+			   unsigned int num_cases, unsigned int run_time, unsigned int total_time);
 
 private:
 	/// Generate file name and open the file stream.
-	void Initialize(const std::string& file);
+	void initialize(const std::string& file);
 
 private:
-	std::ofstream 	m_fstream;     ///< The file stream.
+	std::ofstream m_fstream;     ///< The file stream.
 };
 
-} // end_of_namespace
-} // end_of_namespace
+}
+}
 
-#endif // end of include guard

@@ -1,5 +1,4 @@
-#ifndef STRIDE_CONFIG_INFO_H_INCLUDED
-#define STRIDE_CONFIG_INFO_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -28,21 +27,18 @@ namespace util {
 /**
  * Info on revision id and commit date.
  */
-class ConfigInfo
-{
+class ConfigInfo {
 public:
 	///
-	static constexpr bool HaveOpenMP()
-	{
+	static constexpr bool haveOpenMP() {
 #ifdef _OPENMP
-	        return true;
+		return true;
 #else
-	        return false;
+		return false;
 #endif
 	}
 };
 
-} // namespace
-} // namespace
+}
+}
 
-#endif // end-of-include-guard

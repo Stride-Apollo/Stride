@@ -1,5 +1,4 @@
-#ifndef PERSON_FILE_H_INCLUDED
-#define PERSON_FILE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -33,8 +32,7 @@ namespace output {
 /**
  * Produces a file with daily cases count.
  */
-class PersonFile
-{
+class PersonFile {
 public:
 	/// Constructor: initialize.
 	PersonFile(const std::string& file = "stride_person");
@@ -43,17 +41,16 @@ public:
 	~PersonFile();
 
 	/// Print the given cases with corresponding tag.
-	void Print(const std::shared_ptr<const Population> population);
+	void print(const std::shared_ptr<const Population> population);
 
 private:
 	/// Generate file name and open the file stream.
-	void Initialize(const std::string& file);
+	void initialize(const std::string& file);
 
 private:
-	std::ofstream 	m_fstream;  ///< The file stream.
+	std::ofstream m_fstream;  ///< The file stream.
 };
 
-} // end_of_namespace
-} // end_of_namespace
+}
+}
 
-#endif // end of include guard

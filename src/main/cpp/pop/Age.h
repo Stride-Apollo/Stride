@@ -1,5 +1,4 @@
-#ifndef AGE_H_INCLUDED
-#define AGE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -25,14 +24,13 @@
 namespace stride {
 
 /// Maximum age for Person's.
-inline constexpr unsigned int  MaximumAge() { return 80U; }
+inline constexpr unsigned int maximumAge() { return 80U; }
 
 /// Maximum age for Person's.
-inline constexpr unsigned int  MinAdultAge() { return 18U; }
+inline constexpr unsigned int minAdultAge() { return 18U; }
 
 /// Effective age (topping of at maximum).
-inline unsigned int EffectiveAge(unsigned int age) { return (age <= MaximumAge()) ? age : MaximumAge(); }
+inline unsigned int effectiveAge(unsigned int age) { return (age <= maximumAge()) ? age : maximumAge(); }
 
-} // namespace
+}
 
-#endif // end-of-include-guard
