@@ -20,6 +20,7 @@
 
 /**
  * TODO
+ * I forgot this: make sure you can choose the rng and the seed
  * Make an XML format
  * Complete the tests according to the XML format
  * Make the PopulationGenerator class
@@ -78,29 +79,74 @@ protected:
 };
 
 // Default values
-const string         PopulationGeneratorTest::g_invalid_input               = "doesntExist.xml";
+// TODO: make these files
+const string         PopulationGeneratorTest::g_invalid_input               = "invalidFile.xml";
+const string         PopulationGeneratorTest::g_nonexistent_input           = "doesntExist.xml";
+const string         PopulationGeneratorTest::g_empty_input                 = "empty.xml";
+const string         PopulationGeneratorTest::g_invalid_range               = "invalidRange.xml";
+const string         PopulationGeneratorTest::g_invalid_fraction            = "invalidFraction.xml";
+const string         PopulationGeneratorTest::g_negative_numbers            = "negativeNumbers.xml";
+const string         PopulationGeneratorTest::g_missing_cluster             = "missingCluster.xml";
+const string         PopulationGeneratorTest::g_missing_family              = "missingFamilySize.xml";
+const string         PopulationGeneratorTest::g_missing_institution         = "missingInstitution.xml";
 const string         PopulationGeneratorTest::g_output_file                 = "output.csv";
 const string         PopulationGeneratorTest::g_happy_day_input             = "happyDay.xml";
 const string         PopulationGeneratorTest::g_happy_day_expected          = "happyDay.csv";
 
-TEST_F(PopulationGeneratorTest, InvalidFile) {
+TEST_F(PopulationGeneratorTest, FileErrors) {
 	// TODO write InvalidFileException (currently writing the tests before we write the stuff)
+	// Test for file errors: non existent file, syntax errors
+
 	EXPECT_THROW(g_generator.parseFile(g_invalid_file, g_output_file), InvalidFileException);
+	EXPECT_THROW(g_generator.parseFile(g_nonexistent_input, g_output_file), NonExistentFileException);
 }
 
 TEST_F(PopulationGeneratorTest, HappyDay) {
+	// Tests for the happy day scenario
+
 	g_generator.parseFile(g_happy_day_input, g_output_file);
 
 	// TODO write stuff that compares two files
 		// and test that the files g_output_file and g_happy_day_expected are the same
 }
 
-TEST_F(PopulationGeneratorTest, InvalidFatalXML) {
-	// TODO make the xml, then check where it can go wrong (lethal) => throw exceptions
+TEST_F(PopulationGeneratorTest, WrongNextElement) {
+	// TODO make the xml (where an unexpected element occurs) => do we ignore it and continue? do we throw an exception
+	// Tests for when an unexpected element occurs
 }
 
-TEST_F(PopulationGeneratorTest, InvalidNonFatalXML) {
-	// TODO make the xml, then check where it can go wrong (non-lethal) => throw exceptions but resolve them yourself
+TEST_F(PopulationGeneratorTest, EmptyFile) {
+	// TODO make the xml
+	EXPECT_THROW(g_generator.parseFile(g_empty_input, g_output_file), InvalidFileException);
+}
+
+TEST_F(PopulationGeneratorTest, InvalidRanges) {
+	// TODO make the xml and the exception
+	// Tests for when the ranges are incorrect (e.g. age goes from min. 20 to max. 5)
+	EXPECT_THROW(g_generator.parseFile(g_invalid_range, g_output_file), InvalidRangeException);
+}
+
+TEST_F(PopulationGeneratorTest, NegativeNumbers) {
+	// TODO make the xml and the exception
+	// Tests for when a negative number occurs, something which is not allowed
+	EXPECT_THROW(g_generator.parseFile(g_negative_numbers, g_output_file), NegativeNumberException);
+}
+
+TEST_F(PopulationGeneratorTest, FractionErrors) {
+	// TODO make the xml and the exception
+	// Tests for when the total population exceeds 100% or something like that
+	EXPECT_THROW(g_generator.parseFile(g_invalid_fraction, g_output_file), InvalidFractionException);
+}
+
+TEST_F(PopulationGeneratorTest, ElementMissingErrors) {
+	// TODO make the xml and the exception
+	// Tests for when elements are missing, the important ones are:
+		// <CLUSTER> within <CLUSTERS>
+		// <SIZE> within <FAMILYSIZE>
+		// <INSTITUTION> within <EDUCATION>
+	EXPECT_THROW(g_generator.parseFile(g_missing_cluster, g_output_file), ElementMissingException);
+	EXPECT_THROW(g_generator.parseFile(g_missing_institution, g_output_file), ElementMissingException);
+	EXPECT_THROW(g_generator.parseFile(g_missing_family, g_output_file), ElementMissingException);
 }
 
 } //end-of-namespace-Tests
