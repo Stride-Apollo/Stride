@@ -1,4 +1,6 @@
 <POPULATION>
+	<RANDOMGENERATOR generator='mt'/>
+	<RANDOMSEED seed='74128'/>
 	<AGES>
 		<RANGE min='0' max='95'/>
 		<AGEDIST constant='65' start='1.2'/>

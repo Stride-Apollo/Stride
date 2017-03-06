@@ -70,10 +70,23 @@ protected:
 
 	/// Data members of the test fixture
 	// TODO add data members while fully writing the tests
-	static const string            g_invalid_input;
-	static const string            g_output_file;
-	static const string            g_happy_day_input;
-	static const string            g_happy_day_expected;
+
+
+	static const string         g_invalid_input;
+	static const string         g_nonexistent_input;
+	static const string         g_empty_input;
+	static const string         g_invalid_range;
+	static const string         g_invalid_fraction;
+	static const string         g_negative_numbers;
+	static const string         g_missing_cluster;
+	static const string         g_missing_family;
+	static const string         g_missing_institution;
+	static const string         g_invalid_rng;
+	static const string         g_invalid_seed;
+	static const string         g_invalid_element;
+	static const string         g_output_file;
+	static const string         g_happy_day_input;
+	static const string         g_happy_day_expected;
 
 	static PopulationGenerator 			g_generator;
 };
@@ -89,6 +102,9 @@ const string         PopulationGeneratorTest::g_negative_numbers            = "n
 const string         PopulationGeneratorTest::g_missing_cluster             = "missingCluster.xml";
 const string         PopulationGeneratorTest::g_missing_family              = "missingFamilySize.xml";
 const string         PopulationGeneratorTest::g_missing_institution         = "missingInstitution.xml";
+const string         PopulationGeneratorTest::g_invalid_rng                 = "invalidRng.xml";
+const string         PopulationGeneratorTest::g_invalid_seed                = "invalidSeed.xml";
+const string         PopulationGeneratorTest::g_invalid_element             = "invalidElement.xml";
 const string         PopulationGeneratorTest::g_output_file                 = "output.csv";
 const string         PopulationGeneratorTest::g_happy_day_input             = "happyDay.xml";
 const string         PopulationGeneratorTest::g_happy_day_expected          = "happyDay.csv";
@@ -97,14 +113,14 @@ TEST_F(PopulationGeneratorTest, FileErrors) {
 	// TODO write InvalidFileException (currently writing the tests before we write the stuff)
 	// Test for file errors: non existent file, syntax errors
 
-	EXPECT_THROW(g_generator.parseFile(g_invalid_file, g_output_file), InvalidFileException);
-	EXPECT_THROW(g_generator.parseFile(g_nonexistent_input, g_output_file), NonExistentFileException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_invalid_file, g_output_file), InvalidFileException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_nonexistent_input, g_output_file), NonExistentFileException);
 }
 
 TEST_F(PopulationGeneratorTest, HappyDay) {
 	// Tests for the happy day scenario
 
-	g_generator.parseFile(g_happy_day_input, g_output_file);
+	g_generator.parseAndGenerate(g_happy_day_input, g_output_file);
 
 	// TODO write stuff that compares two files
 		// and test that the files g_output_file and g_happy_day_expected are the same
@@ -113,29 +129,37 @@ TEST_F(PopulationGeneratorTest, HappyDay) {
 TEST_F(PopulationGeneratorTest, WrongNextElement) {
 	// TODO make the xml (where an unexpected element occurs) => do we ignore it and continue? do we throw an exception
 	// Tests for when an unexpected element occurs
+	EXPECT_THROW(g_generator.parseAndGenerate(g_invalid_element, g_output_file), InvalidElementException);
 }
 
 TEST_F(PopulationGeneratorTest, EmptyFile) {
 	// TODO make the xml
-	EXPECT_THROW(g_generator.parseFile(g_empty_input, g_output_file), InvalidFileException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_empty_input, g_output_file), InvalidFileException);
 }
 
 TEST_F(PopulationGeneratorTest, InvalidRanges) {
 	// TODO make the xml and the exception
 	// Tests for when the ranges are incorrect (e.g. age goes from min. 20 to max. 5)
-	EXPECT_THROW(g_generator.parseFile(g_invalid_range, g_output_file), InvalidRangeException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_invalid_range, g_output_file), InvalidRangeException);
 }
 
 TEST_F(PopulationGeneratorTest, NegativeNumbers) {
 	// TODO make the xml and the exception
 	// Tests for when a negative number occurs, something which is not allowed
-	EXPECT_THROW(g_generator.parseFile(g_negative_numbers, g_output_file), NegativeNumberException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_negative_numbers, g_output_file), NegativeNumberException);
 }
 
 TEST_F(PopulationGeneratorTest, FractionErrors) {
 	// TODO make the xml and the exception
 	// Tests for when the total population exceeds 100% or something like that
-	EXPECT_THROW(g_generator.parseFile(g_invalid_fraction, g_output_file), InvalidFractionException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_invalid_fraction, g_output_file), InvalidFractionException);
+}
+
+TEST_F(PopulationGeneratorTest, RandomTest) {
+	// TODO make the xml and the exception
+	// Tests for the random generator and the seed
+	EXPECT_THROW(g_generator.parseAndGenerate(g_invalid_rng, g_output_file), InvalidRngException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_invalid_seed, g_output_file), InvalidRngException);
 }
 
 TEST_F(PopulationGeneratorTest, ElementMissingErrors) {
@@ -144,9 +168,9 @@ TEST_F(PopulationGeneratorTest, ElementMissingErrors) {
 		// <CLUSTER> within <CLUSTERS>
 		// <SIZE> within <FAMILYSIZE>
 		// <INSTITUTION> within <EDUCATION>
-	EXPECT_THROW(g_generator.parseFile(g_missing_cluster, g_output_file), ElementMissingException);
-	EXPECT_THROW(g_generator.parseFile(g_missing_institution, g_output_file), ElementMissingException);
-	EXPECT_THROW(g_generator.parseFile(g_missing_family, g_output_file), ElementMissingException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_missing_cluster, g_output_file), ElementMissingException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_missing_institution, g_output_file), ElementMissingException);
+	EXPECT_THROW(g_generator.parseAndGenerate(g_missing_family, g_output_file), ElementMissingException);
 }
 
 } //end-of-namespace-Tests
