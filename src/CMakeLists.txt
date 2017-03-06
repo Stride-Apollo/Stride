@@ -48,6 +48,7 @@ include( CMakeCPPConfig.txt    )
 # Configuration for Git.
 #============================================================================
 find_package( Git QUIET)
+
 if( GIT_FOUND )
 	GIT_WC_INFO(${CMAKE_SOURCE_DIR}/.. STRIDE)
 else()

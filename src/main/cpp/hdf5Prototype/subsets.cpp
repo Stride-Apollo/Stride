@@ -19,7 +19,7 @@ const int DIM1_SUB = 4;
 const int DIM0 = 8;
 const int DIM1 = 10;
 
-int main() {
+int justaFunction() {
 	int data[DIM0][DIM1], sdata[DIM0_SUB][DIM1_SUB], rdata[DIM0][DIM1];
 	int i,j;
 
