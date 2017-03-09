@@ -42,13 +42,14 @@ set(LIB_SRC
 	sim/SimulatorBuilder.cpp
 #---
 	util/InstallDirs.cpp
+	util/AliasDistribution.cpp util/AliasDistribution.h
 #---
 	patterns/Publisher.cpp
 )
 
 set(MAIN_SRC
-        sim/main.cpp
-        )
+	sim/main.cpp
+)
 
 #============================================================================
 # Build & install the (OpenMP enabled if OpenMP available) executable.
