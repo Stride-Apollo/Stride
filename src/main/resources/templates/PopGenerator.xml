@@ -1,6 +1,5 @@
 <POPULATION>
-	<RANDOMGENERATOR generator='mt'/>
-	<RANDOMSEED seed='74128'/>
+	<RANDOM generator='mt' seed='74128'/>
 	<AGES>
 		<RANGE min='0' max='95'/>
 		<AGEDIST constant='65' start='1.2'/>
@@ -20,7 +19,7 @@
 			<AGEDIFF>
 				<!-- Minimum age difference between parents and children, children and children,... -->
 				<PARENTS max='5'/>
-				<CHIDLREN min='1' max='10'/>
+				<CHILDREN min='1' max='10'/>
 				<PARENTSCHILDREN min='18'/>
 					<!-- Difference between OLDEST child and YOUNGEST parent -->
 			</AGEDIFF>
@@ -56,8 +55,9 @@
 	<COMMUNITY size='2000'/>
 
 	<CLUSTERS>
-		<CLUSTER size='184'/>
-		<CLUSTER size='58'/>
-		<!-- must add up to a total of COMMUNITY::size -->
+		<CLUSTER type="work" size='184'/>
+		<CLUSTER type="kleuter school" size='58'/>
+		<CLUSTER type="community" size='532'/>
+		<!-- must be at least COMMUNITY::size -->
 	</CLUSTERS>
 </POPULATION>
