@@ -249,3 +249,56 @@ void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population
 	}
 }
 
+void PopulationGenerator::makeWork(const map<uint, uint>& age_map, Population& pop) {
+	auto work_config = m_props.get_child("POPULATION.WORK");
+	double employment_rate = work_config.get<double>("AMOUNT.<xmlattr>.fraction");
+
+	uint max_age = m_props.get<uint>("POPULATION.AGES.<xmlattr>.max");
+
+	MinMax employment_age;
+	employment_age.min = work_config.get<uint>("AMOUNT.<xmlattr>.minAge");
+	employment_age.max = work_config.get<uint>("AMOUNT.<xmlattr>.maxAge");
+
+	MinMax company_size;
+	company_size.min = work_config.get<uint>("COMPANYSIZE.<xmlattr>.min");
+	company_size.max = work_config.get<uint>("COMPANYSIZE.<xmlattr>.max");
+
+	/// the use of this variable as a data member is obsolete
+	/// i thought every cluster (work, household) had to have a different id
+	/// TODO refactor this later
+	m_cluster_id = 1;
+
+	/// TODO change seed and generator
+	mt19937 rng;
+	rng.seed(7852);
+
+	uint total = 0;
+	/// See how many companies you need
+	vector<SimplePerson*> employed_people;
+	for (SimplePerson& person: pop.all) {
+		if (person.m_age >= employment_age.min and person.m_age <= employment_age.max) {
+			/// You're able to work from this age
+			/// Now ook at the employment rate
+			AliasDistribution dist = AliasDistribution({employment_rate, 1.0 - employment_rate});
+			if (dist(rng) == 0) {
+				employed_people.push_back(&person);
+			}
+			total++;
+		}
+	}
+
+	while (employed_people.size() > 0) {
+		uint current_company_size = rng() % (company_size.max - company_size.min) + company_size.min;
+		for (uint i = 0U; i < current_company_size; i++) {
+			if (employed_people.size() != 0) {
+				employed_people.back()->m_work_id = m_cluster_id;
+				employed_people.pop_back();
+			} else {
+				break;
+			}
+		}
+		m_cluster_id++;
+	}
+}
+
+
