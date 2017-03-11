@@ -186,11 +186,14 @@ Population PopulationGenerator::generate() {
 		age_dist.correct(pop.all.size(), age_map);
 	}
 
-	m_cluster_id = 0;
+	m_cluster_id = 1;
 	// TODO:
 	//  - schools
 	//  - work
 	//  - communities
+
+	/// schools
+	makeSchools(age_map, pop);
 
 	return pop;
 }
@@ -232,7 +235,7 @@ void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population
 	for (uint i = 0; i < total_schools_needed.size(); i++) {
 		schools.push_back(vector<SimpleSchool>());
 
-		uint places_still_needed = total_schools_needed[i];
+		int places_still_needed = int (total_schools_needed[i]) * int(max_school_size);
 
 		while (places_still_needed > 0) {
 			SimpleSchool new_school;
@@ -251,7 +254,7 @@ void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population
 	for (SimplePerson& person: pop.all) {
 		for (uint i = 0U; i < school_ages.size(); i++) {
 			MinMax& range = school_ages[i];
-			if (person.m_age >= range.min or person.m_age <= range.max) {
+			if (person.m_age >= range.min and person.m_age <= range.max) {
 				double fraction = school_fractions[i];
 				AliasDistribution dist = AliasDistribution({fraction, 1.0 - fraction});
 
