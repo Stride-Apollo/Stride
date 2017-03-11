@@ -1,4 +1,4 @@
-<POPULATION total='50000'>
+<POPULATION total='1000000'>
 	<RANDOM generator='mt' seed='74128'/>
 	<AGES min='0' max='95' constantUpTo='65'/>
 	<!-- constantUpTo = up until that age, the fraction in the population is constant, afterwards it descends -->

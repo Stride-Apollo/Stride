@@ -35,6 +35,8 @@ AliasDistribution::AliasDistribution(const vector<double>& _probs)
 	for (unsigned int i: small) m_blocks[i].prob = 1.0;
 }
 
+uniform_real_distribution<double> AliasDistribution::g_coinflip = uniform_real_distribution<double>(0,1);
+
 template<typename K, typename V>
 vector<V> map_values(const map<K, V>& m) {
 	vector<V> v;

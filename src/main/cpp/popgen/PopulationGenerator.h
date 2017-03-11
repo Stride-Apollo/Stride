@@ -22,13 +22,12 @@ using namespace util;
 
 class PopulationGenerator;
 
-uniform_real_distribution<double> real01;
+extern uniform_real_distribution<double> real01;
 
 class SimplePerson {
 public:
 
-	SimplePerson() = default;
-	SimplePerson(uint age);
+	SimplePerson(uint age=0, uint family_id=0);
 	bool hasCommunitiesLeft();
 	void print(std::ostream& os) const;
 
@@ -56,6 +55,8 @@ struct Population {
 	vector<Cluster> communities;
 };
 
+std::ostream& operator<<(std::ostream& os, const Population& p);
+
 struct MinMax {
 	MinMax(uint _min=0, uint _max=0): min(_min), max(_max) {}
 	uint min;
@@ -70,8 +71,8 @@ struct MinMaxAvg: public MinMax {
 
 class AgeDistribution {
 public:
-	AgeDistribution(uint min=0, uint max=2, uint constant_up_to=1)
-			: m_min(min), m_max(max), m_constant_up_to(constant_up_to),
+	AgeDistribution(uint total=0, uint min=0, uint max=2, uint constant_up_to=1)
+			: m_total(total), m_min(min), m_max(max), m_constant_up_to(constant_up_to),
 			  m_first_pick(min, max) {
 		assert(min < max);
 		assert(min <= constant_up_to);
@@ -117,6 +118,7 @@ public:
 	inline uint getConstantUpTo() const { return m_constant_up_to; }
 
 private:
+	uint m_total;
 	uint m_min;
 	uint m_max;
 	uint m_constant_up_to;
@@ -138,8 +140,8 @@ private:
 	MappedAliasDistribution m_some_kids_family_size_dist;
 	double m_family_size_avg = 0;
 	double m_no_kids_family_size_avg = 0;
-	MinMax m_family_size = MinMax(numeric_limits<uint>::min(),
-								  numeric_limits<uint>::max());
+	MinMax m_family_size = MinMax(numeric_limits<uint>::max(),
+								  numeric_limits<uint>::min());
 
 	MinMax m_age_kids;
 	MinMax m_age_parents;
