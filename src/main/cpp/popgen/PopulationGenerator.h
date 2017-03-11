@@ -55,6 +55,11 @@ struct Population {
 	vector<Cluster> communities;
 };
 
+struct SimpleSchool {
+	uint m_current_pupils = 0;
+	uint m_id = 0;
+};
+
 std::ostream& operator<<(std::ostream& os, const Population& p);
 
 struct MinMax {
@@ -133,6 +138,8 @@ public:
 	Population generate();
 
 private:
+	void makeSchools(const map<uint, uint>& age_map, Population& pop);
+
 	boost::property_tree::ptree m_props;
 	uint m_total;
 	map<uint, double> m_family_size_fractions;
@@ -149,6 +156,7 @@ private:
 	uint m_age_diff_parents_max = 0;
 	uint m_age_diff_parents_kids_min = 0;
 	uint m_age_no_kids_min = 0;
+	uint m_cluster_id = 0;
 };
 
 }

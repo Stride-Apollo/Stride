@@ -186,6 +186,7 @@ Population PopulationGenerator::generate() {
 		age_dist.correct(pop.all.size(), age_map);
 	}
 
+	m_cluster_id = 0;
 	// TODO:
 	//  - schools
 	//  - work
@@ -194,6 +195,79 @@ Population PopulationGenerator::generate() {
 	return pop;
 }
 
+void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population& pop) {
+	auto schools_config = m_props.get_child("POPULATION.EDUCATION");
+	uint max_school_size = schools_config.get<uint>("<xmlattr>.size");
+	vector<double> school_fractions;
+	vector<MinMax> school_ages;
+	vector<uint> total_schools_needed;
+
+	/// TODO change seed and generator
+	mt19937 rng;
+	rng.seed(7852);
+
+	for (auto it = schools_config.begin(); it != schools_config.end(); it++) {
+		if (it->first == "INSTITUTION") {
+			/// Get the ages for this school level
+			uint min = it->second.get<uint>("<xmlattr>.minAge");
+			uint max = it->second.get<uint>("<xmlattr>.maxAge");
+			school_ages.push_back(MinMax(min, max));
+
+			/// Get the fraction of people (of the orrect age) that go to this type of school
+			school_fractions.push_back(it->second.get<double>("<xmlattr>.fraction") / 100.0);
+
+			/// Determine the amount of schools needed
+			/// TODO: how do i make this consistent with the fractions per school?
+			uint required_school_capacity = 0;
+			for (uint i = min; i <= max; i++) {
+				required_school_capacity += age_map.at(i);
+			}
+			uint schools_needed = uint(required_school_capacity / max_school_size + 0.5);
+			total_schools_needed.push_back(schools_needed);
+		}
+	}
+
+	/// Make the schools
+	vector<vector<SimpleSchool> > schools;
+	for (uint i = 0; i < total_schools_needed.size(); i++) {
+		schools.push_back(vector<SimpleSchool>());
+
+		uint places_still_needed = total_schools_needed[i];
+
+		while (places_still_needed > 0) {
+			SimpleSchool new_school;
+			new_school.m_current_pupils = 0;
+			new_school.m_id = m_cluster_id;
+			m_cluster_id++;
+
+			schools[i].push_back(new_school);
+			places_still_needed -= max_school_size;
+		}
+	}
+
+	/// Go trough the list of people and add them to an appropriate school
+	/// NOTE: if one has been assigned to a schook, he can't be assigned to another school
+	/// NOTE2: school age ranges might overlap but that's fine (e.g. due to specialization years)
+	for (SimplePerson& person: pop.all) {
+		for (uint i = 0U; i < school_ages.size(); i++) {
+			MinMax& range = school_ages[i];
+			if (person.m_age >= range.min or person.m_age <= range.max) {
+				double fraction = school_fractions[i];
+				AliasDistribution dist = AliasDistribution({fraction, 1.0 - fraction});
+
+				if (dist(rng) == 0) {
+					/// The person should be assigned to a school, now randomly pick one
+					uint chosen_school = rng() % schools[i].size();
+
+					person.m_school_id = schools[i][chosen_school].m_id;
+					schools[i][chosen_school].m_current_pupils++;
+
+					break;
+				}
+			}
+		}
+	}
+}
 
 void AgeDistribution::correct(uint total, const map<uint, uint>& age_counts) {
 
