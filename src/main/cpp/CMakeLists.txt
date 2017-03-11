@@ -14,10 +14,6 @@
 #
 #  Copyright 2016, Willem L, Kuylen E & Broeckhove J
 #############################################################################
-#============================================================================
-# Add subdirs:
-#============================================================================
-add_subdirectory( popgen      )
 
 #============================================================================
 # Sources.
@@ -46,15 +42,24 @@ set(LIB_SRC
 	sim/SimulatorBuilder.cpp
 #---
 	util/InstallDirs.cpp
-	util/AliasDistribution.cpp util/AliasDistribution.h
+	util/AliasDistribution.cpp
 #---
 	patterns/Publisher.cpp
 #---
     hdf5Prototype/subsets.cpp
 )
 
+set(POPGEN_SRC
+	util/AliasDistribution.cpp
+	popgen/PopulationGenerator.cpp
+)
+
 set(MAIN_SRC
 	sim/main.cpp
+)
+
+set(POPGEN_MAIN_SRC
+	popgen/main.cpp
 )
 
 #============================================================================
@@ -101,23 +106,31 @@ endif()
 #============================================================================
 add_library(libstride ${LIB_SRC})
 #target_compile_options(libstride PUBLIC "-flto")
-#
 add_executable(stride ${MAIN_SRC} $<TARGET_OBJECTS:trng>)
 target_link_libraries(stride libstride)
 #target_compile_options(stride PUBLIC "-flto")
-#
+
+add_library(libpopgen ${POPGEN_SRC})
+add_executable(pop_generator ${POPGEN_MAIN_SRC})
+target_link_libraries(pop_generator libpopgen)
+
 target_link_libraries(stride ${LIBS})
 if(NOT HDF5_FOUND)
     add_dependencies(stride hdf5_local)
 endif()
 target_link_libraries(stride ${_hdf5_libs})
 #set_target_properties(stride PROPERTIES LINK_FLAGS_RELEASE "-flto")
+
 install(TARGETS stride DESTINATION ${BIN_INSTALL_LOCATION})
+install(TARGETS pop_generator DESTINATION ${BIN_INSTALL_LOCATION})
 
 #============================================================================
 # Clean up.
 #============================================================================
 unset(LIB_SRC)
 unset(MAIN_SRC)
+unset(POPGEN_SRC)
+unset(POPGEN_MAIN_SRC)
 
 #############################################################################
+
