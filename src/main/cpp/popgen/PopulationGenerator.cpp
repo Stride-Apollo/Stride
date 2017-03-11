@@ -174,7 +174,7 @@ Population PopulationGenerator::generate() {
 	while (pop.all.size() <= m_total-(m_no_kids_family_size_avg/2.0)) {
 		uint size = m_no_kids_family_size_dist(rd);
 		vector<uint> ages(size);
-		MinMax limits = m_age_parents;
+		MinMax limits(m_age_no_kids_min, age_dist.getMax());
 		for (uint i=0; i<size; i++) {
 			ages[i] = age_dist.get_limited(rd, limits);
 			limits.min = max(limits.min, ages[i] - m_age_diff_parents_max);
