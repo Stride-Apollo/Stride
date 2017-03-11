@@ -1,11 +1,11 @@
-<POPULATION total='1000000'>
+<POPULATION total='100000'>
 	<RANDOM generator='mt' seed='74128'/>
 	<AGES min='0' max='95' constantUpTo='65'/>
 	<!-- constantUpTo = up until that age, the fraction in the population is constant, afterwards it descends -->
 	<!-- Given example: ages 0-65 (including 65) each represent 1.2% of the population, from that point on the fraction of people with a higer age will descend linearly -->
 
 	<FAMILY>
-		<NOCHILDREN min='1' max='3' minAge='18'/>
+		<NOCHILDREN min='1' max='2' minAge='18'/>
 		<!-- If there a family consists of minimum 1 and maximum 2 people, they are considered a family with no children, meaning that they are all older than 18 -->
 		<CHILDREN>
 			<!-- If there are more that NOCHILDREN::max people in a family, they have children and you get here -->

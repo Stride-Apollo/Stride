@@ -52,6 +52,8 @@ set(LIB_SRC
 set(POPGEN_SRC
 	util/AliasDistribution.cpp
 	popgen/PopulationGenerator.cpp
+	popgen/AgeDistribution.cpp
+	popgen/utils.cpp
 )
 
 set(MAIN_SRC

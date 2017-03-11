@@ -1,8 +1,8 @@
 #include "PopulationGenerator.h"
 
-#include <boost/property_tree/xml_parser.hpp>
+#include "AgeDistribution.h"
 
-#include <algorithm>
+#include <boost/property_tree/xml_parser.hpp>
 
 using namespace stride;
 using namespace popgen;
@@ -10,36 +10,13 @@ using namespace util;
 using namespace boost::property_tree;
 using namespace xml_parser;
 
-uniform_real_distribution<double> popgen::real01 = uniform_real_distribution<double>(0, 1);
-
-bool SimplePerson::hasCommunitiesLeft() {
-	return (m_primary_community != 0) and (m_secondary_community != 0);
-}
-
-std::ostream& popgen::operator<<(std::ostream& os, const SimplePerson& p) {
-	p.print(os);
-	return os;
-}
-
-void SimplePerson::print(std::ostream& os) const {
-	assert(m_household_id != 0);  // everyone is part of a family!
-
-	// "age","household_id","school_id","work_id","primary_community","secondary_community"
-	os << m_age << "," << m_household_id << ","
-	   << m_school_id << "," << m_work_id << ","
-	   << m_primary_community << "," << m_secondary_community << "\n";
-}
-
 std::ostream& popgen::operator<<(std::ostream& os, const Population& p) {
 	os << "\"age\",\"household_id\",\"school_id\",\"work_id\",\"primary_community\",\"secondary_community\"\n";
 	for (const SimplePerson& person: p.all) {
-		person.print(os);
+		os << person;
 	}
 	return os;
 }
-
-SimplePerson::SimplePerson(uint age, uint family_id): m_age(age), m_household_id(family_id) {}
-
 
 PopulationGenerator::PopulationGenerator(const string& filename) {
 	read_xml(filename, m_props, trim_whitespace | no_comments);
@@ -97,7 +74,7 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 
 Population PopulationGenerator::generate() {
 	mt19937 rd;  // TODO: pick random generator from xml + seed
-	rd.seed(123);
+	rd.seed(1234);
 	Population pop;
 	AgeDistribution age_dist(
 			m_total,
@@ -127,10 +104,9 @@ Population PopulationGenerator::generate() {
 		uint size = m_some_kids_family_size_dist(rd);
 		assert(size >= 3);
 
-		uint parent1 = age_dist.get_limited(rd, m_age_parents);
-		uint parent2 = age_dist.get_limited(rd,
-				max(m_age_parents.min, parent1-m_age_diff_parents_max),
-				min(m_age_parents.max, parent1+m_age_diff_parents_max));
+		uint parent1 = age_dist.get_dist(m_age_parents)(rd);
+		uint parent2 = age_dist.get_dist(max(m_age_parents.min, parent1 - m_age_diff_parents_max),
+										 min(m_age_parents.max, parent1 + m_age_diff_parents_max))(rd);
 
 		uint parent_min_age = min(parent1, parent2);
 		uint max_age = min(parent_min_age-m_age_diff_parents_kids_min, m_age_kids.max);
@@ -141,9 +117,10 @@ Population PopulationGenerator::generate() {
 		if (num_children > possible) continue;
 
 		vector<uint> children_ages(num_children);
+		auto dist = age_dist.get_dist(m_age_kids.min, max_age);
 		while (true) {
 			for (uint i=0; i<num_children; i++) {
-				children_ages[i] = age_dist.get_limited(rd, m_age_kids.min, max_age);
+				children_ages[i] = dist(rd);
 			}
 
 			sort(children_ages.begin(), children_ages.end());
@@ -176,9 +153,9 @@ Population PopulationGenerator::generate() {
 		vector<uint> ages(size);
 		MinMax limits(m_age_no_kids_min, age_dist.getMax());
 		for (uint i=0; i<size; i++) {
-			ages[i] = age_dist.get_limited(rd, limits);
-			limits.min = max(limits.min, ages[i] - m_age_diff_parents_max);
-			limits.max = min(limits.max, ages[i] + m_age_diff_parents_max);
+			ages[i] = age_dist.get_dist(limits)(rd);
+			limits.min = max<int>(limits.min, ages[i] - m_age_diff_parents_max);
+			limits.max = min<int>(limits.max, ages[i] + m_age_diff_parents_max);
 		}
 
 		for (uint& a: ages) add_person(SimplePerson(a, family_id));
@@ -193,9 +170,3 @@ Population PopulationGenerator::generate() {
 
 	return pop;
 }
-
-
-void AgeDistribution::correct(uint total, const map<uint, uint>& age_counts) {
-
-}
-

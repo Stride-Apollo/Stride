@@ -10,6 +10,7 @@ AliasDistribution::AliasDistribution(const vector<double>& _probs)
 	double factor = 1.0/std::accumulate(_probs.begin(), _probs.end(), 0.0);
 
 	unsigned int n = _probs.size();
+	assert(n > 0);
 	vector<double> probs(n);
 	for (int i=0; i<n; i++) probs[i] = _probs[i] * factor * n;
 
