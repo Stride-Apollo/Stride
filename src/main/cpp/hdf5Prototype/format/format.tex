@@ -53,10 +53,10 @@
 				TBD
 			\subsubsection{RNGDatatype}
 				\begin{itemize}
-					\item H5T\_NATIVE\_UINT - seed
+					\item H5T\_NATIVE\_ULONG - seed
 					\item (things to hold state of generator)
 				\end{itemize}
-			\subsubsection{PersonTIDatatype}
+			\subsubsection{PersonTIDatatype (time independent)}
 				\begin{itemize}
 					\item H5T\_NATIVE\_UINT - ID
 					\item H5T\_NATIVE\_DOUBLE - age
@@ -68,14 +68,19 @@
 					\item H5T\_NATIVE\_UINT - primcommID
 					\item H5T\_NATIVE\_UINT - seccommID
 				\end{itemize}
-			\subsubsection{PersonTDDatatype}
+			\subsubsection{PersonTDDatatype (time dependent)}
 				\begin{itemize}
 					\item H5T\_NATIVE\_HBOOL - athousehold
 					\item H5T\_NATIVE\_HBOOL - atschool
 					\item H5T\_NATIVE\_HBOOL - atwork
 					\item H5T\_NATIVE\_HBOOL - atprimcomm
 					\item H5T\_NATIVE\_HBOOL - atseccomm
-					\item H5T\_NATIVE\_HBOOL - participant
+					\item H5T\_NATIVE\_HBOOL - participant7
+
+					\item Compound Datatype := \\
+						\hspace*{1cm} health (5x H5T\_NATIVE\_UINT, 1x H5T\_NATIVE\_B8) \\
+						\textit{(Attributes from Health class, 8 bit type for enum?)}
+
 				\end{itemize}
 			\subsubsection{CalendarDatatype}
 				\begin{itemize}
