@@ -1,0 +1,87 @@
+\documentclass{article}
+\usepackage{multirow}
+
+\title{Data format Stride checkpointing}
+% \date{2017-03-09}
+% \author{Federico Quin}
+
+
+\begin{document}
+	\maketitle
+	\section{Hierarchy}
+	\subsection{level /}
+	\subsection{level /Timestep\_n}
+
+	\section{Table structure}
+		\begin{tabular}{ |l|l|l| }
+		\hline
+
+		\multirow{3}{*}{/configurations} & rank & 1 \\
+		& dims & 1 \\
+		& dtype & ConfDatatype \\ \hline
+
+		\multirow{3}{*}{/amt\_persons} & rank & 1 \\
+		& dims & 1 \\
+		& dtype & H5T\_NATIVE\_UINT \\ \hline
+
+		% TI = Time Independent
+		\multirow{3}{*}{/personsTI} & rank & 1 \\
+		& dims & amt\_persons \\
+		& dtype & PersonTIDatatype \\ \hline
+
+		\multirow{3}{*}{/amt\_timesteps} & rank & 1 \\
+		& dims & n\_steps \\
+		& dtype & H5T\_NATIVE\_UINT \\ \hline
+
+		\multirow{3}{*}{/Timestep\_n/randomgen} & rank & 1 \\
+		& dims & 1 \\
+		& dtype & RNGDatatype \\ \hline
+
+		% TD = Time Dependent
+		\multirow{3}{*}{/Timestep\_n/PersonTD} & rank & 1 \\
+		& dims & amt\_persons \\
+		& dtype & PersonTDDatatype \\ \hline
+
+		\multirow{3}{*}{/Timestep\_n/Calendar} & rank & 1 \\
+		& dims & 1 \\
+		& dtype & CalendarDatatype \\ \hline
+		\end{tabular}
+		\\ \\
+		
+		\subsection{Custom datatypes}
+			\subsubsection{ConfDatatype}
+				TBD
+			\subsubsection{RNGDatatype}
+				\begin{itemize}
+					\item H5T\_NATIVE\_UINT - seed
+					\item (things to hold state of generator)
+				\end{itemize}
+			\subsubsection{PersonTIDatatype}
+				\begin{itemize}
+					\item H5T\_NATIVE\_UINT - ID
+					\item H5T\_NATIVE\_DOUBLE - age
+					\item H5T\_NATIVE\_CHAR - gender
+
+					\item H5T\_NATIVE\_UINT - householdID
+					\item H5T\_NATIVE\_UINT - schoolID
+					\item H5T\_NATIVE\_UINT - workID
+					\item H5T\_NATIVE\_UINT - primcommID
+					\item H5T\_NATIVE\_UINT - seccommID
+				\end{itemize}
+			\subsubsection{PersonTDDatatype}
+				\begin{itemize}
+					\item H5T\_NATIVE\_HBOOL - athousehold
+					\item H5T\_NATIVE\_HBOOL - atschool
+					\item H5T\_NATIVE\_HBOOL - atwork
+					\item H5T\_NATIVE\_HBOOL - atprimcomm
+					\item H5T\_NATIVE\_HBOOL - atseccomm
+					\item H5T\_NATIVE\_HBOOL - participant
+				\end{itemize}
+			\subsubsection{CalendarDatatype}
+				\begin{itemize}
+					\item H5T\_NATIVE\_HSIZE - day
+					\item Compound Datatype := dateString (8x H5T\_NATIVE\_CHAR) - date
+							\\ \textit{Date in iso format, string of 8 characters.}
+
+				\end{itemize}
+\end{document}
