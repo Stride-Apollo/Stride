@@ -74,7 +74,7 @@ add_subdirectory( main )
 add_subdirectory( test )
 if( STRIDE_INCLUDE_DOC )
 	add_subdirectory( doc )
-endif()	
+endif()
 
 #============================================================================
 # Overview report:

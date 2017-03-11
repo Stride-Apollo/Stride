@@ -7,12 +7,11 @@ using namespace util;
 
 AliasDistribution::AliasDistribution(const vector<double>& _probs)
 		: m_blocks(_probs.size()), m_diceroll(0, _probs.size()-1) {
-	// Check if sum is (almost) equal to 1.0
-	assert(abs(std::accumulate(_probs.begin(), _probs.end(), 0.0)-1.0) < 0.0001);
+	double factor = 1.0/std::accumulate(_probs.begin(), _probs.end(), 0.0);
 
 	unsigned int n = _probs.size();
 	vector<double> probs(n);
-	for (int i=0; i<n; i++) probs[i] = _probs[i] * n;
+	for (int i=0; i<n; i++) probs[i] = _probs[i] * factor * n;
 
 	deque<unsigned int> small, large;
 	for (int i=0; i<n; i++) {
@@ -34,4 +33,23 @@ AliasDistribution::AliasDistribution(const vector<double>& _probs)
 	for (unsigned int i: large) m_blocks[i].prob = 1.0;
 	// If small is not empty, this may be sign of numerical instability
 	for (unsigned int i: small) m_blocks[i].prob = 1.0;
+}
+
+template<typename K, typename V>
+vector<V> map_values(const map<K, V>& m) {
+	vector<V> v;
+	v.reserve(m.size());
+	for (const auto& it: m) {
+		v.push_back(it.second);
+	}
+	return v;
+};
+
+MappedAliasDistribution::MappedAliasDistribution(const map<unsigned int, double>& m)
+		: AliasDistribution(map_values(m)) {
+	unsigned int k = 0;
+	for (const auto& it: m) {
+		m_translation[k] = it.first;
+		k++;
+	}
 }
