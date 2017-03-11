@@ -172,6 +172,9 @@ Population PopulationGenerator::generate() {
 	/// schools
 	makeSchools(age_map, pop);
 
+	/// work
+	makeWork(age_map, pop);
+
 	return pop;
 }
 
@@ -251,7 +254,7 @@ void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population
 
 void PopulationGenerator::makeWork(const map<uint, uint>& age_map, Population& pop) {
 	auto work_config = m_props.get_child("POPULATION.WORK");
-	double employment_rate = work_config.get<double>("AMOUNT.<xmlattr>.fraction");
+	double employment_rate = work_config.get<double>("AMOUNT.<xmlattr>.fraction") / 100;
 
 	uint max_age = m_props.get<uint>("POPULATION.AGES.<xmlattr>.max");
 
