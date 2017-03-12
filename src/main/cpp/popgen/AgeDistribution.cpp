@@ -50,17 +50,7 @@ void AgeDistribution::correct(uint current_total, const map<uint, uint>& age_cou
 	if (current_total >= m_total) {
 		// at this point we're really stretching it
 		for (auto& it: m_probs) {
-			it.second = it.second == -1.0 ? 1.0 : 0.5;
-		}
-	} else {
-		using PairType = map<uint, uint>::value_type;
-		auto comp = [](const PairType& a, const PairType& b) { return a.second < b.second; };
-		double min = std::min_element(m_probs.begin(), m_probs.end(), comp)->second;
-
-		for (auto& it: m_probs) {
-			if (it.second == -2.0) {
-				it.second = min / 2;
-			}
+			it.second = (it.second == -1.0 ? 2.0 : 1.0);
 		}
 	}
 }
@@ -70,8 +60,18 @@ MappedAliasDistribution AgeDistribution::get_dist(uint _min, uint _max) {
 	_max = min(_max, m_max);
 
 	map<uint, double> probs;
+	double min_val = numeric_limits<double>::infinity();
 	for (uint i=_min; i<=_max; i++) {
 		probs[i] = m_probs[i];
+		if (probs[i] != -2.0 and probs[i] < min_val) {
+			min_val = probs[i];
+		}
+	}
+
+	for (auto& it: probs) {
+		if (it.second == -2.0) {
+			it.second = min_val / 10;
+		}
 	}
 
 	return MappedAliasDistribution(probs);
