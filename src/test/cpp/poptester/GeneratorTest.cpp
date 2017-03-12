@@ -15,7 +15,7 @@
 
 /**
  * @file
- * Implementation of tests for the alias distribution.
+ * Implementation of tests for the population generator and the alias distribution.
  */
 
  #include "util/AliasDistribution.h"
@@ -27,6 +27,7 @@
  #include <string>
  #include <tuple>
  #include <random>
+ #include <iostream>
 
  using namespace std;
  using namespace stride;
@@ -56,25 +57,39 @@ protected:
 
 	// Data members of the test fixture
   static const vector<double>&    g_probabilities;
+  static const vector<double>&    g_zero_probabilities;
   static const string             g_output_prefix;
 };
 
 // Default values
-const vector<double>& PopulationGeneratorDemos::g_probabilities           = {0.24,0.26, 0.01, 0.09, 0.33, 0.07};
-const string          PopulationGeneratorDemos::g_output_prefix           = "AliasDistribution";
+const vector<double>& PopulationGeneratorDemos::g_probabilities                 = {0.24,0.26, 0.01, 0.09, 0.33, 0.07};
+const vector<double>& PopulationGeneratorDemos::g_zero_probabilities            = {0.0};
+const string          PopulationGeneratorDemos::g_output_prefix                 = "PopulationGenerator";
 
 TEST_F(PopulationGeneratorDemos, AliasDistribution)
 {
   // -----------------------------------------------------------------------------------------
-  // initialize the logger.
+  // Initialize the logger.
   // -----------------------------------------------------------------------------------------
   spdlog::set_async_mode(1048576);
   auto file_logger = spdlog::rotating_logger_mt("contact_logger", g_output_prefix + "_logfile",
       std::numeric_limits<size_t>::max(),  std::numeric_limits<size_t>::max());
   file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
-  auto Alias = AliasDistribution::AliasDistribution(g_probabilities);
-  ASSERT_TRUE(true);
+  // -----------------------------------------------------------------------------------------
+  // Initialize the alias distributions and the random engines
+  // -----------------------------------------------------------------------------------------
+  auto alias_normal = AliasDistribution::AliasDistribution(g_probabilities);
+  auto alias_zero = AliasDistribution::AliasDistribution(g_zero_probabilities);
+  default_random_engine rng_default(0);
+  mt19937 rng_mt(0);
+
+  // -----------------------------------------------------------------------------------------
+  // Actual tests
+  // -----------------------------------------------------------------------------------------
+  EXPECT_EQ(alias_zero(rng_default), 0);
+  EXPECT_EQ(alias_zero(rng_mt), 0);
+  // TODO provide more in depth tests
 
   // -----------------------------------------------------------------------------------------
   // Release and close logger.
