@@ -24,9 +24,14 @@ using namespace util;
 
 using Cluster = vector<uint>;
 
+/// Contains the indices of the people in Population::all
+using SimpleFamily = vector<uint>;
+
 struct Population {
 	vector<SimplePerson> all;
-	vector<Cluster> families;
+	vector<SimpleFamily> families;
+
+	/// TODO: refactor: Didn't use this yet, I don't think we need it (Sam)
 	vector<Cluster> schools;
 	vector<Cluster> workplaces;
 	vector<Cluster> communities;
@@ -49,6 +54,7 @@ public:
 private:
 	void makeSchools(const map<uint, uint>& age_map, Population& pop);
 	void makeWork(const map<uint, uint>& age_map, Population& pop);
+	void makeCommunities(const map<uint, uint>& age_map, Population& pop);
 
 	boost::property_tree::ptree m_props;
 	uint m_total;
