@@ -88,9 +88,16 @@ Population PopulationGenerator::generate() {
 		age_map[i] = 0;
 	}
 
-	auto add_person = [&](const SimplePerson& p) {
+	auto add_person = [&](const SimplePerson& p, bool newFamily = false) {
 		pop.all.push_back(p);
 		age_map[p.m_age]++;
+
+		if (newFamily) {
+			pop.families.push_back(SimpleFamily());
+			pop.families.back().push_back(pop.all.size() - 1);
+		} else {
+			pop.families.back().push_back(pop.all.size() - 1);
+		}
 	};
 
 	// Step 1: Families
@@ -139,7 +146,7 @@ Population PopulationGenerator::generate() {
 			break;
 		}
 
-		add_person(SimplePerson(parent1, family_id));
+		add_person(SimplePerson(parent1, family_id), true);
 		add_person(SimplePerson(parent2, family_id));
 		for (uint& a: children_ages) add_person(SimplePerson(a, family_id));
 		total_in_fam_kids += size;
@@ -164,16 +171,15 @@ Population PopulationGenerator::generate() {
 	}
 
 	m_cluster_id = 1;
-	// TODO:
-	//  - schools
-	//  - work
-	//  - communities
 
 	/// schools
 	makeSchools(age_map, pop);
 
 	/// work
 	makeWork(age_map, pop);
+
+	/// communities
+	makeCommunities(age_map, pop);
 
 	return pop;
 }
@@ -281,7 +287,8 @@ void PopulationGenerator::makeWork(const map<uint, uint>& age_map, Population& p
 	for (SimplePerson& person: pop.all) {
 		if (person.m_age >= employment_age.min and person.m_age <= employment_age.max) {
 			/// You're able to work from this age
-			/// Now ook at the employment rate
+			/// Note that we allow to work and study at the same time!
+			/// Now look at the employment rate
 			AliasDistribution dist = AliasDistribution({employment_rate, 1.0 - employment_rate});
 			if (dist(rng) == 0) {
 				employed_people.push_back(&person);
@@ -305,3 +312,61 @@ void PopulationGenerator::makeWork(const map<uint, uint>& age_map, Population& p
 }
 
 
+
+void PopulationGenerator::makeCommunities(const map<uint, uint>& age_map, Population& pop) {
+	auto community_config = m_props.get_child("POPULATION.COMMUNITY");
+	uint community_size = community_config.get<uint>("<xmlattr>.size");
+	double communities_per_person = community_config.get<double>("<xmlattr>.average_per_person");
+	uint needed_communities = uint (pop.all.size() * communities_per_person / double(community_size) + 0.5);
+
+	uint pop_with_two_communities = needed_communities * community_size - pop.all.size();
+	uint pop_with_one_community = pop.all.size() - pop_with_two_communities;
+
+	double pop_two_communities_fraction = double(pop_with_two_communities) / double(pop.all.size());
+
+	/// TODO change seed and generator
+	mt19937 rng;
+	rng.seed(7852);
+
+	/// Make the communities
+	vector<uint> communities;
+
+	m_cluster_id = 1;
+
+	for (uint i = 0U; i < needed_communities; i++) {
+		communities.push_back(m_cluster_id);
+		m_cluster_id++;		
+	}
+
+
+	/// Assign families to a primary community
+	AliasDistribution community_dist = AliasDistribution(vector<double>(communities.size(), 1.0 / communities.size()));
+	for (SimpleFamily& family: pop.families) {
+		/// Pick a community
+		uint community_index = community_dist(rng);
+
+		for (uint& index: family) {
+			SimplePerson& p = pop.all[index];
+			p.m_primary_community = communities.at(community_index);
+		}
+	}
+
+	/// Assign each individual a secondary community if needed
+	AliasDistribution individual_dist = AliasDistribution(
+		{pop_two_communities_fraction, 1 - pop_two_communities_fraction});
+
+	for (SimplePerson& p: pop.all) {
+		if (individual_dist(rng) == 0) {
+			/// He has a secondary community
+			uint current_community_id = p.m_primary_community;
+
+			while (current_community_id == p.m_primary_community) {
+				current_community_id = community_dist(rng);
+			}
+
+			p.m_secondary_community = current_community_id;
+		} else {
+			p.m_secondary_community = p.m_primary_community;
+		}
+	}
+}
