@@ -48,6 +48,7 @@ public:
 
 private:
 	void makeSchools(const map<uint, uint>& age_map, Population& pop);
+	void makeWork(const map<uint, uint>& age_map, Population& pop);
 
 	boost::property_tree::ptree m_props;
 	uint m_total;
