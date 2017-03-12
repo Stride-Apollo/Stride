@@ -74,7 +74,7 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 
 Population PopulationGenerator::generate() {
 	mt19937 rd;  // TODO: pick random generator from xml + seed
-	rd.seed(1234);
+	rd.seed(789);
 	Population pop;
 	AgeDistribution age_dist(
 			m_total,
@@ -103,6 +103,7 @@ Population PopulationGenerator::generate() {
 	while (total_in_fam_kids <= max_in_fam_kids) {
 		uint size = m_some_kids_family_size_dist(rd);
 		assert(size >= 3);
+		uint num_children = size - 2;
 
 		uint parent1 = age_dist.get_dist(m_age_parents)(rd);
 		uint parent2 = age_dist.get_dist(max(m_age_parents.min, parent1 - m_age_diff_parents_max),
@@ -110,7 +111,6 @@ Population PopulationGenerator::generate() {
 
 		uint parent_min_age = min(parent1, parent2);
 		uint max_age = min(parent_min_age-m_age_diff_parents_kids_min, m_age_kids.max);
-		uint num_children = size - 2;
 
 		// Check for highest possible amount of children in given range
 		uint possible = double(min(max_age-m_age_kids.min, m_age_diff_kids.max))/m_age_diff_kids.min;
