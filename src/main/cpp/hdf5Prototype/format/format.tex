@@ -1,10 +1,8 @@
 \documentclass{article}
 \usepackage{multirow}
+\usepackage{ulem}
 
 \title{Data format Stride checkpointing}
-% \date{2017-03-09}
-% \author{Federico Quin}
-
 
 \begin{document}
 	\maketitle
@@ -16,46 +14,86 @@
 		\begin{tabular}{ |l|l|l| }
 		\hline
 
-		\multirow{3}{*}{/configurations} & rank & 1 \\
-		& dims & 1 \\
-		& dtype & ConfDatatype \\ \hline
+		\multirow{3}{*}{/configuration} 
+			& rank & 1 \\
+			& dims & 1 \\
+			& dtype & ConfDatatype \\ \hline
 
-		\multirow{3}{*}{/amt\_persons} & rank & 1 \\
-		& dims & 1 \\
-		& dtype & H5T\_NATIVE\_UINT \\ \hline
+		\multirow{3}{*}{\begin{tabular}{l}/configuration/disease \\ \textit{(might not be necessary)}\end{tabular}} 
+			& rank & 1 \\
+			& dims & 1 \\
+			& dtype & DiseaseConfigType \\ \hline
 
-		% TI = Time Independent
-		\multirow{3}{*}{/personsTI} & rank & 1 \\
-		& dims & amt\_persons \\
-		& dtype & PersonTIDatatype \\ \hline
+		\multirow{3}{*}{/configuration/holiday} 
+			& rank & 1 \\
+			& dims & 1 \\
+			& dtype & HolidayConfigType \\ \hline
 
-		\multirow{3}{*}{/amt\_timesteps} & rank & 1 \\
-		& dims & n\_steps \\
-		& dtype & H5T\_NATIVE\_UINT \\ \hline
+		\multirow{3}{*}{/configuration/agecontact} 
+			& rank & amt\_ages \\
+			& dims & amt\_ages \\
+			& dtype & H5T\_NATIVE\_DOUBLE \\ \hline
 
-		\multirow{3}{*}{/Timestep\_n/randomgen} & rank & 1 \\
-		& dims & 1 \\
-		& dtype & RNGDatatype \\ \hline
+		\multirow{3}{*}{/amt\_persons} 
+			& rank & 1 \\
+			& dims & 1 \\
+			& dtype & H5T\_NATIVE\_UINT \\ \hline
 
-		% TD = Time Dependent
-		\multirow{3}{*}{/Timestep\_n/PersonTD} & rank & 1 \\
-		& dims & amt\_persons \\
-		& dtype & PersonTDDatatype \\ \hline
+		\multirow{3}{*}{/personsTI} 
+			& rank & 1 \\
+			& dims & amt\_persons \\
+			& dtype & PersonTIDatatype \\ \hline
 
-		\multirow{3}{*}{/Timestep\_n/Calendar} & rank & 1 \\
-		& dims & 1 \\
-		& dtype & CalendarDatatype \\ \hline
+		\multirow{3}{*}{/amt\_timesteps} 
+			& rank & 1 \\
+			& dims & n\_steps \\
+			& dtype & H5T\_NATIVE\_UINT \\ \hline
+
+		\multirow{3}{*}{/Timestep\_n/randomgen} 
+			& rank & 1 \\
+			& dims & amt\_threads \\
+			& dtype & RNGDatatype \\ \hline
+
+		\multirow{3}{*}{/Timestep\_n/PersonTD} 
+			& rank & 1 \\
+			& dims & amt\_persons \\
+			& dtype & PersonTDDatatype \\ \hline
+
+		\multirow{3}{*}{/Timestep\_n/Calendar} 
+			& rank & 1 \\
+			& dims & 1 \\
+			& dtype & CalendarDatatype \\ \hline
 		\end{tabular}
-		\\ \\
-		
+		%\\ \\
+		\newpage
 		\subsection{Custom datatypes}
 			\subsubsection{ConfDatatype}
-				TBD
+				\begin{itemize}
+					\item H5T\_NATIVE\_UINT - checkpointing\_frequency
+					\item H5T\_NATIVE\_ULONG - rng\_seed (in the simulationbuilder, they parse the seed as a double, possible mistake/oversight?)
+					\item H5T\_NATIVE\_UINT - r0
+					\item H5T\_NATIVE\_DOUBLE - seeding\_rate
+					\item H5T\_NATIVE\_DOUBLE - immunity\_rate
+					\item H5T\_NATIVE\_UINT - num\_days
+					\item \textit{Compound Datatype of string?} - output\_prefix
+					\item H5T\_NATIVE\_HBOOL - generate\_person\_file
+					\item H5T\_NATIVE\_UINT - num\_participants\_survey
+					\item Compound Datatype := dateString (8x H5T\_NATIVE\_CHAR) - start\_date
+						\\ \textit{Date in iso format, string of 8 characters.}
+					\item H5T\_NATIVE\_B8 - log\_level 
+						\\ \textit{(3 possible values for log level, not sure what else to use.)} \\
+					
+					\item  \sout{DiseaseConfigType - disease\_xml} 
+					\item  \sout{HolidayConfigType - holiday\_json} 
+					\item  \sout{AgeContactConfigType - age\_contact\_matrix\_xml}
+				\end{itemize}
+
 			\subsubsection{RNGDatatype}
 				\begin{itemize}
 					\item H5T\_NATIVE\_ULONG - seed
-					\item (things to hold state of generator)
+					\item (things to hold state of generator(s), \textbf{\underline{tricky}} business)
 				\end{itemize}
+
 			\subsubsection{PersonTIDatatype (time independent)}
 				\begin{itemize}
 					\item H5T\_NATIVE\_UINT - ID
@@ -68,6 +106,7 @@
 					\item H5T\_NATIVE\_UINT - primcommID
 					\item H5T\_NATIVE\_UINT - seccommID
 				\end{itemize}
+
 			\subsubsection{PersonTDDatatype (time dependent)}
 				\begin{itemize}
 					\item H5T\_NATIVE\_HBOOL - athousehold
@@ -75,18 +114,27 @@
 					\item H5T\_NATIVE\_HBOOL - atwork
 					\item H5T\_NATIVE\_HBOOL - atprimcomm
 					\item H5T\_NATIVE\_HBOOL - atseccomm
-					\item H5T\_NATIVE\_HBOOL - participant7
+					\item H5T\_NATIVE\_HBOOL - participant
 
 					\item Compound Datatype := \\
 						\hspace*{1cm} health (5x H5T\_NATIVE\_UINT, 1x H5T\_NATIVE\_B8) \\
 						\textit{(Attributes from Health class, 8 bit type for enum?)}
-
 				\end{itemize}
+
 			\subsubsection{CalendarDatatype}
 				\begin{itemize}
 					\item H5T\_NATIVE\_HSIZE - day
 					\item Compound Datatype := dateString (8x H5T\_NATIVE\_CHAR) - date
 							\\ \textit{Date in iso format, string of 8 characters.}
+				\end{itemize}
 
+			\subsubsection{DiseaseConfigType}
+				\textit{Might not be necessary, this configuration file is only used for building the population.}
+
+			\subsubsection{HolidayConfigType}
+				\begin{itemize}
+					\item H5T\_NATIVE\_UINT - year
+					\item 12x31 H5T\_NATIVE\_HBOOL - general
+					\item 12x31 H5T\_NATIVE\_HBOOL - school
 				\end{itemize}
 \end{document}
