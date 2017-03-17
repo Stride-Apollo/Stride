@@ -24,5 +24,48 @@ std::ostream& popgen::operator<<(std::ostream& os, const SimplePerson& p) {
 	return os;
 }
 
-SimplePerson::SimplePerson(uint age, uint family_id): m_age(age), m_household_id(family_id) {}
+SimplePerson::SimplePerson(uint age, uint family_id) :
+		m_age(age), m_household_id(family_id) {
+}
 
+stride::popgen::MinStdRand0::MinStdRand0(uint seed): m_generator{seed} {}
+
+uint stride::popgen::MinStdRand0::operator ()() {
+	return m_generator();
+}
+
+stride::popgen::MinStdRand::MinStdRand(uint seed): m_generator{seed} {}
+
+uint stride::popgen::MinStdRand::operator ()() {
+	return m_generator();
+}
+
+stride::popgen::MT19937::MT19937(uint seed): m_generator{seed} {}
+
+uint stride::popgen::MT19937::operator ()() {
+	return m_generator();
+}
+
+stride::popgen::MT19937_64::MT19937_64(uint seed): m_generator{seed} {}
+
+uint stride::popgen::MT19937_64::operator ()() {
+	return m_generator();
+}
+
+stride::popgen::Ranlux24::Ranlux24(uint seed): m_generator{seed} {}
+
+uint stride::popgen::Ranlux24::operator ()() {
+	return m_generator();
+}
+
+stride::popgen::Ranlux48::Ranlux48(uint seed): m_generator{seed} {}
+
+uint stride::popgen::Ranlux48::operator ()() {
+	return m_generator();
+}
+
+stride::popgen::KnuthB::KnuthB(uint seed): m_generator{seed} {}
+
+uint stride::popgen::KnuthB::operator ()() {
+	return m_generator();
+}
