@@ -69,12 +69,11 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 		// TODO better error
 		throw runtime_error("Parents have to be older than the minimum difference between children and parents");
 	}
+
+	makeRNG();
 }
 
-
 Population PopulationGenerator::generate() {
-	mt19937 rd;  // TODO: pick random generator from xml + seed
-	rd.seed(789);
 	Population pop;
 	AgeDistribution age_dist(
 			m_total,
@@ -108,13 +107,13 @@ Population PopulationGenerator::generate() {
 			- (m_family_size_avg-m_no_kids_family_size_avg)/2.0 + 0.5);
 	uint family_id = 1;
 	while (total_in_fam_kids <= max_in_fam_kids) {
-		uint size = m_some_kids_family_size_dist(rd);
+		uint size = m_some_kids_family_size_dist(m_rng);
 		assert(size >= 3);
 		uint num_children = size - 2;
 
-		uint parent1 = age_dist.get_dist(m_age_parents)(rd);
+		uint parent1 = age_dist.get_dist(m_age_parents)(m_rng);
 		uint parent2 = age_dist.get_dist(max(m_age_parents.min, parent1 - m_age_diff_parents_max),
-										 min(m_age_parents.max, parent1 + m_age_diff_parents_max))(rd);
+										 min(m_age_parents.max, parent1 + m_age_diff_parents_max))(m_rng);
 
 		uint parent_min_age = min(parent1, parent2);
 		uint max_age = min(parent_min_age-m_age_diff_parents_kids_min, m_age_kids.max);
@@ -127,7 +126,7 @@ Population PopulationGenerator::generate() {
 		auto dist = age_dist.get_dist(m_age_kids.min, max_age);
 		while (true) {
 			for (uint i=0; i<num_children; i++) {
-				children_ages[i] = dist(rd);
+				children_ages[i] = dist(m_rng);
 			}
 
 			sort(children_ages.begin(), children_ages.end());
@@ -156,11 +155,11 @@ Population PopulationGenerator::generate() {
 
 	// Step 1.b Families without kids
 	while (pop.all.size() <= m_total-(m_no_kids_family_size_avg/2.0)) {
-		uint size = m_no_kids_family_size_dist(rd);
+		uint size = m_no_kids_family_size_dist(m_rng);
 		vector<uint> ages(size);
 		MinMax limits(m_age_no_kids_min, age_dist.getMax());
 		for (uint i=0; i<size; i++) {
-			ages[i] = age_dist.get_dist(limits)(rd);
+			ages[i] = age_dist.get_dist(limits)(m_rng);
 			limits.min = max<int>(limits.min, ages[i] - m_age_diff_parents_max);
 			limits.max = min<int>(limits.max, ages[i] + m_age_diff_parents_max);
 		}
@@ -184,16 +183,20 @@ Population PopulationGenerator::generate() {
 	return pop;
 }
 
+void PopulationGenerator::makeRNG() {
+	auto rng_config = m_props.get_child("POPULATION.RANDOM");
+	uint seed = rng_config.get<uint>("<xmlattr>.seed");
+	string generator_type = rng_config.get<string>("<xmlattr>.generator");
+
+	m_rng.set(generator_type, seed);
+}
+
 void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population& pop) {
 	auto schools_config = m_props.get_child("POPULATION.EDUCATION");
 	uint max_school_size = schools_config.get<uint>("<xmlattr>.size");
 	vector<double> school_fractions;
 	vector<MinMax> school_ages;
 	vector<uint> total_schools_needed;
-
-	/// TODO change seed and generator
-	mt19937 rng;
-	rng.seed(7852);
 
 	for (auto it = schools_config.begin(); it != schools_config.end(); it++) {
 		if (it->first == "INSTITUTION") {
@@ -244,9 +247,9 @@ void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population
 				double fraction = school_fractions[i];
 				AliasDistribution dist = AliasDistribution({fraction, 1.0 - fraction});
 
-				if (dist(rng) == 0) {
+				if (dist(m_rng) == 0) {
 					/// The person should be assigned to a school, now randomly pick one
-					uint chosen_school = rng() % schools[i].size();
+					uint chosen_school = m_rng() % schools[i].size();
 
 					person.m_school_id = schools[i][chosen_school].m_id;
 					schools[i][chosen_school].m_current_pupils++;
@@ -277,10 +280,6 @@ void PopulationGenerator::makeWork(const map<uint, uint>& age_map, Population& p
 	/// TODO refactor this later
 	m_cluster_id = 1;
 
-	/// TODO change seed and generator
-	mt19937 rng;
-	rng.seed(7852);
-
 	uint total = 0;
 	/// See how many companies you need
 	vector<SimplePerson*> employed_people;
@@ -290,7 +289,7 @@ void PopulationGenerator::makeWork(const map<uint, uint>& age_map, Population& p
 			/// Note that we allow to work and study at the same time!
 			/// Now look at the employment rate
 			AliasDistribution dist = AliasDistribution({employment_rate, 1.0 - employment_rate});
-			if (dist(rng) == 0) {
+			if (dist(m_rng) == 0) {
 				employed_people.push_back(&person);
 			}
 			total++;
@@ -298,7 +297,7 @@ void PopulationGenerator::makeWork(const map<uint, uint>& age_map, Population& p
 	}
 
 	while (employed_people.size() > 0) {
-		uint current_company_size = rng() % (company_size.max - company_size.min) + company_size.min;
+		uint current_company_size = m_rng() % (company_size.max - company_size.min) + company_size.min;
 		for (uint i = 0U; i < current_company_size; i++) {
 			if (employed_people.size() != 0) {
 				employed_people.back()->m_work_id = m_cluster_id;
@@ -324,10 +323,6 @@ void PopulationGenerator::makeCommunities(const map<uint, uint>& age_map, Popula
 
 	double pop_two_communities_fraction = double(pop_with_two_communities) / double(pop.all.size());
 
-	/// TODO change seed and generator
-	mt19937 rng;
-	rng.seed(7852);
-
 	/// Make the communities
 	vector<uint> communities;
 
@@ -343,7 +338,7 @@ void PopulationGenerator::makeCommunities(const map<uint, uint>& age_map, Popula
 	AliasDistribution community_dist = AliasDistribution(vector<double>(communities.size(), 1.0 / communities.size()));
 	for (SimpleFamily& family: pop.families) {
 		/// Pick a community
-		uint community_index = community_dist(rng);
+		uint community_index = community_dist(m_rng);
 
 		for (uint& index: family) {
 			SimplePerson& p = pop.all[index];
@@ -356,12 +351,12 @@ void PopulationGenerator::makeCommunities(const map<uint, uint>& age_map, Popula
 		{pop_two_communities_fraction, 1 - pop_two_communities_fraction});
 
 	for (SimplePerson& p: pop.all) {
-		if (individual_dist(rng) == 0) {
+		if (individual_dist(m_rng) == 0) {
 			/// He has a secondary community
 			uint current_community_id = p.m_primary_community;
 
 			while (current_community_id == p.m_primary_community) {
-				current_community_id = community_dist(rng);
+				current_community_id = community_dist(m_rng);
 			}
 
 			p.m_secondary_community = current_community_id;

@@ -28,44 +28,103 @@ SimplePerson::SimplePerson(uint age, uint family_id) :
 		m_age(age), m_household_id(family_id) {
 }
 
-stride::popgen::MinStdRand0::MinStdRand0(uint seed): m_generator{seed} {}
+MinStdRand0::MinStdRand0(RandomGenerator::result_type seed): m_generator{seed} {}
 
-uint stride::popgen::MinStdRand0::operator ()() {
+RandomGenerator::result_type MinStdRand0::operator ()() {
 	return m_generator();
 }
 
-stride::popgen::MinStdRand::MinStdRand(uint seed): m_generator{seed} {}
+MinStdRand::MinStdRand(RandomGenerator::result_type seed): m_generator{seed} {}
 
-uint stride::popgen::MinStdRand::operator ()() {
+RandomGenerator::result_type MinStdRand::operator ()() {
 	return m_generator();
 }
 
-stride::popgen::MT19937::MT19937(uint seed): m_generator{seed} {}
+MT19937::MT19937(RandomGenerator::result_type seed): m_generator{seed} {}
 
-uint stride::popgen::MT19937::operator ()() {
+RandomGenerator::result_type MT19937::operator ()() {
 	return m_generator();
 }
 
-stride::popgen::MT19937_64::MT19937_64(uint seed): m_generator{seed} {}
+MT19937_64::MT19937_64(RandomGenerator::result_type seed): m_generator{seed} {}
 
-uint stride::popgen::MT19937_64::operator ()() {
+RandomGenerator::result_type MT19937_64::operator ()() {
 	return m_generator();
 }
 
-stride::popgen::Ranlux24::Ranlux24(uint seed): m_generator{seed} {}
+Ranlux24::Ranlux24(RandomGenerator::result_type seed): m_generator{seed} {}
 
-uint stride::popgen::Ranlux24::operator ()() {
+RandomGenerator::result_type Ranlux24::operator ()() {
 	return m_generator();
 }
 
-stride::popgen::Ranlux48::Ranlux48(uint seed): m_generator{seed} {}
+Ranlux48::Ranlux48(RandomGenerator::result_type seed): m_generator{seed} {}
 
-uint stride::popgen::Ranlux48::operator ()() {
+RandomGenerator::result_type Ranlux48::operator ()() {
 	return m_generator();
 }
 
-stride::popgen::KnuthB::KnuthB(uint seed): m_generator{seed} {}
+KnuthB::KnuthB(RandomGenerator::result_type seed): m_generator{seed} {}
 
-uint stride::popgen::KnuthB::operator ()() {
+RandomGenerator::result_type KnuthB::operator ()() {
 	return m_generator();
+}
+
+RNGPicker::RNGPicker(): m_rng{nullptr} {}
+
+void RNGPicker::set(string generator_type, RandomGenerator::result_type seed) {
+	/// TODO throw exception if the string is invalid
+
+	if (m_rng != nullptr) {
+		delete m_rng;
+		m_rng = nullptr;
+	}
+
+	if (generator_type == "MinStdRand0")
+		m_rng = new MinStdRand0(seed);
+	else if (generator_type == "MinStdRand")
+		m_rng = new MinStdRand(seed);
+	else if (generator_type == "MT19937")
+		m_rng = new MT19937(seed);
+	else if (generator_type == "MT19937_64")
+		m_rng = new MT19937_64(seed);
+	else if (generator_type == "Ranlux24")
+		m_rng = new Ranlux24(seed);
+	else if (generator_type == "Ranlux48")
+		m_rng = new Ranlux48(seed);
+	else if (generator_type == "KnuthB")
+		m_rng = new KnuthB(seed);
+	else
+		cerr << "RNG picking failed" << endl;
+}
+
+RNGPicker::~RNGPicker() {
+	if (m_rng != nullptr)
+		delete m_rng;
+}
+
+RNGPicker::result_type RNGPicker::operator ()() {
+	/// TODO write exception
+	if (m_rng == nullptr)
+		cerr << "rng not defined" << endl;
+	else
+		return (*m_rng)();
+}
+
+RNGPicker::result_type RNGPicker::min() {
+	/// TODO throw exception
+	if (m_rng != nullptr)
+		return m_rng->min();
+	else
+		cerr << "Invalid rng\n";
+	return 0;
+}
+
+RNGPicker::result_type RNGPicker::max() {
+	/// TODO throw exception
+	if (m_rng != nullptr)
+		return m_rng->max();
+	else
+		cerr << "Invalid rng\n";
+	return 0;
 }

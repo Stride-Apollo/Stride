@@ -52,6 +52,7 @@ public:
 	Population generate();
 
 private:
+	void makeRNG();
 	void makeSchools(const map<uint, uint>& age_map, Population& pop);
 	void makeWork(const map<uint, uint>& age_map, Population& pop);
 	void makeCommunities(const map<uint, uint>& age_map, Population& pop);
@@ -73,6 +74,7 @@ private:
 	uint m_age_diff_parents_kids_min = 0;
 	uint m_age_no_kids_min = 0;
 	uint m_cluster_id = 0;
+	RNGPicker m_rng;
 };
 
 }
