@@ -18,14 +18,15 @@
 namespace stride {
 namespace popgen {
 
+class AgeDistribution;
+
 using uint = unsigned int;
-using namespace std;
-using namespace util;
-
 using Cluster = vector<uint>;
-
 /// Contains the indices of the people in Population::all
 using SimpleFamily = vector<uint>;
+
+using namespace std;
+using namespace util;
 
 struct Population {
 	vector<SimplePerson> all;
@@ -53,6 +54,18 @@ public:
 
 private:
 	void makeRNG();
+	void getFamilySizes();
+	void getFamilyComposition();
+	void makeFamiliesWithChildren(
+			map<uint, uint>& age_map,
+			Population& pop,
+			AgeDistribution& age_dist,
+			uint& family_id);
+	void makeChildlessFamilies(
+			map<uint, uint>& age_map,
+			Population& pop,
+			AgeDistribution& age_dist,
+			uint& family_id);
 	void makeSchools(const map<uint, uint>& age_map, Population& pop);
 	void makeWork(const map<uint, uint>& age_map, Population& pop);
 	void makeCommunities(const map<uint, uint>& age_map, Population& pop);

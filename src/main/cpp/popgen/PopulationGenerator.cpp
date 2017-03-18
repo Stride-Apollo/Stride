@@ -22,6 +22,55 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 	read_xml(filename, m_props, trim_whitespace | no_comments);
 	m_total = m_props.get<uint>("POPULATION.<xmlattr>.total");
 
+	getFamilySizes();
+
+	getFamilyComposition();
+
+	makeRNG();
+}
+
+Population PopulationGenerator::generate() {
+	Population pop;
+	AgeDistribution age_dist(
+			m_total,
+			m_props.get<uint>("POPULATION.AGES.<xmlattr>.min"),
+			m_props.get<uint>("POPULATION.AGES.<xmlattr>.max"),
+			m_props.get<uint>("POPULATION.AGES.<xmlattr>.constantUpTo")
+	);
+
+	map<uint, uint> age_map;
+	uint family_id = 1;
+	for (uint i=age_dist.getMin(); i<=age_dist.getMax(); i++) {
+		age_map[i] = 0;
+	}
+
+	makeFamiliesWithChildren(age_map, pop, age_dist, family_id);
+
+	makeChildlessFamilies(age_map, pop, age_dist, family_id);
+
+	m_cluster_id = 1;
+
+	/// schools
+	makeSchools(age_map, pop);
+
+	/// work
+	makeWork(age_map, pop);
+
+	/// communities
+	makeCommunities(age_map, pop);
+
+	return pop;
+}
+
+void PopulationGenerator::makeRNG() {
+	auto rng_config = m_props.get_child("POPULATION.RANDOM");
+	uint seed = rng_config.get<uint>("<xmlattr>.seed");
+	string generator_type = rng_config.get<string>("<xmlattr>.generator");
+
+	m_rng.set(generator_type, seed);
+}
+
+void PopulationGenerator::getFamilySizes() {
 	double sum = 0.0;
 	for (auto& size_tree: m_props.get_child("POPULATION.FAMILY.FAMILYSIZE")) {
 		double frac = size_tree.second.get<double>("<xmlattr>.fraction") / 100.0;
@@ -34,7 +83,9 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 	if (abs(sum-1.0) > 0.0001) {
 		throw runtime_error("Sum of family size fractions does not equal 100"); // TODO better exception type
 	}
+}
 
+void PopulationGenerator::getFamilyComposition() {
 	map<uint, double> family_size_fractions_no_kids;
 	map<uint, double> family_size_fractions_some_kids;
 	uint no_children_min = m_props.get<uint>("POPULATION.FAMILY.NOCHILDREN.<xmlattr>.min");
@@ -69,23 +120,13 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 		// TODO better error
 		throw runtime_error("Parents have to be older than the minimum difference between children and parents");
 	}
-
-	makeRNG();
 }
 
-Population PopulationGenerator::generate() {
-	Population pop;
-	AgeDistribution age_dist(
-			m_total,
-			m_props.get<uint>("POPULATION.AGES.<xmlattr>.min"),
-			m_props.get<uint>("POPULATION.AGES.<xmlattr>.max"),
-			m_props.get<uint>("POPULATION.AGES.<xmlattr>.constantUpTo")
-	);
-
-	map<uint, uint> age_map;
-	for (uint i=age_dist.getMin(); i<=age_dist.getMax(); i++) {
-		age_map[i] = 0;
-	}
+void PopulationGenerator::makeFamiliesWithChildren(
+		map<uint, uint>& age_map,
+		Population& pop,
+		AgeDistribution& age_dist,
+		uint& family_id) {
 
 	auto add_person = [&](const SimplePerson& p, bool newFamily = false) {
 		pop.all.push_back(p);
@@ -99,13 +140,10 @@ Population PopulationGenerator::generate() {
 		}
 	};
 
-	// Step 1: Families
-	// Step 1.a: Families with kids
 	uint total_in_fam_kids = 0;
 	uint max_in_fam_kids = (uint)(
 			(1.0-(m_no_kids_family_size_avg/m_family_size_avg))*double(m_total)
 			- (m_family_size_avg-m_no_kids_family_size_avg)/2.0 + 0.5);
-	uint family_id = 1;
 	while (total_in_fam_kids <= max_in_fam_kids) {
 		uint size = m_some_kids_family_size_dist(m_rng);
 		assert(size >= 3);
@@ -113,7 +151,7 @@ Population PopulationGenerator::generate() {
 
 		uint parent1 = age_dist.get_dist(m_age_parents)(m_rng);
 		uint parent2 = age_dist.get_dist(max(m_age_parents.min, parent1 - m_age_diff_parents_max),
-										 min(m_age_parents.max, parent1 + m_age_diff_parents_max))(m_rng);
+				min(m_age_parents.max, parent1 + m_age_diff_parents_max))(m_rng);
 
 		uint parent_min_age = min(parent1, parent2);
 		uint max_age = min(parent_min_age-m_age_diff_parents_kids_min, m_age_kids.max);
@@ -152,8 +190,27 @@ Population PopulationGenerator::generate() {
 		family_id++;
 		age_dist.correct(pop.all.size(), age_map);
 	}
+}
+
+void PopulationGenerator::makeChildlessFamilies(
+		map<uint, uint>& age_map,
+		Population& pop,
+		AgeDistribution& age_dist,
+		uint& family_id) {
 
 	// Step 1.b Families without kids
+	auto add_person = [&](const SimplePerson& p, bool newFamily = false) {
+		pop.all.push_back(p);
+		age_map[p.m_age]++;
+
+		if (newFamily) {
+			pop.families.push_back(SimpleFamily());
+			pop.families.back().push_back(pop.all.size() - 1);
+		} else {
+			pop.families.back().push_back(pop.all.size() - 1);
+		}
+	};
+
 	while (pop.all.size() <= m_total-(m_no_kids_family_size_avg/2.0)) {
 		uint size = m_no_kids_family_size_dist(m_rng);
 		vector<uint> ages(size);
@@ -168,27 +225,6 @@ Population PopulationGenerator::generate() {
 		family_id++;
 		age_dist.correct(pop.all.size(), age_map);
 	}
-
-	m_cluster_id = 1;
-
-	/// schools
-	makeSchools(age_map, pop);
-
-	/// work
-	makeWork(age_map, pop);
-
-	/// communities
-	makeCommunities(age_map, pop);
-
-	return pop;
-}
-
-void PopulationGenerator::makeRNG() {
-	auto rng_config = m_props.get_child("POPULATION.RANDOM");
-	uint seed = rng_config.get<uint>("<xmlattr>.seed");
-	string generator_type = rng_config.get<string>("<xmlattr>.generator");
-
-	m_rng.set(generator_type, seed);
 }
 
 void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population& pop) {
