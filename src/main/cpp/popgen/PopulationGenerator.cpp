@@ -250,6 +250,9 @@ void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population
 			for (uint i = min; i <= max; i++) {
 				required_school_capacity += age_map.at(i);
 			}
+
+			required_school_capacity = required_school_capacity * school_fractions.back() + 0.5;
+
 			uint schools_needed = uint(required_school_capacity / max_school_size + 0.5);
 			total_schools_needed.push_back(schools_needed);
 		}
@@ -300,8 +303,6 @@ void PopulationGenerator::makeSchools(const map<uint, uint>& age_map, Population
 void PopulationGenerator::makeWork(const map<uint, uint>& age_map, Population& pop) {
 	auto work_config = m_props.get_child("POPULATION.WORK");
 	double employment_rate = work_config.get<double>("AMOUNT.<xmlattr>.fraction") / 100;
-
-	uint max_age = m_props.get<uint>("POPULATION.AGES.<xmlattr>.max");
 
 	MinMax employment_age;
 	employment_age.min = work_config.get<uint>("AMOUNT.<xmlattr>.minAge");
@@ -355,7 +356,6 @@ void PopulationGenerator::makeCommunities(const map<uint, uint>& age_map, Popula
 	uint needed_communities = uint (pop.all.size() * communities_per_person / double(community_size) + 0.5);
 
 	uint pop_with_two_communities = needed_communities * community_size - pop.all.size();
-	uint pop_with_one_community = pop.all.size() - pop_with_two_communities;
 
 	double pop_two_communities_fraction = double(pop_with_two_communities) / double(pop.all.size());
 
