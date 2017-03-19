@@ -23,9 +23,10 @@
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/RngHandler.h"
-
+#include "behavior/behavior_policies/NoBehavior.h"
 #include "pop/Person.h"
 
+#include "behavior/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
@@ -40,54 +41,51 @@ class Cluster;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator
-{
+class Simulator {
 public:
 	using PersonType = Person<NoBelief, NoBehavior>;
 
-public:
-        // Default constructor for empty Simulator.
-        Simulator();
+	// Default constructor for empty Simulator.
+	Simulator();
 
-        /// Get the population.
-        const std::shared_ptr<const Population> GetPopulation() const;
+	/// Get the population.
+	const std::shared_ptr<const Population> getPopulation() const;
 
-        /// Change track_index_case setting.
-        void SetTrackIndexCase(bool track_index_case);
+	/// Change track_index_case setting.
+	void setTrackIndexCase(bool track_index_case);
 
-        /// Run one time step, computing full simulation (default) or only index case.
-        void TimeStep();
+	/// Run one time step, computing full simulation (default) or only index case.
+	void timeStep();
 
 private:
-        /// Update the contacts in the given clusters.
+	/// Update the contacts in the given clusters.
 	template<LogMode log_level, bool track_index_case = false>
-        void UpdateClusters();
+	void updateClusters();
 
 private:
-	boost::property_tree::ptree         m_config_pt;            ///< Configuration property tree.
+	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 
 private:
-	unsigned int                        m_num_threads;          ///< The number of (OpenMP) threads.
-        std::vector<RngHandler>             m_rng_handler;          ///< Pointer to the RngHandlers.
-        LogMode                             m_log_level;            ///< Specifies logging mode.
-        std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
+	unsigned int m_num_threads; 			///< The number of (OpenMP) threads.
+	std::vector<RngHandler> m_rng_handler;  ///< Pointer to the RngHandlers.
+	LogMode m_log_level;            		///< Specifies logging mode.
+	std::shared_ptr<Calendar> m_calendar;	///< Management of calendar.
 
 private:
-        std::shared_ptr<Population>         m_population;           ///< Pointer to the Population.
+	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
 
-	std::vector<Cluster>                m_households;           ///< Container with household Clusters.
-        std::vector<Cluster>                m_school_clusters;      ///< Container with school Clusters.
-        std::vector<Cluster>                m_work_clusters;        ///< Container with work Clusters.
-	std::vector<Cluster>                m_primary_community;    ///< Container with primary community Clusters.
-	std::vector<Cluster>                m_secondary_community;  ///< Container with secondary community  Clusters.
+	std::vector<Cluster> m_households;           ///< Container with household Clusters.
+	std::vector<Cluster> m_school_clusters;      ///< Container with school Clusters.
+	std::vector<Cluster> m_work_clusters;        ///< Container with work Clusters.
+	std::vector<Cluster> m_primary_community;    ///< Container with primary community Clusters.
+	std::vector<Cluster> m_secondary_community;  ///< Container with secondary community  Clusters.
 
-	DiseaseProfile                      m_disease_profile;      ///< Profile of disease.
+	DiseaseProfile m_disease_profile;      ///< Profile of disease.
 
-	bool                                m_track_index_case;     ///< General simulation or tracking index case.
+	bool m_track_index_case;     ///< General simulation or tracking index case.
 
 private:
 	friend class SimulatorBuilder;
 };
 
-} // end_of_namespace
-
+}

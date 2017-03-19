@@ -21,16 +21,14 @@ namespace stride {
 
 
 Health::Health(unsigned int start_infectiousness, unsigned int start_symptomatic,
-		unsigned int time_infectious, unsigned int time_symptomatic):
-                m_disease_counter(0U), m_status(HealthStatus::Susceptible),
-		m_start_infectiousness(start_infectiousness), m_start_symptomatic(start_symptomatic)
-	{
-		m_end_infectiousness = start_infectiousness + time_infectious;
-		m_end_symptomatic = start_symptomatic + time_symptomatic;
-	}
+			   unsigned int time_infectious, unsigned int time_symptomatic) :
+		m_disease_counter(0U), m_status(HealthStatus::Susceptible),
+		m_start_infectiousness(start_infectiousness), m_start_symptomatic(start_symptomatic) {
+	m_end_infectiousness = start_infectiousness + time_infectious;
+	m_end_symptomatic = start_symptomatic + time_symptomatic;
+}
 
-void Health::SetImmune()
-{
+void Health::setImmune() {
 	m_status = HealthStatus::Immune;
 	m_start_infectiousness = 0U;
 	m_start_symptomatic = 0U;
@@ -39,58 +37,55 @@ void Health::SetImmune()
 }
 
 
-void Health::StartInfection()
-{
+void Health::startInfection() {
 	assert(m_status == HealthStatus::Susceptible
-	        && "Health::StartInfection: m_health_status == DiseaseStatus::Susceptible fails.");
+		   && "Health::startInfection: m_health_status == DiseaseStatus::Susceptible fails.");
 	m_status = HealthStatus::Exposed;
-	ResetDiseaseCounter();
+	resetDiseaseCounter();
 }
 
-void Health::StopInfection()
-{
+void Health::stopInfection() {
 	assert((m_status == HealthStatus::Exposed || m_status == HealthStatus::Infectious
 			|| m_status == HealthStatus::Symptomatic || m_status == HealthStatus::InfectiousAndSymptomatic)
-			&& "Health::StopInfection> person not infected");
+		   && "Health::stopInfection> person not infected");
 	m_status = HealthStatus::Recovered;
 }
 
-void Health::Update()
-{
+void Health::update() {
 	const bool infected = m_status == HealthStatus::Exposed
-	                        || m_status == HealthStatus::Infectious
-		                || m_status == HealthStatus::Symptomatic
-		                || m_status == HealthStatus::InfectiousAndSymptomatic;
+						  || m_status == HealthStatus::Infectious
+						  || m_status == HealthStatus::Symptomatic
+						  || m_status == HealthStatus::InfectiousAndSymptomatic;
 
 	if (infected) {
-		IncrementDiseaseCounter();
-		if (GetDiseaseCounter() == m_start_infectiousness) {
+		incrementDiseaseCounter();
+		if (getDiseaseCounter() == m_start_infectiousness) {
 			if (m_status == HealthStatus::Symptomatic) {
 				m_status = HealthStatus::InfectiousAndSymptomatic;
 			} else {
 				m_status = HealthStatus::Infectious;
 			}
-		} else if (GetDiseaseCounter() == m_end_infectiousness) {
+		} else if (getDiseaseCounter() == m_end_infectiousness) {
 			if (m_status == HealthStatus::InfectiousAndSymptomatic) {
 				m_status = HealthStatus::Symptomatic;
 			} else {
-				StopInfection();
+				stopInfection();
 			}
-		}else if (GetDiseaseCounter() == m_start_symptomatic) {
+		} else if (getDiseaseCounter() == m_start_symptomatic) {
 			if (m_status == HealthStatus::Infectious) {
 				m_status = HealthStatus::InfectiousAndSymptomatic;
 			} else {
 				m_status = HealthStatus::Symptomatic;
 			}
-		}else if (GetDiseaseCounter() == m_end_symptomatic) {
+		} else if (getDiseaseCounter() == m_end_symptomatic) {
 			if (m_status == HealthStatus::InfectiousAndSymptomatic) {
 				m_status = HealthStatus::Infectious;
 			} else {
-				StopInfection();
+				stopInfection();
 			}
 		}
 	}
 }
 
-} /* namespace stride */
+}
 

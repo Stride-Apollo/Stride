@@ -160,7 +160,7 @@ TEST_P( BatchDemos, Run )
 	}
 
 	// -----------------------------------------------------------------------------------------
-	// Initialize the logger.
+	// initialize the logger.
 	// -----------------------------------------------------------------------------------------
 	spdlog::set_async_mode(1048576);
 	auto file_logger = spdlog::rotating_logger_mt("contact_logger", g_output_prefix + "_logfile",
@@ -168,7 +168,7 @@ TEST_P( BatchDemos, Run )
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
 	// -----------------------------------------------------------------------------------------
-	// Initialize the simulation.
+	// initialize the simulation.
 	// -----------------------------------------------------------------------------------------
 	cout << "Building the simulator. "<< endl;
 	auto sim = SimulatorBuilder::Build(pt_config, num_threads, track_index_case);
@@ -179,7 +179,7 @@ TEST_P( BatchDemos, Run )
 	// -----------------------------------------------------------------------------------------
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
 	for (unsigned int i = 0; i < num_days; i++) {
-			sim->TimeStep();
+		sim->timeStep();
 	}
 
 	// -----------------------------------------------------------------------------------------
@@ -190,7 +190,7 @@ TEST_P( BatchDemos, Run )
         // -----------------------------------------------------------------------------------------
 	// Round up.
         // -----------------------------------------------------------------------------------------
-	const unsigned int num_cases = sim->GetPopulation()->GetInfectedCount();
+	const unsigned int num_cases = sim->getPopulation()->getInfectedCount();
 	ASSERT_NEAR(num_cases, g_results.at(test_tag),10000) << "!! CHANGED !!";
 }
 

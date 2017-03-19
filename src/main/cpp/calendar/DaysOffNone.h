@@ -26,18 +26,17 @@ namespace stride {
 /**
  * No  days off work or school.
  */
-class DaysOffNone : public DaysOffInterface
-{
+class DaysOffNone : public DaysOffInterface {
 public:
-        /// Initialize calendar.
-        DaysOffNone(std::shared_ptr<Calendar> cal) {}
+	/// Initialize calendar.
+	DaysOffNone(std::shared_ptr <Calendar> cal) {}
 
-        /// See DaysOffInterface.
-        bool IsWorkOff() override { return false; }
+	/// See DaysOffInterface.
+	bool isWorkOff() override { return false; }
 
-        /// See DaysOffInterface.
-        bool IsSchoolOff() override { return false; }
+	/// See DaysOffInterface.
+	bool isSchoolOff() override { return false; }
 };
 
-} // end_of_namespace
+}
 

@@ -28,5 +28,5 @@ namespace stride {
  */
 void run_stride(bool track_index_case, const std::string& config_file_name);
 
-} // end_of_namespace
+}
 

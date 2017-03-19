@@ -24,18 +24,17 @@ namespace stride {
 /**
  * Interface definition.
  */
-class DaysOffInterface
-{
+class DaysOffInterface {
 public:
-        /// Whether today is a work day.
-        virtual bool IsWorkOff() =0;
+	/// Whether today is a work day.
+	virtual bool isWorkOff() =0;
 
-        /// Whether today is school day.
-        virtual bool IsSchoolOff() =0;
+	/// Whether today is school day.
+	virtual bool isSchoolOff() =0;
 
-        /// Virtual destructor.
-        virtual ~DaysOffInterface() {}
+	/// Virtual destructor.
+	virtual ~DaysOffInterface() {}
 };
 
-} // end_of_namespace
+}
 

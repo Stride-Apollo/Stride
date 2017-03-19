@@ -27,20 +27,18 @@ namespace util {
 /**
  * Info on revision id and commit date.
  */
-class ConfigInfo
-{
+class ConfigInfo {
 public:
 	///
-	static constexpr bool HaveOpenMP()
-	{
+	static constexpr bool haveOpenMP() {
 #ifdef _OPENMP
-	        return true;
+		return true;
 #else
-	        return false;
+		return false;
 #endif
 	}
 };
 
-} // namespace
-} // namespace
+}
+}
 

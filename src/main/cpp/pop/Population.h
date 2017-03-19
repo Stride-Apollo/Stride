@@ -31,21 +31,19 @@ namespace stride {
 /**
  * Container for persons in population.
  */
-class Population : public std::vector<Simulator::PersonType >
-{
+class Population : public std::vector<Simulator::PersonType> {
 public:
 	/// Get the cumulative number of cases.
-	unsigned int GetInfectedCount() const
-	{
-	        unsigned int total {0U};
+	unsigned int getInfectedCount() const {
+		unsigned int total {0U};
 		for (const auto& p : *this) {
-		        const auto& h = p.GetHealth();
-		        total += h.IsInfected() || h.IsRecovered();
+			const auto& h = p.getHealth();
+			total += h.isInfected() || h.isRecovered();
 		}
 		return total;
 	}
 
 };
 
-} // end_of_namespace
+}
 

@@ -29,16 +29,18 @@ namespace stride {
 * \li only contacts where transimission occurs
 * \li all contacts.
 */
-enum class LogMode {None = 0U, Transmissions = 1U, Contacts = 2U, Null};
+enum class LogMode {
+	None = 0U, Transmissions = 1U, Contacts = 2U, Null
+};
 
 /// Converts a LogMode value to corresponding name.
-std::string ToString(LogMode w);
+std::string toString(LogMode w);
 
 /// Check whether string is name of LogMode value.
-bool IsLogMode(const std::string& s);
+bool isLogMode(const std::string& s);
 
 /// Converts a string with name to LogMode value.
-LogMode ToLogMode(const std::string& s);
+LogMode toLogMode(const std::string& s);
 
-} // end_of_namespace
+}
 

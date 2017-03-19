@@ -19,98 +19,96 @@ namespace stride {
 /*
  *
  */
-enum class HealthStatus {Susceptible = 0U, Exposed = 1U, Infectious = 2U,
-        Symptomatic = 3U, InfectiousAndSymptomatic = 4U, Recovered = 5U, Immune = 6U, Null};
+enum class HealthStatus {
+	Susceptible = 0U, Exposed = 1U, Infectious = 2U,
+	Symptomatic = 3U, InfectiousAndSymptomatic = 4U, Recovered = 5U, Immune = 6U, Null
+};
 
 /*
  *
  */
-class Health
-{
+class Health {
 public:
 	///
 	Health(unsigned int start_infectiousness, unsigned int start_symptomatic,
-	        unsigned int time_infectious, unsigned int time_symptomatic);
+		   unsigned int time_infectious, unsigned int time_symptomatic);
 
 	///
-	HealthStatus GetHealthStatus() const { return m_status; }
+	HealthStatus getHealthStatus() const { return m_status; }
 
 	///
-	unsigned int GetEndInfectiousness() const { return m_end_infectiousness; }
+	unsigned int getEndInfectiousness() const { return m_end_infectiousness; }
 
 	///
-	unsigned int GetEndSymptomatic() const { return m_end_symptomatic; }
+	unsigned int getEndSymptomatic() const { return m_end_symptomatic; }
 
 	///
-	unsigned int GetStartInfectiousness() const { return m_start_infectiousness; }
+	unsigned int getStartInfectiousness() const { return m_start_infectiousness; }
 
 	///
-	unsigned int GetStartSymptomatic() const { return m_start_symptomatic; }
+	unsigned int getStartSymptomatic() const { return m_start_symptomatic; }
 
-        ///
-        bool IsImmune() const { return m_status == HealthStatus::Immune; }
+	///
+	bool isImmune() const { return m_status == HealthStatus::Immune; }
 
-        ///
-        bool IsInfected() const
-        {
-                return m_status == HealthStatus::Exposed
-                        || m_status == HealthStatus::Infectious
-                        || m_status == HealthStatus::InfectiousAndSymptomatic
-                        || m_status == HealthStatus::Symptomatic;
-        }
+	///
+	bool isInfected() const {
+		return m_status == HealthStatus::Exposed
+			   || m_status == HealthStatus::Infectious
+			   || m_status == HealthStatus::InfectiousAndSymptomatic
+			   || m_status == HealthStatus::Symptomatic;
+	}
 
-        ///
-        bool IsInfectious() const
-        {
-                return m_status == HealthStatus::Infectious
-                        || m_status == HealthStatus::InfectiousAndSymptomatic;
-        }
+	///
+	bool isInfectious() const {
+		return m_status == HealthStatus::Infectious
+			   || m_status == HealthStatus::InfectiousAndSymptomatic;
+	}
 
-        ///
-        bool IsRecovered() const { return m_status == HealthStatus::Recovered; }
+	///
+	bool isRecovered() const { return m_status == HealthStatus::Recovered; }
 
-        /// Is this person susceptible?
-        bool IsSusceptible() const { return m_status == HealthStatus::Susceptible; }
+	/// Is this person susceptible?
+	bool isSusceptible() const { return m_status == HealthStatus::Susceptible; }
 
-        /// Is this person symptomatic?
-        bool IsSymptomatic() const
-        {
-                return m_status == HealthStatus::Symptomatic
-                        || m_status == HealthStatus::InfectiousAndSymptomatic;
-        }
+	/// Is this person symptomatic?
+	bool isSymptomatic() const {
+		return m_status == HealthStatus::Symptomatic
+			   || m_status == HealthStatus::InfectiousAndSymptomatic;
+	}
 
 	/// Set immune to true.
-	void SetImmune();
+	void setImmune();
 
 	/// Start the infection.
-	void StartInfection();
+	void startInfection();
 
 	/// Stop the infection.
-	void StopInfection();
+	void stopInfection();
 
 	/// Update progress of the disease.
-	void Update();
+	void update();
 
 private:
 	/// Get the disease counter.
-	unsigned int GetDiseaseCounter() const { return m_disease_counter; }
+	unsigned int getDiseaseCounter() const { return m_disease_counter; }
 
 	/// Increment disease counter.
-	void IncrementDiseaseCounter() { m_disease_counter++; }
+	void incrementDiseaseCounter() { m_disease_counter++; }
 
 	/// Reset the disease counter.
-	void ResetDiseaseCounter() { m_disease_counter = 0U; }
+	void resetDiseaseCounter() { m_disease_counter = 0U; }
 
 private:
-	unsigned int            m_disease_counter;              ///< The disease counter.
-	HealthStatus		m_status;                       ///< The current status of the person w.r.t. the disease.
+	unsigned int m_disease_counter;              ///< The disease counter.
+	HealthStatus m_status;                       ///< The current status of the person w.r.t. the disease.
 
-	unsigned int		m_start_infectiousness;         ///< Days after infection to become infectious.
-	unsigned int		m_start_symptomatic;            ///< Days after infection to become symptomatic.
-	unsigned int		m_end_infectiousness;           ///< Days after infection to end infectious state.
-	unsigned int		m_end_symptomatic;              ///< Days after infection to end symptomatic state.
+	unsigned int m_start_infectiousness;         ///< Days after infection to become infectious.
+	unsigned int m_start_symptomatic;            ///< Days after infection to become symptomatic.
+	unsigned int m_end_infectiousness;           ///< Days after infection to end infectious state.
+	unsigned int m_end_symptomatic;              ///< Days after infection to end symptomatic state.
 
 };
 
-} // end of namespace
+}
 

@@ -24,13 +24,13 @@
 namespace stride {
 
 /// Maximum age for Person's.
-inline constexpr unsigned int  MaximumAge() { return 80U; }
+inline constexpr unsigned int maximumAge() { return 80U; }
 
 /// Maximum age for Person's.
-inline constexpr unsigned int  MinAdultAge() { return 18U; }
+inline constexpr unsigned int minAdultAge() { return 18U; }
 
 /// Effective age (topping of at maximum).
-inline unsigned int EffectiveAge(unsigned int age) { return (age <= MaximumAge()) ? age : MaximumAge(); }
+inline unsigned int effectiveAge(unsigned int age) { return (age <= maximumAge()) ? age : maximumAge(); }
 
-} // namespace
+}
 
