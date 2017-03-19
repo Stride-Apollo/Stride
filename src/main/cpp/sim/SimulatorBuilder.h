@@ -37,19 +37,19 @@ class Calendar;
 class SimulatorBuilder {
 public:
 	/// Build simulator.
-	static std::shared_ptr<Simulator> Build(
+	static std::shared_ptr<Simulator> build(
 			const std::string& config_file_name,
 			unsigned int num_threads = 1U,
 			bool track_index_case = false);
 
 	/// Build simulator.
-	static std::shared_ptr<Simulator> Build(
+	static std::shared_ptr<Simulator> build(
 			const boost::property_tree::ptree& pt_config,
 			unsigned int num_threads = 1U,
 			bool track_index_case = false);
 
 	/// Build simulator.
-	static std::shared_ptr<Simulator> Build(
+	static std::shared_ptr<Simulator> build(
 			const boost::property_tree::ptree& pt_config,
 			const boost::property_tree::ptree& pt_disease,
 			const boost::property_tree::ptree& pt_contact,

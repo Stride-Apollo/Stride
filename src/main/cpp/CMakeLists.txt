@@ -58,6 +58,7 @@ set(MAIN_SRC
 
 # the option is here so that we can plug it into other
 # codes where HDF5 may be optional
+
 find_package(HDF5)
 if(HDF5_FOUND)
     include_directories(${HDF5_INCLUDE_DIR})
@@ -103,9 +104,9 @@ target_link_libraries(stride libstride)
 #
 target_link_libraries(stride ${LIBS})
 if(NOT HDF5_FOUND)
-    add_dependencies(stride hdf5_local)
+    #add_dependencies(stride hdf5_local)
 endif()
-target_link_libraries(stride ${_hdf5_libs})
+#target_link_libraries(stride ${_hdf5_libs})
 #set_target_properties(stride PROPERTIES LINK_FLAGS_RELEASE "-flto")
 install(TARGETS stride DESTINATION ${BIN_INSTALL_LOCATION})
 

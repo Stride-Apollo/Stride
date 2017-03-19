@@ -46,7 +46,7 @@ using namespace boost::filesystem;
 using namespace boost::property_tree;
 using namespace stride::util;
 
-shared_ptr<Population> PopulationBuilder::Build(
+shared_ptr<Population> PopulationBuilder::build(
 		const boost::property_tree::ptree& pt_config,
 		const boost::property_tree::ptree& pt_disease,
 		util::Random& rng) {

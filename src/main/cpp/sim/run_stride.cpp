@@ -128,7 +128,7 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	// -----------------------------------------------------------------------------------------
 	Stopwatch<> total_clock("total_clock", true);
 	cout << "Building the simulator. " << endl;
-	auto sim = SimulatorBuilder::Build(pt_config, num_threads, track_index_case);
+	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	cout << "Done building the simulator. " << endl << endl;
 
 	// -----------------------------------------------------------------------------------------
