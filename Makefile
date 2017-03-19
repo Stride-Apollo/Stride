@@ -136,6 +136,6 @@ test installcheck: install_test
 	$(MAKE) -C $(BUILD_DIR)/test --no-print-directory run_ctest 
 	
 clean_all: distclean
-	git clean -f
+	git clean -df
 
 #############################################################################
