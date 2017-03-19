@@ -5,8 +5,7 @@
  *      Author: elise
  */
 
-#ifndef SRC_MAIN_CPP_POP_BEHAVIOR_HEALTHBEHAVIOR_H_
-#define SRC_MAIN_CPP_POP_BEHAVIOR_HEALTHBEHAVIOR_H_
+#pragma once
 
 namespace stride {
 
@@ -19,4 +18,3 @@ public:
 
 } /* namespace stride */
 
-#endif /* SRC_MAIN_CPP_POP_BEHAVIOR_HEALTHBEHAVIOR_H_ */

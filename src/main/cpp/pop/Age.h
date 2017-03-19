@@ -1,5 +1,4 @@
-#ifndef AGE_H_INCLUDED
-#define AGE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -35,4 +34,3 @@ inline unsigned int EffectiveAge(unsigned int age) { return (age <= MaximumAge()
 
 } // namespace
 
-#endif // end-of-include-guard

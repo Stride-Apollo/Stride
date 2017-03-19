@@ -1,5 +1,4 @@
-#ifndef SRC_MAIN_CPP_BEHAVIOR_BEHAVIOR_POLICIES_ALWAYSFOLLOWBELIEFS_H_
-#define SRC_MAIN_CPP_BEHAVIOR_BEHAVIOR_POLICIES_ALWAYSFOLLOWBELIEFS_H_
+#pragma once
 
 /*
  *  This is free software: you can redistribute it and/or modify it
@@ -26,4 +25,3 @@ class AlwaysFollowBeliefs {
 };
 
 
-#endif /* SRC_MAIN_CPP_BEHAVIOR_BEHAVIOR_POLICIES_ALWAYSFOLLOWBELIEFS_H_ */

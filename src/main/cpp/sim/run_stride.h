@@ -1,5 +1,4 @@
-#ifndef RUN_STRIDE_H_INCLUDED
-#define RUN_STRIDE_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -31,4 +30,3 @@ void run_stride(bool track_index_case, const std::string& config_file_name);
 
 } // end_of_namespace
 
-#endif // end-of-include-guard

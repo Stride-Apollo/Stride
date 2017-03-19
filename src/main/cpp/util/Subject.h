@@ -1,5 +1,4 @@
-#ifndef SUBJECT_H_INCLUDED
-#define SUBJECT_H_INCLUDED
+#pragma once
 /*
  * Copyright 2011-2016 Universiteit Antwerpen
  *
@@ -92,4 +91,3 @@ void Subject<E>::Notify(const EventType& e)
 } // namespace
 } // namespace
 
-#endif

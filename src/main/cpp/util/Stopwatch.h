@@ -1,5 +1,4 @@
-#ifndef TIMEKEEPER_STOPWATCH_H_INCLUDED
-#define TIMEKEEPER_STOPWATCH_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -135,4 +134,3 @@ operator<<(std::ostream& oss, Stopwatch<T> const& stopwatch) {
 } // end namespace
 } // end namespace
 
-#endif  // end of include guard

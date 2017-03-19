@@ -1,5 +1,4 @@
-#ifndef SRC_MAIN_CALENDAR_DAYS_OFF_STANDARD_H_
-#define SRC_MAIN_CALENDAR_DAYS_OFF_STANDARD_H_
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -54,4 +53,3 @@ private:
 
 } // end_of_namespace
 
-#endif // end of include guard

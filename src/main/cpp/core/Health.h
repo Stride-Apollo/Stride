@@ -1,5 +1,4 @@
-#ifndef SRC_MAIN_CPP_CORE_HEALTH_H_
-#define SRC_MAIN_CPP_CORE_HEALTH_H_
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -115,4 +114,3 @@ private:
 
 } // end of namespace
 
-#endif
