@@ -45,7 +45,7 @@ set(LIB_SRC
 #---
 	patterns/Publisher.cpp
 #---
-    hdf5Prototype/subsets.cpp
+#    hdf5Prototype/subsets.cpp
 )
 
 set(MAIN_SRC

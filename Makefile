@@ -90,7 +90,7 @@ endif
 #============================================================================
 .PHONY: help configure bootstrap all build_all build_main build_test
 .PHONY: install install_all install_main install_test package   
-.PHONY: test installcheck distclean remove_build
+.PHONY: test installcheck distclean remove_build clean_all
 
 help:
 	@ $(CMAKE) -E echo " "
@@ -135,4 +135,7 @@ distclean clean:
 test installcheck: install_test
 	$(MAKE) -C $(BUILD_DIR)/test --no-print-directory run_ctest 
 	
+clean_all: distclean
+	git clean -f
+
 #############################################################################

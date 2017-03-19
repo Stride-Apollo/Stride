@@ -84,7 +84,7 @@ public:
 template<>
 class LOG_POLICY<LogMode::Contacts> {
 public:
-	static void Execute(shared_ptr<spdlog::logger> logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
+	static void execute(shared_ptr<spdlog::logger> logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
 						ClusterType cluster_type, shared_ptr<const Calendar> calendar) {
 		unsigned int home = (cluster_type == ClusterType::Household);
 		unsigned int work = (cluster_type == ClusterType::Work);
@@ -136,9 +136,9 @@ void Infector<log_level, track_index_case>::execute(
 							auto p2 = c_members[i_contact].first;
 							if (contact_handler.hasTransmission(contact_rate,
 																transmission_rate)) {
-								LOG_POLICY<log_level>::Execute(logger, p1, p2, c_type, calendar);
+								LOG_POLICY<log_level>::execute(logger, p1, p2, c_type, calendar);
 								p2->getHealth().startInfection();
-								R0_POLICY<track_index_case>::Execute(p2);
+								R0_POLICY<track_index_case>::execute(p2);
 							}
 						}
 					}
@@ -185,7 +185,7 @@ void Infector<LogMode::Contacts, track_index_case>::execute(
 								if (p1->IsInfectious() && p2->IsSusceptible()) {
 										infecter = 1;
 										p2->StartInfection();
-										R0_POLICY<track_index_case>::Execute(p2);
+										R0_POLICY<track_index_case>::execute(p2);
 								}
 								else if (p2->isInfectious() && p1->isSusceptible()) {
 										infecter = 2;
@@ -193,7 +193,7 @@ void Infector<LogMode::Contacts, track_index_case>::execute(
 										R0_POLICY<track_index_case>::execute(p1);
 								}
 						}*/
-						LOG_POLICY<LogMode::Contacts>::Execute(logger, p1, p2, c_type, calendar);
+						LOG_POLICY<LogMode::Contacts>::execute(logger, p1, p2, c_type, calendar);
 					}
 				}
 			}

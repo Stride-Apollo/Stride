@@ -25,6 +25,7 @@
 #include "pop/Population.h"
 #include "pop/PopulationBuilder.h"
 #include "util/InstallDirs.h"
+#include "core/Cluster.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 

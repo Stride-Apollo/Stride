@@ -24,6 +24,7 @@
 #include "calendar/DaysOffStandard.h"
 #include "core/Infector.h"
 #include "pop/Population.h"
+#include "core/Cluster.h"
 
 #include <omp.h>
 
