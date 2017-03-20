@@ -23,6 +23,7 @@
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/RngHandler.h"
+#include "util/Subject.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
@@ -38,7 +39,7 @@ class Calendar;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator {
+class Simulator : public util::Subject<Simulator> {
 public:
 	// Default constructor for empty Simulator.
 	Simulator();
