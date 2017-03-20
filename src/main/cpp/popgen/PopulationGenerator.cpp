@@ -1,7 +1,7 @@
 #include "PopulationGenerator.h"
-
 #include "AgeDistribution.h"
 
+#include <stdexcept>
 #include <boost/property_tree/xml_parser.hpp>
 
 using namespace stride;
@@ -19,8 +19,25 @@ std::ostream& popgen::operator<<(std::ostream& os, const Population& p) {
 }
 
 PopulationGenerator::PopulationGenerator(const string& filename) {
-	read_xml(filename, m_props, trim_whitespace | no_comments);
-	m_total = m_props.get<uint>("POPULATION.<xmlattr>.total");
+	try {
+		read_xml(filename, m_props, trim_whitespace | no_comments);
+	} catch (exception& e) {
+		throw invalid_argument("Invalid file name");
+	}
+
+	try {
+		long int tot = m_props.get<long int>("POPULATION.<xmlattr>.total");
+
+		if (tot < 0) {
+			throw invalid_argument("Invalid attribute POPULATION::total");
+		}
+
+		m_total = tot;
+	} catch(invalid_argument& e) {
+		throw e;
+	} catch(exception& e) {
+		throw invalid_argument("Missing/invalid attribute POPULATION::total");
+	}
 
 	getFamilySizes();
 
@@ -31,12 +48,25 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 
 Population PopulationGenerator::generate() {
 	Population pop;
-	AgeDistribution age_dist(
-			m_total,
-			m_props.get<uint>("POPULATION.AGES.<xmlattr>.min"),
-			m_props.get<uint>("POPULATION.AGES.<xmlattr>.max"),
-			m_props.get<uint>("POPULATION.AGES.<xmlattr>.constantUpTo")
-	);
+
+	AgeDistribution age_dist;
+
+	try {
+		int min = m_props.get<int>("POPULATION.AGES.<xmlattr>.min");
+		int max = m_props.get<int>("POPULATION.AGES.<xmlattr>.max");
+		int const_up_to = m_props.get<int>("POPULATION.AGES.<xmlattr>.constantUpTo");
+		
+		if (min > max or min < 0 or max < 0 or const_up_to < 0) {
+			throw invalid_argument("Missing/invalid attribute in POPULATION.AGES");
+		}
+
+		age_dist = AgeDistribution(m_total, min, max, const_up_to);
+
+	} catch(invalid_argument& e){
+		throw e;
+	} catch(exception& e) {
+		throw invalid_argument("Missing/invalid element in POPULATION.AGES");
+	}
 
 	map<uint, uint> age_map;
 	uint family_id = 1;
@@ -63,62 +93,105 @@ Population PopulationGenerator::generate() {
 }
 
 void PopulationGenerator::makeRNG() {
-	auto rng_config = m_props.get_child("POPULATION.RANDOM");
-	uint seed = rng_config.get<uint>("<xmlattr>.seed");
-	string generator_type = rng_config.get<string>("<xmlattr>.generator");
+	ptree rng_config;
+	long int seed = 0;
+	string generator_type;
 
-	m_rng.set(generator_type, seed);
+	try {
+		rng_config = m_props.get_child("POPULATION.RANDOM");
+		seed = rng_config.get<long int>("<xmlattr>.seed");
+
+		if (seed < 0) {
+			throw invalid_argument("Invalid attribute: POPULATION.RANDOM::seed");
+		}
+
+		generator_type = rng_config.get<string>("<xmlattr>.generator");
+	} catch(invalid_argument& e) {
+		throw e;
+	} catch(exception& e) {
+		throw invalid_argument("Missing/invalid element in POPULATION.RANDOM");
+	}
+
+	try {
+		m_rng.set(generator_type, seed);
+	} catch(invalid_argument& e) {
+		throw e;
+	}
 }
 
 void PopulationGenerator::getFamilySizes() {
 	double sum = 0.0;
-	for (auto& size_tree: m_props.get_child("POPULATION.FAMILY.FAMILYSIZE")) {
-		double frac = size_tree.second.get<double>("<xmlattr>.fraction") / 100.0;
-		uint size = size_tree.second.get<uint>("<xmlattr>.size");
-		m_family_size_fractions[size] = frac;
-		sum += frac;
-		if (size < m_family_size.min) m_family_size.min = size;
-		if (size > m_family_size.max) m_family_size.max = size;
-	}
-	if (abs(sum-1.0) > 0.0001) {
-		throw runtime_error("Sum of family size fractions does not equal 100"); // TODO better exception type
+
+	try {
+		for (auto& size_tree: m_props.get_child("POPULATION.FAMILY.FAMILYSIZE")) {
+			if (size_tree.first != "SIZE") {
+				throw invalid_argument((string ("Unknown element: ") + size_tree.first).c_str());
+			}
+
+			double frac = size_tree.second.get<double>("<xmlattr>.fraction") / 100.0;
+			uint size = size_tree.second.get<uint>("<xmlattr>.size");
+			m_family_size_fractions[size] = frac;
+			sum += frac;
+			if (size < m_family_size.min) m_family_size.min = size;
+			if (size > m_family_size.max) m_family_size.max = size;
+		}
+
+		if (abs(sum-1.0) > 0.0001) {
+			throw invalid_argument("Sum of family size fractions does not equal 100");
+		}
+	} catch(invalid_argument& e) {
+		throw e;
+	} catch(exception& e) {
+		throw invalid_argument("Missing/invalid element in POPULATION.FAMILY");
 	}
 }
 
 void PopulationGenerator::getFamilyComposition() {
 	map<uint, double> family_size_fractions_no_kids;
 	map<uint, double> family_size_fractions_some_kids;
-	uint no_children_min = m_props.get<uint>("POPULATION.FAMILY.NOCHILDREN.<xmlattr>.min");
-	uint no_children_max = m_props.get<uint>("POPULATION.FAMILY.NOCHILDREN.<xmlattr>.max");
-	for (uint i=m_family_size.min; i<=m_family_size.max; i++) {
-		// TODO check i in m_family_size_fractions
-		if (no_children_min <= i and i <= no_children_max) {
-			family_size_fractions_no_kids[i] = m_family_size_fractions[i];
-			m_no_kids_family_size_avg += i * m_family_size_fractions[i];
-		} else {
-			family_size_fractions_some_kids[i] = m_family_size_fractions[i];
+
+	try {
+		uint no_children_min = m_props.get<uint>("POPULATION.FAMILY.NOCHILDREN.<xmlattr>.min");
+		uint no_children_max = m_props.get<uint>("POPULATION.FAMILY.NOCHILDREN.<xmlattr>.max");
+
+		for (uint i=m_family_size.min; i<=m_family_size.max; i++) {
+			// TODO check i in m_family_size_fractions
+			if (no_children_min <= i and i <= no_children_max) {
+				family_size_fractions_no_kids[i] = m_family_size_fractions[i];
+				m_no_kids_family_size_avg += i * m_family_size_fractions[i];
+			} else {
+				family_size_fractions_some_kids[i] = m_family_size_fractions[i];
+			}
+			m_family_size_avg += i * m_family_size_fractions[i];
 		}
-		m_family_size_avg += i * m_family_size_fractions[i];
+
+		m_no_kids_family_size_dist = MappedAliasDistribution(family_size_fractions_no_kids);
+		m_some_kids_family_size_dist = MappedAliasDistribution(family_size_fractions_some_kids);
+
+		m_age_no_kids_min = m_props.get<uint>("POPULATION.FAMILY.NOCHILDREN.<xmlattr>.minAge");
+	} catch(exception& e) {
+		throw invalid_argument("Missing/invalid attribute in POPULATION.FAMILY.NOCHILDREN");
 	}
 
-	m_no_kids_family_size_dist = MappedAliasDistribution(family_size_fractions_no_kids);
-	m_some_kids_family_size_dist = MappedAliasDistribution(family_size_fractions_some_kids);
+	try {
+		auto children = m_props.get_child("POPULATION.FAMILY.CHILDREN");
+		m_age_kids.min = children.get<uint>("CHILDAGE.<xmlattr>.min");
+		m_age_kids.max = children.get<uint>("CHILDAGE.<xmlattr>.max");
+		m_age_parents.min = children.get<uint>("PARENTAGE.<xmlattr>.min");
+		m_age_parents.max = children.get<uint>("PARENTAGE.<xmlattr>.max");
+		m_age_diff_kids.min = children.get<uint>("AGEDIFF.CHILDREN.<xmlattr>.min");
+		m_age_diff_kids.max = children.get<uint>("AGEDIFF.CHILDREN.<xmlattr>.max");
+		m_age_diff_parents_max = children.get<uint>("AGEDIFF.PARENTS.<xmlattr>.max");
+		m_age_diff_parents_kids_min = children.get<uint>("AGEDIFF.PARENTSCHILDREN.<xmlattr>.min");
 
-	m_age_no_kids_min = m_props.get<uint>("POPULATION.FAMILY.NOCHILDREN.<xmlattr>.minAge");
-
-	auto children = m_props.get_child("POPULATION.FAMILY.CHILDREN");
-	m_age_kids.min = children.get<uint>("CHILDAGE.<xmlattr>.min");
-	m_age_kids.max = children.get<uint>("CHILDAGE.<xmlattr>.max");
-	m_age_parents.min = children.get<uint>("PARENTAGE.<xmlattr>.min");
-	m_age_parents.max = children.get<uint>("PARENTAGE.<xmlattr>.max");
-	m_age_diff_kids.min = children.get<uint>("AGEDIFF.CHILDREN.<xmlattr>.min");
-	m_age_diff_kids.max = children.get<uint>("AGEDIFF.CHILDREN.<xmlattr>.max");
-	m_age_diff_parents_max = children.get<uint>("AGEDIFF.PARENTS.<xmlattr>.max");
-	m_age_diff_parents_kids_min = children.get<uint>("AGEDIFF.PARENTSCHILDREN.<xmlattr>.min");
-
-	if (m_age_diff_parents_kids_min > m_age_parents.min) {
-		// TODO better error
-		throw runtime_error("Parents have to be older than the minimum difference between children and parents");
+		if (m_age_diff_parents_kids_min > m_age_parents.min) {
+			// TODO better error
+			throw invalid_argument("Parents have to be older than the minimum difference between children and parents");
+		}
+	} catch(invalid_argument& e) {
+		throw e;
+	} catch(exception& e) {
+		throw invalid_argument("Missing/invalid element in POPULATION.FAMILY.CHILDREN");
 	}
 }
 

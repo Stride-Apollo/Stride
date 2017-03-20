@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <stdexcept>
 
 using namespace stride;
 using namespace popgen;
@@ -73,8 +74,6 @@ RandomGenerator::result_type KnuthB::operator ()() {
 RNGPicker::RNGPicker(): m_rng{nullptr} {}
 
 void RNGPicker::set(string generator_type, RandomGenerator::result_type seed) {
-	/// TODO throw exception if the string is invalid
-
 	if (m_rng != nullptr) {
 		delete m_rng;
 		m_rng = nullptr;
@@ -95,7 +94,7 @@ void RNGPicker::set(string generator_type, RandomGenerator::result_type seed) {
 	else if (generator_type == "KnuthB")
 		m_rng = new KnuthB(seed);
 	else
-		cerr << "RNG picking failed" << endl;
+		throw invalid_argument("Invalid RNG name");
 }
 
 RNGPicker::~RNGPicker() {

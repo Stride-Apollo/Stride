@@ -9,6 +9,7 @@ using namespace stride;
 using namespace popgen;
 
 int main(int argc, char** argv) {
+	try {
 	if (argc <= 1) {
 		cerr << "Please provide an XML file as first argument.\n";
 		return 1;
@@ -20,4 +21,8 @@ int main(int argc, char** argv) {
 	cout << pop;
 	cerr << "Done!\n";
 	return 0;
+	} catch(exception& e) {
+		cerr << "Oh an exception! That's unfortunate.\n";
+		cerr << e.what() << endl;
+	}
 }
