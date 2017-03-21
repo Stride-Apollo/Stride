@@ -46,7 +46,8 @@ set(LIB_SRC
 	patterns/Publisher.cpp
 #---
     hdf5Prototype/subsets.cpp
-)
+#---
+    checkpointing/Saver.cpp)
 
 set(MAIN_SRC
         sim/main.cpp

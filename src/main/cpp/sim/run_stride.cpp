@@ -29,6 +29,7 @@
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
+#include "checkpointing/Saver.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 #include <omp.h>
@@ -137,9 +138,11 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 
 	cout << "Adding observers to the simulator." << endl;
 	/// example on how to use:
-		// auto classInstance = std::make_shared<Class>();
-		// std::function<void(const Simulator&)> fnCaller = std::bind(&Class::update, classInstance, std::placeholders::_1); 
-		// sim->registerObserver(classInstance, fnCaller); 
+
+	// TODO give config args to saver
+	auto classInstance = std::make_shared<Saver>(Saver("simulator_save.h5"));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	sim->registerObserver(classInstance, fnCaller);
 	cout << "Done adding the observers." << endl << endl;
 
 	// -----------------------------------------------------------------------------------------
