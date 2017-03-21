@@ -1,0 +1,50 @@
+<POPULATION total='100000'>
+	<RANDOM generator='mt' seed='74128'/>
+	<AGES min='0' max='95' constantUpTo='65'/>
+	<!-- constantUpTo = up until that age, the fraction in the population is constant, afterwards it descends -->
+	<!-- Given example: ages 0-65 (including 65) each represent 1.2% of the population, from that point on the fraction of people with a higer age will descend linearly -->
+
+	<FAMILY>
+		<NOCHILDREN min='1' max='2' minAge='18'/>
+		<!-- If there a family consists of minimum 1 and maximum 2 people, they are considered a family with no children, meaning that they are all older than 18 -->
+		<CHILDREN>
+			<!-- If there are more that NOCHILDREN::max people in a family, they have children and you get here -->
+			<CHILDAGE min='0' max='23'/>
+			<PARENTAGE min='20' max='50'/>
+			<AGEDIFF>
+				<!-- Minimum age difference between parents and children, children and children,... -->
+				<PARENTS max='5'/>
+				<CHILDREN min='1' max='10'/>
+				<PARENTSCHILDREN min='18'/> <!-- Difference between OLDEST child and YOUNGEST parent -->
+			</AGEDIFF>
+		</CHILDREN>
+		<FAMILYSIZE>
+			<SIZE size='1' fraction='12'/>
+			<SIZE size='2' fraction='27'/>
+			<SIZE size='3' fraction='20'/>
+			<SIZE size='4' fraction='22'/>
+			<SIZE size='5' fraction='10'/>
+			<SIZE size='6' fraction='9'/>
+				<!-- The last one will be considered: "X or more" -->
+				<!-- The total of the fractions must add up to 100 -->
+				<!-- Note: these can be floats -->
+		</FAMILYSIZE>
+	</FAMILY>
+
+
+	<EDUCATION size='500'>
+		<!-- the attribute 'fraction' can indicate whether the institution is mandatory (100 == mandatory) -->
+		<INSTITUTION minAge='3' maxAge='6' fraction='100' name="kleuter school"/>
+		<INSTITUTION minAge='7' maxAge='12' fraction='100' name="lagere school"/>
+		<INSTITUTION minAge='13' maxAge='18' fraction='100' name="middelbare school"/>
+		<INSTITUTION minAge='19' maxAge='23' fraction='100' name="hogere studies"/>
+	</EDUCATION>
+
+
+	<WORK>
+		<AMOUNT fraction='70' minAge='18' maxAge='65'/>
+		<COMPANYSIZE min='1' max='25'/>
+	</WORK>
+
+	<COMMUNITY size='2000' average_per_person='1.5'/>
+</POPULATION>
