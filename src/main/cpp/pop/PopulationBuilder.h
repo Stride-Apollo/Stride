@@ -29,11 +29,14 @@
 
 namespace stride {
 
+class Population;
+
 /**
  * Initializes Population objects.
  */
 class PopulationBuilder {
 public:
+
 	/**
 	 * Initializes a Population: add persons, set immunity, seed infection.
 	 *
@@ -41,7 +44,7 @@ public:
 	 * @param pt_disease      Property_tree with disease configuration settings.
 	 * @return                Pointer to the initialized population.
 	 */
-	static std::shared_ptr<Population> Build(
+	static std::shared_ptr<Population> build(
 			const boost::property_tree::ptree& pt_config,
 			const boost::property_tree::ptree& pt_disease,
 			util::Random& rng);

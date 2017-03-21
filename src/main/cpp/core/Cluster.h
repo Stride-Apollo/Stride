@@ -23,6 +23,8 @@
 #include "core/ContactProfile.h"
 #include "core/LogMode.h"
 #include "pop/Person.h"
+#include "pop/PopulationBuilder.h"
+#include "sim/Simulator.h"
 
 #include <array>
 #include <cstddef>
@@ -32,7 +34,6 @@
 namespace stride {
 
 class RngHandler;
-
 class Calendar;
 
 /**
@@ -47,7 +48,7 @@ public:
 	//Cluster(const Cluster& rhs);
 
 	/// Add the given Person to the Cluster.
-	void addPerson(Person* p);
+	void addPerson(Simulator::PersonType* p);
 
 	/// Return number of persons in this cluster.
 	std::size_t getSize() const { return m_members.size(); }
@@ -56,7 +57,7 @@ public:
 	ClusterType getClusterType() const { return m_cluster_type; }
 
 	/// Get basic contact rate in this cluster.
-	double getContactRate(const Person* p) const {
+	double getContactRate(const Simulator::PersonType* p) const {
 		return g_profiles.at(toSizeType(m_cluster_type))[effectiveAge(p->getAge())] / m_members.size();;
 	}
 
@@ -70,8 +71,7 @@ private:
 
 	/// Infector calculates contacts and transmissions.
 	template<LogMode log_level, bool track_index_case>
-	friend
-	class Infector;
+	friend class Infector;
 
 	/// Calculate which members are present in the cluster on the current day.
 	void updateMemberPresence();
@@ -80,7 +80,7 @@ private:
 	std::size_t m_cluster_id;     ///< The ID of the Cluster (for logging purposes).
 	ClusterType m_cluster_type;   ///< The type of the Cluster (for logging purposes).
 	std::size_t m_index_immune;   ///< Index of the first immune member in the Cluster.
-	std::vector<std::pair<Person*, bool>> m_members;        ///< Container with pointers to Cluster members.
+	std::vector<std::pair<Simulator::PersonType*, bool>> m_members;  ///< Container with pointers to Cluster members.
 	const ContactProfile& m_profile;
 private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;

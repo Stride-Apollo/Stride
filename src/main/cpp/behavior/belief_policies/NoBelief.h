@@ -16,34 +16,12 @@
 
 /**
  * @file
- * Header file for the core Population class
  */
 
-#include "Person.h"
-#include "core/Health.h"
-#include "sim/Simulator.h"
+#include "behavior/belief_data/Nothing.h"
 
-#include <numeric>
-#include <vector>
-
-namespace stride {
-
-/**
- * Container for persons in population.
- */
-class Population : public std::vector<Simulator::PersonType> {
+class NoBelief {
 public:
-	/// Get the cumulative number of cases.
-	unsigned int getInfectedCount() const {
-		unsigned int total {0U};
-		for (const auto& p : *this) {
-			const auto& h = p.getHealth();
-			total += h.isInfected() || h.isRecovered();
-		}
-		return total;
-	}
-
+	using Data = Nothing;
 };
-
-}
 
