@@ -25,6 +25,7 @@
 #include "pop/Population.h"
 #include "pop/PopulationBuilder.h"
 #include "util/InstallDirs.h"
+#include "core/Cluster.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 
@@ -35,7 +36,7 @@ using namespace boost::filesystem;
 using namespace boost::property_tree;
 using namespace stride::util;
 
-shared_ptr<Simulator> SimulatorBuilder::Build(const string& config_file_name,
+shared_ptr<Simulator> SimulatorBuilder::build(const string& config_file_name,
 											  unsigned int num_threads, bool track_index_case) {
 	// Configuration file.
 	ptree pt_config;
@@ -47,10 +48,10 @@ shared_ptr<Simulator> SimulatorBuilder::Build(const string& config_file_name,
 	read_xml(file_path.string(), pt_config);
 
 	// Done.
-	return Build(pt_config, num_threads, track_index_case);
+	return build(pt_config, num_threads, track_index_case);
 }
 
-shared_ptr<Simulator> SimulatorBuilder::Build(const ptree& pt_config,
+shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 											  unsigned int num_threads, bool track_index_case) {
 	// Disease file.
 	ptree pt_disease;
@@ -71,10 +72,10 @@ shared_ptr<Simulator> SimulatorBuilder::Build(const ptree& pt_config,
 	read_xml(file_path_c.string(), pt_contact);
 
 	// Done.
-	return Build(pt_config, pt_disease, pt_contact, num_threads, track_index_case);
+	return build(pt_config, pt_disease, pt_contact, num_threads, track_index_case);
 }
 
-shared_ptr<Simulator> SimulatorBuilder::Build(const ptree& pt_config,
+shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 											  const ptree& pt_disease, const ptree& pt_contact,
 											  unsigned int number_of_threads, bool track_index_case) {
 	auto sim = make_shared<Simulator>();
@@ -101,7 +102,7 @@ shared_ptr<Simulator> SimulatorBuilder::Build(const ptree& pt_config,
 	Random rng(seed);
 
 	// Build population.
-	sim->m_population = PopulationBuilder::Build(pt_config, pt_disease, rng);
+	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, rng);
 
 	// initialize clusters.
 	initializeClusters(sim);

@@ -41,7 +41,7 @@ void Cluster::addContactProfile(ClusterType cluster_type, const ContactProfile& 
 }
 
 
-void Cluster::addPerson(Person* p) {
+void Cluster::addPerson(Simulator::PersonType* p) {
 	m_members.emplace_back(std::make_pair(p, true));
 	m_index_immune++;
 }

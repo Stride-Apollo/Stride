@@ -1,5 +1,4 @@
-#ifndef PUBLISHER_H_INCLUDED
-#define PUBLISHER_H_INCLUDED
+#pragma once
 
 /**
  * @file
@@ -40,4 +39,3 @@ private:
 } // end_of_namespace
 } // end_of_namespace
 
-#endif // end of include guard

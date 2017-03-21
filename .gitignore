@@ -12,12 +12,12 @@ src/main/cpp/stride
 #--------------
 # Documentation
 #--------------
-src/doc/doxygen_ref_man/Doxyfile
-src/doc/doxygen_ref_man/*.log
-src/doc/doxygen_ref_man/html/*
-src/doc/doxygen_ref_man/latex/*
-src/doc/doxygen_ref_man/reference_doc_html/*
-src/doc/doxygen_ref_man/${DOXY_HTML_DIR}/
+#src/doc/doxygen_ref_man/Doxyfile
+#src/doc/doxygen_ref_man/*.log
+#src/doc/doxygen_ref_man/html/*
+#src/doc/doxygen_ref_man/latex/*
+#src/doc/doxygen_ref_man/reference_doc_html/*
+#src/doc/doxygen_ref_man/${DOXY_HTML_DIR}/
 
 #---------------
 # Hdf5 datafiles
@@ -52,10 +52,10 @@ src/doc/doxygen_ref_man/${DOXY_HTML_DIR}/
 /.settings/
 target*/
 build*/
-*.cmake
-CMakeCache.txt
-CMakeFiles
-Makefile
+#*.cmake
+#CMakeCache.txt
+#CMakeFiles
+#Makefile
 
 #------------------------------------
 # Latex stuff

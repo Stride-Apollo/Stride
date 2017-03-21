@@ -24,6 +24,7 @@
 #include "calendar/DaysOffStandard.h"
 #include "core/Infector.h"
 #include "pop/Population.h"
+#include "core/Cluster.h"
 
 #include <omp.h>
 
@@ -47,7 +48,7 @@ void Simulator::setTrackIndexCase(bool track_index_case) {
 }
 
 template<LogMode log_level, bool track_index_case>
-void Simulator::UpdateClusters() {
+void Simulator::updateClusters() {
 	#pragma omp parallel num_threads(m_num_threads)
 	{
 		const unsigned int thread = omp_get_thread_num();
@@ -98,13 +99,13 @@ void Simulator::timeStep() {
 	if (m_track_index_case) {
 		switch (m_log_level) {
 			case LogMode::Contacts:
-				UpdateClusters<LogMode::Contacts, true>();
+				updateClusters<LogMode::Contacts, true>();
 				break;
 			case LogMode::Transmissions:
-				UpdateClusters<LogMode::Transmissions, true>();
+				updateClusters<LogMode::Transmissions, true>();
 				break;
 			case LogMode::None:
-				UpdateClusters<LogMode::None, true>();
+				updateClusters<LogMode::None, true>();
 				break;
 			default:
 				throw runtime_error(std::string(__func__) + "Log mode screwed up!");
@@ -112,13 +113,13 @@ void Simulator::timeStep() {
 	} else {
 		switch (m_log_level) {
 			case LogMode::Contacts:
-				UpdateClusters<LogMode::Contacts, false>();
+				updateClusters<LogMode::Contacts, false>();
 				break;
 			case LogMode::Transmissions:
-				UpdateClusters<LogMode::Transmissions, false>();
+				updateClusters<LogMode::Transmissions, false>();
 				break;
 			case LogMode::None:
-				UpdateClusters<LogMode::None, false>();
+				updateClusters<LogMode::None, false>();
 				break;
 			default:
 				throw runtime_error(std::string(__func__) + "Log mode screwed up!");

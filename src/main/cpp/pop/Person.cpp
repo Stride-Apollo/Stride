@@ -23,11 +23,17 @@
 
 #include "core/ClusterType.h"
 
+#include <stdexcept>
+#include <string>
+#include <memory>
+
 namespace stride {
 
 using namespace std;
 
-unsigned int Person::getClusterId(ClusterType cluster_type) const {
+
+template<class BehaviorPolicy, class BeliefPolicy>
+unsigned int Person<BehaviorPolicy, BeliefPolicy>::getClusterId(ClusterType cluster_type) const {
 	switch (cluster_type) {
 		case ClusterType::Household:
 			return m_household_id;
@@ -44,7 +50,9 @@ unsigned int Person::getClusterId(ClusterType cluster_type) const {
 	}
 }
 
-bool Person::isInCluster(ClusterType c) const {
+
+template<class BehaviorPolicy, class BeliefPolicy>
+bool Person<BehaviorPolicy, BeliefPolicy>::isInCluster(ClusterType c) const {
 	switch (c) {
 		case ClusterType::Household:
 			return m_at_household;
@@ -61,7 +69,9 @@ bool Person::isInCluster(ClusterType c) const {
 	}
 }
 
-void Person::update(bool is_work_off, bool is_school_off) {
+
+template<class BehaviorPolicy, class BeliefPolicy>
+void Person<BehaviorPolicy, BeliefPolicy>::update(bool is_work_off, bool is_school_off) {
 	m_health.update();
 
 	// update presence in clusters.
@@ -77,5 +87,10 @@ void Person::update(bool is_work_off, bool is_school_off) {
 		m_at_primary_community = false;
 	}
 }
+
+//--------------------------------------------------------------------------
+// All explicit instantiations.
+//--------------------------------------------------------------------------
+template class Person<NoBelief, NoBehavior>;
 
 }

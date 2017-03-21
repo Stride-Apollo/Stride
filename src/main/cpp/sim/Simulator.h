@@ -19,12 +19,15 @@
  * Header for the Simulator class.
  */
 
-#include "core/Cluster.h"
+//#include "core/Cluster.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/RngHandler.h"
+#include "behavior/behavior_policies/NoBehavior.h"
+#include "pop/Person.h"
 #include "util/Subject.h"
 
+#include "behavior/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
@@ -33,14 +36,16 @@
 namespace stride {
 
 class Population;
-
 class Calendar;
+class Cluster;
 
 /**
  * Main class that contains and direct the virtual world.
  */
 class Simulator : public util::Subject<Simulator> {
 public:
+	using PersonType = Person<NoBelief, NoBehavior>;
+
 	// Default constructor for empty Simulator.
 	Simulator();
 
@@ -56,19 +61,19 @@ public:
 private:
 	/// Update the contacts in the given clusters.
 	template<LogMode log_level, bool track_index_case = false>
-	void UpdateClusters();
+	void updateClusters();
 
 private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 
 private:
-	unsigned int m_num_threads;          ///< The number of (OpenMP) threads.
-	std::vector<RngHandler> m_rng_handler;          ///< Pointer to the RngHandlers.
-	LogMode m_log_level;            ///< Specifies logging mode.
-	std::shared_ptr<Calendar> m_calendar;             ///< Management of calendar.
+	unsigned int m_num_threads; 			///< The number of (OpenMP) threads.
+	std::vector<RngHandler> m_rng_handler;  ///< Pointer to the RngHandlers.
+	LogMode m_log_level;            		///< Specifies logging mode.
+	std::shared_ptr<Calendar> m_calendar;	///< Management of calendar.
 
 private:
-	std::shared_ptr<Population> m_population;           ///< Pointer to the Population.
+	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
 
 	std::vector<Cluster> m_households;           ///< Container with household Clusters.
 	std::vector<Cluster> m_school_clusters;      ///< Container with school Clusters.
@@ -85,4 +90,3 @@ private:
 };
 
 }
-
