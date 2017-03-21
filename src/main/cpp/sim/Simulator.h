@@ -25,6 +25,7 @@
 #include "core/RngHandler.h"
 #include "behavior/behavior_policies/NoBehavior.h"
 #include "pop/Person.h"
+#include "util/Subject.h"
 
 #include "behavior/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
@@ -41,7 +42,7 @@ class Cluster;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator {
+class Simulator : public util::Subject<Simulator> {
 public:
 	using PersonType = Person<NoBelief, NoBehavior>;
 
