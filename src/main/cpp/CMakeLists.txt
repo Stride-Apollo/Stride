@@ -70,6 +70,7 @@ set(POPGEN_MAIN_SRC
 
 # the option is here so that we can plug it into other
 # codes where HDF5 may be optional
+
 find_package(HDF5)
 if(HDF5_FOUND)
     include_directories(${HDF5_INCLUDE_DIR})
