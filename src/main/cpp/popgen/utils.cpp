@@ -4,11 +4,15 @@
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
+#include <cmath>
 
 using namespace stride;
 using namespace popgen;
 
 uniform_real_distribution<double> popgen::real01 = uniform_real_distribution<double>(0, 1);
+
+double earth_radius = 6371;
+/// Mean radius of the earth (in metres)
 
 bool SimplePerson::hasCommunitiesLeft() {
 	return (m_primary_community != 0) and (m_secondary_community != 0);
@@ -27,6 +31,29 @@ std::ostream& popgen::operator<<(std::ostream& os, const SimplePerson& p) {
 
 SimplePerson::SimplePerson(uint age, uint family_id) :
 		m_age(age), m_household_id(family_id) {
+}
+
+const GeoCoordCalculator& GeoCoordCalculator::getInstance() {
+	static GeoCoordCalculator calc;
+
+	return calc;
+}
+
+double GeoCoordCalculator::getDistance(const GeoCoordinate& coord1, const GeoCoordinate& coord2) const {
+	double delta_latitude = coord2.m_latitude - coord1.m_latitude;
+	double delta_longitude = coord2.m_longitude - coord1.m_longitude;
+
+	double temp1 = sin(delta_latitude * PI / 360.0) * sin(delta_latitude * PI / 360.0) +
+		cos(coord1.m_latitude * PI / 180.0) * cos(coord2.m_latitude * PI / 180.0) *
+		sin(delta_longitude * PI / 360.0) * sin(delta_longitude * PI / 360.0);
+
+	double temp2 = 2.0 * atan2(sqrt(temp1), sqrt(1.0 - temp1));
+
+	return earth_radius * temp2;
+}
+
+GeoCoordinate GeoCoordCalculator::generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius) const {
+
 }
 
 MinStdRand0::MinStdRand0(RandomGenerator::result_type seed): m_generator{seed} {}

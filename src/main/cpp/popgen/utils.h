@@ -8,6 +8,8 @@ namespace popgen {
 
 using namespace std;
 
+#define PI 3.14159265
+
 extern uniform_real_distribution<double> real01;
 
 using uint = unsigned int;
@@ -45,6 +47,33 @@ struct MinMaxAvg: public MinMax {
 	MinMaxAvg(uint _min=0, uint _max=0, uint _avg=0)
 			: MinMax(_min, _max), avg(_avg) {}
 	uint avg;
+};
+
+struct GeoCoordinate {
+	double m_longitude;
+	double m_latitude;
+};
+
+class GeoCoordCalculator {
+	/// Singleton pattern
+public:
+	static const GeoCoordCalculator& getInstance();
+
+	double getDistance(const GeoCoordinate& coord1, const GeoCoordinate& coord2) const;
+	/// Result is in metres
+	/// Uses the haversine formula
+	/// See: http://www.movable-type.co.uk/scripts/latlong.html
+
+	GeoCoordinate generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius) const;
+	/// radius is in metres
+
+public:
+	GeoCoordCalculator(){}
+
+	~GeoCoordCalculator(){}
+
+	GeoCoordCalculator(GeoCoordCalculator const&) = delete;
+	void operator=(GeoCoordCalculator const&)  = delete;
 };
 
 class RandomGenerator {
