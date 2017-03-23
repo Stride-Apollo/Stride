@@ -49,33 +49,6 @@ struct MinMaxAvg: public MinMax {
 	uint avg;
 };
 
-struct GeoCoordinate {
-	double m_longitude;
-	double m_latitude;
-};
-
-class GeoCoordCalculator {
-	/// Singleton pattern
-public:
-	static const GeoCoordCalculator& getInstance();
-
-	double getDistance(const GeoCoordinate& coord1, const GeoCoordinate& coord2) const;
-	/// Result is in metres
-	/// Uses the haversine formula
-	/// See: http://www.movable-type.co.uk/scripts/latlong.html
-
-	GeoCoordinate generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius) const;
-	/// radius is in metres
-
-public:
-	GeoCoordCalculator(){}
-
-	~GeoCoordCalculator(){}
-
-	GeoCoordCalculator(GeoCoordCalculator const&) = delete;
-	void operator=(GeoCoordCalculator const&)  = delete;
-};
-
 class RandomGenerator {
 public:
 	using result_type = long unsigned int;
@@ -205,6 +178,34 @@ private:
 	RandomGenerator* m_rng;
 };
 
+struct GeoCoordinate {
+	double m_longitude;
+	double m_latitude;
+};
+
+std::ostream& operator<<(std::ostream& os, const GeoCoordinate& g);
+
+class GeoCoordCalculator {
+	/// Singleton pattern
+public:
+	static const GeoCoordCalculator& getInstance();
+
+	double getDistance(const GeoCoordinate& coord1, const GeoCoordinate& coord2) const;
+	/// Result is in kilometres
+	/// Uses the haversine formula
+	/// See: http://www.movable-type.co.uk/scripts/latlong.html
+
+	GeoCoordinate generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius, RNGPicker& rng) const;
+	/// radius is in kilometres
+
+public:
+	GeoCoordCalculator(){}
+
+	~GeoCoordCalculator(){}
+
+	GeoCoordCalculator(GeoCoordCalculator const&) = delete;
+	void operator=(GeoCoordCalculator const&)  = delete;
+};
 
 }
 }
