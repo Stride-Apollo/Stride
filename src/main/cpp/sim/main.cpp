@@ -37,12 +37,16 @@ int main(int argc, char** argv) {
 		SwitchArg index_case_Arg("r", "r0", "R0 only", cmd, false);
 		ValueArg<string> config_file_Arg("c", "config", "Config File", false,
 										 "./config/run_default.xml", "CONFIGURATION FILE", cmd);
+		ValueArg<int> checkpointing_frequency("f", "frequency", "Checkpointing Frequency", false,
+										 -1, "CHECKPOINTING FREQUENCY", cmd);
 		cmd.parse(argc, argv);
 
 		// -----------------------------------------------------------------------------------------
 		// Run the Stride simulator.
 		// -----------------------------------------------------------------------------------------
-		run_stride(index_case_Arg.getValue(), config_file_Arg.getValue());
+		run_stride(	index_case_Arg.getValue(), 
+					config_file_Arg.getValue(), 
+					checkpointing_frequency.getValue());
 
 	}
 	catch (exception& e) {

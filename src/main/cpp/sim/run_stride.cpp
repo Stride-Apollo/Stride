@@ -45,7 +45,9 @@ using namespace std;
 using namespace std::chrono;
 
 /// Run the stride simulator.
-void run_stride(bool track_index_case, const string& config_file_name) {
+void run_stride(bool track_index_case, 
+				const string& config_file_name,
+				const int checkpointing_frequency) {
 	// -----------------------------------------------------------------------------------------
 	// print output to command line.
 	// -----------------------------------------------------------------------------------------
@@ -129,6 +131,14 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	// -----------------------------------------------------------------------------------------
 	Stopwatch<> total_clock("total_clock", true);
 	cout << "Building the simulator. " << endl;
+
+	string checkpoint_filename = pt_config.get<string>("run.checkpointing_file");
+	ifstream hdf5file(checkpoint_filename.c_str());
+	
+	if (hdf5file.good()) {
+		// construct simulator from the checkpointing file
+	}
+
 	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	cout << "Done building the simulator. " << endl << endl;
 
@@ -137,10 +147,12 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	// -----------------------------------------------------------------------------------------
 
 	cout << "Adding observers to the simulator." << endl;
-	/// example on how to use:
-
+	int frequency = checkpointing_frequency == -1 ?
+						pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
 	// TODO give config args to saver
-	auto classInstance = std::make_shared<Saver>(Saver("simulator_save.h5"));
+
+	auto classInstance = std::make_shared<Saver>
+		(Saver(checkpoint_filename.c_str()));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 	cout << "Done adding the observers." << endl << endl;

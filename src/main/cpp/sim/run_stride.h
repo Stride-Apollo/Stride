@@ -26,7 +26,9 @@ namespace stride {
 /**
  * Run the simulator with config information provided.
  */
-void run_stride(bool track_index_case, const std::string& config_file_name);
+void run_stride(bool track_index_case, 
+				const std::string& config_file_name, 
+				const int checkpoining_frequency);
 
 }
 
