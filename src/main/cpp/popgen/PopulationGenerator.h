@@ -18,76 +18,60 @@
 namespace stride {
 namespace popgen {
 
-class AgeDistribution;
-
-using uint = unsigned int;
-using Cluster = vector<uint>;
-/// Contains the indices of the people in Population::all
-using SimpleFamily = vector<uint>;
-
 using namespace std;
 using namespace util;
 
-struct Population {
-	vector<SimplePerson> all;
-	vector<SimpleFamily> families;
-
-	/// TODO: refactor: Didn't use this yet, I don't think we need it (Sam)
-	vector<Cluster> schools;
-	vector<Cluster> workplaces;
-	vector<Cluster> communities;
-};
-
-struct SimpleSchool {
-	uint m_current_pupils = 0;
-	uint m_id = 0;
-};
-
-std::ostream& operator<<(std::ostream& os, const Population& p);
+using uint = unsigned int;
 
 class PopulationGenerator {
 public:
 
 	PopulationGenerator(const string& filename);
 
-	Population generate();
+	void generate();
 
 private:
 	void makeRNG();
-	void getFamilySizes();
-	void getFamilyComposition();
-	void makeFamiliesWithChildren(
-			map<uint, uint>& age_map,
-			Population& pop,
-			AgeDistribution& age_dist,
-			uint& family_id);
-	void makeChildlessFamilies(
-			map<uint, uint>& age_map,
-			Population& pop,
-			AgeDistribution& age_dist,
-			uint& family_id);
-	void makeSchools(const map<uint, uint>& age_map, Population& pop);
-	void makeWork(const map<uint, uint>& age_map, Population& pop);
-	void makeCommunities(const map<uint, uint>& age_map, Population& pop);
+
+	void makeHouseholds();
+
+	void makeCities();
+
+	void makeVillages();
+
+	void placeHouseholds();
+
+	void makeSchools();
+
+	void makeUniversities();
+
+	void makeWork();
+
+	void makeCommunities();
+
+	void assignToSchools();
+
+	void assignToUniversities();
+
+	void assignToWork();
+
+	void assignToCommunities();
 
 	boost::property_tree::ptree m_props;
-	uint m_total;
-	map<uint, double> m_family_size_fractions;
-	MappedAliasDistribution m_no_kids_family_size_dist;
-	MappedAliasDistribution m_some_kids_family_size_dist;
-	double m_family_size_avg = 0;
-	double m_no_kids_family_size_avg = 0;
-	MinMax m_family_size = MinMax(numeric_limits<uint>::max(),
-								  numeric_limits<uint>::min());
-
-	MinMax m_age_kids;
-	MinMax m_age_parents;
-	MinMax m_age_diff_kids;
-	uint m_age_diff_parents_max = 0;
-	uint m_age_diff_parents_kids_min = 0;
-	uint m_age_no_kids_min = 0;
-	uint m_cluster_id = 0;
 	RNGPicker m_rng;
+	uint m_total;
+	vector<SimplePerson> m_people;
+	vector<SimpleHousehold> m_households;
+	vector<SimpleCluster> m_clusters;
+	vector<SimpleSchool> m_mandatory_schools;
+	vector<SimpleSchool> m_optional_schools;
+	uint m_next_id;
+
+	/// Data for visualisation
+	// TODO: population density still missing, not sure what to expect
+	map<uint, uint> m_age_distribution;
+	map<uint, uint> m_household_size;
+	map<uint, uint> m_work_size;
 };
 
 }

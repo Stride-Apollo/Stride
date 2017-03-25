@@ -53,7 +53,8 @@ set(POPGEN_SRC
 	util/AliasDistribution.cpp
 	popgen/PopulationGenerator.cpp
 	popgen/AgeDistribution.cpp
-	popgen/utils.cpp
+    popgen/utils.cpp
+    popgen/FamilyParser.cpp
 )
 
 set(MAIN_SRC

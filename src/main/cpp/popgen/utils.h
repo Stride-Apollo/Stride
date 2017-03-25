@@ -14,18 +14,24 @@ extern uniform_real_distribution<double> real01;
 
 using uint = unsigned int;
 
+using SimpleHousehold = vector<uint>;
+
 class PopulationGenerator;
+
+struct GeoCoordinate {
+	double m_longitude;
+	double m_latitude;
+};
 
 class SimplePerson {
 public:
 
 	SimplePerson(uint age=0, uint family_id=0);
-	bool hasCommunitiesLeft();
 
 	friend std::ostream& operator<<(std::ostream& os, const SimplePerson& p);
 
 private:
-	friend class PopulationGenerator;
+	//friend class PopulationGenerator;
 
 	uint m_age = 0;
 	uint m_household_id = 0;
@@ -33,6 +39,19 @@ private:
 	uint m_work_id = 0;
 	uint m_primary_community = 0;
 	uint m_secondary_community = 0;
+};
+
+struct SimpleCluster {
+	uint m_size = 0;
+	uint m_max_size = 0;
+	uint m_id = 0;
+	GeoCoordinate coord;
+};
+
+struct SimpleSchool {
+	uint m_size = 0;
+	uint m_max_size = 0;
+	GeoCoordinate coord;
 };
 
 std::ostream& operator<<(std::ostream& os, const SimplePerson& p);
@@ -176,11 +195,6 @@ public:
 
 private:
 	RandomGenerator* m_rng;
-};
-
-struct GeoCoordinate {
-	double m_longitude;
-	double m_latitude;
 };
 
 std::ostream& operator<<(std::ostream& os, const GeoCoordinate& g);

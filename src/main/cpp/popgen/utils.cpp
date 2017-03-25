@@ -1,4 +1,3 @@
-
 #include "utils.h"
 
 #include <cassert>
@@ -13,10 +12,6 @@ uniform_real_distribution<double> popgen::real01 = uniform_real_distribution<dou
 
 double earth_radius = 6371;
 /// Mean radius of the earth (in metres)
-
-bool SimplePerson::hasCommunitiesLeft() {
-	return (m_primary_community != 0) and (m_secondary_community != 0);
-}
 
 std::ostream& popgen::operator<<(std::ostream& os, const SimplePerson& p) {
 	assert(p.m_household_id != 0);  // everyone is part of a family!
