@@ -48,15 +48,15 @@ struct SimpleCluster {
 	uint m_size = 0;
 	uint m_max_size = 0;
 	uint m_id = 0;
-	GeoCoordinate coord;
+	GeoCoordinate m_coord;
 };
 
 struct SimpleCity {
-	uint m_size = 0;
+	uint m_current_size = 0;
 	uint m_max_size = 0;
 	uint m_id = 0;
 	string m_name = "";
-	GeoCoordinate coord;
+	GeoCoordinate m_coord;
 };
 
 std::ostream& operator<<(std::ostream& os, const SimplePerson& p);
@@ -216,6 +216,7 @@ public:
 
 	GeoCoordinate generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius, RNGPicker& rng) const;
 	/// radius is in kilometres
+	/// TODO make the distribution fair
 
 public:
 	GeoCoordCalculator(){}

@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 #include <boost/property_tree/xml_parser.hpp>
+#include <limits>
 
 using namespace stride;
 using namespace popgen;
@@ -39,7 +40,7 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 void PopulationGenerator::generate() {
 	makeHouseholds();
 	makeCities();
-	// makeVillages();
+	makeVillages();
 	// placeHouseholds();
 	// makeSchools();
 	// makeUniversities();
@@ -127,14 +128,97 @@ void PopulationGenerator::makeCities() {
 
 			SimpleCity new_city;
 			new_city.m_max_size = size;
+			new_city.m_current_size = 0;
 			new_city.m_id = m_next_id;
 			m_next_id++;
-			new_city.coord.m_longitude = longitude;
-			new_city.coord.m_latitude = latitude;
+			new_city.m_coord.m_longitude = longitude;
+			new_city.m_coord.m_latitude = latitude;
 
 			m_cities.push_back(new_city);
 		} else {
 			/// TODO exception
 		}
+	}
+}
+
+GeoCoordinate PopulationGenerator::getCityMiddle() const {
+	double latitude_middle = 0.0;
+	double longitude_middle = 0.0;
+	for (const SimpleCity& city: m_cities) {
+		latitude_middle += city.m_coord.m_latitude;
+		longitude_middle += city.m_coord.m_longitude;
+	}
+	latitude_middle /= m_cities.size();
+	longitude_middle /= m_cities.size();
+
+	GeoCoordinate result;
+	result.m_latitude = latitude_middle;
+	result.m_longitude = longitude_middle;
+	return result;
+}
+
+double PopulationGenerator::getCityRadius(const GeoCoordinate& coord) const {
+	double current_maximum = -1.0;
+
+	const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
+	for (const SimpleCity& city: m_cities) {
+		double distance = calc.getDistance(coord, city.m_coord);
+		if (distance > current_maximum) {
+			current_maximum = distance;
+		}
+	}
+
+	return current_maximum;
+}
+
+double PopulationGenerator::getCityPopulation() const {
+	uint result = 0;
+
+	for (const SimpleCity& city: m_cities) {
+		result += city.m_max_size;
+	}
+
+	return result;
+}
+
+void PopulationGenerator::makeVillages() {
+	auto village_config = m_props.get_child("POPULATION.VILLAGES");
+	int village_radius_factor = village_config.get<double>("<xmlattr>.radius");
+	GeoCoordinate middle = getCityMiddle();
+	double radius = getCityRadius(middle);
+	uint city_population = getCityPopulation();
+	int unassigned_population = m_people.size() - city_population;
+
+	vector<double> fractions;
+	vector<MinMax> boundaries;
+	for (auto it = village_config.begin(); it != village_config.end(); it++) {
+		if (it->first == "VILLAGE") {
+			uint min = it->second.get<uint>("<xmlattr>.min");
+			uint max = it->second.get<uint>("<xmlattr>.max");
+			double fraction = it->second.get<double>("<xmlattr>.fraction") / 100.0;
+			MinMax min_max {min, max};
+
+			fractions.push_back(fraction);
+			boundaries.push_back(min_max);
+		}
+	}
+
+	AliasDistribution village_type_dist {fractions};
+	const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
+	while (unassigned_population > 0) {
+		uint village_type_index = village_type_dist(m_rng);
+		MinMax village_pop = boundaries.at(village_type_index);
+		uint range_interval_size = village_pop.max - village_pop.min + 1;
+
+		AliasDistribution village_size_dist {vector<double>(range_interval_size, 1.0 / range_interval_size)};
+		uint village_size = village_size_dist(m_rng);
+
+		SimpleCluster new_village;
+		new_village.m_max_size = village_size;
+		new_village.m_id = m_next_id;
+		m_next_id++;
+		new_village.m_coord = calc.generateRandomCoord(middle, radius * village_radius_factor, m_rng);
+		m_villages.push_back(new_village);
+		unassigned_population -= new_village.m_max_size;
 	}
 }

@@ -37,6 +37,13 @@ private:
 
 	void makeCities();
 
+	GeoCoordinate getCityMiddle() const;
+
+	double getCityRadius(const GeoCoordinate& coord) const;
+	/// Distance between the given coordinate and the furthest city
+
+	double getCityPopulation() const;
+
 	void makeVillages();
 
 	void placeHouseholds();
