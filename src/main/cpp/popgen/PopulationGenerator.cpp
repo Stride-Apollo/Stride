@@ -37,9 +37,8 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 }
 
 void PopulationGenerator::generate() {
-	cout << "Generating size: " << m_total << endl;
 	makeHouseholds();
-	// makeCities();
+	makeCities();
 	// makeVillages();
 	// placeHouseholds();
 	// makeSchools();
@@ -93,10 +92,11 @@ void PopulationGenerator::makeHouseholds() {
 		FamilyConfig& new_config = family_config.at(family_index);
 
 		SimpleHousehold new_household;
+		new_household.m_id = m_next_id;
 		for (uint& age: new_config) {
 			SimplePerson new_person {age, m_next_id};
 			m_people.push_back(new_person);
-			new_household.push_back(m_people.size() - 1);
+			new_household.m_indices.push_back(m_people.size() - 1);
 
 			/// For visualisation purposes
 			m_age_distribution[age] = m_age_distribution[age] + 1;
@@ -108,5 +108,33 @@ void PopulationGenerator::makeHouseholds() {
 		m_households.push_back(new_household);
 		m_next_id++;
 		current_generated += new_config.size();
+	}
+}
+
+void PopulationGenerator::makeCities() {
+	auto cities_config = m_props.get_child("POPULATION.CITIES");
+	uint size_check = 0;
+
+	for (auto it = cities_config.begin(); it != cities_config.end(); it++) {
+		if (it->first == "CITY") {
+			string name = it->second.get<string>("<xmlattr>.name");
+			int size = it->second.get<int>("<xmlattr>.pop");
+			double latitude = it->second.get<double>("<xmlattr>.lat");
+			double longitude = it->second.get<double>("<xmlattr>.lon");
+			size_check += size;
+
+			/// TODO check for errors in the 4 above declared vars
+
+			SimpleCity new_city;
+			new_city.m_max_size = size;
+			new_city.m_id = m_next_id;
+			m_next_id++;
+			new_city.coord.m_longitude = longitude;
+			new_city.coord.m_latitude = latitude;
+
+			m_cities.push_back(new_city);
+		} else {
+			/// TODO exception
+		}
 	}
 }

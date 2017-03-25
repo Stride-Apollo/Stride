@@ -14,8 +14,6 @@ extern uniform_real_distribution<double> real01;
 
 using uint = unsigned int;
 
-using SimpleHousehold = vector<uint>;
-
 class PopulationGenerator;
 
 struct GeoCoordinate {
@@ -41,6 +39,11 @@ private:
 	uint m_secondary_community = 0;
 };
 
+struct SimpleHousehold {
+	uint m_id = 0;
+	vector<uint> m_indices;
+};
+
 struct SimpleCluster {
 	uint m_size = 0;
 	uint m_max_size = 0;
@@ -48,9 +51,11 @@ struct SimpleCluster {
 	GeoCoordinate coord;
 };
 
-struct SimpleSchool {
+struct SimpleCity {
 	uint m_size = 0;
 	uint m_max_size = 0;
+	uint m_id = 0;
+	string m_name = "";
 	GeoCoordinate coord;
 };
 

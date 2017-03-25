@@ -62,9 +62,11 @@ private:
 	uint m_total;
 	vector<SimplePerson> m_people;
 	vector<SimpleHousehold> m_households;
-	vector<SimpleCluster> m_clusters;
-	vector<SimpleSchool> m_mandatory_schools;
-	vector<SimpleSchool> m_optional_schools;
+	vector<SimpleCity> m_cities;
+	vector<SimpleCluster> m_villages;
+	vector<SimpleCluster> m_communities;
+	vector<SimpleCluster> m_mandatory_schools;
+	vector<SimpleCluster> m_optional_schools;
 	uint m_next_id;
 
 	/// Data for visualisation
