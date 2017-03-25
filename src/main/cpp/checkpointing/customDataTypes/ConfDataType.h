@@ -7,9 +7,10 @@ struct ConfDataType {
 	double seeding_rate;
 	double immunity_rate;
 	unsigned int num_days;
-	char* output_prefix; // TODO In our format we have a compound datatype of a string.
+	const char* output_prefix;
 	bool generate_person_file;
 	unsigned int num_participants_survey;
-	char* start_date; // TODO Make this a compound datatype dateString
-	int8_t log_level;
+	const char* start_date; // TODO Make this a compound datatype dateString
+
+	const char* log_level; // TODO Should we make this a int8_t? Cuz only 3 options??
 };

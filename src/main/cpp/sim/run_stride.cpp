@@ -152,7 +152,7 @@ void run_stride(bool track_index_case,
 	// TODO give config args to saver
 
 	auto classInstance = std::make_shared<Saver>
-		(Saver(checkpoint_filename.c_str()));
+		(Saver(checkpoint_filename.c_str(), pt_config, frequency));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 	cout << "Done adding the observers." << endl << endl;
