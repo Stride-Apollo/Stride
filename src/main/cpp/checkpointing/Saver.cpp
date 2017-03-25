@@ -4,7 +4,11 @@
  */
 
 #include "Saver.h"
-#include <sstream>
+#include "checkpointing/customDataTypes/ConfDataType.h"
+#include "checkpointing/customDataTypes/RNGDataType.h"
+#include "checkpointing/customDataTypes/PersonTIDataType.h"
+#include "checkpointing/customDataTypes/PersonTDDataType.h"
+#include "checkpointing/customDataTypes/CalendarDataType.h"
 
 using namespace H5;
 
@@ -13,49 +17,83 @@ namespace stride {
 Saver::Saver(const char* filename): m_filename(filename) {
 	try {
 		Exception::dontPrint();
-		hid_t file_id;   /* file identifier */
 		H5File file(m_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
 		hsize_t dims[1];
 		dims[0] = 1;
-		DataSpace* dataspace = new DataSpace(1, dims);
-		// TODO Correct custom data types
 		Group group(file.createGroup("/configuration"));
 
+		// TODO Perhaps the dataset of disease is not necessary
+		/*DataSpace* dataspace = new DataSpace(1, dims);
 		DataSet* dataset = new DataSet(group.createDataSet("disease", PredType::STD_I32BE, *dataspace));
-
 		delete dataspace;
-		delete dataset;
+		delete dataset;*/
+
+		hsize_t dimsf[1];
+		dimsf[0] = 11;
+		DataSpace* dataspace = new DataSpace(1, dimsf);
+
+		CompType typeConf(sizeof(ConfDataType));
+		typeConf.insertMember(H5std_string("checkpointing_frequency"),
+							  HOFFSET(ConfDataType, checkpointing_frequency), PredType::NATIVE_UINT);
+		typeConf.insertMember(H5std_string("rng_seed"), HOFFSET(ConfDataType, rng_seed), PredType::NATIVE_ULONG);
+		typeConf.insertMember(H5std_string("r0"), HOFFSET(ConfDataType, r0), PredType::NATIVE_UINT);
+		typeConf.insertMember(H5std_string("seeding_rate"),
+							  HOFFSET(ConfDataType, seeding_rate), PredType::NATIVE_DOUBLE);
+		typeConf.insertMember(H5std_string("immunity_rate"),
+							  HOFFSET(ConfDataType, immunity_rate), PredType::NATIVE_DOUBLE);
+		typeConf.insertMember(H5std_string("num_days"), HOFFSET(ConfDataType, num_days), PredType::NATIVE_UINT);
+		StrType tid1(0, H5T_VARIABLE);
+		typeConf.insertMember(H5std_string("output_prefix"), HOFFSET(ConfDataType, output_prefix), tid1);
+		typeConf.insertMember(H5std_string("generate_person_file"),
+							  HOFFSET(ConfDataType, generate_person_file), PredType::NATIVE_HBOOL);
+		typeConf.insertMember(H5std_string("num_participants_survey"),
+							  HOFFSET(ConfDataType, num_participants_survey), PredType::NATIVE_UINT);
+		typeConf.insertMember(H5std_string("start_date"), HOFFSET(ConfDataType, start_date), tid1);
+		typeConf.insertMember(H5std_string("log_level"), HOFFSET(ConfDataType, log_level), PredType::NATIVE_B8);
+
+		DataSet* dataset = new DataSet(group.createDataSet(H5std_string("configuration"), typeConf, *dataspace));
+
 		dataspace = new DataSpace(1, dims);
-		dataset = new DataSet(group.createDataSet("holiday", PredType::STD_I32BE, *dataspace));
-
+		dataset = new DataSet(group.createDataSet("holiday", PredType::NATIVE_INT, *dataspace));
 		delete dataspace;
 		delete dataset;
+
 		hsize_t dims2[2];
 		// TODO amt_ages
 		dims2[0] = 5;
 		dims2[1] = 5;
 		dataspace = new DataSpace(2, dims2);
-		dataset = new DataSet(group.createDataSet("agecontact", PredType::IEEE_F64BE, *dataspace));
+		dataset = new DataSet(group.createDataSet("agecontact", PredType::NATIVE_DOUBLE, *dataspace));
 
 		delete dataspace;
 		delete dataset;
 		dataspace = new DataSpace(1, dims);
 
-		// TODO amt_persons and personTIDataType
-		dataset = new DataSet(file.createDataSet("personsTI", PredType::STD_I32BE, *dataspace));
+		// TODO amt_persons
+		CompType typePersonTI(sizeof(PersonTIDataType));
+		typePersonTI.insertMember(H5std_string("ID"), HOFFSET(PersonTIDataType, ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("age"), HOFFSET(PersonTIDataType, age), PredType::NATIVE_DOUBLE);
+		typePersonTI.insertMember(H5std_string("gender"), HOFFSET(PersonTIDataType, gender), PredType::NATIVE_CHAR);
+		typePersonTI.insertMember(H5std_string("household_ID"), HOFFSET(PersonTIDataType, household_ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("school_ID"), HOFFSET(PersonTIDataType, school_ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("work_ID"), HOFFSET(PersonTIDataType, work_ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("prim_comm_ID"), HOFFSET(PersonTIDataType, prim_comm_ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("sec_comm_ID"), HOFFSET(PersonTIDataType, sec_comm_ID), PredType::NATIVE_UINT);
+
+		dataset = new DataSet(file.createDataSet("personsTI", typePersonTI, *dataspace));
 
 		delete dataspace;
 		delete dataset;
 		dataspace = new DataSpace(1, dims);
 		// TODO amt_timesteps
-		dataset = new DataSet(file.createDataSet("amt_timesteps", PredType::STD_U32BE, *dataspace));
+		dataset = new DataSet(file.createDataSet("amt_timesteps", PredType::NATIVE_UINT, *dataspace));
 
 
 		dataset->close();
 		dataspace->close();
 
-		H5Fclose(file_id);
+		file.close();
 	} catch(FileIException error) {
 		error.printError();
 	}
@@ -74,25 +112,46 @@ void Saver::update(const Simulator& sim) {
 
 		hsize_t dims[1];
 		dims[0] = 1;
-		// TODO Correct custom data types
-		DataSpace* dataspace = new DataSpace(1, dims);
 		// TODO amt_threads
-		DataSet* dataset = new DataSet(group.createDataSet("randomgen", PredType::STD_I32BE, *dataspace));
+		DataSpace* dataspace = new DataSpace(1, dims);
+		CompType typeRng(sizeof(RNGDataType));
+		typeRng.insertMember(H5std_string("seed"), HOFFSET(RNGDataType, seed), PredType::NATIVE_ULONG);
+		DataSet* dataset = new DataSet(group.createDataSet("randomgen", typeRng, *dataspace));
+		delete dataspace;
+		delete dataset;
+
+		CompType typeCalendar(sizeof(CalendarDataType));
+		StrType tid1(0, H5T_VARIABLE);
+		typeCalendar.insertMember(H5std_string("day"), HOFFSET(CalendarDataType, day), PredType::NATIVE_HSIZE);
+		typeCalendar.insertMember(H5std_string("date"), HOFFSET(CalendarDataType, date), tid1);
+		dataspace = new DataSpace(1, dims);
+		dataset = new DataSet(group.createDataSet("Calendar", typeCalendar, *dataspace));
+
 		delete dataspace;
 		delete dataset;
 
 		// TODO amt_persons
-		dataspace = new DataSpace(1, dims);
-		dataset = new DataSet(group.createDataSet("PersonTD", PredType::STD_I32BE, *dataspace));
+		// TODO For some reason the typePersonTD Compound data type throws an exception :/
+		/*CompType typePersonTD(sizeof(PersonTDDataType));
+		typePersonTD.insertMember(H5std_string("at_household"),
+								  HOFFSET(PersonTDDataType, at_household), PredType::NATIVE_HBOOL);
+		typePersonTD.insertMember(H5std_string("at_school"),
+								  HOFFSET(PersonTDDataType, at_school), PredType::NATIVE_HBOOL);
+		typePersonTD.insertMember(H5std_string("at_work"),
+								  HOFFSET(PersonTDDataType, at_work), PredType::NATIVE_HBOOL);
+		typePersonTD.insertMember(H5std_string("at_prim_comm"),
+								  HOFFSET(PersonTDDataType, at_prim_comm), PredType::NATIVE_HBOOL);
+		typePersonTD.insertMember(H5std_string("at_sec_comm"),
+								  HOFFSET(PersonTDDataType, at_sec_comm), PredType::NATIVE_HBOOL);
+		typePersonTD.insertMember(H5std_string("participant"),
+								  HOFFSET(PersonTDDataType, participant), PredType::NATIVE_HBOOL);
 
-		delete dataspace;
-		delete dataset;
 		dataspace = new DataSpace(1, dims);
-		dataset = new DataSet(group.createDataSet("Calendar", PredType::STD_I32BE, *dataspace));
+		dataset = new DataSet(group.createDataSet("PersonTD", typePersonTD, *dataspace));
 
-		timestep++;
 		dataspace->close();
-		dataset->close();
+		dataset->close();*/
+		timestep++;
 		file.close();
 	} catch (GroupIException error) {
 		error.printError();
@@ -110,122 +169,10 @@ void Saver::update(const Simulator& sim) {
 	} catch (DataSpaceIException error) {
 		error.printError();
 		return;
+	} catch (Exception error) {
+		std::cout << "Unknown exception?" << std::endl;
+		error.printError();
 	}
 	return;
 }
 }
-
-/*const H5std_string FILE_NAME("h5tutr_subset.h5");
-const H5std_string DATASET_NAME("IntArray");
-const int RANK = 2;
-const int DIM0_SUB = 3;
-const int DIM1_SUB = 4;
-const int DIM0 = 8;
-const int DIM1 = 10;
-
-int justaFunction() {
-	int data[DIM0][DIM1], sdata[DIM0_SUB][DIM1_SUB], rdata[DIM0][DIM1];
-	int i,j;
-
-	try {
-		Exception::dontPrint();
-		H5File file(FILE_NAME, H5F_ACC_TRUNC);
-
-		hsize_t dims[2];
-		dims[0] = DIM0;
-		dims[1] = DIM1;
-		DataSpace dataspace = DataSpace(RANK, dims);
-		DataSet dataset(file.createDataSet(DATASET_NAME, PredType::STD_I32BE, dataspace));
-
-		for(j=0; j<DIM0; j++) {
-			for(i=0; i<DIM1; i++) {
-				if(i < (DIM1/2)) {
-					data[j][i] = 1;
-				} else {
-					data[j][i] = 2;
-				}
-			}
-		}
-
-		dataset.write(data, PredType::NATIVE_INT);
-
-		cout << endl << "Data Written to file:" << endl;
-		for (j=0; j<DIM0; j++) {
-			for (i=0; i<DIM1; i++) {
-				cout << " " << data[j][i];
-			}
-			cout << endl;
-		}
-		dataspace.close();
-		dataset.close();
-		file.close();
-
-		hsize_t offset[2], count[2], stride[2], block[2];
-		hsize_t dimsm[2];
-
-		file.openFile(FILE_NAME, H5F_ACC_RDWR);
-		dataset = file.openDataSet(DATASET_NAME);
-
-		offset[0] = 1;
-		offset[1] = 2;
-
-		count[0] = DIM0_SUB;
-		count[1] = DIM1_SUB;
-
-		stride[0] = 1;
-		stride[1] = 1;
-
-		block[0] = 1;
-		block[1] = 1;
-
-		dimsm[0] = DIM0_SUB;
-		dimsm[1] = DIM1_SUB;
-
-		DataSpace memspace(RANK, dimsm, NULL);
-		dataspace = dataset.getSpace();
-		dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
-
-		cout << endl << "Write subset to file specifying: " << endl;
-		cout << " offset=1x2 stride=1x1 count=3x4 block=1x1" << endl;
-		for (j=0; j < DIM0_SUB; j++) {
-			for (i=0; i < DIM1_SUB; i++) {
-				sdata[j][i] = 5;
-			}
-		}
-
-		dataset.write(sdata, PredType::NATIVE_INT, memspace, dataspace);
-		dataset.read(rdata, PredType::NATIVE_INT);
-
-		cout << endl << "Data in File after Subset is Written:" << endl;
-		for (i = 0; i < DIM0; i++) {
-			for (j = 0; j < DIM1; j++) {
-				cout << " " << rdata[i][j];
-			}
-			cout << endl;
-		}
-		cout << endl;
-
-		dataspace.close();
-		memspace.close();
-		dataset.close();
-		file.close();
-
-	} catch(GroupIException error) {
-		error.printError();
-		return -1;
-	} catch(AttributeIException error) {
-		error.printError();
-		return -1;
-	} catch(FileIException error) {
-		error.printError();
-		return -1;
-	} catch(DataSetIException error) {
-		error.printError();
-		return -1;
-	} catch(DataSpaceIException error) {
-		error.printError();
-		return -1;
-	}
-	return 0;
-}
-*/
