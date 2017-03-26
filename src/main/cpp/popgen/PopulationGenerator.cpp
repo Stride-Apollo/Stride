@@ -42,7 +42,7 @@ void PopulationGenerator::generate() {
 	makeCities();
 	makeVillages();
 	placeHouseholds();
-	// makeSchools();
+	makeSchools();
 	// makeUniversities();
 	// makeWork();
 	// makeCommunities();
@@ -268,6 +268,51 @@ void PopulationGenerator::placeHouseholds() {
 			for (uint& person_index: household.m_indices) {
 				m_people.at(person_index).m_coord = village.m_coord;
 			}
+		}
+	}
+}
+
+void PopulationGenerator::makeSchools() {
+	auto education_config = m_props.get_child("POPULATION.EDUCATION");
+	uint school_size = education_config.get<uint>("MANDATORY.<xmlattr>.total_size");
+	uint pupils = 0;
+
+	for (uint age = 0; age <= 18; age++) {
+		pupils += m_age_distribution[age];
+	}
+
+	uint needed_schools = pupils / school_size + 1;
+	uint city_village_size = getCityPopulation() + getVillagePopulation();
+
+	vector<double> fractions;
+	for (const SimpleCity& city: m_cities) {
+		fractions.push_back(double(city.m_max_size) / double(city_village_size));
+	}
+
+	for (const SimpleCluster& village: m_villages) {
+		fractions.push_back(double(village.m_max_size) / double(city_village_size));
+	}
+
+	AliasDistribution dist {fractions};
+	for (uint i = 0; i < needed_schools; i++) {
+		uint village_city_index = dist(m_rng);
+
+		if (village_city_index < m_cities.size()) {
+			/// Add to a city
+			SimpleCluster new_school;
+			new_school.m_max_size = school_size;
+			new_school.m_coord = m_cities.at(village_city_index).m_coord;
+			new_school.m_id = m_next_id;
+			m_next_id++;
+			m_optional_schools.push_back(new_school);
+		} else {
+			/// Add to a village
+			SimpleCluster new_school;
+			new_school.m_max_size = school_size;
+			new_school.m_coord = m_villages.at(village_city_index - m_cities.size()).m_coord;
+			new_school.m_id = m_next_id;
+			m_next_id++;
+			m_optional_schools.push_back(new_school);
 		}
 	}
 }
