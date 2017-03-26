@@ -29,7 +29,7 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const SimplePerson& p);
 
 private:
-	//friend class PopulationGenerator;
+	friend class PopulationGenerator;
 
 	uint m_age = 0;
 	uint m_household_id = 0;
@@ -37,6 +37,7 @@ private:
 	uint m_work_id = 0;
 	uint m_primary_community = 0;
 	uint m_secondary_community = 0;
+	GeoCoordinate m_coord;
 };
 
 struct SimpleHousehold {
@@ -45,7 +46,7 @@ struct SimpleHousehold {
 };
 
 struct SimpleCluster {
-	uint m_size = 0;
+	uint m_current_size = 0;
 	uint m_max_size = 0;
 	uint m_id = 0;
 	GeoCoordinate m_coord;

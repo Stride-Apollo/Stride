@@ -41,7 +41,7 @@ void PopulationGenerator::generate() {
 	makeHouseholds();
 	makeCities();
 	makeVillages();
-	// placeHouseholds();
+	placeHouseholds();
 	// makeSchools();
 	// makeUniversities();
 	// makeWork();
@@ -96,6 +96,7 @@ void PopulationGenerator::makeHouseholds() {
 		new_household.m_id = m_next_id;
 		for (uint& age: new_config) {
 			SimplePerson new_person {age, m_next_id};
+			new_person.m_household_id = m_next_id;
 			m_people.push_back(new_person);
 			new_household.m_indices.push_back(m_people.size() - 1);
 
@@ -181,6 +182,16 @@ double PopulationGenerator::getCityPopulation() const {
 	return result;
 }
 
+double PopulationGenerator::getVillagePopulation() const {
+	uint result = 0;
+
+	for (const SimpleCluster& village: m_villages) {
+		result += village.m_max_size;
+	}
+
+	return result;
+}
+
 void PopulationGenerator::makeVillages() {
 	auto village_config = m_props.get_child("POPULATION.VILLAGES");
 	int village_radius_factor = village_config.get<double>("<xmlattr>.radius");
@@ -206,12 +217,13 @@ void PopulationGenerator::makeVillages() {
 	AliasDistribution village_type_dist {fractions};
 	const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
 	while (unassigned_population > 0) {
+		/// TODO make sure generated coordinates are unique!
 		uint village_type_index = village_type_dist(m_rng);
 		MinMax village_pop = boundaries.at(village_type_index);
 		uint range_interval_size = village_pop.max - village_pop.min + 1;
 
 		AliasDistribution village_size_dist {vector<double>(range_interval_size, 1.0 / range_interval_size)};
-		uint village_size = village_size_dist(m_rng);
+		uint village_size = village_size_dist(m_rng) + village_pop.min;
 
 		SimpleCluster new_village;
 		new_village.m_max_size = village_size;
@@ -220,5 +232,42 @@ void PopulationGenerator::makeVillages() {
 		new_village.m_coord = calc.generateRandomCoord(middle, radius * village_radius_factor, m_rng);
 		m_villages.push_back(new_village);
 		unassigned_population -= new_village.m_max_size;
+	}
+}
+
+void PopulationGenerator::placeHouseholds() {
+	uint city_pop = getCityPopulation();
+	uint village_pop = getVillagePopulation();
+	uint total_pop = village_pop + city_pop;	/// Note that this number may slightly differ from other "total pop" numbers
+
+	vector<double> village_fractions;
+	for (SimpleCluster& village: m_villages) {
+		village_fractions.push_back(double(village.m_max_size) / double(village_pop));
+	}
+
+	vector<double> city_fractions;
+	for (SimpleCity& city: m_cities) {
+		city_fractions.push_back(double(city.m_max_size) / double(city_pop));
+	}
+
+	AliasDistribution village_city_dist { {double(city_pop) / double(total_pop), double(village_pop) / double(total_pop)} };
+	AliasDistribution city_dist {city_fractions};
+	AliasDistribution village_dist {village_fractions};
+	for (SimpleHousehold& household: m_households) {
+		if (city_dist(m_rng) == 0) {
+			uint city_index = city_dist(m_rng);
+			SimpleCity& city = m_cities.at(city_index);
+			city.m_current_size += household.m_indices.size();
+			for (uint& person_index: household.m_indices) {
+				m_people.at(person_index).m_coord = city.m_coord;
+			}
+		} else {
+			uint village_index = village_dist(m_rng);
+			SimpleCluster& village = m_villages.at(village_index);
+			village.m_current_size += household.m_indices.size();
+			for (uint& person_index: household.m_indices) {
+				m_people.at(person_index).m_coord = village.m_coord;
+			}
+		}
 	}
 }

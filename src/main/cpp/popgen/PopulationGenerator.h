@@ -44,6 +44,8 @@ private:
 
 	double getCityPopulation() const;
 
+	double getVillagePopulation() const;
+
 	void makeVillages();
 
 	void placeHouseholds();
