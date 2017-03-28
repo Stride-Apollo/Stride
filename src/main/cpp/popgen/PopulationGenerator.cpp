@@ -52,7 +52,8 @@ void PopulationGenerator::generate() {
 	makeUniversities();
 	cout << "after univ\n";
 	makeWork();
-	// makeCommunities();
+	cout << "after comm\n";
+	makeCommunities();
 	// assignToSchools();
 	// assignToUniversities();
 	// assignToWork();
@@ -283,8 +284,13 @@ void PopulationGenerator::placeHouseholds() {
 void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, double fraction, vector<SimpleCluster>& clusters) {
 	uint people = 0;
 
-	for (uint age = min_age; age <= max_age; age++) {
-		people += m_age_distribution[age];
+	if (min_age == 0 && max_age == 0) {
+		people = m_people.size();
+	} else {
+		for (uint age = min_age; age <= max_age; age++) {
+			people += m_age_distribution[age];
+		}
+
 	}
 
 	uint needed_clusters = people / size + 1;
@@ -378,4 +384,13 @@ void PopulationGenerator::makeWork() {
 	double fraction = school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 
 	placeClusters(size, min_age, max_age, fraction, m_workplaces);
+}
+
+void PopulationGenerator::makeCommunities() {
+	/// TODO? Currently not doing the thing with the average communities per person, right now, everyone gets two communities
+	auto community_config = m_props.get_child("POPULATION.COMMUNITY");
+	uint size = community_config.get<uint>("<xmlattr>.size");
+
+	placeClusters(size, 0, 0, 1.0, m_primary_communities);
+	placeClusters(size, 0, 0, 1.0, m_secondary_communities);
 }
