@@ -83,6 +83,10 @@ private:
 	vector<SimpleCluster> m_secondary_communities;
 	vector<SimpleCluster> m_mandatory_schools;
 	vector<SimpleCluster> m_optional_schools;
+
+	/// TODO refactor this, it should be this structure from the beginning (see m_mandatory_schools)
+	vector<vector<SimpleCluster> > m_mandatory_schools_clusters;
+	vector<vector<SimpleCluster> > m_optional_schools_clusters;
 	uint m_next_id;
 
 	/// Data for visualisation

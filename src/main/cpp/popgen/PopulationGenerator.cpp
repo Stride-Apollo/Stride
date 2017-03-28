@@ -52,9 +52,11 @@ void PopulationGenerator::generate() {
 	makeUniversities();
 	cout << "after univ\n";
 	makeWork();
-	cout << "after comm\n";
+	cout << "after work\n";
 	makeCommunities();
+	cout << "after comm\n";
 	assignToSchools();
+	cout << "after school assignment\n";
 	// assignToUniversities();
 	// assignToWork();
 	// assignToCommunities();
@@ -337,7 +339,7 @@ void PopulationGenerator::makeSchools() {
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 
-	placeClusters(school_size, min_age, max_age, 1.0, m_optional_schools);
+	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools);
 }
 
 void PopulationGenerator::makeUniversities() {
@@ -368,7 +370,7 @@ void PopulationGenerator::makeUniversities() {
 		univ.m_max_size = size;
 		univ.m_coord = m_cities.at(placed_universities % m_cities.size()).m_coord;
 		m_next_id++;
-		m_mandatory_schools.push_back(univ);
+		m_optional_schools.push_back(univ);
 		placed_universities++;
 	}
 }
@@ -413,22 +415,43 @@ void PopulationGenerator::assignToSchools() {
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	uint start_radius = education_config.get<uint>("<xmlattr>.radius");
+	uint cluster_size = education_config.get<uint>("<xmlattr>.cluster_size");
 
 	double factor = 2.0;
+
+	/// TODO refactor
+	for (SimpleCluster& cluster: m_mandatory_schools) {
+		SimpleCluster new_cluster;
+		new_cluster.m_max_size = cluster_size;
+		new_cluster.m_id = m_next_id;
+		m_next_id++;
+		new_cluster.m_coord = cluster.m_coord;
+		m_mandatory_schools_clusters.push_back(vector<SimpleCluster> {new_cluster});
+	}
 
 	for (SimplePerson& person: m_people) {
 		if (person.m_age >= min_age && person.m_age <= max_age) {
 			vector<uint> closest_clusters_indices;
 
-			while (closest_clusters_indices.size() == 0 && m_optional_schools.size() != 0) {
-				closest_clusters_indices = getClusters(person.m_coord, start_radius, m_optional_schools);
+			while (closest_clusters_indices.size() == 0 && m_mandatory_schools.size() != 0) {
+				closest_clusters_indices = getClusters(person.m_coord, start_radius, m_mandatory_schools);
 				start_radius *= factor;
 			}
 
 			AliasDistribution cluster_dist {vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size()))};
 			uint index = closest_clusters_indices.at(cluster_dist(m_rng));
-			m_optional_schools.at(index).m_current_size++;
-			person.m_school_id = m_optional_schools.at(index).m_id;
+
+			if (m_mandatory_schools_clusters.at(index).back().m_current_size >= m_mandatory_schools_clusters.at(index).back().m_max_size) {
+				SimpleCluster new_cluster;
+				new_cluster.m_max_size = cluster_size;
+				new_cluster.m_id = m_next_id;
+				m_next_id++;
+				new_cluster.m_coord = m_mandatory_schools_clusters.at(index).back().m_coord;
+				m_mandatory_schools_clusters.push_back(vector<SimpleCluster> {new_cluster});
+			}
+
+			m_mandatory_schools_clusters.at(index).back().m_current_size++;
+			person.m_school_id = m_mandatory_schools_clusters.at(index).back().m_id;
 		}
 	}
 }
