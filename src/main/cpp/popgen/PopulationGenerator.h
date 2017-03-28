@@ -82,11 +82,11 @@ private:
 	vector<SimpleCluster> m_primary_communities;
 	vector<SimpleCluster> m_secondary_communities;
 	vector<SimpleCluster> m_mandatory_schools;
-	vector<SimpleCluster> m_optional_schools;
+	vector<vector<SimpleCluster> > m_optional_schools;	/// the i-th element in this vector is the list of schools in the city on the i-th spot in m_cities
 
 	/// TODO refactor this, it should be this structure from the beginning (see m_mandatory_schools)
 	vector<vector<SimpleCluster> > m_mandatory_schools_clusters;
-	vector<vector<SimpleCluster> > m_optional_schools_clusters;
+
 	uint m_next_id;
 
 	/// Data for visualisation

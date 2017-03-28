@@ -150,6 +150,10 @@ void PopulationGenerator::makeCities() {
 			/// TODO exception
 		}
 	}
+
+	/// Important, make sure the vector is sorted!
+	auto compare_city_size = [](const SimpleCity& a, const SimpleCity b) { return a.m_max_size > b.m_max_size; };
+	sort (m_cities.begin(), m_cities.end(), compare_city_size);
 }
 
 GeoCoordinate PopulationGenerator::getCityMiddle() const {
@@ -350,6 +354,7 @@ void PopulationGenerator::makeUniversities() {
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	double fraction = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 	uint size = university_config.get<uint>("<xmlattr>.total_size");
+	uint cluster_size = university_config.get<uint>("<xmlattr>.cluster_size");
 
 	uint intellectual_pop = 0;
 	for (uint i = min_age; i <= max_age; i++) {
@@ -358,19 +363,18 @@ void PopulationGenerator::makeUniversities() {
 
 	intellectual_pop = intellectual_pop * fraction + 1;
 
-	auto compare_city_size = [](const SimpleCity& a, const SimpleCity b) { return a.m_max_size > b.m_max_size; };
-	sort (m_cities.begin(), m_cities.end(), compare_city_size);
-
 	uint needed_universities = intellectual_pop / size + 1;
 	uint placed_universities = 0;
 
-	while (needed_universities < placed_universities) {
+	m_optional_schools = vector<vector<SimpleCluster> >(m_cities.size());
+
+	while (needed_universities > placed_universities) {
 		SimpleCluster univ;
 		univ.m_id = m_next_id;
-		univ.m_max_size = size;
+		univ.m_max_size = cluster_size;
 		univ.m_coord = m_cities.at(placed_universities % m_cities.size()).m_coord;
 		m_next_id++;
-		m_optional_schools.push_back(univ);
+		m_optional_schools.at(placed_universities % m_cities.size()).push_back(univ);
 		placed_universities++;
 	}
 }
@@ -385,6 +389,7 @@ void PopulationGenerator::makeWork() {
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	double fraction = school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 
+	/// TODO subtract people in universities
 	placeClusters(size, min_age, max_age, fraction, m_workplaces);
 }
 
@@ -414,7 +419,7 @@ void PopulationGenerator::assignToSchools() {
 	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
-	uint start_radius = education_config.get<uint>("<xmlattr>.radius");
+	double start_radius = education_config.get<double>("<xmlattr>.radius");
 	uint cluster_size = education_config.get<uint>("<xmlattr>.cluster_size");
 
 	double factor = 2.0;
@@ -429,13 +434,16 @@ void PopulationGenerator::assignToSchools() {
 		m_mandatory_schools_clusters.push_back(vector<SimpleCluster> {new_cluster});
 	}
 
+	double current_radius = start_radius;
+
 	for (SimplePerson& person: m_people) {
+		current_radius = start_radius;
 		if (person.m_age >= min_age && person.m_age <= max_age) {
 			vector<uint> closest_clusters_indices;
 
 			while (closest_clusters_indices.size() == 0 && m_mandatory_schools.size() != 0) {
-				closest_clusters_indices = getClusters(person.m_coord, start_radius, m_mandatory_schools);
-				start_radius *= factor;
+				closest_clusters_indices = getClusters(person.m_coord, current_radius, m_mandatory_schools);
+				current_radius *= factor;
 			}
 
 			AliasDistribution cluster_dist {vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size()))};
@@ -454,4 +462,8 @@ void PopulationGenerator::assignToSchools() {
 			person.m_school_id = m_mandatory_schools_clusters.at(index).back().m_id;
 		}
 	}
+}
+
+void assignToUniversities() {
+
 }
