@@ -73,6 +73,7 @@ private:
 	vector<SimpleHousehold> m_households;
 	vector<SimpleCity> m_cities;
 	vector<SimpleCluster> m_villages;
+	vector<SimpleCluster> m_workplaces;
 	vector<SimpleCluster> m_communities;
 	vector<SimpleCluster> m_mandatory_schools;
 	vector<SimpleCluster> m_optional_schools;
