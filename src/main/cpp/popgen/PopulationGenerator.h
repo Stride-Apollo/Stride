@@ -50,6 +50,9 @@ private:
 
 	void placeHouseholds();
 
+	void placeClusters(uint size, uint min_age, uint max_age, double fraction, vector<SimpleCluster>& clusters);
+	/// Spreads the clusters of people with these constraints over the cities and villages
+
 	void makeSchools();
 
 	void makeUniversities();
@@ -74,7 +77,8 @@ private:
 	vector<SimpleCity> m_cities;
 	vector<SimpleCluster> m_villages;
 	vector<SimpleCluster> m_workplaces;
-	vector<SimpleCluster> m_communities;
+	vector<SimpleCluster> m_primary_communities;
+	vector<SimpleCluster> m_secondary_communities;
 	vector<SimpleCluster> m_mandatory_schools;
 	vector<SimpleCluster> m_optional_schools;
 	uint m_next_id;

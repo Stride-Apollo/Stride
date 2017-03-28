@@ -280,21 +280,14 @@ void PopulationGenerator::placeHouseholds() {
 	}
 }
 
-void PopulationGenerator::makeSchools() {
-	/// Note: schools are "assigned" to villages and cities
-	auto education_config = m_props.get_child("POPULATION.EDUCATION");
-	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
-	uint school_size = education_config.get<uint>("MANDATORY.<xmlattr>.total_size");
-	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
-	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
-
-	uint pupils = 0;
+void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, double fraction, vector<SimpleCluster>& clusters) {
+	uint people = 0;
 
 	for (uint age = min_age; age <= max_age; age++) {
-		pupils += m_age_distribution[age];
+		people += m_age_distribution[age];
 	}
 
-	uint needed_schools = pupils / school_size + 1;
+	uint needed_clusters = people / size + 1;
 	uint city_village_size = getCityPopulation() + getVillagePopulation();
 
 	vector<double> fractions;
@@ -307,27 +300,38 @@ void PopulationGenerator::makeSchools() {
 	}
 
 	AliasDistribution dist {fractions};
-	for (uint i = 0; i < needed_schools; i++) {
+	for (uint i = 0; i < needed_clusters; i++) {
 		uint village_city_index = dist(m_rng);
 
 		if (village_city_index < m_cities.size()) {
 			/// Add to a city
-			SimpleCluster new_school;
-			new_school.m_max_size = school_size;
-			new_school.m_coord = m_cities.at(village_city_index).m_coord;
-			new_school.m_id = m_next_id;
+			SimpleCluster new_cluster;
+			new_cluster.m_max_size = size;
+			new_cluster.m_coord = m_cities.at(village_city_index).m_coord;
+			new_cluster.m_id = m_next_id;
 			m_next_id++;
-			m_optional_schools.push_back(new_school);
+			clusters.push_back(new_cluster);
 		} else {
 			/// Add to a village
-			SimpleCluster new_school;
-			new_school.m_max_size = school_size;
-			new_school.m_coord = m_villages.at(village_city_index - m_cities.size()).m_coord;
-			new_school.m_id = m_next_id;
+			SimpleCluster new_cluster;
+			new_cluster.m_max_size = size;
+			new_cluster.m_coord = m_villages.at(village_city_index - m_cities.size()).m_coord;
+			new_cluster.m_id = m_next_id;
 			m_next_id++;
-			m_optional_schools.push_back(new_school);
+			clusters.push_back(new_cluster);
 		}
 	}
+}
+
+void PopulationGenerator::makeSchools() {
+	/// Note: schools are "assigned" to villages and cities
+	auto education_config = m_props.get_child("POPULATION.EDUCATION");
+	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
+	uint school_size = education_config.get<uint>("MANDATORY.<xmlattr>.total_size");
+	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
+	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
+
+	placeClusters(school_size, min_age, max_age, 1.0, m_optional_schools);
 }
 
 void PopulationGenerator::makeUniversities() {
@@ -373,47 +377,5 @@ void PopulationGenerator::makeWork() {
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	double fraction = school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 
-	uint working_people = 0;
-	for (uint age = min_age; age <= max_age; age++) {
-		working_people += m_age_distribution[age];
-	}
-	cout << "total " << working_people << " vs working ";
-	working_people *= fraction;
-	cout << working_people << endl;
-
-	uint needed_workplaces = working_people / size + 1;
-	cout << "neede WP = " << needed_workplaces << endl;
-	uint city_village_size = getCityPopulation() + getVillagePopulation();
-
-	vector<double> fractions;
-	for (const SimpleCity& city: m_cities) {
-		fractions.push_back(double(city.m_max_size) / double(city_village_size));
-	}
-
-	for (const SimpleCluster& village: m_villages) {
-		fractions.push_back(double(village.m_max_size) / double(city_village_size));
-	}
-
-	AliasDistribution dist {fractions};
-	for (uint i = 0; i < needed_workplaces; i++) {
-		uint village_city_index = dist(m_rng);
-
-		if (village_city_index < m_cities.size()) {
-			/// Add to a city
-			SimpleCluster new_workplace;
-			new_workplace.m_max_size = size;
-			new_workplace.m_coord = m_cities.at(village_city_index).m_coord;
-			new_workplace.m_id = m_next_id;
-			m_next_id++;
-			m_workplaces.push_back(new_workplace);
-		} else {
-			/// Add to a village
-			SimpleCluster new_workplace;
-			new_workplace.m_max_size = size;
-			new_workplace.m_coord = m_villages.at(village_city_index - m_cities.size()).m_coord;
-			new_workplace.m_id = m_next_id;
-			m_next_id++;
-			m_workplaces.push_back(new_workplace);
-		}
-	}
+	placeClusters(size, min_age, max_age, fraction, m_workplaces);
 }
