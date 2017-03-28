@@ -54,7 +54,7 @@ void PopulationGenerator::generate() {
 	makeWork();
 	cout << "after comm\n";
 	makeCommunities();
-	// assignToSchools();
+	assignToSchools();
 	// assignToUniversities();
 	// assignToWork();
 	// assignToCommunities();
@@ -408,11 +408,11 @@ vector<uint> PopulationGenerator::getClusters(GeoCoordinate coord, double radius
 
 void PopulationGenerator::assignToSchools() {
 	/// TODO add factor to xml?
-	auto education_config = m_props.get_child("POPULATION.EDUCATION");
+	auto education_config = m_props.get_child("POPULATION.EDUCATION.MANDATORY");
 	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
-	uint start_radius = school_work_config.get<uint>("<xmlattr>.radius");
+	uint start_radius = education_config.get<uint>("<xmlattr>.radius");
 
 	double factor = 2.0;
 
