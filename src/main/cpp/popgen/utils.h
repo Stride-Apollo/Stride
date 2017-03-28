@@ -76,7 +76,7 @@ struct MinMaxAvg: public MinMax {
 
 class RandomGenerator {
 public:
-	using result_type = long unsigned int;
+	using result_type = unsigned int;
 
 	virtual result_type operator()() = 0;
 
@@ -185,7 +185,7 @@ private:
 
 class RNGPicker {
 public:
-	using result_type = long unsigned int;
+	using result_type = unsigned int;
 
 	RNGPicker();
 
