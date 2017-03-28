@@ -61,6 +61,8 @@ private:
 
 	void makeCommunities();
 
+	vector<uint> getClusters(GeoCoordinate coord, double radius, const vector<SimpleCluster> clusters) const;
+
 	void assignToSchools();
 
 	void assignToUniversities();

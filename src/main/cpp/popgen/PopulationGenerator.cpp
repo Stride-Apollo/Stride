@@ -394,3 +394,41 @@ void PopulationGenerator::makeCommunities() {
 	placeClusters(size, 0, 0, 1.0, m_primary_communities);
 	placeClusters(size, 0, 0, 1.0, m_secondary_communities);
 }
+
+vector<uint> PopulationGenerator::getClusters(GeoCoordinate coord, double radius, const vector<SimpleCluster> clusters) const {
+	vector<uint> result;
+	const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
+	for (uint i = 0; i < clusters.size(); i++) {
+		if (calc.getDistance(coord, clusters.at(i).m_coord) <= radius) {
+			result.push_back(i);
+		}
+	}
+	return result;
+}
+
+void PopulationGenerator::assignToSchools() {
+	/// TODO add factor to xml?
+	auto education_config = m_props.get_child("POPULATION.EDUCATION");
+	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
+	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
+	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
+	uint start_radius = school_work_config.get<uint>("<xmlattr>.radius");
+
+	double factor = 2.0;
+
+	for (SimplePerson& person: m_people) {
+		if (person.m_age >= min_age && person.m_age <= max_age) {
+			vector<uint> closest_clusters_indices;
+
+			while (closest_clusters_indices.size() == 0 && m_optional_schools.size() != 0) {
+				closest_clusters_indices = getClusters(person.m_coord, start_radius, m_optional_schools);
+				start_radius *= factor;
+			}
+
+			AliasDistribution cluster_dist {vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size()))};
+			uint index = closest_clusters_indices.at(cluster_dist(m_rng));
+			m_optional_schools.at(index).m_current_size++;
+			person.m_school_id = m_optional_schools.at(index).m_id;
+		}
+	}
+}
