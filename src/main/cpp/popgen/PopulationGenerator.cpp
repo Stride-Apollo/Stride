@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <boost/property_tree/xml_parser.hpp>
 #include <limits>
+#include <algorithm>
 
 using namespace stride;
 using namespace popgen;
@@ -39,11 +40,17 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 
 void PopulationGenerator::generate() {
 	makeHouseholds();
+	cout << "after hh\n";
 	makeCities();
+	cout << "after cit\n";
 	makeVillages();
+	cout << "after vill\n";
 	placeHouseholds();
+	cout << "after hhplace\n";
 	makeSchools();
-	// makeUniversities();
+	cout << "after school\n";
+	makeUniversities();
+	cout << "after univ\n";
 	// makeWork();
 	// makeCommunities();
 	// assignToSchools();
@@ -253,15 +260,16 @@ void PopulationGenerator::placeHouseholds() {
 	AliasDistribution village_city_dist { {double(city_pop) / double(total_pop), double(village_pop) / double(total_pop)} };
 	AliasDistribution city_dist {city_fractions};
 	AliasDistribution village_dist {village_fractions};
+
 	for (SimpleHousehold& household: m_households) {
-		if (city_dist(m_rng) == 0) {
+		if ((city_dist(m_rng) == 0 && city_fractions.size() != 0) || (village_fractions.size() == 0 && city_fractions.size() != 0)) {
 			uint city_index = city_dist(m_rng);
 			SimpleCity& city = m_cities.at(city_index);
 			city.m_current_size += household.m_indices.size();
 			for (uint& person_index: household.m_indices) {
 				m_people.at(person_index).m_coord = city.m_coord;
 			}
-		} else {
+		} else if (village_fractions.size() != 0) {
 			uint village_index = village_dist(m_rng);
 			SimpleCluster& village = m_villages.at(village_index);
 			village.m_current_size += household.m_indices.size();
@@ -274,10 +282,14 @@ void PopulationGenerator::placeHouseholds() {
 
 void PopulationGenerator::makeSchools() {
 	auto education_config = m_props.get_child("POPULATION.EDUCATION");
+	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
 	uint school_size = education_config.get<uint>("MANDATORY.<xmlattr>.total_size");
+	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
+	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
+
 	uint pupils = 0;
 
-	for (uint age = 0; age <= 18; age++) {
+	for (uint age = min_age; age <= max_age; age++) {
 		pupils += m_age_distribution[age];
 	}
 
@@ -314,5 +326,38 @@ void PopulationGenerator::makeSchools() {
 			m_next_id++;
 			m_optional_schools.push_back(new_school);
 		}
+	}
+}
+
+void PopulationGenerator::makeUniversities() {
+	/// TODO check for overlap between mandatory and optional education
+	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.EMPLOYABLE.YOUNG_EMPLOYEE");
+	auto university_config = m_props.get_child("POPULATION.EDUCATION.OPTIONAL");
+	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
+	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
+	double fraction = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
+	uint size = university_config.get<uint>("<xmlattr>.total_size");
+
+	uint intellectual_pop = 0;
+	for (uint i = min_age; i <= max_age; i++) {
+		intellectual_pop += m_age_distribution[i];
+	}
+
+	intellectual_pop = intellectual_pop * fraction + 1;
+
+	auto compare_city_size = [](const SimpleCity& a, const SimpleCity b) { return a.m_max_size > b.m_max_size; };
+	sort (m_cities.begin(), m_cities.end(), compare_city_size);
+
+	uint needed_universities = intellectual_pop / size + 1;
+	uint placed_universities = 0;
+
+	while (needed_universities < placed_universities) {
+		SimpleCluster univ;
+		univ.m_id = m_next_id;
+		univ.m_max_size = size;
+		univ.m_coord = m_cities.at(placed_universities % m_cities.size()).m_coord;
+		m_next_id++;
+		m_mandatory_schools.push_back(univ);
+		placed_universities++;
 	}
 }
