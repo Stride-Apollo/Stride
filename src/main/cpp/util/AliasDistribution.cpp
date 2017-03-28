@@ -12,10 +12,10 @@ AliasDistribution::AliasDistribution(const vector<double>& _probs)
 	unsigned int n = _probs.size();
 	assert(n > 0);
 	vector<double> probs(n);
-	for (int i=0; i<n; i++) probs[i] = _probs[i] * factor * n;
+	for (unsigned int i=0; i<n; i++) probs[i] = _probs[i] * factor * n;
 
 	deque<unsigned int> small, large;
-	for (int i=0; i<n; i++) {
+	for (unsigned int i=0; i<n; i++) {
 		(probs[i] < 1.0 ? small : large).push_back(i);
 	}
 

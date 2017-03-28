@@ -107,6 +107,7 @@ RNGPicker::result_type RNGPicker::operator ()() {
 		cerr << "rng not defined" << endl;
 	else
 		return (*m_rng)();
+	return 0;
 }
 
 RNGPicker::result_type RNGPicker::min() {
@@ -131,6 +132,7 @@ RNGPicker::result_type RNGPicker::max() {
 
 std::ostream& stride::popgen::operator<<(std::ostream& os, const GeoCoordinate& g) {
 	os << "(LATITUDE: " << g.m_latitude << ", LONGITUDE: " << g.m_longitude << ")";
+	return os;
 }
 
 const GeoCoordCalculator& GeoCoordCalculator::getInstance() {

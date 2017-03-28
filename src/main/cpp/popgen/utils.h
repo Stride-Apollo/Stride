@@ -76,6 +76,8 @@ struct MinMaxAvg: public MinMax {
 
 class RandomGenerator {
 public:
+	virtual ~RandomGenerator(){}
+
 	using result_type = unsigned int;
 
 	virtual result_type operator()() = 0;
@@ -105,9 +107,9 @@ public:
 
 	virtual result_type operator()() override;
 
-	virtual result_type min() override {return m_generator.min();}
+	virtual result_type min() override {return result_type(m_generator.min());}
 
-	virtual result_type max() override {return m_generator.max();}
+	virtual result_type max() override {return result_type(m_generator.max());}
 
 private:
 	minstd_rand m_generator;
@@ -119,9 +121,9 @@ public:
 
 	virtual result_type operator()() override;
 
-	virtual result_type min() override {return m_generator.min();}
+	virtual result_type min() override {return result_type(m_generator.min());}
 
-	virtual result_type max() override {return m_generator.max();}
+	virtual result_type max() override {return result_type( m_generator.max());}
 
 private:
 	mt19937 m_generator;
@@ -133,9 +135,9 @@ public:
 
 	virtual result_type operator()() override;
 
-	virtual result_type min() override {return m_generator.min();}
+	virtual result_type min() override {return result_type(m_generator.min());}
 
-	virtual result_type max() override {return m_generator.max();}
+	virtual result_type max() override {return result_type(m_generator.max());}
 
 private:
 	mt19937_64 m_generator;
@@ -147,9 +149,9 @@ public:
 
 	virtual result_type operator()() override;
 
-	virtual result_type min() override {return m_generator.min();}
+	virtual result_type min() override {return result_type(m_generator.min());}
 
-	virtual result_type max() override {return m_generator.max();}
+	virtual result_type max() override {return result_type(m_generator.max());}
 
 private:
 	ranlux24 m_generator;
@@ -161,9 +163,9 @@ public:
 
 	virtual result_type operator()() override;
 
-	virtual result_type min() override {return m_generator.min();}
+	virtual result_type min() override {return result_type(m_generator.min());}
 
-	virtual result_type max() override {return m_generator.max();}
+	virtual result_type max() override {return result_type(m_generator.max());}
 
 private:
 	std::discard_block_engine<std::ranlux48_base, 389, 11> m_generator;
@@ -175,9 +177,9 @@ public:
 
 	virtual result_type operator()() override;
 
-	virtual result_type min() override {return m_generator.min();}
+	virtual result_type min() override {return result_type(m_generator.min());}
 
-	virtual result_type max() override {return m_generator.max();}
+	virtual result_type max() override {return result_type(m_generator.max());}
 
 private:
 	knuth_b m_generator;
