@@ -39,30 +39,20 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 }
 
 void PopulationGenerator::generate() {
+	cerr << "Generating " << m_total << " people...\n";
 	makeHouseholds();
-	cout << "after hh\n";
 	makeCities();
-	cout << "after cit\n";
 	makeVillages();
-	cout << "after vill\n";
 	placeHouseholds();
-	cout << "after hhplace\n";
 	makeSchools();
-	cout << "after school\n";
 	makeUniversities();
-	cout << "after univ\n";
 	makeWork();
-	cout << "after work\n";
 	makeCommunities();
-	cout << "after comm\n";
 	assignToSchools();
-	cout << "after school assignment\n";
 	assignToUniversities();
-	cout << "after uni assignment\n";
 	assignToWork();
-	cout << "after work assignment\n";
 	assignToCommunities();
-	cout << "after comm assignment\n";
+	cerr << "Generated " << m_people.size() << " people out of " << m_total << endl;
 }
 
 void PopulationGenerator::makeRNG() {
@@ -102,6 +92,7 @@ void PopulationGenerator::makeHouseholds() {
 
 	AliasDistribution dist {vector<double>(family_config.size(), 1.0 / family_config.size())};
 	while (current_generated < m_total) {
+		cerr << "\rGenerating households [" << min(uint(double(current_generated) / m_total * 100), 100U) << "%]";
 		uint family_index = dist(m_rng);
 		FamilyConfig& new_config = family_config.at(family_index);
 
@@ -124,13 +115,17 @@ void PopulationGenerator::makeHouseholds() {
 		m_next_id++;
 		current_generated += new_config.size();
 	}
+	cerr << "\rGenerating households [100%]...\n";
 }
 
 void PopulationGenerator::makeCities() {
 	auto cities_config = m_props.get_child("POPULATION.CITIES");
 	uint size_check = 0;
 
+	uint generated = 0;
+	uint to_generate = distance(cities_config.begin(), cities_config.end());
 	for (auto it = cities_config.begin(); it != cities_config.end(); it++) {
+		cerr << "\rGenerating cities [" << min(uint(double(generated) / to_generate * 100), 100U) << "%]";
 		if (it->first == "CITY") {
 			string name = it->second.get<string>("<xmlattr>.name");
 			int size = it->second.get<int>("<xmlattr>.pop");
@@ -152,7 +147,9 @@ void PopulationGenerator::makeCities() {
 		} else {
 			/// TODO exception
 		}
+		generated++;
 	}
+	cerr << "\rGenerating cities [100%]...\n";
 
 	/// Important, make sure the vector is sorted (biggest to smallest)!
 	auto compare_city_size = [](const SimpleCity& a, const SimpleCity b) { return a.m_max_size > b.m_max_size; };
@@ -216,6 +213,7 @@ void PopulationGenerator::makeVillages() {
 	double radius = getCityRadius(middle);
 	uint city_population = getCityPopulation();
 	int unassigned_population = m_people.size() - city_population;
+	int unassigned_population_progress = unassigned_population;
 
 	vector<double> fractions;
 	vector<MinMax> boundaries;
@@ -235,6 +233,7 @@ void PopulationGenerator::makeVillages() {
 	const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
 	while (unassigned_population > 0) {
 		/// TODO make sure generated coordinates are unique!
+		cerr << "\rGenerating villages [" << min(uint(double(unassigned_population_progress - unassigned_population) / unassigned_population_progress * 100), 100U) << "%]";
 		uint village_type_index = village_type_dist(m_rng);
 		MinMax village_pop = boundaries.at(village_type_index);
 		uint range_interval_size = village_pop.max - village_pop.min + 1;
@@ -250,6 +249,7 @@ void PopulationGenerator::makeVillages() {
 		m_villages.push_back(new_village);
 		unassigned_population -= new_village.m_max_size;
 	}
+	cerr << "\rGenerating villages [100%]...\n";
 }
 
 void PopulationGenerator::placeHouseholds() {
@@ -271,7 +271,9 @@ void PopulationGenerator::placeHouseholds() {
 	AliasDistribution city_dist {city_fractions};
 	AliasDistribution village_dist {village_fractions};
 
+	int i = 0;
 	for (SimpleHousehold& household: m_households) {
+		cerr << "\rPlacing households [" << min(uint(double(i) / m_households.size() * 100), 100U) << "%]";
 		if ((city_dist(m_rng) == 0 && city_fractions.size() != 0) || (village_fractions.size() == 0 && city_fractions.size() != 0)) {
 			uint city_index = city_dist(m_rng);
 			SimpleCity& city = m_cities.at(city_index);
@@ -287,10 +289,12 @@ void PopulationGenerator::placeHouseholds() {
 				m_people.at(person_index).m_coord = village.m_coord;
 			}
 		}
+		i++;
 	}
+	cerr << "\rPlacing households [100%]...\n";
 }
 
-void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, double fraction, vector<SimpleCluster>& clusters) {
+void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, double fraction, vector<SimpleCluster>& clusters, string cluster_name) {
 	uint people = 0;
 
 	if (min_age == 0 && max_age == 0) {
@@ -316,6 +320,7 @@ void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, d
 
 	AliasDistribution dist {fractions};
 	for (uint i = 0; i < needed_clusters; i++) {
+		cerr << "\rPlacing " << cluster_name << " [" << min(uint(double(i) / m_households.size() * 100), 100U) << "%]";
 		uint village_city_index = dist(m_rng);
 
 		if (village_city_index < m_cities.size()) {
@@ -336,6 +341,7 @@ void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, d
 			clusters.push_back(new_cluster);
 		}
 	}
+	cerr << "\rPlacing " << cluster_name << " [100%]...\n";
 }
 
 void PopulationGenerator::makeSchools() {
@@ -346,7 +352,7 @@ void PopulationGenerator::makeSchools() {
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 
-	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools);
+	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools, "schools");
 }
 
 void PopulationGenerator::makeUniversities() {
@@ -374,6 +380,7 @@ void PopulationGenerator::makeUniversities() {
 	m_optional_schools.clear();
 
 	while (needed_universities > placed_universities) {
+		cerr << "\rPlacing Universities [" << min(uint(double(needed_universities) / placed_universities * 100), 100U) << "%]";
 		vector<SimpleCluster> univ;
 		for (uint i = 0; i < clusters_per_univ; i++) {
 			SimpleCluster univ_cluster;
@@ -431,7 +438,7 @@ void PopulationGenerator::makeWork() {
 	double fraction = school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 
 	/// TODO subtract people in universities
-	placeClusters(size, min_age, max_age, fraction, m_workplaces);
+	placeClusters(size, min_age, max_age, fraction, m_workplaces, "workplaces");
 	/// Make sure the work clusters are sorted from big city to smaller city
 	sortWorkplaces();
 }
@@ -441,8 +448,8 @@ void PopulationGenerator::makeCommunities() {
 	auto community_config = m_props.get_child("POPULATION.COMMUNITY");
 	uint size = community_config.get<uint>("<xmlattr>.size");
 
-	placeClusters(size, 0, 0, 1.0, m_primary_communities);
-	placeClusters(size, 0, 0, 1.0, m_secondary_communities);
+	placeClusters(size, 0, 0, 1.0, m_primary_communities, "primary communities");
+	placeClusters(size, 0, 0, 1.0, m_secondary_communities, "secondary communities");
 }
 
 void PopulationGenerator::assignToSchools() {
@@ -468,9 +475,19 @@ void PopulationGenerator::assignToSchools() {
 
 	double current_radius = start_radius;
 
+	uint total = 0;
+	uint total_placed = 0;
+
+	for (uint i = min_age; i <= max_age; i++) {
+		total += m_age_distribution[i];
+	}
+
 	for (SimplePerson& person: m_people) {
 		current_radius = start_radius;
 		if (person.m_age >= min_age && person.m_age <= max_age) {
+			cerr << "\rAssigning children to schools [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
+			total_placed++;
+
 			vector<uint> closest_clusters_indices;
 
 			while (closest_clusters_indices.size() == 0 && m_mandatory_schools.size() != 0) {
@@ -494,6 +511,7 @@ void PopulationGenerator::assignToSchools() {
 			person.m_school_id = m_mandatory_schools_clusters.at(index).back().m_id;
 		}
 	}
+	cerr << "\rAssigning children to schools [100%]...";
 }
 
 void PopulationGenerator::assignToUniversities() {
@@ -508,16 +526,47 @@ void PopulationGenerator::assignToUniversities() {
 	AliasDistribution commute_dist { {commute_fraction, 1.0 - commute_fraction} };
 	AliasDistribution student_dist { {student_fraction, 1.0 - student_fraction} };
 
+	uint total = 0;
+	uint total_placed = 0;
+
+	for (uint i = min_age; i <= max_age; i++) {
+		total += m_age_distribution[i];
+	}
+
 	for (SimplePerson& person: m_people) {
 		if (person.m_age >= min_age && person.m_age <= max_age && student_dist(m_rng) == 0) {
+			cerr << "\rAssigning students to universities [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
+			total_placed++;
+
+
+			uint freebefore = 0;
+			for (vector<SimpleCluster>& vec: m_optional_schools) {
+				for (SimpleCluster& cl: vec) {
+					freebefore += cl.m_max_size - cl.m_current_size;
+				}
+			}
+
 			if (commute_dist(m_rng) == 0) {
 				/// Commuting student
 				assignCommutingStudent(person);
 			} else {
 				assignCloseStudent(person, radius);
 			}
+
+			uint freeafter = 0;
+			for (vector<SimpleCluster>& vec: m_optional_schools) {
+				for (SimpleCluster& cl: vec) {
+					freeafter += cl.m_max_size - cl.m_current_size;
+				}
+			}
+
+			if (freebefore - 1 != freeafter) {
+				cout << "ERROR\n";
+				exit(0);
+			}
 		}
 	}
+	cerr << "\rAssigning students to universities [100%]...\n";
 }
 
 void PopulationGenerator::assignCommutingStudent(SimplePerson& person) {
@@ -525,8 +574,8 @@ void PopulationGenerator::assignCommutingStudent(SimplePerson& person) {
 	bool added = false;
 
 	while (current_city < m_cities.size() && !added) {
-		uint current_univ = 0;
-		while (current_univ < m_optional_schools.size()) {
+		uint current_univ = current_city;
+		while (current_univ < m_optional_schools.size() && !added) {
 			for (uint i = 0; i < m_optional_schools.at(current_univ).size(); i++) {
 				SimpleCluster& univ_cluster = m_optional_schools.at(current_univ).at(i);
 				if (univ_cluster.m_current_size < univ_cluster.m_max_size) {
@@ -538,6 +587,7 @@ void PopulationGenerator::assignCommutingStudent(SimplePerson& person) {
 			}
 			current_univ += m_cities.size();
 		}
+		current_city++;
 	}
 
 	if (!added) {
@@ -556,6 +606,7 @@ void PopulationGenerator::assignCloseStudent(SimplePerson& person, double start_
 
 		for (uint& index: closest_clusters_indices) {
 
+			/// TODO make uniformly distributed choice
 			uint current_univ = index;
 			while (current_univ < m_optional_schools.size() && !added) {
 				for (uint i = 0; i < m_optional_schools.at(current_univ).size(); i++) {
@@ -594,16 +645,28 @@ void PopulationGenerator::assignToWork() {
 	AliasDistribution unemployment_dist { {unemployment_rate, 1.0 - unemployment_rate} };
 	AliasDistribution commute_dist { {commute_fraction, 1.0 - commute_fraction} };
 
+	uint total = 0;
+	uint total_placed = 0;
+
+	for (uint i = min_age; i <= max_age; i++) {
+		total += m_age_distribution[i];
+	}
+
 	for (SimplePerson& person: m_people) {
-		if (person.m_age >= min_age && person.m_age <= max_age && unemployment_dist(m_rng) == 1 && person.m_school_id == 0) {
-			if (commute_dist(m_rng) == 0) {
-				/// Commuting student
-				assignCommutingEmployee(person);
-			} else {
-				assignCloseEmployee(person, radius);
+		if (person.m_age >= min_age && person.m_age <= max_age) {
+			cerr << "\rAssigning people to workplaces [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
+			total_placed++;
+			if (unemployment_dist(m_rng) == 1 && person.m_school_id == 0) {
+				if (commute_dist(m_rng) == 0) {
+					/// Commuting student
+					assignCommutingEmployee(person);
+				} else {
+					assignCloseEmployee(person, radius);
+				}
 			}
 		}
 	}
+	cerr << "\rAssigning people to workplaces [100%]...\n";
 }
 
 void PopulationGenerator::assignCommutingEmployee(SimplePerson& person) {
@@ -661,7 +724,13 @@ void PopulationGenerator::assignToCommunities() {
 	double factor = 2.0;
 	vector<uint> closest_clusters_indices;
 
+	uint total = m_households.size();
+	uint total_placed = 0;
+
 	for (SimpleHousehold& household: m_households) {
+		cerr << "\rAssigning people to primary community [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
+		total_placed++;
+
 		double current_radius = start_radius;
 
 		while (true) {
@@ -685,8 +754,14 @@ void PopulationGenerator::assignToCommunities() {
 			}
 		}
 	}
+	cerr << "\rAssigning people to primary community [100%]...\n";
+
+	total_placed = 0;
 
 	for (SimpleHousehold& household: m_households) {
+		cerr << "\rAssigning people to secondary community [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
+		total_placed++;
+
 		double current_radius = start_radius;
 
 		while (true) {
@@ -710,4 +785,5 @@ void PopulationGenerator::assignToCommunities() {
 			}
 		}
 	}
+	cerr << "\rAssigning people to secondary community [100%]...\n";
 }

@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	cerr << "Starting...\n";
-	PopulationGenerator generator {"PopGenerator.xml"};
+	PopulationGenerator generator {argv[1]};
 	cerr << "Generating...\n";
 	generator.generate();
 	cerr << "Done!\n";

@@ -23,6 +23,8 @@ using namespace util;
 
 using uint = unsigned int;
 
+/// TODO: see TODO's + fix horrific time complexity of workplace assignment
+
 class PopulationGenerator {
 public:
 
@@ -50,7 +52,7 @@ private:
 
 	void placeHouseholds();
 
-	void placeClusters(uint size, uint min_age, uint max_age, double fraction, vector<SimpleCluster>& clusters);
+	void placeClusters(uint size, uint min_age, uint max_age, double fraction, vector<SimpleCluster>& clusters, string custer_name);
 	/// Spreads the clusters of people with these constraints over the cities and villages
 
 	void makeSchools();
