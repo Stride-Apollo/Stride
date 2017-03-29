@@ -61,8 +61,8 @@ void PopulationGenerator::generate() {
 	cout << "after uni assignment\n";
 	assignToWork();
 	cout << "after work assignment\n";
-	// assignToCommunities();
-	// cout << "after comm assignment\n";
+	assignToCommunities();
+	cout << "after comm assignment\n";
 }
 
 void PopulationGenerator::makeRNG() {
@@ -651,6 +651,38 @@ void PopulationGenerator::assignCloseEmployee(SimplePerson& person, double start
 			/// TDOD exception
 			cout << "EXCEPT3\n";
 			exit(0);
+		}
+	}
+}
+
+void PopulationGenerator::assignToCommunities() {
+	/// NOTE to self: community vectors are destroyed!
+	double start_radius = m_props.get<double>("POPULATION.COMMUNITY.<xmlattr>.radius");
+	double factor = 2.0;
+	vector<uint> closest_clusters_indices;
+
+	for (SimpleHousehold& household: m_households) {
+		double current_radius = start_radius;
+
+		while (true) {
+			closest_clusters_indices = getClusters(m_people.at(household.m_indices.at(0)).m_coord, current_radius, m_primary_communities);
+
+			if (closest_clusters_indices.size() == 0) {
+				current_radius *= factor;
+			} else {
+				AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
+				uint index = closest_clusters_indices.at(dist(m_rng));
+				SimpleCluster& community = m_primary_communities.at(index);
+				for (uint& person_index: household.m_indices) {
+					SimplePerson& person = m_people.at(person_index);
+					person.m_primary_community = community.m_id;
+					community.m_current_size++;
+				}
+				if (community.m_current_size >= community.m_max_size) {
+					m_primary_communities.erase(m_primary_communities.begin() + index);
+				}
+				break;
+			}
 		}
 	}
 }
