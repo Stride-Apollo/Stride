@@ -57,17 +57,37 @@ private:
 
 	void makeUniversities();
 
+	void sortWorkplaces();
+
 	void makeWork();
 
 	void makeCommunities();
 
-	vector<uint> getClusters(GeoCoordinate coord, double radius, const vector<SimpleCluster> clusters) const;
+	template<typename T>
+	vector<uint> getClusters(GeoCoordinate coord, double radius, const vector<T> clusters) const {
+		vector<uint> result;
+		const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
+		for (uint i = 0; i < clusters.size(); i++) {
+			if (calc.getDistance(coord, clusters.at(i).m_coord) <= radius) {
+				result.push_back(i);
+			}
+		}
+		return result;
+	}
 
 	void assignToSchools();
 
 	void assignToUniversities();
 
+	void assignCommutingStudent(SimplePerson& person);
+
+	void assignCloseStudent(SimplePerson& person, double start_radius);
+
 	void assignToWork();
+
+	void assignCommutingEmployee(SimplePerson& person);
+
+	void assignCloseEmployee(SimplePerson& person, double start_radius);
 
 	void assignToCommunities();
 
@@ -82,7 +102,7 @@ private:
 	vector<SimpleCluster> m_primary_communities;
 	vector<SimpleCluster> m_secondary_communities;
 	vector<SimpleCluster> m_mandatory_schools;
-	vector<vector<SimpleCluster> > m_optional_schools;	/// the i-th element in this vector is the list of schools in the city on the i-th spot in m_cities
+	vector<vector<SimpleCluster> > m_optional_schools;	/// One univ is a vector of clusters, ordering is the same as the cities they belong to (using modulo of course)
 
 	/// TODO refactor this, it should be this structure from the beginning (see m_mandatory_schools)
 	vector<vector<SimpleCluster> > m_mandatory_schools_clusters;
