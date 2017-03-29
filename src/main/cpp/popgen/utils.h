@@ -21,6 +21,8 @@ struct GeoCoordinate {
 	double m_latitude;
 };
 
+bool operator==(const GeoCoordinate& coord1, const GeoCoordinate& coord2);
+
 class SimplePerson {
 public:
 

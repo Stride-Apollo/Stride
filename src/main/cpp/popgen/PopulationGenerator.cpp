@@ -409,9 +409,9 @@ void PopulationGenerator::sortWorkplaces() {
 		}
 	}
 
-	for (SimpleCluster& city: m_villages) {
+	for (SimpleCluster& village: m_villages) {
 		for (SimpleCluster& workplace: m_workplaces) {
-			if (m_villages.m_coord == workplace.m_coord) {
+			if (village.m_coord == workplace.m_coord) {
 				result.push_back(workplace);
 			}
 		}
@@ -422,12 +422,12 @@ void PopulationGenerator::sortWorkplaces() {
 
 void PopulationGenerator::makeWork() {
 	/// TODO check consistency with working students and stuff
-	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.EMPLOYABLE.EMPLOYEE");
+	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.EMPLOYABLE");
 	auto work_config = m_props.get_child("POPULATION.WORK");
 
 	uint size = work_config.get<uint>("<xmlattr>.size");
-	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
-	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
+	uint min_age = school_work_config.get<uint>("EMPLOYEE.<xmlattr>.min");
+	uint max_age = school_work_config.get<uint>("EMPLOYEE.<xmlattr>.max");
 	double fraction = school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 
 	/// TODO subtract people in universities
@@ -541,7 +541,7 @@ void PopulationGenerator::assignCommutingStudent(SimplePerson& person) {
 	}
 
 	if (!added) {
-		/// TODO exception
+			cout << "EXCEPT1\n";
 	}
 }
 
@@ -577,7 +577,80 @@ void PopulationGenerator::assignCloseStudent(SimplePerson& person, double start_
 
 		current_radius *= factor;
 		if (closest_clusters_indices.size() == m_cities.size() && !added) {
+			cout << "EXCEPT2\n";
+		}
+	}
+}
+
+void PopulationGenerator::assignToWork() {
+	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.EMPLOYABLE");
+	auto work_config = m_props.get_child("POPULATION.WORK");
+	uint min_age = school_work_config.get<uint>("YOUNG_EMPLOYEE.<xmlattr>.min");
+	uint max_age = school_work_config.get<uint>("EMPLOYEE.<xmlattr>.max");
+	double unemployment_rate = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
+	double commute_fraction = work_config.get<double>("FAR.<xmlattr>.fraction") / 100.0;
+	double radius = work_config.get<double>("FAR.<xmlattr>.radius") / 100.0;
+
+	AliasDistribution unemployment_dist { {unemployment_rate, 1.0 - unemployment_rate} };
+	AliasDistribution commute_dist { {commute_fraction, 1.0 - commute_fraction} };
+
+	for (SimplePerson& person: m_people) {
+		if (person.m_age >= min_age && person.m_age <= max_age && unemployment_dist(m_rng) == 1 && person.m_school_id == 0) {
+			if (commute_dist(m_rng) == 0) {
+				/// Commuting student
+				assignCommutingEmployee(person);
+			} else {
+				assignCloseEmployee(person, radius);
+			}
+		}
+	}
+}
+
+void PopulationGenerator::assignCommutingEmployee(SimplePerson& person) {
+	/// TODO ask question: it states that a full workplace has to be ignored
+		/// but workplaces can be in cities and villages where commuting is only in cities  => possible problems with over-employing in cities
+	/// Behavior on that topic is currently as follows: do the thing that is requested, if all cities are full, it just adds to the first village in the list
+
+	for (SimpleCluster& workplace: m_workplaces) {
+		if (workplace.m_max_size > workplace.m_current_size) {
+			workplace.m_current_size++;
+			person.m_work_id = workplace.m_id;
+			break;
+		}
+	}
+}
+
+void PopulationGenerator::assignCloseEmployee(SimplePerson& person, double start_radius) {
+	double factor = 2.0;
+	double current_radius = start_radius;
+	vector<uint> closest_clusters_indices;
+	vector<uint> closest_clusters_indices_all;
+
+	while (true) {
+		closest_clusters_indices = getClusters(person.m_coord, current_radius, m_workplaces);
+		closest_clusters_indices_all = closest_clusters_indices;
+
+		auto full_workplace = [&] (uint& workplace_index){return m_workplaces.at(workplace_index).m_max_size <=  m_workplaces.at(workplace_index).m_current_size;};
+
+		closest_clusters_indices.erase(remove_if(closest_clusters_indices.begin(), closest_clusters_indices.end(), full_workplace), closest_clusters_indices.end());
+
+		current_radius *= factor;
+
+		if (closest_clusters_indices.size() != 0) {
+			AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
+			uint rnd = dist(m_rng);
+			uint t = closest_clusters_indices.at(rnd);
+			SimpleCluster& workplace = m_workplaces.at(t);
+
+			person.m_work_id = workplace.m_id;
+			workplace.m_current_size++;
+			break;
+		}
+
+		if (closest_clusters_indices_all.size() == m_workplaces.size()) {
 			/// TDOD exception
+			cout << "EXCEPT3\n";
+			exit(0);
 		}
 	}
 }
