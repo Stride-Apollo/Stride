@@ -1,5 +1,5 @@
 <POPULATION total='10000000'>
-	<RANDOM generator='mt' seed='74128'/>
+	<RANDOM generator='MT19937' seed='74128'/>
 	
 	<FAMILY file="resources/data/households.txt"/>
 	
@@ -18,24 +18,25 @@
 	
 	<EDUCATION>
 		<MANDATORY total_size="500" cluster_size="20" radius="10"/>
-		<OPTIONAL total_size="3000" cluster_size="50">
-			<CLOSE fraction="70"/>
+		<OPTIONAL total_size="3000" cluster_size="50" radius="10">
 			<FAR fraction="30"/>
 		</OPTIONAL>
 	</EDUCATION>
 
 	<WORK size="20">
-		<CLOSE fraction="70"/>
-		<FAR fraction="30"/>
+		<FAR fraction="30" radius="10"/>
 	</WORK>
 
-	<COMMUNITY size='2000' average_per_person='1.5'/>
+	<COMMUNITY size='2000' average_per_person='1.5' radius="10"/>
 	
 	<SCHOOL_WORK_PROFILE>
-		<MANDATORY min='3' max='18'/>
+		<MANDATORY min='3' max='17'/>
 		<EMPLOYABLE fraction='70'>
+			<!-- Among the employable population (excluding students), 70% works -->
 			<YOUNG_EMPLOYEE min='18' max='26' fraction='50'/>
-			<EMPLOYEE min='26' max='65' fraction='100'/>
+			<!-- fraction = amount of people of that age that is employable, the others are students -->
+			<EMPLOYEE min='26' max='65'/>
+			<!-- The category that does not overlap with students -->
 		</EMPLOYABLE>
 	</SCHOOL_WORK_PROFILE>
 </POPULATION>
