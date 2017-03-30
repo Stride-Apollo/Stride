@@ -33,6 +33,8 @@ public:
 	void generate();
 
 private:
+	void chechForValidXML() const;
+
 	void makeRNG();
 
 	void makeHouseholds();

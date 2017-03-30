@@ -23,7 +23,7 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 	try {
 		long int tot = m_props.get<long int>("POPULATION.<xmlattr>.total");
 
-		if (tot < 0) {
+		if (tot <= 0) {
 			throw invalid_argument("Invalid attribute POPULATION::total");
 		}
 
@@ -36,6 +36,7 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 
 	m_next_id = 1;
 	makeRNG();
+	chechForValidXML();
 }
 
 void PopulationGenerator::generate() {
@@ -52,7 +53,188 @@ void PopulationGenerator::generate() {
 	assignToUniversities();
 	assignToWork();
 	assignToCommunities();
-	cerr << "Generated " << m_people.size() << " people out of " << m_total << endl;
+	cerr << "Generated " << m_people.size() << " people\n";
+}
+
+void PopulationGenerator::chechForValidXML() const {
+	try {
+		auto pop_config = m_props.get_child("POPULATION");
+
+		/// RNG is already valid at this point (made in constructor)
+		/// Check for FAMILY tag must be done during parsing
+
+		/// Cities: unique location, sum of pops may not be greater than the total
+		cerr << "\rChecking for valid XML [0%]";
+		int total_size;
+		auto cities_config = pop_config.get_child("CITIES");
+		vector<GeoCoordinate> current_locations;
+		for (auto it = cities_config.begin(); it != cities_config.end(); it++) {
+			if (it->first == "CITY") {
+				it->second.get<string>("<xmlattr>.name");
+				total_size += it->second.get<int>("<xmlattr>.pop");
+				double latitude = it->second.get<double>("<xmlattr>.lat");
+				double longitude = it->second.get<double>("<xmlattr>.lon");
+
+				if (abs(latitude) > 90 || abs(longitude) > 180) {
+					throw invalid_argument("In PopulationGenerator: Invalid geo-coordinate in XML.");
+				}
+
+				if (it->second.get<int>("<xmlattr>.pop") <= 0) {
+					throw invalid_argument("In PopulationGenerator: Numerical error.");
+				}
+
+				auto it2 = find (current_locations.begin(), current_locations.end(), GeoCoordinate(latitude, longitude));
+				if (it2 != current_locations.end())
+					throw invalid_argument("In PopulationGenerator: Duplicate coordinates given in XML.");
+
+				current_locations.push_back(GeoCoordinate(latitude, longitude));
+			} else {
+				throw invalid_argument("In PopulationGenerator: Missing/incorrect tags/attributes in XML.");
+			}
+		}
+
+		// if (total_size > m_total) {
+		// 	/// TODO is this necessary?
+		// 	/// throw invalid_argument("In PopulationGenerator: City population in XML exceeds the total population.");
+		// }
+
+
+		/// Check for valid villages
+		cerr << "\rChecking for valid XML [18%]";
+		auto village_config = pop_config.get_child("VILLAGES");
+		double village_radius_factor = village_config.get<double>("<xmlattr>.radius");
+
+		double fraction = 0.0;
+		for (auto it = village_config.begin(); it != village_config.end(); it++) {
+			if (it->first == "VILLAGE") {
+				int minimum = it->second.get<int>("<xmlattr>.min");
+				int max = it->second.get<int>("<xmlattr>.max");
+				fraction += it->second.get<double>("<xmlattr>.fraction") / 100.0;
+
+				if (fraction < 0) {
+					throw invalid_argument("In PopulationGenerator: Numerical error.");
+				}
+
+				if (minimum > max || minimum <= 0 || max < 0) {
+					throw invalid_argument("In PopulationGenerator: Numerical error.");
+				}
+			} else if (it->first == "<xmlattr>") {
+			} else {
+				throw invalid_argument("In PopulationGenerator: Missing/incorrect tags/attributes in XML.");
+			}
+		}
+
+		if (fraction != 1.0 || village_radius_factor <= 0.0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
+
+		/// Check for valid Education
+		/// Mandatory education
+		cerr << "\rChecking for valid XML [36%]";
+		auto education_config = pop_config.get_child("EDUCATION");
+		auto school_work_config = pop_config.get_child("SCHOOL_WORK_PROFILE");
+		total_size = education_config.get<int>("MANDATORY.<xmlattr>.total_size");
+		int cluster_size = education_config.get<int>("MANDATORY.<xmlattr>.cluster_size");
+		int mandatory_min = school_work_config.get<int>("MANDATORY.<xmlattr>.min");
+		int mandatory_max = school_work_config.get<int>("MANDATORY.<xmlattr>.max");
+		double radius = education_config.get<double>("MANDATORY.<xmlattr>.radius");
+
+		if (mandatory_min > mandatory_max || mandatory_min < 0 || mandatory_max < 0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
+		}
+
+		if (total_size <= 0 || cluster_size <= 0 || radius <= 0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
+		/// Optional education
+		cerr << "\rChecking for valid XML [42%]";
+		school_work_config = pop_config.get_child("SCHOOL_WORK_PROFILE.EMPLOYABLE.YOUNG_EMPLOYEE");
+		int minimum = school_work_config.get<int>("<xmlattr>.min");
+		int max = school_work_config.get<int>("<xmlattr>.max");
+		cluster_size = education_config.get<int>("OPTIONAL.<xmlattr>.cluster_size");
+		fraction = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
+		total_size = education_config.get<uint>("OPTIONAL.<xmlattr>.total_size");
+		radius = education_config.get<double>("OPTIONAL.<xmlattr>.radius");
+
+		if (minimum > max || minimum < 0 || max < 0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
+		}
+
+		if (total_size <= 0 || cluster_size <= 0 || radius <= 0 || fraction < 0.0 || fraction > 1.0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
+		if (minimum <= mandatory_max) {
+			throw invalid_argument("In PopulationGenerator: Overlapping min/max pairs.");
+		}
+
+		fraction = education_config.get<double>("OPTIONAL.FAR.<xmlattr>.fraction") / 100.0;
+
+		if (fraction < 0.0 || fraction > 1.0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
+
+
+		/// Check for valid work
+		cerr << "\rChecking for valid XML [68%]";
+		school_work_config = pop_config.get_child("SCHOOL_WORK_PROFILE.EMPLOYABLE");
+		auto work_config = pop_config.get_child("WORK");
+
+		total_size = work_config.get<int>("<xmlattr>.size");
+		minimum = school_work_config.get<int>("EMPLOYEE.<xmlattr>.min");
+		max = school_work_config.get<int>("EMPLOYEE.<xmlattr>.max");
+		fraction = school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
+		radius = work_config.get<double>("FAR.<xmlattr>.radius");
+
+		if (minimum > max || minimum < 0 || max < 0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
+		}
+
+		if (total_size <= 0 || cluster_size <= 0 || radius <= 0 || fraction < 0.0 || fraction > 1.0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
+		int min2 = school_work_config.get<int>("YOUNG_EMPLOYEE.<xmlattr>.min");
+		int max2 = school_work_config.get<int>("YOUNG_EMPLOYEE.<xmlattr>.max");
+		fraction = work_config.get<double>("FAR.<xmlattr>.fraction") / 100.0;
+
+		if (min2 > max2 || min2 < 0 || max2 < 0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
+		}
+
+		if (max2 >= minimum) {
+			throw invalid_argument("In PopulationGenerator: Overlapping min/max pairs.");
+		}
+
+		if (fraction < 0.0 || fraction > 1.0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
+
+
+		/// Check for valid communities
+		cerr << "\rChecking for valid XML [84%]";
+		total_size = pop_config.get<int>("COMMUNITY.<xmlattr>.size");
+		radius = pop_config.get<int>("COMMUNITY.<xmlattr>.radius");
+
+		if (total_size <= 0 || radius <= 0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+		cerr << "\rChecking for valid XML [100%]\n";
+
+
+
+	} catch(invalid_argument& e) {
+		cerr << "\n";
+		throw e;
+	} catch(exception& e) {
+		/// Boost exceptions due to missing tags, wrong tags,...
+		cerr << "\n";
+		throw invalid_argument("In PopulationGenerator: Missing/incorrect tags/attributes in XML.");
+	}
 }
 
 void PopulationGenerator::makeRNG() {
@@ -65,14 +247,14 @@ void PopulationGenerator::makeRNG() {
 		seed = rng_config.get<long int>("<xmlattr>.seed");
 
 		if (seed < 0) {
-			throw invalid_argument("Invalid attribute: POPULATION.RANDOM::seed");
+			throw invalid_argument("In PopulationGenerator: Missing/incorrect tags/attributes in XML.");
 		}
 
 		generator_type = rng_config.get<string>("<xmlattr>.generator");
 	} catch(invalid_argument& e) {
 		throw e;
 	} catch(exception& e) {
-		throw invalid_argument("Missing/invalid element in POPULATION.RANDOM");
+		throw invalid_argument("In PopulationGenerator: Missing/incorrect tags/attributes in XML.");
 	}
 
 	try {
@@ -208,7 +390,7 @@ double PopulationGenerator::getVillagePopulation() const {
 
 void PopulationGenerator::makeVillages() {
 	auto village_config = m_props.get_child("POPULATION.VILLAGES");
-	int village_radius_factor = village_config.get<double>("<xmlattr>.radius");
+	double village_radius_factor = village_config.get<double>("<xmlattr>.radius");
 	GeoCoordinate middle = getCityMiddle();
 	double radius = getCityRadius(middle);
 	uint city_population = getCityPopulation();
@@ -306,7 +488,7 @@ void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, d
 
 	}
 
-	uint needed_clusters = double(people) / size + 0.5;
+	uint needed_clusters = ceil(double(people) / size);
 	uint city_village_size = getCityPopulation() + getVillagePopulation();
 
 	vector<double> fractions;
@@ -370,9 +552,9 @@ void PopulationGenerator::makeUniversities() {
 		intellectual_pop += m_age_distribution[i];
 	}
 
-	intellectual_pop = intellectual_pop * fraction + 0.5;
+	intellectual_pop = ceil(intellectual_pop * fraction);
 
-	uint needed_universities = double (intellectual_pop) / size + 0.5;
+	uint needed_universities = ceil(double (intellectual_pop) / size);
 	uint placed_universities = 0;
 	uint clusters_per_univ = size / cluster_size;	/// Note: not +1 as you cannot exceed a certain amount of students
 	uint left_over_cluster_size = size % cluster_size;

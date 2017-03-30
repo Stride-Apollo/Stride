@@ -17,8 +17,10 @@ using uint = unsigned int;
 class PopulationGenerator;
 
 struct GeoCoordinate {
-	double m_longitude;
-	double m_latitude;
+	GeoCoordinate(){}
+	GeoCoordinate(double lat, double lon) {m_latitude = lat; lon = m_longitude;}
+	double m_longitude = 0.0;
+	double m_latitude = 0.0;
 };
 
 bool operator==(const GeoCoordinate& coord1, const GeoCoordinate& coord2);
