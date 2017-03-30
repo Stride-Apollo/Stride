@@ -342,12 +342,16 @@ void PopulationGenerator::makeHouseholds() {
 
 	uint current_generated = 0;
 
+	/// Uniformly choose between the given family configurations
 	AliasDistribution dist {vector<double>(family_config.size(), 1.0 / family_config.size())};
 	while (current_generated < m_total) {
 		cerr << "\rGenerating households [" << min(uint(double(current_generated) / m_total * 100), 100U) << "%]";
+
+		/// Get the family configuration
 		uint family_index = dist(m_rng);
 		FamilyConfig& new_config = family_config.at(family_index);
 
+		/// Make the configuration into reality
 		SimpleHousehold new_household;
 		new_household.m_id = m_next_id;
 		for (uint& age: new_config) {
@@ -464,6 +468,7 @@ void PopulationGenerator::makeVillages() {
 	int unassigned_population = m_people.size() - city_population;
 	int unassigned_population_progress = unassigned_population;
 
+	/// Get the configuration of the villages (relative occurrence, minimum and maximum population)
 	vector<double> fractions;
 	vector<MinMax> boundaries;
 	for (auto it = village_config.begin(); it != village_config.end(); it++) {
@@ -478,6 +483,7 @@ void PopulationGenerator::makeVillages() {
 		}
 	}
 
+	/// Depending on the relative occurrence of a village, choose this village
 	AliasDistribution village_type_dist {fractions};
 	const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
 	while (unassigned_population > 0) {
@@ -495,6 +501,7 @@ void PopulationGenerator::makeVillages() {
 		m_next_id++;
 		new_village.m_coord = calc.generateRandomCoord(middle, radius * village_radius_factor, m_rng);
 
+		/// Make sure this isn't a duplicate coordinate
 		auto same_coordinate_village = [&](const SimpleCluster& cl) {return cl.m_coord == new_village.m_coord;};
 		auto same_coordinate_city = [&](const SimpleCity& cl) {return cl.m_coord == new_village.m_coord;};
 
@@ -514,6 +521,8 @@ void PopulationGenerator::placeHouseholds() {
 	uint village_pop = getVillagePopulation();
 	uint total_pop = village_pop + city_pop;	/// Note that this number may slightly differ from other "total pop" numbers
 
+	/// Get the relative occurrences of both the villages and cities => randomly choose an index in this vector based on that
+	/// Note that the vector consists of 2 parts: the first one for the cities, the second one for the villages, keep this in mind when generating the random index
 	vector<double> fractions;
 	for (SimpleCity& city: m_cities) {
 		fractions.push_back(double(city.m_max_size) / double(total_pop));
@@ -529,6 +538,7 @@ void PopulationGenerator::placeHouseholds() {
 		cerr << "\rPlacing households [" << min(uint(double(i) / m_households.size() * 100), 100U) << "%]";
 		uint index = village_city_dist(m_rng);
 		if (index < m_cities.size()) {
+			/// A city has been chosen
 			SimpleCity& city = m_cities.at(index);
 			city.m_current_size += household.m_indices.size();
 			for (uint& person_index: household.m_indices) {
@@ -536,6 +546,7 @@ void PopulationGenerator::placeHouseholds() {
 			}
 
 		} else {
+			/// A village has been chosen
 			SimpleCluster& village = m_villages.at(index - m_cities.size());
 			village.m_current_size += household.m_indices.size();
 			for (uint& person_index: household.m_indices) {
@@ -562,6 +573,8 @@ void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, d
 	uint needed_clusters = ceil(double(people) / size);
 	uint city_village_size = getCityPopulation() + getVillagePopulation();
 
+	/// Get the relative occurrences of both the villages and cities => randomly choose an index in this vector based on that
+	/// Note that the vector consists of 2 parts: the first one for the cities, the second one for the villages, keep this in mind when generating the random index
 	vector<double> fractions;
 	for (const SimpleCity& city: m_cities) {
 		fractions.push_back(double(city.m_max_size) / double(city_village_size));
@@ -633,6 +646,9 @@ void PopulationGenerator::makeUniversities() {
 
 	while (needed_universities > placed_universities) {
 		cerr << "\rPlacing Universities [" << min(uint(double(needed_universities) / placed_universities * 100), 100U) << "%]";
+
+		/// Add a university to the list
+		/// Note,:a university is a vector of clusters
 		vector<SimpleCluster> univ;
 		for (uint i = 0; i < clusters_per_univ; i++) {
 			SimpleCluster univ_cluster;
@@ -644,6 +660,7 @@ void PopulationGenerator::makeUniversities() {
 		}
 
 		if (left_over_cluster_size > 0) {
+			/// Because the last cluster might not fit in the university, this cluster is smaller
 			SimpleCluster univ_cluster;
 			univ_cluster.m_id = m_next_id;
 			univ_cluster.m_max_size = left_over_cluster_size;
@@ -658,6 +675,7 @@ void PopulationGenerator::makeUniversities() {
 }
 
 void PopulationGenerator::sortWorkplaces() {
+	/// Sorts according to the cities (assumes they are sorted in a way that you might desire)
 	vector<SimpleCluster> result;
 
 	for (SimpleCity& city: m_cities) {
@@ -714,7 +732,7 @@ void PopulationGenerator::assignToSchools() {
 
 	double factor = 2.0;
 
-	/// TODO refactor
+	/// TODO refactor => this is not good at all
 	for (SimpleCluster& cluster: m_mandatory_schools) {
 		SimpleCluster new_cluster;
 		new_cluster.m_max_size = cluster_size;
@@ -801,6 +819,7 @@ void PopulationGenerator::assignToUniversities() {
 				/// Commuting student
 				assignCommutingStudent(person);
 			} else {
+				/// Non-commuting student
 				assignCloseStudent(person, radius);
 			}
 
@@ -811,6 +830,7 @@ void PopulationGenerator::assignToUniversities() {
 				}
 			}
 
+			/// TODO remove this, this was for some manual testing
 			if (freebefore - 1 != freeafter) {
 				cout << "ERROR\n";
 				exit(0);
@@ -842,7 +862,7 @@ void PopulationGenerator::assignCommutingStudent(SimplePerson& person) {
 	}
 
 	if (!added) {
-			cout << "EXCEPT1\n";
+		cout << "EXCEPT1\n";
 	}
 }
 
@@ -909,9 +929,10 @@ void PopulationGenerator::assignToWork() {
 			total_placed++;
 			if (unemployment_dist(m_rng) == 1 && person.m_school_id == 0) {
 				if (commute_dist(m_rng) == 0) {
-					/// Commuting student
+					/// Commuting employee
 					assignCommutingEmployee(person);
 				} else {
+					/// Non-commuting employee
 					assignCloseEmployee(person, radius);
 				}
 			}
@@ -935,6 +956,7 @@ void PopulationGenerator::assignCommutingEmployee(SimplePerson& person) {
 }
 
 void PopulationGenerator::assignCloseEmployee(SimplePerson& person, double start_radius) {
+	/// TODO make this faster
 	double factor = 2.0;
 	double current_radius = start_radius;
 	vector<uint> closest_clusters_indices;
@@ -985,11 +1007,14 @@ void PopulationGenerator::assignToCommunities() {
 		double current_radius = start_radius;
 
 		while (true) {
+			/// Get the clusters within a certain radius
 			closest_clusters_indices = getClusters(m_people.at(household.m_indices.at(0)).m_coord, current_radius, m_primary_communities);
 
 			if (closest_clusters_indices.size() == 0) {
+				/// Search was unsuccessful, try again
 				current_radius *= factor;
 			} else {
+				/// Search was successfull, uniformly choose a community
 				AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
 				uint index = closest_clusters_indices.at(dist(m_rng));
 				SimpleCluster& community = m_primary_communities.at(index);
@@ -998,6 +1023,8 @@ void PopulationGenerator::assignToCommunities() {
 					person.m_primary_community = community.m_id;
 					community.m_current_size++;
 				}
+
+				/// Remove the community if it is full
 				if (community.m_current_size >= community.m_max_size) {
 					m_primary_communities.erase(m_primary_communities.begin() + index);
 				}
@@ -1016,11 +1043,14 @@ void PopulationGenerator::assignToCommunities() {
 		double current_radius = start_radius;
 
 		while (true) {
+			/// Get the clusters within a certain radius
 			closest_clusters_indices = getClusters(m_people.at(household.m_indices.at(0)).m_coord, current_radius, m_secondary_communities);
 
 			if (closest_clusters_indices.size() == 0) {
+				/// Search was unsuccessful, try again
 				current_radius *= factor;
 			} else {
+				/// Search was successfull, uniformly choose a community
 				AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
 				uint index = closest_clusters_indices.at(dist(m_rng));
 				SimpleCluster& community = m_secondary_communities.at(index);
@@ -1029,6 +1059,8 @@ void PopulationGenerator::assignToCommunities() {
 					person.m_secondary_community = community.m_id;
 					community.m_current_size++;
 				}
+
+				/// Remove the community if it is full
 				if (community.m_current_size >= community.m_max_size) {
 					m_secondary_communities.erase(m_secondary_communities.begin() + index);
 				}
