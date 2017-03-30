@@ -18,8 +18,7 @@ vector<FamilyConfig> FamilyParser::parseFamilies(string filename) {
 		}
 		myfile.close();
 	} else {
-		/// TODO exception
-		cout << "Unable to open file\n";
+		throw invalid_argument("In FamilyParser: Invalid file name");
 	}
 
 	return result;
@@ -43,7 +42,7 @@ FamilyConfig FamilyParser::parseFamily(string config) {
 			current_age *= 10;
 			current_age += uint(c) - uint('0');
 		} else {
-			/// TODO throw exception
+			throw invalid_argument("In FamilyParser: Encountered something that is not an integer");
 		}
 	}
 
