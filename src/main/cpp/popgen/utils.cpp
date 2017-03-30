@@ -107,29 +107,26 @@ RNGPicker::~RNGPicker() {
 }
 
 RNGPicker::result_type RNGPicker::operator ()() {
-	/// TODO write exception
 	if (m_rng == nullptr)
-		cerr << "rng not defined" << endl;
+		throw runtime_error("Random number generator not defined");
 	else
 		return (*m_rng)();
 	return 0;
 }
 
 RNGPicker::result_type RNGPicker::min() {
-	/// TODO throw exception
 	if (m_rng != nullptr)
 		return m_rng->min();
 	else
-		cerr << "Invalid rng\n";
+		throw runtime_error("Random number generator not defined");
 	return 0;
 }
 
 RNGPicker::result_type RNGPicker::max() {
-	/// TODO throw exception
 	if (m_rng != nullptr)
 		return m_rng->max();
 	else
-		cerr << "Invalid rng\n";
+		throw runtime_error("Random number generator not defined");
 	return 0;
 }
 
@@ -164,6 +161,7 @@ GeoCoordinate GeoCoordCalculator::generateRandomCoord(
 		double radius,
 		RNGPicker& rng) const {
 	/// Partially the inverse of GeoCoordCalculator::getDistance, therefore i use the same variable names
+	/// For future improvements, use this: http://gis.stackexchange.com/questions/25877/generating-random-locations-nearby
 	double temp2 = radius / earth_radius;
 	double temp1 = sin(temp2 / 2.0) * sin(temp2 / 2.0);
 

@@ -92,7 +92,6 @@ void PopulationGenerator::writePop(const string& target_pop) const {
 		my_file << "\"age\",\"household_id\",\"school_id\",\"work_id\",\"primary_community\",\"secondary_community\"\n";
 
 		for (const SimplePerson& person: m_people) {
-			/// TODO add province
 			my_file << person.m_age << ","
 				<< person.m_household_id << ","
 				<< person.m_school_id << ","
@@ -114,7 +113,6 @@ void PopulationGenerator::writeHouseholds(const string& target_households) const
 		my_file << "\"hh_id\",\"latitude\",\"longitude\",\"size\"\n";
 
 		for (const SimpleHousehold& household: m_households) {
-			/// TODO add province
 			my_file << household.m_id << ","
 				<< m_people.at(household.m_indices.at(0)).m_coord.m_latitude << ","
 				<< m_people.at(household.m_indices.at(0)).m_coord.m_longitude << ","
