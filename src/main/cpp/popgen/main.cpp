@@ -16,6 +16,6 @@ int main(int argc, char** argv) {
 	cerr << "Starting...\n";
 	PopulationGenerator generator {argv[1]};
 	cerr << "Generating...\n";
-	generator.generate();
+	generator.generate("cities.txt", "pop.txt", "hh.txt");
 	cerr << "Done!\n";
 }

@@ -39,7 +39,7 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 	chechForValidXML();
 }
 
-void PopulationGenerator::generate() {
+void PopulationGenerator::generate(const string& target_cities, const string& target_pop, const string& target_households) {
 	cerr << "Generating " << m_total << " people...\n";
 	makeHouseholds();
 	makeCities();
@@ -54,6 +54,78 @@ void PopulationGenerator::generate() {
 	assignToWork();
 	assignToCommunities();
 	cerr << "Generated " << m_people.size() << " people\n";
+
+	writeCities(target_cities);
+	writePop(target_pop);
+	writeHouseholds(target_households);
+}
+
+void PopulationGenerator::writeCities(const string& target_cities) const {
+	ofstream my_file {target_cities};
+	double total_pop = getCityPopulation();
+	if (my_file.is_open()) {
+		my_file << "\"city_id\",\"city_name\",\"province\",\"population\",\"x_coord\",\"y_coord\",\"latitude\",\"longitude\"\n";
+
+		for (const SimpleCity& city: m_cities) {
+			/// TODO add province
+			my_file << city.m_id
+				<< ",\""
+				<< city.m_name
+				<< "\",1,"
+				<< city.m_current_size / total_pop
+				<< ",0,0,"
+				<< city.m_coord.m_latitude
+				<< ","
+				<< city.m_coord.m_longitude
+				<< endl;
+		}
+
+		my_file.close();
+	} else {
+		throw invalid_argument("In PopulationGenerator: Invalid file.");
+	}
+}
+
+void PopulationGenerator::writePop(const string& target_pop) const {
+	ofstream my_file {target_pop};
+	if (my_file.is_open()) {
+		my_file << "\"age\",\"household_id\",\"school_id\",\"work_id\",\"primary_community\",\"secondary_community\"\n";
+
+		for (const SimplePerson& person: m_people) {
+			/// TODO add province
+			my_file << person.m_age << ","
+				<< person.m_household_id << ","
+				<< person.m_school_id << ","
+				<< person.m_work_id << ","
+				<< person.m_primary_community << ","
+				<< person.m_secondary_community
+				<< endl;
+		}
+
+		my_file.close();
+	} else {
+		throw invalid_argument("In PopulationGenerator: Invalid file.");
+	}
+}
+
+void PopulationGenerator::writeHouseholds(const string& target_households) const {
+	ofstream my_file {target_households};
+	if (my_file.is_open()) {
+		my_file << "\"hh_id\",\"latitude\",\"longitude\",\"size\"\n";
+
+		for (const SimpleHousehold& household: m_households) {
+			/// TODO add province
+			my_file << household.m_id << ","
+				<< m_people.at(household.m_indices.at(0)).m_coord.m_latitude << ","
+				<< m_people.at(household.m_indices.at(0)).m_coord.m_longitude << ","
+				<< household.m_indices.size()
+				<< endl;
+		}
+
+		my_file.close();
+	} else {
+		throw invalid_argument("In PopulationGenerator: Invalid file.");
+	}
 }
 
 void PopulationGenerator::chechForValidXML() const {
@@ -315,19 +387,16 @@ void PopulationGenerator::makeCities() {
 			double longitude = it->second.get<double>("<xmlattr>.lon");
 			size_check += size;
 
-			/// TODO check for errors in the 4 above declared vars
-
 			SimpleCity new_city;
 			new_city.m_max_size = size;
 			new_city.m_current_size = 0;
 			new_city.m_id = m_next_id;
+			new_city.m_name = name;
 			m_next_id++;
 			new_city.m_coord.m_longitude = longitude;
 			new_city.m_coord.m_latitude = latitude;
 
 			m_cities.push_back(new_city);
-		} else {
-			/// TODO exception
 		}
 		generated++;
 	}
@@ -414,7 +483,6 @@ void PopulationGenerator::makeVillages() {
 	AliasDistribution village_type_dist {fractions};
 	const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
 	while (unassigned_population > 0) {
-		/// TODO make sure generated coordinates are unique!
 		cerr << "\rGenerating villages [" << min(uint(double(unassigned_population_progress - unassigned_population) / unassigned_population_progress * 100), 100U) << "%]";
 		uint village_type_index = village_type_dist(m_rng);
 		MinMax village_pop = boundaries.at(village_type_index);
@@ -428,8 +496,17 @@ void PopulationGenerator::makeVillages() {
 		new_village.m_id = m_next_id;
 		m_next_id++;
 		new_village.m_coord = calc.generateRandomCoord(middle, radius * village_radius_factor, m_rng);
-		m_villages.push_back(new_village);
-		unassigned_population -= new_village.m_max_size;
+
+		auto same_coordinate_village = [&](const SimpleCluster& cl) {return cl.m_coord == new_village.m_coord;};
+		auto same_coordinate_city = [&](const SimpleCity& cl) {return cl.m_coord == new_village.m_coord;};
+
+		auto it_villages = find_if(m_villages.begin(), m_villages.end(), same_coordinate_village);
+		auto it_cities = find_if(m_cities.begin(), m_cities.end(), same_coordinate_city);
+
+		if (it_villages == m_villages.end() && it_cities == m_cities.end()) {
+			m_villages.push_back(new_village);
+			unassigned_population -= new_village.m_max_size;
+		}
 	}
 	cerr << "\rGenerating villages [100%]...\n";
 }
@@ -439,33 +516,29 @@ void PopulationGenerator::placeHouseholds() {
 	uint village_pop = getVillagePopulation();
 	uint total_pop = village_pop + city_pop;	/// Note that this number may slightly differ from other "total pop" numbers
 
-	vector<double> village_fractions;
-	for (SimpleCluster& village: m_villages) {
-		village_fractions.push_back(double(village.m_max_size) / double(village_pop));
-	}
-
-	vector<double> city_fractions;
+	vector<double> fractions;
 	for (SimpleCity& city: m_cities) {
-		city_fractions.push_back(double(city.m_max_size) / double(city_pop));
+		fractions.push_back(double(city.m_max_size) / double(total_pop));
 	}
 
-	AliasDistribution village_city_dist { {double(city_pop) / double(total_pop), double(village_pop) / double(total_pop)} };
-	AliasDistribution city_dist {city_fractions};
-	AliasDistribution village_dist {village_fractions};
+	for (SimpleCluster& village: m_villages) {
+		fractions.push_back(double(village.m_max_size) / double(total_pop));
+	}
 
+	AliasDistribution village_city_dist {fractions};
 	int i = 0;
 	for (SimpleHousehold& household: m_households) {
 		cerr << "\rPlacing households [" << min(uint(double(i) / m_households.size() * 100), 100U) << "%]";
-		if ((city_dist(m_rng) == 0 && city_fractions.size() != 0) || (village_fractions.size() == 0 && city_fractions.size() != 0)) {
-			uint city_index = city_dist(m_rng);
-			SimpleCity& city = m_cities.at(city_index);
+		uint index = village_city_dist(m_rng);
+		if (index < m_cities.size()) {
+			SimpleCity& city = m_cities.at(index);
 			city.m_current_size += household.m_indices.size();
 			for (uint& person_index: household.m_indices) {
 				m_people.at(person_index).m_coord = city.m_coord;
 			}
-		} else if (village_fractions.size() != 0) {
-			uint village_index = village_dist(m_rng);
-			SimpleCluster& village = m_villages.at(village_index);
+
+		} else {
+			SimpleCluster& village = m_villages.at(index - m_cities.size());
 			village.m_current_size += household.m_indices.size();
 			for (uint& person_index: household.m_indices) {
 				m_people.at(person_index).m_coord = village.m_coord;
@@ -538,7 +611,6 @@ void PopulationGenerator::makeSchools() {
 }
 
 void PopulationGenerator::makeUniversities() {
-	/// TODO check for overlap between mandatory and optional education
 	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.EMPLOYABLE.YOUNG_EMPLOYEE");
 	auto university_config = m_props.get_child("POPULATION.EDUCATION.OPTIONAL");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
@@ -610,7 +682,6 @@ void PopulationGenerator::sortWorkplaces() {
 }
 
 void PopulationGenerator::makeWork() {
-	/// TODO check consistency with working students and stuff
 	auto school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.EMPLOYABLE");
 	auto work_config = m_props.get_child("POPULATION.WORK");
 
@@ -957,7 +1028,7 @@ void PopulationGenerator::assignToCommunities() {
 				SimpleCluster& community = m_secondary_communities.at(index);
 				for (uint& person_index: household.m_indices) {
 					SimplePerson& person = m_people.at(person_index);
-					person.m_primary_community = community.m_id;
+					person.m_secondary_community = community.m_id;
 					community.m_current_size++;
 				}
 				if (community.m_current_size >= community.m_max_size) {

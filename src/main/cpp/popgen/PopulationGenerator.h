@@ -30,9 +30,15 @@ public:
 
 	PopulationGenerator(const string& filename);
 
-	void generate();
+	void generate(const string& target_cities, const string& target_pop, const string& target_households);
 
 private:
+	void writeCities(const string& target_cities) const;
+
+	void writePop(const string& target_pop) const;
+
+	void writeHouseholds(const string& target_households) const;
+
 	void chechForValidXML() const;
 
 	void makeRNG();
