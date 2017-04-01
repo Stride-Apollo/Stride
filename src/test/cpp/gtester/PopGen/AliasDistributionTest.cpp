@@ -68,8 +68,9 @@ AliasDistribution AliasDistributionDemos::g_alias_zero                      = Al
 AliasDistribution AliasDistributionDemos::g_near_zero                       = AliasDistribution({0.0, 0.0, 0.0, 0.0, 0.01});
 random_device           AliasDistributionDemos::g_rd;
 mt19937                 AliasDistributionDemos::g_rng_mt                    = mt19937(AliasDistributionDemos::g_rd());
-const double            AliasDistributionDemos::g_confidence                = 0.05;
-const uint              AliasDistributionDemos::g_happy_day_amount          = 100000;
+const double            AliasDistributionDemos::g_confidence                = 0.975;
+	// Big value for the confidence => see if the distribution is certainly NOT correct (instead of certainly correct)
+const uint              AliasDistributionDemos::g_happy_day_amount          = 1000000;
 const string            AliasDistributionDemos::g_output_prefix             = "AliasDistribution";
 
 bool chi_sq_test(vector<pair<uint, double> > observed_vs_theoretical, double confidence) {
@@ -97,9 +98,13 @@ bool chi_sq_test(vector<pair<uint, double> > observed_vs_theoretical, double con
 
 vector<pair<uint, double> > run_alias_distribution(AliasDistribution& dist, uint amount, const vector<double>& possible_observations, mt19937& rnd) {
 	vector<pair<uint, double> > observed_vs_theoretical = vector<pair<uint, double> >(possible_observations.size());
+
+	// factor for rescaling (because the probabilities might not add up to 1)
+	double factor = 1.0 / std::accumulate(possible_observations.begin(), possible_observations.end(), 0.0);
+
 	/// Fill theoretical observations and set the actual observations to 0
 	for (uint i = 0; i < possible_observations.size(); i++) {
-		observed_vs_theoretical.at(i).second = possible_observations.at(i) * amount;
+		observed_vs_theoretical.at(i).second = possible_observations.at(i) * amount * factor;
 		observed_vs_theoretical.at(i).first = 0;
 	}
 
@@ -109,6 +114,10 @@ vector<pair<uint, double> > run_alias_distribution(AliasDistribution& dist, uint
 	}
 
 	return observed_vs_theoretical;
+}
+
+void death () {
+	//assert(5 > 50);
 }
 
 TEST_F(AliasDistributionDemos, HappyDay) {
@@ -129,6 +138,10 @@ TEST_F(AliasDistributionDemos, HappyDay) {
 	vector<pair<uint, double> > normal_result = run_alias_distribution(g_alias_normal, g_happy_day_amount, g_prob_normal, g_rng_mt);
 	EXPECT_TRUE(chi_sq_test(normal_result, g_confidence));
 
+	// Test the big distribution
+	vector<pair<uint, double> > big_result = run_alias_distribution(g_alias_big, g_happy_day_amount, g_prob_big, g_rng_mt);
+	EXPECT_TRUE(chi_sq_test(big_result, g_confidence));
+
 	// -----------------------------------------------------------------------------------------
 	// Release and close logger.
 	// -----------------------------------------------------------------------------------------
@@ -142,11 +155,12 @@ TEST_F(AliasDistributionDemos, Boundaries) {
 	EXPECT_EQ(g_alias_zero.operator()<random_device>(g_rd), 0U);
 	EXPECT_EQ(g_alias_zero.operator()<mt19937>(g_rng_mt), 0U);
 
-	/// Empty vector
-	//EXPECT_DEATH(AliasDistribution({}), "");
+	// TODO, adjust this in alias distribution
+	// Empty vector
+	//ASSERT_THROW(AliasDistribution(vector<double>()), invalid_argument);
 
-	/// Default constructor (expected to be the same as the empty vector)
-	//EXPECT_DEATH(AliasDistribution(), "");
+	// Default constructor (expected to be the same as the empty vector)
+	//ASSERT_THROW(AliasDistribution(), invalid_argument);
 
 }
 
