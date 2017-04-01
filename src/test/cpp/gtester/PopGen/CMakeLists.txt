@@ -21,7 +21,8 @@
 set( EXEC       poptester     )
 set( SRC
 		main.cpp
-		GeneratorTest.cpp
+		GeoCalculatorTest.cpp
+		AliasDistributionTest.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)

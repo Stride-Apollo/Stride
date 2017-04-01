@@ -225,7 +225,8 @@ public:
 	/// radius is in kilometres
 	/// TODO make the distribution fair
 
-public:
+/// TODO why is this public?
+private:
 	GeoCoordCalculator(){}
 
 	~GeoCoordCalculator(){}
