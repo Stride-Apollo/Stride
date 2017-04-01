@@ -33,8 +33,7 @@ int main(int argc, char **argv)
 	try {
 		::testing::InitGoogleTest(&argc, argv);
 		return RUN_ALL_TESTS();
-	}
-	catch (std::exception& e) {
+	} catch (std::exception& e) {
 		cerr << "Exception caught: " << e.what() << endl << endl;
 		exit_status = EXIT_FAILURE;
 	}

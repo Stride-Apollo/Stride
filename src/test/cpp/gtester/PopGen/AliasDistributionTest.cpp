@@ -46,13 +46,13 @@ protected:
 	static const vector<double>      g_prob_big;
 	static const vector<double>      g_prob_zero;
 	static const vector<double>      g_prob_near_zero;
-	static AliasDistribution        g_alias_normal;
-	static AliasDistribution        g_alias_big;
-	static AliasDistribution        g_alias_zero;
-	static AliasDistribution        g_near_zero;
+	static AliasDistribution         g_alias_normal;
+	static AliasDistribution         g_alias_big;
+	static AliasDistribution         g_alias_zero;
+	static AliasDistribution         g_alias_near_zero;
 	static random_device             g_rd;
 	static mt19937                   g_rng_mt;
-	static const double			     g_confidence;
+	static const double              g_confidence;
 	static const uint                g_happy_day_amount;
 	static const string              g_output_prefix;
 };
@@ -65,7 +65,7 @@ const vector<double>    AliasDistributionDemos::g_prob_near_zero            = ve
 AliasDistribution AliasDistributionDemos::g_alias_normal                    = AliasDistribution({0.24,0.26, 0.01, 0.09, 0.33, 0.07});
 AliasDistribution AliasDistributionDemos::g_alias_big                       = AliasDistribution({0.48,0.52, 0.02, 0.18, 0.66, 0.14});
 AliasDistribution AliasDistributionDemos::g_alias_zero                      = AliasDistribution({0.0});
-AliasDistribution AliasDistributionDemos::g_near_zero                       = AliasDistribution({0.0, 0.0, 0.0, 0.0, 0.01});
+AliasDistribution AliasDistributionDemos::g_alias_near_zero                       = AliasDistribution({0.0, 0.0, 0.0, 0.0, 0.01});
 random_device           AliasDistributionDemos::g_rd;
 mt19937                 AliasDistributionDemos::g_rng_mt                    = mt19937(AliasDistributionDemos::g_rd());
 const double            AliasDistributionDemos::g_confidence                = 0.975;
@@ -83,6 +83,11 @@ bool chi_sq_test(vector<pair<uint, double> > observed_vs_theoretical, double con
 	for(pair<uint, double>& my_pair: observed_vs_theoretical) {
 		/// Note how D is always positive
 		D += pow(my_pair.first - my_pair.second, 2) / my_pair.second;
+	}
+
+	if (D == 0.0) {
+		// It's a perfect fit!
+		return true;
 	}
 
 	boost::math::chi_squared chisq {degrees_of_freedom};
@@ -114,10 +119,6 @@ vector<pair<uint, double> > run_alias_distribution(AliasDistribution& dist, uint
 	}
 
 	return observed_vs_theoretical;
-}
-
-void death () {
-	//assert(5 > 50);
 }
 
 TEST_F(AliasDistributionDemos, HappyDay) {
@@ -154,6 +155,10 @@ TEST_F(AliasDistributionDemos, Boundaries) {
 	// Zero chances
 	EXPECT_EQ(g_alias_zero.operator()<random_device>(g_rd), 0U);
 	EXPECT_EQ(g_alias_zero.operator()<mt19937>(g_rng_mt), 0U);
+
+	// Near zero
+	vector<pair<uint, double> > near_zero_result = run_alias_distribution(g_alias_near_zero, g_happy_day_amount, g_prob_near_zero, g_rng_mt);
+	EXPECT_TRUE(chi_sq_test(near_zero_result, 0.0));
 
 	// TODO, adjust this in alias distribution
 	// Empty vector
