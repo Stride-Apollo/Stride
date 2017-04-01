@@ -35,6 +35,11 @@ public:
 		m_rng.split(stream_count, id);
 	}
 
+	/// Gets the seed (for saving purposes)
+	unsigned int getSeed() const {
+		return m_seed;
+	}
+
 	/// Convert rate into probability
 	double rateToProbability(double rate) {
 		return 1 - exp(-rate);
@@ -51,6 +56,7 @@ public:
 	}
 
 private:
+	unsigned int m_seed;
 	util::Random m_rng;                        ///< Random number engine.
 };
 

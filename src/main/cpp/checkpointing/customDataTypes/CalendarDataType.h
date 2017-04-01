@@ -2,5 +2,5 @@
 
 struct CalendarDataType {
 	hsize_t day;
-	char* date; 	// TODO Compound Date Type
+	const char* date; 	// TODO Compound Date Type
 };

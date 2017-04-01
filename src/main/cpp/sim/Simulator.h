@@ -38,11 +38,13 @@ namespace stride {
 class Population;
 class Calendar;
 class Cluster;
+class Saver;
 
 /**
  * Main class that contains and direct the virtual world.
  */
 class Simulator : public util::Subject<Simulator> {
+friend class Saver;
 public:
 	using PersonType = Person<NoBelief, NoBehavior>;
 
