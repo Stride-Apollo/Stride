@@ -33,9 +33,7 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency):
 		delete dataspace;
 		delete dataset;*/
 
-		hsize_t dimsf[1];
-		dimsf[0] = 1;
-		DataSpace* dataspace = new DataSpace(1, dimsf);
+		DataSpace* dataspace = new DataSpace(1, dims);
 
 		typeConf = CompType(sizeof(ConfDataType));
 		typeConf.insertMember(H5std_string("checkpointing_frequency"),
@@ -91,23 +89,7 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency):
 
 		delete dataspace;
 		delete dataset;
-		dataspace = new DataSpace(1, dims);
 
-		// TODO amt_persons
-		CompType typePersonTI(sizeof(PersonTIDataType));
-		typePersonTI.insertMember(H5std_string("ID"), HOFFSET(PersonTIDataType, ID), PredType::NATIVE_UINT);
-		typePersonTI.insertMember(H5std_string("age"), HOFFSET(PersonTIDataType, age), PredType::NATIVE_DOUBLE);
-		typePersonTI.insertMember(H5std_string("gender"), HOFFSET(PersonTIDataType, gender), PredType::NATIVE_CHAR);
-		typePersonTI.insertMember(H5std_string("household_ID"), HOFFSET(PersonTIDataType, household_ID), PredType::NATIVE_UINT);
-		typePersonTI.insertMember(H5std_string("school_ID"), HOFFSET(PersonTIDataType, school_ID), PredType::NATIVE_UINT);
-		typePersonTI.insertMember(H5std_string("work_ID"), HOFFSET(PersonTIDataType, work_ID), PredType::NATIVE_UINT);
-		typePersonTI.insertMember(H5std_string("prim_comm_ID"), HOFFSET(PersonTIDataType, prim_comm_ID), PredType::NATIVE_UINT);
-		typePersonTI.insertMember(H5std_string("sec_comm_ID"), HOFFSET(PersonTIDataType, sec_comm_ID), PredType::NATIVE_UINT);
-
-		dataset = new DataSet(file.createDataSet("personsTI", typePersonTI, *dataspace));
-
-		delete dataspace;
-		delete dataset;
 		dataspace = new DataSpace(1, dims);
 		unsigned int amt_time[1] = {0};
 		dataset = new DataSet(file.createDataSet("amt_timesteps", PredType::NATIVE_UINT, *dataspace));
@@ -155,6 +137,64 @@ void Saver::update(const Simulator& sim) {
 	if (m_frequency != 0 && m_current_step%m_frequency == 0) {
 		try {
 			H5File file(m_filename, H5F_ACC_RDWR);
+
+			if (m_current_step == 0) {
+				// Save Person Time Independent
+				hsize_t dims[1] = {sim.getPopulation().get()->size()};
+
+				CompType typePersonTI(sizeof(PersonTIDataType));
+				typePersonTI.insertMember(H5std_string("ID"), HOFFSET(PersonTIDataType, ID), PredType::NATIVE_UINT);
+				typePersonTI.insertMember(H5std_string("age"), HOFFSET(PersonTIDataType, age), PredType::NATIVE_DOUBLE);
+				typePersonTI.insertMember(H5std_string("gender"), HOFFSET(PersonTIDataType, gender), PredType::NATIVE_CHAR);
+				typePersonTI.insertMember(H5std_string("household_ID"), HOFFSET(PersonTIDataType, household_ID), PredType::NATIVE_UINT);
+				typePersonTI.insertMember(H5std_string("school_ID"), HOFFSET(PersonTIDataType, school_ID), PredType::NATIVE_UINT);
+				typePersonTI.insertMember(H5std_string("work_ID"), HOFFSET(PersonTIDataType, work_ID), PredType::NATIVE_UINT);
+				typePersonTI.insertMember(H5std_string("prim_comm_ID"), HOFFSET(PersonTIDataType, prim_comm_ID), PredType::NATIVE_UINT);
+				typePersonTI.insertMember(H5std_string("sec_comm_ID"), HOFFSET(PersonTIDataType, sec_comm_ID), PredType::NATIVE_UINT);
+
+				DataSpace* dataspace = new DataSpace(1, dims);
+				DataSet* dataset = new DataSet(file.createDataSet("personsTI", typePersonTI, *dataspace));
+
+				// Persons are saved per chunk
+				unsigned int i = 0;
+				hsize_t chunk_dims[1] = {100};
+				while (i < dims[0]) {
+					hsize_t selected_dims[1];
+					if (i + chunk_dims[0] < dims[0]) {
+						selected_dims[0] = chunk_dims[0];
+					} else {
+						selected_dims[0] = dims[0] - i;
+					}
+
+					PersonTIDataType personData[selected_dims[0]];
+					for (unsigned int j = 0; j < selected_dims[0]; j++) {
+						personData[j].ID = sim.getPopulation().get()->at(i).m_id;
+						personData[j].age = sim.getPopulation().get()->at(i).m_age;
+						personData[j].gender = sim.getPopulation().get()->at(i).m_gender;
+						personData[j].household_ID = sim.getPopulation().get()->at(i).m_household_id;
+						personData[j].school_ID = sim.getPopulation().get()->at(i).m_school_id;
+						personData[j].work_ID = sim.getPopulation().get()->at(i).m_work_id;
+						personData[j].prim_comm_ID = sim.getPopulation().get()->at(i).m_primary_community_id;
+						personData[j].sec_comm_ID = sim.getPopulation().get()->at(i).m_secondary_community_id;
+						i++;
+					}
+
+					// Select a hyperslab in the dataset.
+					DataSpace *filespace = new DataSpace(dataset->getSpace ());
+					hsize_t offset[1] = {i-selected_dims[0]};
+					filespace->selectHyperslab(H5S_SELECT_SET, selected_dims, offset);
+
+					// Define memory space.
+					DataSpace *memspace = new DataSpace(1, selected_dims, NULL);
+
+					// Write data to the selected portion of the dataset.
+					dataset->write(personData, typePersonTI, *memspace, *filespace);
+					delete filespace;
+					delete memspace;
+				}
+				delete dataspace;
+				delete dataset;
+			}
 
 			// Save amt_timesteps
 			DataSet timeset = file.openDataSet("amt_timesteps");
