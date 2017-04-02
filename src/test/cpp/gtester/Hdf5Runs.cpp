@@ -1,6 +1,7 @@
 #include "checkpointing/Saver.h"
 #include "sim/SimulatorBuilder.h"
 #include "sim/Simulator.h"
+#include "checkpointing/customDataTypes/ConfDataType.h"
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
@@ -75,12 +76,19 @@ const string		HDF5UnitTests::g_log_level						= "None";
 const unsigned int	HDF5UnitTests::g_generate_person_file			= 0;
 
 
+/**
+ *	Simple test case to test constructor.
+ */
 TEST_F(HDF5UnitTests, CreateSaver) {
-	auto pt_config = getConfigTree(); // TODO remove this, temporary to test functionality
+	auto pt_config = getConfigTree();
 	Saver saver = Saver("testOutput.h5", pt_config, 1);
-	EXPECT_TRUE(true);
 }
 
+
+/**
+ *	Test case that checks the amount of timestaps created in the H5 file,
+ *		using checkpointing frequency = 1.
+ */
 TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	unsigned int num_threads = GetParam();
 	omp_set_num_threads(num_threads);
@@ -105,10 +113,15 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
 	unsigned int hdf5_timesteps[1];
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
+	h5file.close();
 
 	EXPECT_EQ(num_days-1, hdf5_timesteps[0]);
 }
 
+/**
+ *	Test case that checks the amount of timestaps created in the H5 file,
+ *		using checkpointing frequency = 2.
+ */
 TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	unsigned int num_threads = GetParam();
 	omp_set_num_threads(num_threads);
@@ -133,10 +146,16 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
 	unsigned int hdf5_timesteps[1];
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
+	h5file.close();
 
 	EXPECT_EQ((num_days/2)-1, hdf5_timesteps[0]);
 }
 
+/**
+ *	Test case that checks the amount of timestaps created in the H5 file,
+ *		using checkpointing frequency = 0.
+ *	With this frequency, the hdf5 saver should only store 1 timestep.
+ */
 TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	unsigned int num_threads = GetParam();
 	omp_set_num_threads(num_threads);
@@ -161,8 +180,62 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
 	unsigned int hdf5_timesteps[1];
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
+	h5file.close();
 
 	EXPECT_EQ(0U, hdf5_timesteps[0]);
+}
+
+/**
+ *	Test that checks the stored config data.
+ */
+TEST_F(HDF5UnitTests, CheckConfigTree) {
+	const char* h5filename = "testOutput.h5";
+	auto pt_config = getConfigTree();
+
+	Saver saver = Saver(h5filename, pt_config, 1);
+
+
+	// ================================================
+	// Constructing datatype to read configuration data
+	// ================================================
+
+	CompType typeConf = CompType(sizeof(ConfDataType));
+	typeConf.insertMember(H5std_string("checkpointing_frequency"),
+						  HOFFSET(ConfDataType, checkpointing_frequency), PredType::NATIVE_UINT);
+	typeConf.insertMember(H5std_string("rng_seed"), HOFFSET(ConfDataType, rng_seed), PredType::NATIVE_ULONG);
+	typeConf.insertMember(H5std_string("r0"), HOFFSET(ConfDataType, r0), PredType::NATIVE_UINT);
+	typeConf.insertMember(H5std_string("seeding_rate"),
+						  HOFFSET(ConfDataType, seeding_rate), PredType::NATIVE_DOUBLE);
+	typeConf.insertMember(H5std_string("immunity_rate"),
+						  HOFFSET(ConfDataType, immunity_rate), PredType::NATIVE_DOUBLE);
+	typeConf.insertMember(H5std_string("num_days"), HOFFSET(ConfDataType, num_days), PredType::NATIVE_UINT);
+	StrType tid1(0, H5T_VARIABLE);
+	typeConf.insertMember(H5std_string("output_prefix"), HOFFSET(ConfDataType, output_prefix), tid1);
+	typeConf.insertMember(H5std_string("generate_person_file"),
+						  HOFFSET(ConfDataType, generate_person_file), PredType::NATIVE_HBOOL);
+	typeConf.insertMember(H5std_string("num_participants_survey"),
+						  HOFFSET(ConfDataType, num_participants_survey), PredType::NATIVE_UINT);
+	typeConf.insertMember(H5std_string("start_date"), HOFFSET(ConfDataType, start_date), tid1);
+	typeConf.insertMember(H5std_string("log_level"), HOFFSET(ConfDataType, log_level), tid1);
+
+	// ================================================
+
+
+	/// Check if the stored data conforms to the original data
+	H5File h5file (h5filename, H5F_ACC_RDONLY);
+	DataSet dataset = h5file.openDataSet("configuration/configuration");
+
+	ConfDataType config[1];
+	dataset.read(config, typeConf);
+	ASSERT_EQ(g_r0, config->r0);
+	ASSERT_EQ(g_rng_seed, config->rng_seed);
+	ASSERT_EQ(g_immunity_rate, config->immunity_rate);
+	ASSERT_EQ(g_num_days, config->num_days);
+	ASSERT_EQ(g_output_prefix, config->output_prefix);
+	ASSERT_EQ(g_generate_person_file, config->generate_person_file);
+	ASSERT_EQ(g_num_participants_survey, config->num_participants_survey);
+	ASSERT_EQ(g_start_date, config->start_date);
+	ASSERT_EQ(g_log_level, config->log_level);
 }
 
 
