@@ -155,7 +155,7 @@ void Saver::update(const Simulator& sim) {
 		try {
 			H5File file(m_filename, H5F_ACC_RDWR);
 
-			// Update amt_timesteps
+			// Save amt_timesteps
 			DataSet timeset = file.openDataSet("amt_timesteps");
 			unsigned int amt_timesteps[1] = {timestep};
 			timeset.write(amt_timesteps, PredType::NATIVE_UINT);
@@ -165,6 +165,8 @@ void Saver::update(const Simulator& sim) {
 
 			Group group(file.createGroup(ss.str()));
 
+
+			// Save Random Number Generator
 			hsize_t dims[1];
 			dims[0] = sim.m_num_threads;
 
@@ -182,6 +184,8 @@ void Saver::update(const Simulator& sim) {
 			delete dataspace;
 			delete dataset;
 
+
+			// Save Calendar
 			dims[0] = 1;
 			CompType typeCalendar(sizeof(CalendarDataType));
 			StrType tid1(0, H5T_VARIABLE);
@@ -191,16 +195,12 @@ void Saver::update(const Simulator& sim) {
 			dataset = new DataSet(group.createDataSet("Calendar", typeCalendar, *dataspace));
 
 			CalendarDataType calendar[1];
-			// TODO I suppose this is simulationDay?
-			// TODO Fix the super strange seg fault!
-			/*std::cout << "Pre Day";
 			calendar[0].day = sim.m_calendar->getSimulationDay();
-			std::cout << "Day: " << calendar[0].day;
-			/*ss.clear();
+			ss.str("");
+			ss.clear();
 			ss << sim.m_calendar->getYear() << "-" << sim.m_calendar->getMonth() << "-" << sim.m_calendar->getDay();
 			calendar[0].date = ss.str().c_str();
 			dataset->write(calendar, typeCalendar);
-			std::cout << "Written!";*/
 
 			delete dataspace;
 			delete dataset;
