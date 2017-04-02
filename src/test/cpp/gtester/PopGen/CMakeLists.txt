@@ -24,6 +24,7 @@ set( SRC
 		GeoCalculatorTest.cpp
 		AliasDistributionTest.cpp
 		FamilyParserTest.cpp
+		PopulationGeneratorTest.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)
@@ -33,9 +34,10 @@ install(TARGETS ${EXEC}  DESTINATION   ${BIN_INSTALL_LOCATION})
 
 
 #============================================================================
-# Include the input files of the tests
+# Include the input and output files of the tests
 #============================================================================
 file(COPY "input" DESTINATION "${CMAKE_BINARY_DIR}/test/cpp/gtester/PopGen")
+file(COPY "output" DESTINATION "${CMAKE_BINARY_DIR}/test/cpp/gtester/PopGen")
 
 #============================================================================
 # Define tests.

@@ -13,7 +13,7 @@ using namespace util;
 using namespace boost::property_tree;
 using namespace xml_parser;
 
-PopulationGenerator::PopulationGenerator(const string& filename) {
+PopulationGenerator::PopulationGenerator(const string& filename, bool output) {
 	try {
 		read_xml(filename, m_props, trim_whitespace | no_comments);
 	} catch (exception& e) {
@@ -35,34 +35,61 @@ PopulationGenerator::PopulationGenerator(const string& filename) {
 	}
 
 	m_next_id = 1;
+	m_output = output;
 	makeRNG();
-	chechForValidXML();
+
+	try {
+		if (!m_output) {
+			cerr.setstate(ios_base::failbit);
+		}
+		chechForValidXML();
+		cerr.clear();
+	} catch (...) {
+		cerr.clear();
+		throw;
+	}
 }
 
 void PopulationGenerator::generate(const string& target_cities, const string& target_pop, const string& target_households) {
-	cerr << "Generating " << m_total << " people...\n";
-	makeHouseholds();
-	makeCities();
-	makeVillages();
-	placeHouseholds();
-	makeSchools();
-	makeUniversities();
-	makeWork();
-	makeCommunities();
-	assignToSchools();
-	assignToUniversities();
-	assignToWork();
-	assignToCommunities();
-	cerr << "Generated " << m_people.size() << " people\n";
+	if (!m_output) {
+		cerr.setstate(ios_base::failbit);
+	}
 
-	writeCities(target_cities);
-	writePop(target_pop);
-	writeHouseholds(target_households);
+	try {
+		cerr << "Generating " << m_total << " people...\n";
+		makeHouseholds();
+		makeCities();
+		makeVillages();
+		placeHouseholds();
+		makeSchools();
+		makeUniversities();
+		makeWork();
+		makeCommunities();
+		assignToSchools();
+		assignToUniversities();
+		assignToWork();
+		assignToCommunities();
+		cerr << "Generated " << m_people.size() << " people\n";
+
+		writeCities(target_cities);
+		writePop(target_pop);
+		writeHouseholds(target_households);
+		cerr.clear();
+	} catch(...) {
+		cerr.clear();
+		throw;
+	}
+	cerr.clear();
 }
 
 void PopulationGenerator::writeCities(const string& target_cities) const {
 	ofstream my_file {target_cities};
-	double total_pop = getCityPopulation();
+	double total_pop = 0.0;
+
+	for (const SimpleCity& city: m_cities) {
+		total_pop += city.m_current_size;
+	}
+
 	if (my_file.is_open()) {
 		my_file << "\"city_id\",\"city_name\",\"province\",\"population\",\"x_coord\",\"y_coord\",\"latitude\",\"longitude\"\n";
 
@@ -135,11 +162,13 @@ void PopulationGenerator::chechForValidXML() const {
 
 		/// Cities: unique location, sum of pops may not be greater than the total
 		cerr << "\rChecking for valid XML [0%]";
-		int total_size;
+		int total_size = 0;
+		bool has_no_cities = true;
 		auto cities_config = pop_config.get_child("CITIES");
 		vector<GeoCoordinate> current_locations;
 		for (auto it = cities_config.begin(); it != cities_config.end(); it++) {
 			if (it->first == "CITY") {
+				has_no_cities = false;
 				it->second.get<string>("<xmlattr>.name");
 				total_size += it->second.get<int>("<xmlattr>.pop");
 				double latitude = it->second.get<double>("<xmlattr>.lat");
@@ -163,6 +192,10 @@ void PopulationGenerator::chechForValidXML() const {
 			}
 		}
 
+		if (has_no_cities) {
+			throw invalid_argument("In PopulationGenerator: No cities found.");
+		}
+
 		// if (total_size > m_total) {
 		// 	/// TODO is this necessary?
 		// 	/// throw invalid_argument("In PopulationGenerator: City population in XML exceeds the total population.");
@@ -174,9 +207,12 @@ void PopulationGenerator::chechForValidXML() const {
 		auto village_config = pop_config.get_child("VILLAGES");
 		double village_radius_factor = village_config.get<double>("<xmlattr>.radius");
 
+		bool has_no_villages = true;
+
 		double fraction = 0.0;
 		for (auto it = village_config.begin(); it != village_config.end(); it++) {
 			if (it->first == "VILLAGE") {
+				has_no_villages = false;
 				int minimum = it->second.get<int>("<xmlattr>.min");
 				int max = it->second.get<int>("<xmlattr>.max");
 				fraction += it->second.get<double>("<xmlattr>.fraction") / 100.0;
@@ -196,6 +232,10 @@ void PopulationGenerator::chechForValidXML() const {
 
 		if (fraction != 1.0 || village_radius_factor <= 0.0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
+		if (has_no_villages) {
+			throw invalid_argument("In PopulationGenerator: No villages found.");
 		}
 
 

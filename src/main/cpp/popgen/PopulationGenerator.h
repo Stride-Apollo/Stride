@@ -28,7 +28,7 @@ using uint = unsigned int;
 class PopulationGenerator {
 public:
 
-	PopulationGenerator(const string& filename);
+	PopulationGenerator(const string& filename, bool output = true);
 
 	void generate(const string& target_cities, const string& target_pop, const string& target_households);
 
@@ -113,6 +113,7 @@ private:
 	vector<SimpleCluster> m_secondary_communities;
 	vector<SimpleCluster> m_mandatory_schools;
 	vector<vector<SimpleCluster> > m_optional_schools;	/// One univ is a vector of clusters, ordering is the same as the cities they belong to (using modulo of course)
+	bool m_output;
 
 	/// TODO refactor this, it should be this structure from the beginning (see m_mandatory_schools)
 	vector<vector<SimpleCluster> > m_mandatory_schools_clusters;

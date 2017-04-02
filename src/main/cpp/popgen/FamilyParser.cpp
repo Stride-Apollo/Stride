@@ -1,5 +1,6 @@
 #include "FamilyParser.h"
 #include <iostream>
+#include <stdexcept>
 
 using namespace stride;
 using namespace popgen;

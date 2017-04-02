@@ -32,8 +32,6 @@ public:
 	SimplePerson(uint age=0, uint family_id=0);
 
 	friend std::ostream& operator<<(std::ostream& os, const SimplePerson& p);
-
-private:
 	friend class PopulationGenerator;
 
 	uint m_age = 0;
