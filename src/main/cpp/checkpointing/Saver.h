@@ -16,6 +16,8 @@ using namespace boost::property_tree;
 /**
  * Saver class to save to hdf5
  */
+
+// TODO Maybe make this singleton?
 class Saver : public util::Observer<Simulator> {
 public:
 	Saver(const char* filename, ptree pt_config, int frequency);
@@ -31,6 +33,9 @@ private:
 	int m_frequency;
 	ptree m_pt_config;
 	H5::CompType typeConf;
+
+	int m_current_step;
+	unsigned int m_timestep;
 };
 
 }

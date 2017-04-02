@@ -6,6 +6,7 @@
 #include <boost/date_time/gregorian/greg_date.hpp>
 #include "Saver.h"
 #include "calendar/Calendar.h"
+#include "pop/Population.h"
 #include "checkpointing/customDataTypes/CalendarDataType.h"
 #include "checkpointing/customDataTypes/ConfDataType.h"
 #include "checkpointing/customDataTypes/PersonTDDataType.h"
@@ -16,7 +17,8 @@ using namespace H5;
 
 namespace stride {
 
-Saver::Saver(const char* filename, ptree pt_config, int frequency): m_filename(filename), m_frequency(frequency), m_pt_config(pt_config) {
+Saver::Saver(const char* filename, ptree pt_config, int frequency):
+		m_filename(filename), m_frequency(frequency), m_pt_config(pt_config), m_current_step(-1), m_timestep(0) {
 	try {
 		Exception::dontPrint();
 		H5File file(m_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -149,19 +151,18 @@ void Saver::testLoad() {
 }
 
 void Saver::update(const Simulator& sim) {
-	static unsigned int timestep = 0;
-	static int current_step = 0;
-	if (m_frequency != 0 && current_step%m_frequency == 0) {
+	m_current_step++;
+	if (m_frequency != 0 && m_current_step%m_frequency == 0) {
 		try {
 			H5File file(m_filename, H5F_ACC_RDWR);
 
 			// Save amt_timesteps
 			DataSet timeset = file.openDataSet("amt_timesteps");
-			unsigned int amt_timesteps[1] = {timestep};
+			unsigned int amt_timesteps[1] = {m_timestep};
 			timeset.write(amt_timesteps, PredType::NATIVE_UINT);
 
 			std::stringstream ss;
-			ss << "/Timestep_" << timestep;
+			ss << "/Timestep_" << m_timestep;
 
 			Group group(file.createGroup(ss.str()));
 
@@ -205,10 +206,12 @@ void Saver::update(const Simulator& sim) {
 			delete dataspace;
 			delete dataset;
 
-			// TODO amt_persons
+
+			// Save Person Time Dependent
+			dims[0] = sim.getPopulation()->size();
 			CompType typePersonTD(sizeof(PersonTDDataType));
 			typePersonTD.insertMember(H5std_string("at_household"),
-									  HOFFSET(PersonTDDataType, at_household), PredType::NATIVE_HBOOL);
+									  HOFFSET(PersonTDDataType, at_household), PredType::NATIVE_INT);
 			typePersonTD.insertMember(H5std_string("at_school"),
 									  HOFFSET(PersonTDDataType, at_school), PredType::NATIVE_HBOOL);
 			typePersonTD.insertMember(H5std_string("at_work"),
@@ -220,19 +223,52 @@ void Saver::update(const Simulator& sim) {
 			typePersonTD.insertMember(H5std_string("participant"),
 									  HOFFSET(PersonTDDataType, participant), PredType::NATIVE_HBOOL);
 
-			// Dummy
-			/*PersonTDDataType personData[1];
-			personData[0].at_household =  true;
-			personData[0].at_school =  false;
-			*/
+			// Dataspace can fit all persons but is chunked in parts of 100 persons
 			dataspace = new DataSpace(1, dims);
-			dataset = new DataSet(group.createDataSet("PersonTD", typePersonTD, *dataspace));
+			DSetCreatPropList  *plist = new  DSetCreatPropList;
+			hsize_t chunk_dims[1] = {100};
+			plist->setChunk(1, chunk_dims);
+			dataset = new DataSet(group.createDataSet("PersonTD", typePersonTD, *dataspace, *plist));
 
-			//dataset->write(personData, typePersonTD);
+			// Persons are saved per chunk
+			unsigned int i = 0;
+			while (i < dims[0]) {
+				hsize_t selected_dims[1];
+				if (i + chunk_dims[0] < dims[0]) {
+					selected_dims[0] = chunk_dims[0];
+				} else {
+					selected_dims[0] = dims[0] - i;
+				}
+
+				PersonTDDataType personData[selected_dims[0]];
+				for (unsigned int j = 0; j < selected_dims[0]; j++) {
+					personData[j].at_household = sim.getPopulation().get()->at(i).m_at_household;
+					personData[j].at_school = sim.getPopulation().get()->at(i).m_at_school;
+					personData[j].at_work = sim.getPopulation().get()->at(i).m_at_work;
+					personData[j].at_prim_comm = sim.getPopulation().get()->at(i).m_at_primary_community;
+					personData[j].at_sec_comm = sim.getPopulation().get()->at(i).m_at_secondary_community;
+					personData[j].participant = sim.getPopulation().get()->at(i).m_is_participant;
+					i++;
+				}
+
+				// Select a hyperslab in the dataset.
+				DataSpace *filespace = new DataSpace(dataset->getSpace ());
+				hsize_t offset[1] = {i-selected_dims[0]};
+				filespace->selectHyperslab(H5S_SELECT_SET, selected_dims, offset);
+
+				// Define memory space.
+				DataSpace *memspace = new DataSpace(1, selected_dims, NULL);
+
+				// Write data to the selected portion of the dataset.
+				dataset->write(personData, typePersonTD, *memspace, *filespace);
+				delete filespace;
+				delete memspace;
+			}
 
 			dataspace->close();
 			dataset->close();
-			timestep++;
+			delete plist;
+			m_timestep++;
 			file.close();
 		} catch (GroupIException error) {
 			error.printError();
