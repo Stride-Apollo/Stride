@@ -37,7 +37,6 @@ install(TARGETS ${EXEC}  DESTINATION   ${BIN_INSTALL_LOCATION})
 # Include the input and output files of the tests
 #============================================================================
 file(COPY "input" DESTINATION "${CMAKE_BINARY_DIR}/test/cpp/gtester/PopGen")
-file(COPY "output" DESTINATION "${CMAKE_BINARY_DIR}/test/cpp/gtester/PopGen")
 
 #============================================================================
 # Define tests.
