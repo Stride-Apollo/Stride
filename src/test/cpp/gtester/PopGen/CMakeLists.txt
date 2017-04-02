@@ -23,12 +23,19 @@ set( SRC
 		main.cpp
 		GeoCalculatorTest.cpp
 		AliasDistributionTest.cpp
+		FamilyParserTest.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)
 target_link_libraries(${EXEC} libstride)
 target_link_libraries( ${EXEC}    ${LIBS} gtest pthread)
 install(TARGETS ${EXEC}  DESTINATION   ${BIN_INSTALL_LOCATION})
+
+
+#============================================================================
+# Include the input files of the tests
+#============================================================================
+file(COPY "input" DESTINATION "${CMAKE_BINARY_DIR}/test/cpp/gtester/PopGen")
 
 #============================================================================
 # Define tests.

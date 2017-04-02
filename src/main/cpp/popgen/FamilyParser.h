@@ -17,10 +17,10 @@ public:
 	FamilyParser() {}
 	~FamilyParser() {}
 
-	vector<FamilyConfig> parseFamilies(string filename);
+	vector<FamilyConfig> parseFamilies(string filename) const;
 
 private:
-	FamilyConfig parseFamily(string config);
+	FamilyConfig parseFamily(string config) const;
 
 };
 

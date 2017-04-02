@@ -5,7 +5,7 @@ using namespace stride;
 using namespace popgen;
 using namespace std;
 
-vector<FamilyConfig> FamilyParser::parseFamilies(string filename) {
+vector<FamilyConfig> FamilyParser::parseFamilies(string filename) const {
 	vector<FamilyConfig> result;
 
 	string line;
@@ -24,25 +24,31 @@ vector<FamilyConfig> FamilyParser::parseFamilies(string filename) {
 	return result;
 }
 
-FamilyConfig FamilyParser::parseFamily(string config) {
+FamilyConfig FamilyParser::parseFamily(string config) const {
 	FamilyConfig result;
 
 	for (char& c: config) {
 		static uint current_age = 0;
+		static bool encountered_space = false;
 
 		if (c == ' ') {
-			result.push_back(current_age);
+			if (not encountered_space) {
+				result.push_back(current_age);
+			}
+			encountered_space = true;
 			current_age = 0;
 		} else if(&c == &config.back()) {
+			encountered_space = false;
 			current_age *= 10;
 			current_age += uint(c) - uint('0');
 			result.push_back(current_age);
 			current_age = 0;
 		} else if (c >= int('0') && c <= int('9')) {
+			encountered_space = false;
 			current_age *= 10;
 			current_age += uint(c) - uint('0');
 		} else {
-			throw invalid_argument("In FamilyParser: Encountered something that is not an integer");
+			throw invalid_argument("In FamilyParser: Encountered something that isn't an unsigned integer or a space");
 		}
 	}
 
