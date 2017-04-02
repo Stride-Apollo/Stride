@@ -17,7 +17,7 @@ using namespace H5;
 
 namespace stride {
 
-Saver::Saver(const char* filename, ptree pt_config, int frequency):
+Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_index_case):
 		m_filename(filename), m_frequency(frequency), m_pt_config(pt_config), m_current_step(-1), m_timestep(0) {
 	try {
 		Exception::dontPrint();
@@ -95,6 +95,13 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency):
 		dataset = new DataSet(file.createDataSet("amt_timesteps", PredType::NATIVE_UINT, *dataspace));
 		dataset->write(amt_time, PredType::NATIVE_UINT);
 
+		delete dataspace;
+		delete dataset;
+
+		dataspace = new DataSpace(1, dims);
+		dataset = new DataSet(file.createDataSet("track_index_case", PredType::NATIVE_INT, *dataspace));
+		bool track[1] = {track_index_case};
+		dataset->write(track, PredType::NATIVE_INT);
 		dataset->close();
 		dataspace->close();
 
@@ -105,6 +112,7 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency):
 }
 
 void Saver::update(const Simulator& sim) {
+	std::cout << "Update called!\n";
 	m_current_step++;
 	if (m_frequency != 0 && m_current_step%m_frequency == 0) {
 		try {

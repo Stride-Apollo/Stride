@@ -12,11 +12,13 @@
 #include "checkpointing/customDataTypes/PersonTDDataType.h"
 #include "checkpointing/customDataTypes/PersonTIDataType.h"
 #include "checkpointing/customDataTypes/RNGDataType.h"
+#include "sim/SimulatorBuilder.h"
 
 using namespace H5;
+using namespace boost::property_tree;
 
 namespace stride {
-Loader::Loader(const char* filename, Simulator& sim) : m_filename(filename) {
+std::shared_ptr<Simulator> Loader::build_sim(unsigned int num_threads) {
 	try {
 		Exception::dontPrint();
 		H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
@@ -42,15 +44,35 @@ Loader::Loader(const char* filename, Simulator& sim) : m_filename(filename) {
 
 		ConfDataType configData[1];
 
-		DataSet dataset = file.openDataSet("configuration/configuration");
-		dataset.read(configData, typeConf);
-		dataset.close();
+		DataSet* dataset = new DataSet(file.openDataSet("configuration/configuration"));
+		dataset->read(configData, typeConf);
 
-		
+		ptree pt_config;
+		pt_config.add("run.checkpointing_frequency", configData[0].checkpointing_frequency);
+		pt_config.add("run.rng_seed", configData[0].rng_seed);
+		pt_config.add("run.r0", configData[0].r0);
+		pt_config.add("run.seeding_rate", configData[0].seeding_rate);
+		pt_config.add("run.immunity_rate", configData[0].immunity_rate);
+		pt_config.add("run.num_days", configData[0].num_days);
+		pt_config.add("run.output_prefix", configData[0].output_prefix);
+		pt_config.add("run.generate_person_file", configData[0].generate_person_file);
+		pt_config.add("run.num_participants_survey", configData[0].num_participants_survey);
+		pt_config.add("run.start_date", configData[0].start_date);
+		pt_config.add("run.log_level", configData[0].log_level);
+
+		delete dataset;
+
+		dataset = new DataSet(file.openDataSet("configuration/track_index_case"));
+		bool track[1];
+		dataset->read(track, PredType::NATIVE_HBOOL);
+		dataset->close();
 
 		file.close();
+		m_track_index_case = track[0];
+		return SimulatorBuilder::build(pt_config, num_threads, m_track_index_case);
 	} catch(FileIException error) {
 		error.printError();
+		return nullptr;
 	}
 }
 }

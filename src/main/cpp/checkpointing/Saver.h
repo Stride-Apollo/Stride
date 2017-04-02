@@ -19,7 +19,7 @@ using namespace boost::property_tree;
 
 class Saver : public util::Observer<Simulator> {
 public:
-	Saver(const char* filename, ptree pt_config, int frequency);
+	Saver(const char* filename, ptree pt_config, int frequency, bool track_index_case);
 
 	virtual void update(const Simulator& sim);
 

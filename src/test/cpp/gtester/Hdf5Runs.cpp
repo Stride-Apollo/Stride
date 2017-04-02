@@ -93,7 +93,7 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 1));
+		(Saver(h5filename.c_str(), pt_config, 1, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
@@ -126,7 +126,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 2));
+		(Saver(h5filename.c_str(), pt_config, 2, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
@@ -160,7 +160,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 0));
+		(Saver(h5filename.c_str(), pt_config, 0, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
@@ -184,7 +184,7 @@ TEST_F(HDF5UnitTests, CheckConfigTree) {
 	string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
-	Saver saver = Saver(h5filename.c_str(), pt_config, 1);
+	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
 
 
 	// ================================================
@@ -237,7 +237,7 @@ TEST_F(HDF5UnitTests, CheckConfigTree) {
 TEST_F(HDF5UnitTests, CreateSaver) {
 	auto pt_config = getConfigTree();
 	string output = "testOutput.h5";
-	Saver saver = Saver(output.c_str(), pt_config, 1);
+	Saver saver = Saver(output.c_str(), pt_config, 1, false);
 }
 
 
@@ -247,7 +247,7 @@ TEST_F(HDF5UnitTests, CheckAmtPersons) {
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
 	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 0));
+		(Saver(h5filename.c_str(), pt_config, 0, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 

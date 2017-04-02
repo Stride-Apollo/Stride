@@ -30,6 +30,7 @@
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
 #include "checkpointing/Saver.h"
+#include "checkpointing/Loader.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 #include <omp.h>
@@ -134,12 +135,16 @@ void run_stride(bool track_index_case,
 
 	string checkpoint_filename = pt_config.get<string>("run.checkpointing_file");
 	ifstream hdf5file(checkpoint_filename.c_str());
-	
-	if (hdf5file.good()) {
-		// construct simulator from the checkpointing file
-	}
 
-	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+	shared_ptr<Simulator> sim;
+	if (hdf5file.good()) {
+		Loader loader(checkpoint_filename.c_str());
+		sim = loader.build_sim(num_threads);
+		cout << "Simulator correctly loaded!";
+		track_index_case = loader.get_track_index_case();
+	} else {
+		sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+	}
 	cout << "Done building the simulator. " << endl << endl;
 
 	// -----------------------------------------------------------------------------------------
@@ -149,10 +154,9 @@ void run_stride(bool track_index_case,
 	cout << "Adding observers to the simulator." << endl;
 	int frequency = checkpointing_frequency == -1 ?
 						pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
-	// TODO give config args to saver
 
 	auto classInstance = std::make_shared<Saver>
-		(Saver(checkpoint_filename.c_str(), pt_config, frequency));
+		(Saver(checkpoint_filename.c_str(), pt_config, frequency, track_index_case));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 	cout << "Done adding the observers." << endl << endl;
