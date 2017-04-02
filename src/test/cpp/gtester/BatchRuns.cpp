@@ -170,9 +170,7 @@ TEST_P( BatchDemos, Run )
 	// -----------------------------------------------------------------------------------------
 	// initialize the simulation.
 	// -----------------------------------------------------------------------------------------
-	cout << "Building the simulator. "<< endl;
 	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	cout << "Done building the simulator. "<< endl <<endl;
 
 	// -----------------------------------------------------------------------------------------
 	// Run the simulation.
