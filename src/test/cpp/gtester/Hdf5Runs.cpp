@@ -1,12 +1,12 @@
 #include "checkpointing/Saver.h"
 #include "sim/SimulatorBuilder.h"
 #include "sim/Simulator.h"
+#include "pop/Population.h"
 #include "checkpointing/customDataTypes/ConfDataType.h"
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
 #include <omp.h>
-#include <spdlog/spdlog.h>
 
 #include <string>
 #include <iostream>
@@ -76,14 +76,6 @@ const string		HDF5UnitTests::g_log_level						= "None";
 const unsigned int	HDF5UnitTests::g_generate_person_file			= 0;
 
 
-/**
- *	Simple test case to test constructor.
- */
-TEST_F(HDF5UnitTests, CreateSaver) {
-	auto pt_config = getConfigTree();
-	Saver saver = Saver("testOutput.h5", pt_config, 1);
-}
-
 
 /**
  *	Test case that checks the amount of timestaps created in the H5 file,
@@ -95,13 +87,13 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 50;
-	const char* h5filename = "testOutput.h5";
+	string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename, pt_config, 1));
+		(Saver(h5filename.c_str(), pt_config, 1));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
@@ -109,7 +101,7 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 		sim->timeStep();
 	}
 
-	H5File h5file (h5filename, H5F_ACC_RDONLY);
+	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
 	unsigned int hdf5_timesteps[1];
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
@@ -128,13 +120,13 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 50;
-	const char* h5filename = "testOutput.h5";
+	string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename, pt_config, 2));
+		(Saver(h5filename.c_str(), pt_config, 2));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
@@ -142,7 +134,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 		sim->timeStep();
 	}
 
-	H5File h5file (h5filename, H5F_ACC_RDONLY);
+	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
 	unsigned int hdf5_timesteps[1];
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
@@ -162,13 +154,13 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 50;
-	const char* h5filename = "testOutput.h5";
+	string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename, pt_config, 0));
+		(Saver(h5filename.c_str(), pt_config, 0));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
@@ -176,7 +168,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 		sim->timeStep();
 	}
 
-	H5File h5file (h5filename, H5F_ACC_RDONLY);
+	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
 	unsigned int hdf5_timesteps[1];
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
@@ -189,10 +181,10 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
  *	Test that checks the stored config data.
  */
 TEST_F(HDF5UnitTests, CheckConfigTree) {
-	const char* h5filename = "testOutput.h5";
+	string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
-	Saver saver = Saver(h5filename, pt_config, 1);
+	Saver saver = Saver(h5filename.c_str(), pt_config, 1);
 
 
 	// ================================================
@@ -222,7 +214,7 @@ TEST_F(HDF5UnitTests, CheckConfigTree) {
 
 
 	/// Check if the stored data conforms to the original data
-	H5File h5file (h5filename, H5F_ACC_RDONLY);
+	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 	DataSet dataset = h5file.openDataSet("configuration/configuration");
 
 	ConfDataType config[1];
@@ -237,6 +229,41 @@ TEST_F(HDF5UnitTests, CheckConfigTree) {
 	ASSERT_EQ(g_start_date, config->start_date);
 	ASSERT_EQ(g_log_level, config->log_level);
 }
+
+
+/**
+ *	Simple test case to test constructor.
+ */
+TEST_F(HDF5UnitTests, CreateSaver) {
+	auto pt_config = getConfigTree();
+	string output = "testOutput.h5";
+	Saver saver = Saver(output.c_str(), pt_config, 1);
+}
+
+
+TEST_F(HDF5UnitTests, CheckAmtPersons) {
+	string h5filename = "testOutput.h5";
+	auto pt_config = getConfigTree();
+
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
+	auto classInstance = std::make_shared<Saver>
+		(Saver(h5filename.c_str(), pt_config, 0));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	sim->registerObserver(classInstance, fnCaller);
+
+	sim->timeStep();
+
+	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
+	DataSet dataset = h5file.openDataSet("personsTI");
+
+	hsize_t dims[1];
+	dataset.getSpace().getSimpleExtentDims(dims, NULL);
+	h5file.close();
+
+	// TODO uncomment when completed in saver
+	// EXPECT_EQ(sim->getPopulation()->size(), dims[0]);
+}
+
 
 
 #ifdef _OPENMP
