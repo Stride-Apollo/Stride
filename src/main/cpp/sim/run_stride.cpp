@@ -139,9 +139,10 @@ void run_stride(bool track_index_case,
 	shared_ptr<Simulator> sim;
 	if (hdf5file.good()) {
 		Loader loader(checkpoint_filename.c_str());
-		sim = loader.build_sim(num_threads);
+		pt_config = loader.get_config(num_threads);
 		cout << "Simulator correctly loaded!";
 		track_index_case = loader.get_track_index_case();
+		sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	} else {
 		sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	}

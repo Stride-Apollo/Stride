@@ -20,15 +20,20 @@ using namespace boost::property_tree;
 class Loader {
 public:
 	Loader(const char* filename): m_filename(filename) {};
-	std::shared_ptr<Simulator> build_sim(unsigned int num_threads);
+	ptree get_config(unsigned int num_threads);
 
 	bool get_track_index_case() {
 		return m_track_index_case;
 	};
 
+	ptree get_parse_tree() {
+		return m_pt_config;
+	}
+
 private:
 	const char* m_filename;
 	bool m_track_index_case;
+	ptree m_pt_config;
 };
 
 }

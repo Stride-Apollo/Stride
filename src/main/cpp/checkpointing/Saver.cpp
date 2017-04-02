@@ -46,6 +46,12 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 							  HOFFSET(ConfDataType, immunity_rate), PredType::NATIVE_DOUBLE);
 		typeConf.insertMember(H5std_string("num_days"), HOFFSET(ConfDataType, num_days), PredType::NATIVE_UINT);
 		StrType tid1(0, H5T_VARIABLE);
+		typeConf.insertMember(H5std_string("population_file"), HOFFSET(ConfDataType, population_file), tid1);
+		typeConf.insertMember(H5std_string("disease_config_file"), HOFFSET(ConfDataType, disease_config_file), tid1);
+		typeConf.insertMember(H5std_string("holidays_file"), HOFFSET(ConfDataType, holidays_file), tid1);
+		typeConf.insertMember(H5std_string("age_contact_matrix_file"), HOFFSET(ConfDataType, age_contact_matrix_file), tid1);
+		typeConf.insertMember(H5std_string("checkpointing_file"), HOFFSET(ConfDataType, checkpointing_file), tid1);
+
 		typeConf.insertMember(H5std_string("output_prefix"), HOFFSET(ConfDataType, output_prefix), tid1);
 		typeConf.insertMember(H5std_string("generate_person_file"),
 							  HOFFSET(ConfDataType, generate_person_file), PredType::NATIVE_HBOOL);
@@ -61,12 +67,34 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 		configData[0].seeding_rate = pt_config.get<double>("run.seeding_rate");
 		configData[0].immunity_rate = pt_config.get<double>("run.immunity_rate");
 		configData[0].num_days = pt_config.get<unsigned int>("run.num_days");
-		configData[0].output_prefix = pt_config.get<std::string>("run.output_prefix").c_str();
+		std::string output = pt_config.get<std::string>("run.output_prefix");
+		configData[0].output_prefix = output.c_str();
+		std::cout << configData[0].output_prefix << "\n";
 		int generate = pt_config.get<unsigned int>("run.generate_person_file");
 		configData[0].generate_person_file = generate == 1 ? true : false;
 		configData[0].num_participants_survey = pt_config.get<unsigned int>("run.num_participants_survey");
-		configData[0].start_date = pt_config.get<std::string>("run.start_date").c_str();
-		configData[0].log_level = pt_config.get<std::string>("run.log_level").c_str();
+		std::string start = pt_config.get<std::string>("run.start_date");
+		configData[0].start_date = start.c_str();
+		std::cout << configData[0].start_date << "\n";
+		std::string log = pt_config.get<std::string>("run.log_level");
+		configData[0].log_level = log.c_str();
+		std::cout << configData[0].log_level << "\n";
+		std::string pop = pt_config.get<std::string>("run.population_file");
+		configData[0].population_file = pop.c_str();
+		std::string dis = pt_config.get<std::string>("run.disease_config_file");
+		configData[0].disease_config_file = dis.c_str();
+		std::string holidays = pt_config.get<std::string>("run.holidays_file");
+		configData[0].holidays_file = holidays.c_str();
+		std::string age_contact = pt_config.get<std::string>("run.age_contact_matrix_file");
+		configData[0].age_contact_matrix_file = age_contact.c_str();
+		std::string checkpoint = pt_config.get<std::string>("run.checkpointing_file");
+		configData[0].checkpointing_file = checkpoint.c_str();
+
+		std::cout << "Population: " << configData[0].population_file << "\n";
+		std::cout << "Disease: " << configData[0].disease_config_file << "\n";
+		std::cout << "Holidays: " << configData[0].holidays_file << "\n";
+		std::cout << "Age Contact: " << configData[0].age_contact_matrix_file << "\n";
+		std::cout << "Checkpointing: " << configData[0].checkpointing_file << "\n";
 
 		DataSet* dataset = new DataSet(group.createDataSet(H5std_string("configuration"), typeConf, *dataspace));
 		dataset->write(configData, typeConf);
