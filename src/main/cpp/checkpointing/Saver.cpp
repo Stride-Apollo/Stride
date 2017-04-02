@@ -112,7 +112,6 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 }
 
 void Saver::update(const Simulator& sim) {
-	std::cout << "Update called!\n";
 	m_current_step++;
 	if (m_frequency != 0 && m_current_step%m_frequency == 0) {
 		try {
@@ -131,6 +130,14 @@ void Saver::update(const Simulator& sim) {
 				typePersonTI.insertMember(H5std_string("work_ID"), HOFFSET(PersonTIDataType, work_ID), PredType::NATIVE_UINT);
 				typePersonTI.insertMember(H5std_string("prim_comm_ID"), HOFFSET(PersonTIDataType, prim_comm_ID), PredType::NATIVE_UINT);
 				typePersonTI.insertMember(H5std_string("sec_comm_ID"), HOFFSET(PersonTIDataType, sec_comm_ID), PredType::NATIVE_UINT);
+				typePersonTI.insertMember(H5std_string("start_infectiousness"),
+										  HOFFSET(PersonTIDataType, start_infectiousness), PredType::NATIVE_UINT);
+				typePersonTI.insertMember(H5std_string("time_infectiousness"),
+										  HOFFSET(PersonTIDataType, time_infectiousness), PredType::NATIVE_UINT);
+				typePersonTI.insertMember(H5std_string("start_symptomatic"),
+										  HOFFSET(PersonTIDataType, start_symptomatic), PredType::NATIVE_UINT);
+				typePersonTI.insertMember(H5std_string("time_symptomatic"),
+										  HOFFSET(PersonTIDataType, time_symptomatic), PredType::NATIVE_UINT);
 
 				DataSpace* dataspace = new DataSpace(1, dims);
 				DataSet* dataset = new DataSet(file.createDataSet("personsTI", typePersonTI, *dataspace));
@@ -156,6 +163,12 @@ void Saver::update(const Simulator& sim) {
 						personData[j].work_ID = sim.getPopulation().get()->at(i).m_work_id;
 						personData[j].prim_comm_ID = sim.getPopulation().get()->at(i).m_primary_community_id;
 						personData[j].sec_comm_ID = sim.getPopulation().get()->at(i).m_secondary_community_id;
+						personData[j].start_infectiousness = sim.getPopulation().get()->at(i).m_health.getStartInfectiousness();
+						personData[j].start_symptomatic = sim.getPopulation().get()->at(i).m_health.getStartSymptomatic();
+						personData[j].time_infectiousness =
+								sim.getPopulation().get()->at(i).m_health.getEndInfectiousness() - sim.getPopulation().get()->at(i).m_health.getStartInfectiousness();
+						personData[j].time_symptomatic =
+								sim.getPopulation().get()->at(i).m_health.getEndSymptomatic() - sim.getPopulation().get()->at(i).m_health.getStartSymptomatic();
 						i++;
 					}
 
@@ -242,6 +255,8 @@ void Saver::update(const Simulator& sim) {
 									  HOFFSET(PersonTDDataType, at_sec_comm), PredType::NATIVE_HBOOL);
 			typePersonTD.insertMember(H5std_string("participant"),
 									  HOFFSET(PersonTDDataType, participant), PredType::NATIVE_HBOOL);
+			typePersonTD.insertMember(H5std_string("health_status"),
+									  HOFFSET(PersonTDDataType, health_status), PredType::NATIVE_UINT);
 
 			// Dataspace can fit all persons but is chunked in parts of 100 persons
 			dataspace = new DataSpace(1, dims);
@@ -268,6 +283,7 @@ void Saver::update(const Simulator& sim) {
 					personData[j].at_prim_comm = sim.getPopulation().get()->at(i).m_at_primary_community;
 					personData[j].at_sec_comm = sim.getPopulation().get()->at(i).m_at_secondary_community;
 					personData[j].participant = sim.getPopulation().get()->at(i).m_is_participant;
+					personData[j].health_status = (unsigned int) sim.getPopulation().get()->at(i).m_health.getHealthStatus();
 					i++;
 				}
 

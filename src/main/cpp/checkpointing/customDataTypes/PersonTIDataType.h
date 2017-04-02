@@ -11,4 +11,8 @@ struct PersonTIDataType {
 	unsigned int work_ID;
 	unsigned int prim_comm_ID;
 	unsigned int sec_comm_ID;
+	unsigned int start_infectiousness;
+	unsigned int time_infectiousness;
+	unsigned int start_symptomatic;
+	unsigned int time_symptomatic;
 };

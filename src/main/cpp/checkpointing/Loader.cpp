@@ -65,11 +65,53 @@ std::shared_ptr<Simulator> Loader::build_sim(unsigned int num_threads) {
 		dataset = new DataSet(file.openDataSet("configuration/track_index_case"));
 		bool track[1];
 		dataset->read(track, PredType::NATIVE_HBOOL);
-		dataset->close();
-
-		file.close();
 		m_track_index_case = track[0];
-		return SimulatorBuilder::build(pt_config, num_threads, m_track_index_case);
+
+		delete dataset;
+
+		std::shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, m_track_index_case);
+
+		dataset = new DataSet(file.openDataSet("personsTI"));
+		DataSpace dataspace = dataset->getSpace();
+		const int ndims = dataspace.getSimpleExtentNdims();
+		hsize_t dims[ndims];
+		dataspace.getSimpleExtentDims(dims, NULL);
+		dataspace.close();
+
+		sim->m_population = std::make_shared<Population>();
+
+		CompType typePersonTI(sizeof(PersonTIDataType));
+		typePersonTI.insertMember(H5std_string("ID"), HOFFSET(PersonTIDataType, ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("age"), HOFFSET(PersonTIDataType, age), PredType::NATIVE_DOUBLE);
+		typePersonTI.insertMember(H5std_string("gender"), HOFFSET(PersonTIDataType, gender), PredType::NATIVE_CHAR);
+		typePersonTI.insertMember(H5std_string("household_ID"), HOFFSET(PersonTIDataType, household_ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("school_ID"), HOFFSET(PersonTIDataType, school_ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("work_ID"), HOFFSET(PersonTIDataType, work_ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("prim_comm_ID"), HOFFSET(PersonTIDataType, prim_comm_ID), PredType::NATIVE_UINT);
+		typePersonTI.insertMember(H5std_string("sec_comm_ID"), HOFFSET(PersonTIDataType, sec_comm_ID), PredType::NATIVE_UINT);
+
+		for (unsigned int i = 0; i < dims[0]; i++) {
+			PersonTIDataType person[1];
+			hsize_t dim_sub[1] = {100};
+
+			DataSpace memspace(1, dim_sub, NULL);
+
+			hsize_t offset[1] = {i};
+			hsize_t count[1] = {1};
+			hsize_t stride[1] = {1};
+			hsize_t block[1] = {1};
+
+			dataspace = dataset->getSpace();
+			dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
+			dataset->read(person, typePersonTI, dataspace);
+			sim->m_population.get()->push_back(Simulator::PersonType(person[0].ID, person[0].age, person[0].household_ID, person[0].school_ID, person[0].work_ID, person[0].prim_comm_ID, person[0].sec_comm_ID, person[0].start_infectiousness, person[0].start_symptomatic, person[0].time_infectiousness, person[0].time_symptomatic));
+		}
+
+		dataset->close();
+		file.close();
+		std::cout << "\nDone with the initial loading!!\n\n";
+
+		return sim;
 	} catch(FileIException error) {
 		error.printError();
 		return nullptr;
