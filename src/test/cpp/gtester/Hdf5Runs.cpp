@@ -81,7 +81,7 @@ TEST_F(HDF5UnitTests, CreateSaver) {
 	EXPECT_TRUE(true);
 }
 
-TEST_P(HDF5UnitTests, AmtCheckpoints) {
+TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	unsigned int num_threads = GetParam();
 	omp_set_num_threads(num_threads);
 	omp_set_schedule(omp_sched_static,1);
@@ -107,6 +107,62 @@ TEST_P(HDF5UnitTests, AmtCheckpoints) {
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
 
 	EXPECT_EQ(num_days-1, hdf5_timesteps[0]);
+}
+
+TEST_P(HDF5UnitTests, AmtCheckPoints2) {
+	unsigned int num_threads = GetParam();
+	omp_set_num_threads(num_threads);
+	omp_set_schedule(omp_sched_static,1);
+
+	unsigned int num_days = 50;
+	const char* h5filename = "testOutput.h5";
+	auto pt_config = getConfigTree();
+
+
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto classInstance = std::make_shared<Saver>
+		(Saver(h5filename, pt_config, 2));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	sim->registerObserver(classInstance, fnCaller);
+
+	for (unsigned int i = 0; i < num_days; i++) {
+		sim->timeStep();
+	}
+
+	H5File h5file (h5filename, H5F_ACC_RDONLY);
+	DataSet dataset = h5file.openDataSet("amt_timesteps");
+	unsigned int hdf5_timesteps[1];
+	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
+
+	EXPECT_EQ((num_days/2)-1, hdf5_timesteps[0]);
+}
+
+TEST_P(HDF5UnitTests, AmtCheckPoints3) {
+	unsigned int num_threads = GetParam();
+	omp_set_num_threads(num_threads);
+	omp_set_schedule(omp_sched_static,1);
+
+	unsigned int num_days = 50;
+	const char* h5filename = "testOutput.h5";
+	auto pt_config = getConfigTree();
+
+
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto classInstance = std::make_shared<Saver>
+		(Saver(h5filename, pt_config, 0));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	sim->registerObserver(classInstance, fnCaller);
+
+	for (unsigned int i = 0; i < num_days; i++) {
+		sim->timeStep();
+	}
+
+	H5File h5file (h5filename, H5F_ACC_RDONLY);
+	DataSet dataset = h5file.openDataSet("amt_timesteps");
+	unsigned int hdf5_timesteps[1];
+	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
+
+	EXPECT_EQ(0U, hdf5_timesteps[0]);
 }
 
 
