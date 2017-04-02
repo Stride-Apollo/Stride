@@ -47,7 +47,8 @@ set(LIB_SRC
 #---
     hdf5Prototype/subsets.cpp
 #---
-    checkpointing/Saver.cpp)
+    checkpointing/Saver.cpp
+    checkpointing/Loader.cpp)
 
 set(MAIN_SRC
         sim/main.cpp

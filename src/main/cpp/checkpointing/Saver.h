@@ -17,16 +17,11 @@ using namespace boost::property_tree;
  * Saver class to save to hdf5
  */
 
-// TODO Maybe make this singleton?
 class Saver : public util::Observer<Simulator> {
 public:
 	Saver(const char* filename, ptree pt_config, int frequency);
 
 	virtual void update(const Simulator& sim);
-
-
-	// TODO After implementing Saver completely, remove this function
-	void testLoad();
 
 private:
 	const char* m_filename;

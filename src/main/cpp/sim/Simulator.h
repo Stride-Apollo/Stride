@@ -39,12 +39,14 @@ class Population;
 class Calendar;
 class Cluster;
 class Saver;
+class Loader;
 
 /**
  * Main class that contains and direct the virtual world.
  */
 class Simulator : public util::Subject<Simulator> {
 friend class Saver;
+friend class Loader;
 public:
 	using PersonType = Person<NoBelief, NoBehavior>;
 

@@ -99,36 +99,8 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency):
 		dataspace->close();
 
 		file.close();
-
-		testLoad();
 	} catch(FileIException error) {
 		error.printError();
-	}
-}
-
-void Saver::testLoad() {
-	try {
-		H5File file(m_filename, H5F_ACC_RDONLY);
-		DataSet dataset = file.openDataSet("configuration/configuration");
-
-		ConfDataType config[1];
-		dataset.read(config, typeConf);
-
-		std::cout << "Loaded config file with contents:\n\n";
-		std::cout << "Checkpointing frequency: " << config->checkpointing_frequency << std::endl;
-		std::cout << "Rng seed: " << config->rng_seed << std::endl;
-		std::cout << "R0: " << config->r0 << std::endl;
-		std::cout << "Seeding Rate: " << config->seeding_rate << std::endl;
-		std::cout << "Immunity Rate: " << config->immunity_rate << std::endl;
-		std::cout << "Num Days: " << config->num_days << std::endl;
-		std::cout << "Output Prefix: " << config->output_prefix << std::endl;
-		std::cout << "Generate Person File: " << config->generate_person_file << std::endl;
-		std::cout << "Num Participants Survey: " << config->num_participants_survey << std::endl;
-		std::cout << "Start Date: " << config->start_date << std::endl;
-		std::cout << "Log Level: " << config->log_level << std::endl;
-
-	} catch (Exception e) {
-		e.printError();
 	}
 }
 
