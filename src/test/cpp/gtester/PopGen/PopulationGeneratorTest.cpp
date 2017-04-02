@@ -6,6 +6,7 @@
 #include "popgen/PopulationGenerator.h"
 #include "popgen/FamilyParser.h"
 #include "util/StringUtils.h"
+#include "util/InstallDirs.h"
 
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
@@ -60,13 +61,13 @@ protected:
 };
 
 // Default values
-const string            PopulationGeneratorDemos::g_happy_day_file            = "./input/happy_day.xml";
-const string            PopulationGeneratorDemos::g_no_cities_file            = "./input/no_cities.xml";
-const string            PopulationGeneratorDemos::g_no_villages_file          = "./input/no_villages.xml";
-const string            PopulationGeneratorDemos::g_invalid_syntax_file       = "./input/invalid_syntax.xml";
-const string            PopulationGeneratorDemos::g_input_violation_file      = "./input/input_violation.xml";
-const string            PopulationGeneratorDemos::g_contradiction_file        = "./input/contradiction.xml";
-const string            PopulationGeneratorDemos::g_non_existent_file         = "./input/non_existent.xml";
+const string            PopulationGeneratorDemos::g_happy_day_file            = "happy_day.xml";
+const string            PopulationGeneratorDemos::g_no_cities_file            = "no_cities.xml";
+const string            PopulationGeneratorDemos::g_no_villages_file          = "no_villages.xml";
+const string            PopulationGeneratorDemos::g_invalid_syntax_file       = "invalid_syntax.xml";
+const string            PopulationGeneratorDemos::g_input_violation_file      = "input_violation.xml";
+const string            PopulationGeneratorDemos::g_contradiction_file        = "contradiction.xml";
+const string            PopulationGeneratorDemos::g_non_existent_file         = "non_existent.xml";
 const string            PopulationGeneratorDemos::g_output_prefix             = "PopulationGenerator";
 
 // TODO: make this clean, but for now, this will do (messy tests are better than no tests)
@@ -261,35 +262,26 @@ void checkHappyDayHouseHolds(const string& household_file, const string& pop_fil
 }
 
 
-TEST_F(PopulationGeneratorDemos, HappyDay) {
+TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 	// Tests which reflect the regular use
-
-	// -----------------------------------------------------------------------------------------
-	// Initialize the logger.
-	// -----------------------------------------------------------------------------------------
-	spdlog::set_async_mode(1048576);
-	auto file_logger = spdlog::rotating_logger_mt("contact_logger", g_output_prefix + "_logfile",
-		std::numeric_limits<size_t>::max(),  std::numeric_limits<size_t>::max());
-	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
 	// -----------------------------------------------------------------------------------------
 	// Actual tests
 	// -----------------------------------------------------------------------------------------
+	try {
+		const string data_dir = InstallDirs::getDataDir().string();
 
-	PopulationGenerator gen {g_happy_day_file, false};
-	gen.generate("./output/cities.csv", "./output/pop.csv", "./output/hh.csv");
+		PopulationGenerator gen {data_dir + string("/") + g_happy_day_file, false};
+		gen.generate(data_dir + string("/cities.csv"), data_dir + string("/pop.csv"), data_dir + string("/hh.csv"));
 
-	vector<vector<string> > csv = readCSV("./output/cities.csv");
-	checkHappyDayCities(csv);
+		vector<vector<string> > csv = readCSV(data_dir + string("/cities.csv"));
+		checkHappyDayCities(csv);
 
-	checkHappyDayPop("./output/pop.csv", "./input/households_flanders.txt");
+		checkHappyDayPop(data_dir + string("/pop.csv"), data_dir + string("/households_flanders.txt"));
 
-	checkHappyDayHouseHolds("./output/hh.csv", "./output/pop.csv");
+		checkHappyDayHouseHolds(data_dir + string("/hh.csv"), data_dir + string("/pop.csv"));
+	} catch(...) {}
 
-	// -----------------------------------------------------------------------------------------
-	// Release and close logger.
-	// -----------------------------------------------------------------------------------------
-	spdlog::drop_all();
 }
 
 TEST_F(PopulationGeneratorDemos, UnhappyDay) {

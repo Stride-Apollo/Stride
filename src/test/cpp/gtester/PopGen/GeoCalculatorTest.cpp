@@ -65,17 +65,8 @@ const GeoCoordinate                  GeoCalculatorDemos::g_min_lon              
 const vector<uint>                   GeoCalculatorDemos::g_solutions                = vector<uint> {0, 9627, 20015, 0, 11646, 4994, 5202, 14812, 15204, 15204};
 const string                         GeoCalculatorDemos::g_output_prefix            = "GeoCalculator";
 
-TEST_F(GeoCalculatorDemos, SingletonPattern) {
+TEST_F(GeoCalculatorDemos, SingletonPattern_default) {
 	// Test whether this is actually written according to the singleton pattern
-
-	// -----------------------------------------------------------------------------------------
-	// Initialize the logger.
-	// -----------------------------------------------------------------------------------------
-	spdlog::set_async_mode(1048576);
-	auto file_logger = spdlog::rotating_logger_mt("contact_logger", g_output_prefix + "_logfile",
-		std::numeric_limits<size_t>::max(),  std::numeric_limits<size_t>::max());
-	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
-	
 
 	// -----------------------------------------------------------------------------------------
 	// Actual tests

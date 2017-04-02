@@ -121,16 +121,8 @@ vector<pair<uint, double> > run_alias_distribution(AliasDistribution& dist, uint
 	return observed_vs_theoretical;
 }
 
-TEST_F(AliasDistributionDemos, HappyDay) {
+TEST_F(AliasDistributionDemos, HappyDay_default) {
 	// Tests which reflect the regular use
-
-	// -----------------------------------------------------------------------------------------
-	// Initialize the logger.
-	// -----------------------------------------------------------------------------------------
-	spdlog::set_async_mode(1048576);
-	auto file_logger = spdlog::rotating_logger_mt("contact_logger", g_output_prefix + "_logfile",
-		std::numeric_limits<size_t>::max(),  std::numeric_limits<size_t>::max());
-	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
 	// -----------------------------------------------------------------------------------------
 	// Actual tests
@@ -142,14 +134,9 @@ TEST_F(AliasDistributionDemos, HappyDay) {
 	// Test the big distribution
 	vector<pair<uint, double> > big_result = run_alias_distribution(g_alias_big, g_happy_day_amount, g_prob_big, g_rng_mt);
 	EXPECT_TRUE(chi_sq_test(big_result, g_confidence));
-
-	// -----------------------------------------------------------------------------------------
-	// Release and close logger.
-	// -----------------------------------------------------------------------------------------
-	spdlog::drop_all();
 }
 
-TEST_F(AliasDistributionDemos, Boundaries) {
+TEST_F(AliasDistributionDemos, Boundaries_default) {
 	// Tests on certain values given to the constructor of the AliasDistribution (e.g. empty vector of probabilities)
 
 	// Zero chances

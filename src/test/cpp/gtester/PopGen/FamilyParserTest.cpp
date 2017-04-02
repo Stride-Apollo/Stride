@@ -4,6 +4,7 @@
  */
 
 #include "popgen/FamilyParser.h"
+#include "util/InstallDirs.h"
 
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
@@ -18,6 +19,7 @@ using namespace std;
 using namespace stride;
 using namespace popgen;
 using namespace ::testing;
+using namespace util;
 
 namespace Tests {
 
@@ -53,13 +55,13 @@ protected:
 };
 
 // Default values
-const string                    FamilyParserDemos::g_happy_day_file                = "input/happy_day.txt";
-const string                    FamilyParserDemos::g_empty_file                    = "input/empty.txt";
-const string                    FamilyParserDemos::g_whitespace_file               = "input/whitespace.txt";
-const string                    FamilyParserDemos::g_invalid_delimiter_file        = "input/invalid_delimiter.txt";
-const string                    FamilyParserDemos::g_invalid_number_file           = "input/invalid_number.txt";
-const string                    FamilyParserDemos::g_negative_number_file          = "input/negative_number.txt";
-const string                    FamilyParserDemos::g_non_existent_file             = "input/non_existent.txt";
+const string                    FamilyParserDemos::g_happy_day_file                = "/happy_day.txt";
+const string                    FamilyParserDemos::g_empty_file                    = "/empty.txt";
+const string                    FamilyParserDemos::g_whitespace_file               = "/whitespace.txt";
+const string                    FamilyParserDemos::g_invalid_delimiter_file        = "/invalid_delimiter.txt";
+const string                    FamilyParserDemos::g_invalid_number_file           = "/invalid_number.txt";
+const string                    FamilyParserDemos::g_negative_number_file          = "/negative_number.txt";
+const string                    FamilyParserDemos::g_non_existent_file             = "/non_existent.txt";
 const vector<FamilyConfig>      FamilyParserDemos::g_solution                      = vector<FamilyConfig>{
 																						FamilyConfig {20, 18, 1},
 																						FamilyConfig {54, 52, 22, 20, 18},
@@ -70,35 +72,26 @@ const FamilyParser              FamilyParserDemos::g_parser                     
 const string                    FamilyParserDemos::g_output_prefix                 = "FamilyParser";
 
 
-TEST_F(FamilyParserDemos, HappyDay) {
+TEST_F(FamilyParserDemos, HappyDay_default) {
 	// Tests which reflect the regular use
 
-	// -----------------------------------------------------------------------------------------
-	// Initialize the logger.
-	// -----------------------------------------------------------------------------------------
-	spdlog::set_async_mode(1048576);
-	auto file_logger = spdlog::rotating_logger_mt("contact_logger", g_output_prefix + "_logfile",
-		std::numeric_limits<size_t>::max(),  std::numeric_limits<size_t>::max());
-	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
+	const string data_dir = InstallDirs::getDataDir().string();
 
 	// -----------------------------------------------------------------------------------------
 	// Actual tests
 	// -----------------------------------------------------------------------------------------
-	EXPECT_EQ(g_parser.parseFamilies(g_happy_day_file), g_solution);
-	EXPECT_TRUE(g_parser.parseFamilies(g_empty_file).empty());
-	EXPECT_EQ(g_parser.parseFamilies(g_whitespace_file), g_solution);
-
-	// -----------------------------------------------------------------------------------------
-	// Release and close logger.
-	// -----------------------------------------------------------------------------------------
-	spdlog::drop_all();
+	EXPECT_EQ(g_parser.parseFamilies(data_dir + g_happy_day_file), g_solution);
+	EXPECT_TRUE(g_parser.parseFamilies(data_dir + g_empty_file).empty());
+	EXPECT_EQ(g_parser.parseFamilies(data_dir + g_whitespace_file), g_solution);
 }
 
-TEST_F(FamilyParserDemos, Failures) {
-	EXPECT_THROW(g_parser.parseFamilies(g_invalid_number_file), invalid_argument);
-	EXPECT_THROW(g_parser.parseFamilies(g_invalid_delimiter_file), invalid_argument);
-	EXPECT_THROW(g_parser.parseFamilies(g_negative_number_file), invalid_argument);
-	EXPECT_THROW(g_parser.parseFamilies(g_non_existent_file), invalid_argument);
+TEST_F(FamilyParserDemos, Failures_default) {
+	const string data_dir = InstallDirs::getDataDir().string();
+	
+	EXPECT_THROW(g_parser.parseFamilies(data_dir + g_invalid_number_file), invalid_argument);
+	EXPECT_THROW(g_parser.parseFamilies(data_dir + g_invalid_delimiter_file), invalid_argument);
+	EXPECT_THROW(g_parser.parseFamilies(data_dir + g_negative_number_file), invalid_argument);
+	EXPECT_THROW(g_parser.parseFamilies(data_dir + g_non_existent_file), invalid_argument);
 }
 
 } //end-of-namespace-Tests

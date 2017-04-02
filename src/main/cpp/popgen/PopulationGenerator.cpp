@@ -378,7 +378,14 @@ void PopulationGenerator::makeHouseholds() {
 	string file_name = m_props.get<string>("POPULATION.FAMILY.<xmlattr>.file");
 
 	FamilyParser parser;
-	vector<FamilyConfig> family_config {parser.parseFamilies(file_name)};
+
+	char the_path[256];
+    getcwd(the_path, 255);
+
+    string current_dir = the_path;
+    current_dir += "/../data/";
+
+	vector<FamilyConfig> family_config {parser.parseFamilies(current_dir + file_name)};
 
 	uint current_generated = 0;
 
