@@ -207,6 +207,8 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 		}
 	}
 
+	EXPECT_EQ(community[0], 0U);
+
 	// Check work ID consistency
 	map<uint, uint> work;
 	for (uint i = id.min; i <= id.max; i++) {
