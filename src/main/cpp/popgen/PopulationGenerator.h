@@ -23,8 +23,6 @@ using namespace util;
 
 using uint = unsigned int;
 
-/// TODO: see TODO's + fix horrific time complexity of workplace assignment
-
 class PopulationGenerator {
 public:
 

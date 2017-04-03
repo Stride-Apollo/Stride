@@ -924,15 +924,18 @@ void PopulationGenerator::assignCloseStudent(SimplePerson& person, double start_
 	vector<uint> closest_clusters_indices;
 
 	while (!added) {
+
+		// Note how getting the distance to the closest univ is the same as getting the distance to the closest city
+		// This is because their vectors are in the same order!
 		closest_clusters_indices = getClusters(person.m_coord, current_radius, m_cities);
 
-		for (uint& index: closest_clusters_indices) {
+		while (closest_clusters_indices.size() != 0) {
+			AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / closest_clusters_indices.size())};
 
-			/// TODO make uniformly distributed choice
-			uint current_univ = index;
-			while (current_univ < m_optional_schools.size() && !added) {
-				for (uint i = 0; i < m_optional_schools.at(current_univ).size(); i++) {
-					SimpleCluster& univ_cluster = m_optional_schools.at(current_univ).at(i);
+			uint index = dist(m_rng);
+			while (index < m_optional_schools.size() && !added) {
+				for (uint i = 0; i < m_optional_schools.at(index).size(); i++) {
+					SimpleCluster& univ_cluster = m_optional_schools.at(index).at(i);
 					if (univ_cluster.m_current_size < univ_cluster.m_max_size) {
 						univ_cluster.m_current_size++;
 						person.m_school_id = univ_cluster.m_id;
@@ -940,11 +943,14 @@ void PopulationGenerator::assignCloseStudent(SimplePerson& person, double start_
 						break;
 					}
 				}
-				current_univ += m_cities.size();
+				index += m_cities.size();
 			}
 
 			if (added) {
 				break;
+			} else {
+				closest_clusters_indices.erase(closest_clusters_indices.begin() + (index % closest_clusters_indices.size()),
+					closest_clusters_indices.begin() + (index % closest_clusters_indices.size()) + 1);
 			}
 		}
 
@@ -1019,7 +1025,6 @@ void PopulationGenerator::assignCommutingEmployee(SimplePerson& person) {
 }
 
 void PopulationGenerator::assignCloseEmployee(SimplePerson& person, double start_radius) {
-	/// TODO make this faster
 	double factor = 2.0;
 	double current_radius = start_radius;
 	vector<uint> closest_clusters_indices;

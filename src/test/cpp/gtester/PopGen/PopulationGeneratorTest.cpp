@@ -167,6 +167,27 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 		}
 	}
 
+	// Test household consistency
+	FamilyParser parser;
+	vector<FamilyConfig> family_config = parser.parseFamilies(household_file);
+	map<FamilyConfig, uint> households;
+	uint biggest_family = 0;
+	for (uint i = id.min; i <= id.max; i++) {
+		FamilyConfig household;
+
+		for (SimplePerson& person: people[i]) {
+			household.push_back(person.m_age);
+		}
+
+		if (household.size() > biggest_family) {
+			biggest_family = household.size();
+		}
+
+		// Should this family configuration exist?
+		EXPECT_NE(find (family_config.begin(), family_config.end(), household), family_config.end());
+	}
+
+	map<uint, uint> community;
 	// Test for communities within each household
 	for (uint i = id.min; i <= id.max; i++) {
 		uint primary_community = 0;
@@ -179,22 +200,11 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 		for (SimplePerson& person: people[i]) {
 			EXPECT_EQ(person.m_primary_community, primary_community);
 			EXPECT_EQ(person.m_secondary_community, secondary_community);
+			community[person.m_primary_community]++;
+			community[person.m_secondary_community]++;
+			EXPECT_LT(community[person.m_primary_community], 2000U + biggest_family);
+			EXPECT_LT(community[person.m_secondary_community], 2000U + biggest_family);
 		}
-	}
-
-	// Test household consistency
-	FamilyParser parser;
-	vector<FamilyConfig> family_config = parser.parseFamilies(household_file);
-	map<FamilyConfig, uint> households;
-	for (uint i = id.min; i <= id.max; i++) {
-		FamilyConfig household;
-
-		for (SimplePerson& person: people[i]) {
-			household.push_back(person.m_age);
-		}
-
-		// Should this family configuration exist?
-		EXPECT_NE(find (family_config.begin(), family_config.end(), household), family_config.end());
 	}
 
 	// Check work ID consistency
@@ -210,7 +220,7 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 	}
 
 
-	// TODO not tested: fair distribution of everything, what to do with schools?, unemployment
+	// TODO not tested: fair distribution of everything, what to do with schools?, unemployment, test for sizes
 }
 
 void checkHappyDayHouseHolds(const string& household_file, const string& pop_file) {
