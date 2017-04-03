@@ -268,17 +268,15 @@ TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 	// -----------------------------------------------------------------------------------------
 	// Actual tests
 	// -----------------------------------------------------------------------------------------
-	try {
-		PopulationGenerator gen {g_happy_day_file, false};
-		gen.generate("cities.csv", "pop.csv", "hh.csv");
+	PopulationGenerator gen {g_happy_day_file, false};
+	gen.generate("cities.csv", "pop.csv", "hh.csv");
 
-		vector<vector<string> > csv = readCSV("cities.csv");
-		checkHappyDayCities(csv);
+	vector<vector<string> > csv = readCSV("cities.csv");
+	checkHappyDayCities(csv);
 
-		checkHappyDayPop("pop.csv", "households_flanders.txt");
+	checkHappyDayPop("pop.csv", "households_flanders.txt");
 
-		checkHappyDayHouseHolds("hh.csv", "pop.csv");
-	} catch(...) {}
+	checkHappyDayHouseHolds("hh.csv", "pop.csv");
 
 }
 

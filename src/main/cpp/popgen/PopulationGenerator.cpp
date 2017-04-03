@@ -615,8 +615,9 @@ void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, d
 		for (uint age = min_age; age <= max_age; age++) {
 			people += m_age_distribution[age];
 		}
-
 	}
+
+	people = ceil(fraction * people);
 
 	uint needed_clusters = ceil(double(people) / size);
 	uint city_village_size = getCityPopulation() + getVillagePopulation();
@@ -752,10 +753,33 @@ void PopulationGenerator::makeWork() {
 	uint size = work_config.get<uint>("<xmlattr>.size");
 	uint min_age = school_work_config.get<uint>("EMPLOYEE.<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("EMPLOYEE.<xmlattr>.max");
+	uint young_min_age = school_work_config.get<uint>("YOUNG_EMPLOYEE.<xmlattr>.min");
+	uint young_max_age = school_work_config.get<uint>("YOUNG_EMPLOYEE.<xmlattr>.max");
+	double young_fraction = school_work_config.get<double>("YOUNG_EMPLOYEE.<xmlattr>.fraction") / 100.0;
 	double fraction = school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 
-	/// TODO subtract people in universities
-	placeClusters(size, min_age, max_age, fraction, m_workplaces, "workplaces");
+	uint possible_students = 0;
+	uint total_old = 0;
+	for (SimplePerson& person: m_people) {
+		if (person.m_age >= young_min_age && person.m_age <= young_max_age) {
+			possible_students++;
+		}
+
+		if (person.m_age >= std::max(min_age, young_max_age + 1) && person.m_age <= max_age) {
+			total_old++;
+		}
+	}
+
+	uint total_of_age = possible_students + total_old;
+	// Subtract actual students
+	uint total_working = total_of_age - ceil(possible_students * (1.0 - young_fraction));
+	total_working = ceil(total_working * fraction);
+
+	// Calculate the actual fraction of people between young_min_age and max_age who are working
+	double actual_fraction = double(total_working) / total_of_age;
+
+	placeClusters(size, young_min_age, max_age, actual_fraction, m_workplaces, "workplaces");
+
 	/// Make sure the work clusters are sorted from big city to smaller city
 	sortWorkplaces();
 }
@@ -780,7 +804,7 @@ void PopulationGenerator::assignToSchools() {
 
 	double factor = 2.0;
 
-	/// TODO refactor => this is not good at all
+	/// TODO refactor => this is not pretty at all
 	for (SimpleCluster& cluster: m_mandatory_schools) {
 		SimpleCluster new_cluster;
 		new_cluster.m_max_size = cluster_size;
@@ -855,33 +879,12 @@ void PopulationGenerator::assignToUniversities() {
 			cerr << "\rAssigning students to universities [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
 			total_placed++;
 
-
-			uint freebefore = 0;
-			for (vector<SimpleCluster>& vec: m_optional_schools) {
-				for (SimpleCluster& cl: vec) {
-					freebefore += cl.m_max_size - cl.m_current_size;
-				}
-			}
-
 			if (commute_dist(m_rng) == 0) {
 				/// Commuting student
 				assignCommutingStudent(person);
 			} else {
 				/// Non-commuting student
 				assignCloseStudent(person, radius);
-			}
-
-			uint freeafter = 0;
-			for (vector<SimpleCluster>& vec: m_optional_schools) {
-				for (SimpleCluster& cl: vec) {
-					freeafter += cl.m_max_size - cl.m_current_size;
-				}
-			}
-
-			/// TODO remove this, this was for some manual testing
-			if (freebefore - 1 != freeafter) {
-				cout << "ERROR\n";
-				exit(0);
 			}
 		}
 	}
@@ -972,6 +975,11 @@ void PopulationGenerator::assignToWork() {
 	}
 
 	for (SimplePerson& person: m_people) {
+		if (m_workplaces.size() == 0) {
+			// Stop adding people to workplaces, they are full
+			break;
+		}
+
 		if (person.m_age >= min_age && person.m_age <= max_age) {
 			cerr << "\rAssigning people to workplaces [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
 			total_placed++;
@@ -994,10 +1002,17 @@ void PopulationGenerator::assignCommutingEmployee(SimplePerson& person) {
 		/// but workplaces can be in cities and villages where commuting is only in cities  => possible problems with over-employing in cities
 	/// Behavior on that topic is currently as follows: do the thing that is requested, if all cities are full, it just adds to the first village in the list
 
-	for (SimpleCluster& workplace: m_workplaces) {
+	for (uint i = 0; i < m_workplaces.size(); i++) {
+		SimpleCluster& workplace = m_workplaces.at(i);
+
 		if (workplace.m_max_size > workplace.m_current_size) {
 			workplace.m_current_size++;
 			person.m_work_id = workplace.m_id;
+
+			if (workplace.m_current_size >= workplace.m_max_size) {
+				m_workplaces.erase(m_workplaces.begin() + i, m_workplaces.begin() + i + 1);
+			}
+
 			break;
 		}
 	}
@@ -1008,34 +1023,26 @@ void PopulationGenerator::assignCloseEmployee(SimplePerson& person, double start
 	double factor = 2.0;
 	double current_radius = start_radius;
 	vector<uint> closest_clusters_indices;
-	vector<uint> closest_clusters_indices_all;
 
 	while (true) {
 		closest_clusters_indices = getClusters(person.m_coord, current_radius, m_workplaces);
-		closest_clusters_indices_all = closest_clusters_indices;
-
-		auto full_workplace = [&] (uint& workplace_index){return m_workplaces.at(workplace_index).m_max_size <=  m_workplaces.at(workplace_index).m_current_size;};
-
-		closest_clusters_indices.erase(remove_if(closest_clusters_indices.begin(), closest_clusters_indices.end(), full_workplace), closest_clusters_indices.end());
-
-		current_radius *= factor;
 
 		if (closest_clusters_indices.size() != 0) {
 			AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
 			uint rnd = dist(m_rng);
-			uint t = closest_clusters_indices.at(rnd);
-			SimpleCluster& workplace = m_workplaces.at(t);
+			uint index = closest_clusters_indices.at(rnd);
+			SimpleCluster& workplace = m_workplaces.at(index);
 
 			person.m_work_id = workplace.m_id;
 			workplace.m_current_size++;
+
+			if (workplace.m_current_size >= workplace.m_max_size) {
+				m_workplaces.erase(m_workplaces.begin() + index, m_workplaces.begin() + index + 1);
+			}
+
 			break;
 		}
-
-		if (closest_clusters_indices_all.size() == m_workplaces.size()) {
-			/// TDOD exception
-			cout << "EXCEPT3\n";
-			exit(0);
-		}
+		current_radius *= factor;
 	}
 }
 
