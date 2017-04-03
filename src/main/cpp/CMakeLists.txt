@@ -55,6 +55,7 @@ set(LIB_SRC
 )
 
 set(POPGEN_SRC
+	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
 	popgen/PopulationGenerator.cpp
 	popgen/AgeDistribution.cpp
@@ -121,7 +122,7 @@ target_link_libraries(stride libstride)
 
 add_library(libpopgen ${POPGEN_SRC})
 add_executable(pop_generator ${POPGEN_MAIN_SRC})
-target_link_libraries(pop_generator libpopgen)
+target_link_libraries(pop_generator libpopgen ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 
 target_link_libraries(stride ${LIBS})
 if(NOT HDF5_FOUND)

@@ -73,7 +73,7 @@ const string            PopulationGeneratorDemos::g_output_prefix             = 
 // TODO: make this clean, but for now, this will do (messy tests are better than no tests)
 
 vector<vector<string> > readCSV(string file) {
-	ifstream my_file(file.c_str());
+	ifstream my_file((InstallDirs::getDataDir() /= file).string());
 
 	if (!my_file.is_open()) {
 		return vector<vector<string> >();
@@ -269,17 +269,15 @@ TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 	// Actual tests
 	// -----------------------------------------------------------------------------------------
 	try {
-		const string data_dir = InstallDirs::getDataDir().string();
+		PopulationGenerator gen {g_happy_day_file, false};
+		gen.generate("cities.csv", "pop.csv", "hh.csv");
 
-		PopulationGenerator gen {data_dir + string("/") + g_happy_day_file, false};
-		gen.generate(data_dir + string("/cities.csv"), data_dir + string("/pop.csv"), data_dir + string("/hh.csv"));
-
-		vector<vector<string> > csv = readCSV(data_dir + string("/cities.csv"));
+		vector<vector<string> > csv = readCSV("cities.csv");
 		checkHappyDayCities(csv);
 
-		checkHappyDayPop(data_dir + string("/pop.csv"), data_dir + string("/households_flanders.txt"));
+		checkHappyDayPop("pop.csv", "households_flanders.txt");
 
-		checkHappyDayHouseHolds(data_dir + string("/hh.csv"), data_dir + string("/pop.csv"));
+		checkHappyDayHouseHolds("hh.csv", "pop.csv");
 	} catch(...) {}
 
 }

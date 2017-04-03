@@ -1,6 +1,8 @@
 #include "PopulationGenerator.h"
 #include "AgeDistribution.h"
 #include "FamilyParser.h"
+#include "util/InstallDirs.h"
+#include "util/TimeStamp.h"
 
 #include <stdexcept>
 #include <boost/property_tree/xml_parser.hpp>
@@ -14,8 +16,13 @@ using namespace boost::property_tree;
 using namespace xml_parser;
 
 PopulationGenerator::PopulationGenerator(const string& filename, bool output) {
+	// check data environment.
+	if (InstallDirs::getDataDir().empty()) {
+		throw runtime_error(string(__func__) + "> Data directory not present! Aborting.");
+	}
+
 	try {
-		read_xml(filename, m_props, trim_whitespace | no_comments);
+		read_xml((InstallDirs::getDataDir() /= filename).string(), m_props, trim_whitespace | no_comments);
 	} catch (exception& e) {
 		throw invalid_argument("Invalid file");
 	}
@@ -83,7 +90,7 @@ void PopulationGenerator::generate(const string& target_cities, const string& ta
 }
 
 void PopulationGenerator::writeCities(const string& target_cities) const {
-	ofstream my_file {target_cities};
+	ofstream my_file {(InstallDirs::getDataDir() /= target_cities).string()};
 	double total_pop = 0.0;
 
 	for (const SimpleCity& city: m_cities) {
@@ -114,7 +121,7 @@ void PopulationGenerator::writeCities(const string& target_cities) const {
 }
 
 void PopulationGenerator::writePop(const string& target_pop) const {
-	ofstream my_file {target_pop};
+	ofstream my_file {(InstallDirs::getDataDir() /= target_pop).string()};
 	if (my_file.is_open()) {
 		my_file << "\"age\",\"household_id\",\"school_id\",\"work_id\",\"primary_community\",\"secondary_community\"\n";
 
@@ -135,7 +142,7 @@ void PopulationGenerator::writePop(const string& target_pop) const {
 }
 
 void PopulationGenerator::writeHouseholds(const string& target_households) const {
-	ofstream my_file {target_households};
+	ofstream my_file {(InstallDirs::getDataDir() /= target_households).string()};
 	if (my_file.is_open()) {
 		my_file << "\"hh_id\",\"latitude\",\"longitude\",\"size\"\n";
 
@@ -379,13 +386,7 @@ void PopulationGenerator::makeHouseholds() {
 
 	FamilyParser parser;
 
-	char the_path[256];
-    getcwd(the_path, 255);
-
-    string current_dir = the_path;
-    current_dir += "/../data/";
-
-	vector<FamilyConfig> family_config {parser.parseFamilies(current_dir + file_name)};
+	vector<FamilyConfig> family_config {parser.parseFamilies(file_name)};
 
 	uint current_generated = 0;
 

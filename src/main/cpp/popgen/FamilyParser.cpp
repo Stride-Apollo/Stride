@@ -1,16 +1,19 @@
 #include "FamilyParser.h"
 #include <iostream>
 #include <stdexcept>
+#include "util/InstallDirs.h"
 
 using namespace stride;
 using namespace popgen;
 using namespace std;
+using namespace util;
 
 vector<FamilyConfig> FamilyParser::parseFamilies(string filename) const {
+	// Precond: datdir OK
 	vector<FamilyConfig> result;
 
 	string line;
-	ifstream myfile (filename);
+	ifstream myfile ((InstallDirs::getDataDir() /= filename).string());
 	if (myfile.is_open()) {
 		while (getline(myfile,line)) {
 			if (line != "") {
