@@ -8,6 +8,7 @@
 #include <cassert>
 #include <exception>
 #include <limits>
+#include <list>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -78,7 +79,59 @@ private:
 	/// Spreads the clusters of people with these constraints over the cities and villages
 	/// size: the size of each cluster
 	/// min_age and max_age: the category of people that belongs to these clusters (e.g. schools an work have a minimum/maximum age)
-	void placeClusters(uint size, uint min_age, uint max_age, double fraction, vector<SimpleCluster>& clusters, string custer_name);
+	template<typename C>
+	void placeClusters(uint size, uint min_age, uint max_age, double fraction, C& clusters, string cluster_name) {
+		uint people = 0;
+
+		if (min_age == 0 && max_age == 0) {
+			people = m_people.size();
+		} else {
+			for (uint age = min_age; age <= max_age; age++) {
+				people += m_age_distribution[age];
+			}
+		}
+
+		people = ceil(fraction * people);
+
+		uint needed_clusters = ceil(double(people) / size);
+		uint city_village_size = getCityPopulation() + getVillagePopulation();
+
+		/// Get the relative occurrences of both the villages and cities => randomly choose an index in this vector based on that
+		/// Note that the vector consists of 2 parts: the first one for the cities, the second one for the villages, keep this in mind when generating the random index
+		vector<double> fractions;
+		for (const SimpleCity& city: m_cities) {
+			fractions.push_back(double(city.m_max_size) / double(city_village_size));
+		}
+
+		for (const SimpleCluster& village: m_villages) {
+			fractions.push_back(double(village.m_max_size) / double(city_village_size));
+		}
+
+		AliasDistribution dist {fractions};
+		for (uint i = 0; i < needed_clusters; i++) {
+			cerr << "\rPlacing " << cluster_name << " [" << min(uint(double(i) / m_households.size() * 100), 100U) << "%]";
+			uint village_city_index = dist(m_rng);
+
+			if (village_city_index < m_cities.size()) {
+				/// Add to a city
+				SimpleCluster new_cluster;
+				new_cluster.m_max_size = size;
+				new_cluster.m_coord = m_cities.at(village_city_index).m_coord;
+				new_cluster.m_id = m_next_id;
+				m_next_id++;
+				clusters.push_back(new_cluster);
+			} else {
+				/// Add to a village
+				SimpleCluster new_cluster;
+				new_cluster.m_max_size = size;
+				new_cluster.m_coord = m_villages.at(village_city_index - m_cities.size()).m_coord;
+				new_cluster.m_id = m_next_id;
+				m_next_id++;
+				clusters.push_back(new_cluster);
+			}
+		}
+		cerr << "\rPlacing " << cluster_name << " [100%]...\n";
+	}
 
 	/// Make the schools, place them in a village/city
 	void makeSchools();
@@ -140,7 +193,7 @@ private:
 	vector<SimpleHousehold> m_households;							/// > The households (a household is a vector of indices in the vector above)
 	vector<SimpleCity> m_cities;									/// > The cities
 	vector<SimpleCluster> m_villages;								/// > The villages
-	vector<SimpleCluster> m_workplaces;								/// > The workplaces
+	list<SimpleCluster> m_workplaces;								/// > The workplaces
 	vector<SimpleCluster> m_primary_communities;					/// > The primary communities
 	vector<SimpleCluster> m_secondary_communities;					/// > The primary communities
 	vector<SimpleCluster> m_mandatory_schools;						/// > Mandatory schools (Not divided in clusters!!!)

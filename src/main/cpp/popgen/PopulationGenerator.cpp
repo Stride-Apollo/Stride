@@ -634,59 +634,6 @@ void PopulationGenerator::placeHouseholds() {
 	cerr << "\rPlacing households [100%]...\n";
 }
 
-void PopulationGenerator::placeClusters(uint size, uint min_age, uint max_age, double fraction, vector<SimpleCluster>& clusters, string cluster_name) {
-	uint people = 0;
-
-	if (min_age == 0 && max_age == 0) {
-		people = m_people.size();
-	} else {
-		for (uint age = min_age; age <= max_age; age++) {
-			people += m_age_distribution[age];
-		}
-	}
-
-	people = ceil(fraction * people);
-
-	uint needed_clusters = ceil(double(people) / size);
-	uint city_village_size = getCityPopulation() + getVillagePopulation();
-
-	/// Get the relative occurrences of both the villages and cities => randomly choose an index in this vector based on that
-	/// Note that the vector consists of 2 parts: the first one for the cities, the second one for the villages, keep this in mind when generating the random index
-	vector<double> fractions;
-	for (const SimpleCity& city: m_cities) {
-		fractions.push_back(double(city.m_max_size) / double(city_village_size));
-	}
-
-	for (const SimpleCluster& village: m_villages) {
-		fractions.push_back(double(village.m_max_size) / double(city_village_size));
-	}
-
-	AliasDistribution dist {fractions};
-	for (uint i = 0; i < needed_clusters; i++) {
-		cerr << "\rPlacing " << cluster_name << " [" << min(uint(double(i) / m_households.size() * 100), 100U) << "%]";
-		uint village_city_index = dist(m_rng);
-
-		if (village_city_index < m_cities.size()) {
-			/// Add to a city
-			SimpleCluster new_cluster;
-			new_cluster.m_max_size = size;
-			new_cluster.m_coord = m_cities.at(village_city_index).m_coord;
-			new_cluster.m_id = m_next_id;
-			m_next_id++;
-			clusters.push_back(new_cluster);
-		} else {
-			/// Add to a village
-			SimpleCluster new_cluster;
-			new_cluster.m_max_size = size;
-			new_cluster.m_coord = m_villages.at(village_city_index - m_cities.size()).m_coord;
-			new_cluster.m_id = m_next_id;
-			m_next_id++;
-			clusters.push_back(new_cluster);
-		}
-	}
-	cerr << "\rPlacing " << cluster_name << " [100%]...\n";
-}
-
 void PopulationGenerator::makeSchools() {
 	/// Note: schools are "assigned" to villages and cities
 	auto education_config = m_props.get_child("POPULATION.EDUCATION");
@@ -753,7 +700,7 @@ void PopulationGenerator::makeUniversities() {
 
 void PopulationGenerator::sortWorkplaces() {
 	/// Sorts according to the cities (assumes they are sorted in a way that you might desire)
-	vector<SimpleCluster> result;
+	list<SimpleCluster> result;
 
 	for (SimpleCity& city: m_cities) {
 		for (SimpleCluster& workplace: m_workplaces) {
@@ -1036,15 +983,17 @@ void PopulationGenerator::assignCommutingEmployee(SimplePerson& person) {
 		/// but workplaces can be in cities and villages where commuting is only in cities  => possible problems with over-employing in cities
 	/// Behavior on that topic is currently as follows: do the thing that is requested, if all cities are full, it just adds to the first village in the list
 
-	for (uint i = 0; i < m_workplaces.size(); i++) {
-		SimpleCluster& workplace = m_workplaces.at(i);
+	for (auto it = m_workplaces.begin(); it != m_workplaces.end(); it++) {
+		SimpleCluster& workplace = *it;
 
 		if (workplace.m_max_size > workplace.m_current_size) {
 			workplace.m_current_size++;
 			person.m_work_id = workplace.m_id;
 
 			if (workplace.m_current_size >= workplace.m_max_size) {
-				m_workplaces.erase(m_workplaces.begin() + i, m_workplaces.begin() + i + 1);
+				auto it2 = it;
+				it2++;
+				m_workplaces.erase(it, it2);
 			}
 
 			break;
@@ -1055,22 +1004,30 @@ void PopulationGenerator::assignCommutingEmployee(SimplePerson& person) {
 void PopulationGenerator::assignCloseEmployee(SimplePerson& person, double start_radius) {
 	double factor = 2.0;
 	double current_radius = start_radius;
-	vector<uint> closest_clusters_indices;
 
 	while (true) {
-		closest_clusters_indices = getClusters(person.m_coord, current_radius, m_workplaces);
+		vector<list<SimpleCluster>::iterator> closest_clusters_iterators;
+		const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
+		for (auto it = m_workplaces.begin(); it != m_workplaces.end(); it++) {
+			if (calc.getDistance(person.m_coord, it->m_coord) <= current_radius) {
+				closest_clusters_iterators.push_back(it);
+			}
+		}
 
-		if (closest_clusters_indices.size() != 0) {
-			AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
+
+		if (closest_clusters_iterators.size() != 0) {
+			AliasDistribution dist { vector<double>(closest_clusters_iterators.size(), 1.0 / double(closest_clusters_iterators.size())) };
 			uint rnd = dist(m_rng);
-			uint index = closest_clusters_indices.at(rnd);
-			SimpleCluster& workplace = m_workplaces.at(index);
+			auto it = closest_clusters_iterators.at(rnd);
+			SimpleCluster& workplace = *it;
 
 			person.m_work_id = workplace.m_id;
 			workplace.m_current_size++;
 
 			if (workplace.m_current_size >= workplace.m_max_size) {
-				m_workplaces.erase(m_workplaces.begin() + index, m_workplaces.begin() + index + 1);
+				auto it2 = it;
+				it2++;
+				m_workplaces.erase(it, it2);
 			}
 
 			break;
