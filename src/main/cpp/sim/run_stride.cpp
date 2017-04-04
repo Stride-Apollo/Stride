@@ -138,11 +138,11 @@ void run_stride(bool track_index_case,
 
 	shared_ptr<Simulator> sim;
 	if (hdf5file.good()) {
-		Loader loader(checkpoint_filename.c_str());
-		pt_config = loader.get_config(num_threads);
+		Loader loader(checkpoint_filename.c_str(), num_threads);
+		pt_config = loader.get_config();
 		cout << "Simulator correctly loaded!";
 		track_index_case = loader.get_track_index_case();
-		sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+		sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
 	} else {
 		sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	}
@@ -166,9 +166,11 @@ void run_stride(bool track_index_case,
 	// Run the simulation.
 	// -----------------------------------------------------------------------------------------
 	Stopwatch<> run_clock("run_clock");
+	cout << "getting days\n";
 	const unsigned int num_days = pt_config.get < unsigned
 	int > ("run.num_days");
 	vector<unsigned int> cases(num_days);
+	cout << "Starting for\n";
 	for (unsigned int i = 0; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
 		run_clock.start();

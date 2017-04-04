@@ -132,7 +132,7 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 		dataset->write(track, PredType::NATIVE_INT);
 		dataset->close();
 		dataspace->close();
-
+		std::cout << "Correctly ended initial save\n";
 		file.close();
 	} catch(FileIException error) {
 		error.printError();
@@ -140,6 +140,7 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 }
 
 void Saver::update(const Simulator& sim) {
+	std::cout << "update\n";
 	m_current_step++;
 	if (m_frequency != 0 && m_current_step%m_frequency == 0) {
 		try {
@@ -147,8 +148,9 @@ void Saver::update(const Simulator& sim) {
 
 			if (m_current_step == 0) {
 				// Save Person Time Independent
+				std::cout << "Getting population:\n";
 				hsize_t dims[1] = {sim.getPopulation().get()->size()};
-
+				std::cout << "Size: " << dims[0] << "\n";
 				CompType typePersonTI(sizeof(PersonTIDataType));
 				typePersonTI.insertMember(H5std_string("ID"), HOFFSET(PersonTIDataType, ID), PredType::NATIVE_UINT);
 				typePersonTI.insertMember(H5std_string("age"), HOFFSET(PersonTIDataType, age), PredType::NATIVE_DOUBLE);

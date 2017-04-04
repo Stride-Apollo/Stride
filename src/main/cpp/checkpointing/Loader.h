@@ -19,21 +19,33 @@ using namespace boost::property_tree;
 
 class Loader {
 public:
-	Loader(const char* filename): m_filename(filename) {};
-	ptree get_config(unsigned int num_threads);
+	Loader(const char* filename, unsigned int num_threads);
+
+	ptree get_config() {
+		return m_pt_config;
+	}
+
+	ptree get_disease() {
+		return m_pt_disease;
+	}
+
+	ptree get_contact() {
+		return m_pt_contact;
+	}
+
+	void setup_population(std::shared_ptr<Simulator> sim);
 
 	bool get_track_index_case() {
 		return m_track_index_case;
 	};
 
-	ptree get_parse_tree() {
-		return m_pt_config;
-	}
-
 private:
 	const char* m_filename;
 	bool m_track_index_case;
+	unsigned int m_num_threads;
 	ptree m_pt_config;
+	ptree m_pt_disease;
+	ptree m_pt_contact;
 };
 
 }
