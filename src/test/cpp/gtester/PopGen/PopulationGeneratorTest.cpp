@@ -110,7 +110,9 @@ void checkHappyDayCities(const vector<vector<string> >& csv) {
 		unique_column.clear();
 		for (uint j = 1; j < csv.size(); j++) {
 			const vector<string>& row = csv.at(j);
-			if (i >= 2 && i <= 5) {
+			if (i == 2) {
+				EXPECT_TRUE(stoi(row.at(i)) <= 10 && stoi(row.at(i)) >= 1);
+			} else if (i >= 3 && i <= 5) {
 				break;
 			} else if (i == 6) {
 				/// Test for unique coordinates

@@ -104,13 +104,17 @@ void PopulationGenerator::writeCities(const string& target_cities) const {
 	if (my_file.is_open()) {
 		my_file << "\"city_id\",\"city_name\",\"province\",\"population\",\"x_coord\",\"y_coord\",\"latitude\",\"longitude\"\n";
 
+		/// Picking the province would be better somewhere else, but that would require a big refactor, so I forgive myself for this one
+		uint provinces = m_props.get<uint>("POPULATION.<xmlattr>.provinces");
+		AliasDistribution dist { vector<double>(provinces, 1.0 / provinces) };
+
 		for (const SimpleCity& city: m_cities) {
 			/// TODO add province
 			my_file.precision(std::numeric_limits<double>::max_digits10);
 			my_file << city.m_id
 				<< ",\""
 				<< city.m_name
-				<< "\",1,"
+				<< "\"," << dist(m_rng) + 1 << ","
 				<< city.m_current_size / total_pop
 				<< ",0,0,"
 				<< city.m_coord.m_latitude
@@ -126,7 +130,7 @@ void PopulationGenerator::writeCities(const string& target_cities) const {
 			my_file << village.m_id
 				<< ",\""
 				<< village_counter
-				<< "\",1,"
+				<< "\"," << dist(m_rng) + 1 << ","
 				<< village.m_current_size / total_pop
 				<< ",0,0,"
 				<< village.m_coord.m_latitude
@@ -189,7 +193,14 @@ void PopulationGenerator::chechForValidXML() const {
 		/// RNG is already valid at this point (made in constructor)
 		/// Check for FAMILY tag must be done during parsing
 
-		/// Cities: unique location, sum of pops may not be greater than the total
+		/// Check for the provinces
+		int provinces = pop_config.get<int>("<xmlattr>.provinces");
+
+		if (provinces <= 0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
+		/// Cities: unique location
 		cerr << "\rChecking for valid XML [0%]";
 		int total_size = 0;
 		bool has_no_cities = true;
