@@ -143,6 +143,9 @@ void run_stride(bool track_index_case,
 		cout << "Simulator correctly loaded!";
 		track_index_case = loader.get_track_index_case();
 		sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
+
+		// Load from timestep 2
+		loader.load_from_timestep(2, sim);
 	} else {
 		sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	}

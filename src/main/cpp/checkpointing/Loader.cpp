@@ -192,5 +192,28 @@ void Loader::setup_population(std::shared_ptr<Simulator> sim) {
 	file.close();
 }
 
+void Loader::load_from_timestep(unsigned int timestep, std::shared_ptr<Simulator> sim) {
+	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
+	CompType typeCalendar(sizeof(CalendarDataType));
+	StrType tid1(0, H5T_VARIABLE);
+	typeCalendar.insertMember(H5std_string("day"), HOFFSET(CalendarDataType, day), PredType::NATIVE_HSIZE);
+	typeCalendar.insertMember(H5std_string("date"), HOFFSET(CalendarDataType, date), tid1);
+	std::stringstream ss;
+	ss << "/Timestep_" << timestep;
+	std::cout << "Loading: " << ss.str() << "\n";
+	DataSet dataset = file.openDataSet(ss.str() + "/Calendar");
+	CalendarDataType calendar[1];
+	dataset.read(calendar, typeCalendar);
+
+	sim->m_calendar = std::make_shared<Calendar>(m_pt_config);
+	sim->m_calendar.get()->m_day = calendar[0].day;
+	sim->m_calendar.get()->m_date = boost::gregorian::from_simple_string(calendar[0].date);
+
+	std::cout << "Initialized calendar to " << calendar[0].day << " " << calendar[0].date << "\n";
+
+	dataset.close();
+	file.close();
+}
+
 }
 
