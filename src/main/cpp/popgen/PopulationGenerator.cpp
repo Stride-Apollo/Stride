@@ -399,16 +399,13 @@ void PopulationGenerator::makeRNG() {
 		}
 
 		generator_type = rng_config.get<string>("<xmlattr>.generator");
+
+		/// This might throw an exception, but we'll just rethrow it
+		m_rng.set(generator_type, seed);
 	} catch(invalid_argument& e) {
 		throw e;
 	} catch(exception& e) {
 		throw invalid_argument("In PopulationGenerator: Missing/incorrect tags/attributes in XML.");
-	}
-
-	try {
-		m_rng.set(generator_type, seed);
-	} catch(invalid_argument& e) {
-		throw e;
 	}
 }
 

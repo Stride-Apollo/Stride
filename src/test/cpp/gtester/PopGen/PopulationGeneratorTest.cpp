@@ -70,7 +70,10 @@ const string            PopulationGeneratorDemos::g_contradiction_file        = 
 const string            PopulationGeneratorDemos::g_non_existent_file         = "non_existent.xml";
 const string            PopulationGeneratorDemos::g_output_prefix             = "PopulationGenerator";
 
-// TODO: make this clean, but for now, this will do (messy tests are better than no tests)
+// TODO:
+	// sizes of cities/villages
+	// fair distribution of everything (unemployment, sizes, families,...)
+	// More exception tests (like non-existent household file!)
 
 vector<vector<string> > readCSV(string file) {
 	ifstream my_file((InstallDirs::getDataDir() /= file).string());
@@ -138,14 +141,11 @@ void checkHappyDayCities(const vector<vector<string> >& csv) {
 	}
 
 	EXPECT_NEAR(1.0, pop, 0.0001);
-
-	// TODO not tested: is the size ok?
 }
 
 void checkHappyDayPop (const string& file, const string& household_file) {
 	vector<vector<string> > csv = readCSV(file);
 
-	// TODO make this an argument
 	uint work_max_size = 20;
 
 	// The headers must be equal
@@ -247,9 +247,6 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 			}
 		}
 	}
-
-
-	// TODO not tested: fair distribution of everything, what to do with schools?, unemployment, test for sizes
 }
 
 void checkHappyDayHouseHolds(const string& household_file, const string& pop_file) {
@@ -320,7 +317,6 @@ TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 }
 
 TEST_F(PopulationGeneratorDemos, UnhappyDay_default) {
-	// TODO write more of these
 	EXPECT_THROW(PopulationGenerator(g_no_cities_file, false), invalid_argument);
 	EXPECT_THROW(PopulationGenerator(g_no_villages_file, false), invalid_argument);
 	EXPECT_THROW(PopulationGenerator(g_invalid_syntax_file, false), invalid_argument);
