@@ -319,9 +319,15 @@ TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 
 }
 
-TEST_F(PopulationGeneratorDemos, UnhappyDay) {
-	
-
+TEST_F(PopulationGeneratorDemos, UnhappyDay_default) {
+	// TODO write more of these
+	EXPECT_THROW(PopulationGenerator(g_no_cities_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator(g_no_villages_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator(g_invalid_syntax_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator(g_input_violation_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator(g_contradiction_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator(g_non_existent_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator(g_output_prefix, false), invalid_argument);
 }
 
 } //end-of-namespace-Tests

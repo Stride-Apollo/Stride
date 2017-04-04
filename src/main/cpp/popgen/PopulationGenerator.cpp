@@ -109,7 +109,6 @@ void PopulationGenerator::writeCities(const string& target_cities) const {
 		AliasDistribution dist { vector<double>(provinces, 1.0 / provinces) };
 
 		for (const SimpleCity& city: m_cities) {
-			/// TODO add province
 			my_file.precision(std::numeric_limits<double>::max_digits10);
 			my_file << city.m_id
 				<< ",\""
@@ -125,7 +124,6 @@ void PopulationGenerator::writeCities(const string& target_cities) const {
 
 		uint village_counter = 1;
 		for (const SimpleCluster& village: m_villages) {
-			/// TODO add province
 			my_file.precision(std::numeric_limits<double>::max_digits10);
 			my_file << village.m_id
 				<< ",\""
