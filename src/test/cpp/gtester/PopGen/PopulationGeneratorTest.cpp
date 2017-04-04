@@ -165,6 +165,23 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 		if (person.m_household_id < id.min) {
 			id.min = person.m_household_id;
 		}
+
+		/// Test on the ages: e.g. a 50 year old can't go to mandatory schools
+		if (person.m_age >= 26) {
+			EXPECT_EQ(person.m_school_id, 0U);
+		} else if (person.m_age <= 25 && person.m_age >= 18) {
+			/// The person could either work or go to school, but not both
+			EXPECT_TRUE((
+				person.m_school_id != 0U && person.m_work_id == 0U) ||
+				(person.m_school_id == 0U && person.m_work_id != 0U) ||
+				(person.m_school_id == 0U && person.m_work_id == 0U));
+		} else if (person.m_age <= 17 && person.m_age >= 3) {
+			/// Little children have to go to school
+			EXPECT_NE(person.m_school_id, 0U);
+		} else {
+			/// Babies / those little people that run around the house
+			EXPECT_EQ(person.m_school_id, 0U);
+		}
 	}
 
 	// Test household consistency
