@@ -36,7 +36,7 @@ public:
 	void generate(const string& target_cities, const string& target_pop, const string& target_households);
 
 private:
-	/// Writes the cities to the file, see PopulationGenerator::generate
+	/// Writes the cities to the file, see PopulationGenerator::generate, recently, the villages have been added to this
 	void writeCities(const string& target_cities) const;
 
 	/// Writes the population to the file, see PopulationGenerator::generate

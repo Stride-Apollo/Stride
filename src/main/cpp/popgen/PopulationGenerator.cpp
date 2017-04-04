@@ -97,11 +97,16 @@ void PopulationGenerator::writeCities(const string& target_cities) const {
 		total_pop += city.m_current_size;
 	}
 
+	for (const SimpleCluster& village: m_villages) {
+		total_pop += village.m_current_size;
+	}
+
 	if (my_file.is_open()) {
 		my_file << "\"city_id\",\"city_name\",\"province\",\"population\",\"x_coord\",\"y_coord\",\"latitude\",\"longitude\"\n";
 
 		for (const SimpleCity& city: m_cities) {
 			/// TODO add province
+			my_file.precision(std::numeric_limits<double>::max_digits10);
 			my_file << city.m_id
 				<< ",\""
 				<< city.m_name
@@ -112,6 +117,23 @@ void PopulationGenerator::writeCities(const string& target_cities) const {
 				<< ","
 				<< city.m_coord.m_longitude
 				<< endl;
+		}
+
+		uint village_counter = 1;
+		for (const SimpleCluster& village: m_villages) {
+			/// TODO add province
+			my_file.precision(std::numeric_limits<double>::max_digits10);
+			my_file << village.m_id
+				<< ",\""
+				<< village_counter
+				<< "\",1,"
+				<< village.m_current_size / total_pop
+				<< ",0,0,"
+				<< village.m_coord.m_latitude
+				<< ","
+				<< village.m_coord.m_longitude
+				<< endl;
+			village_counter++;
 		}
 
 		my_file.close();

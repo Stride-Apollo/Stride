@@ -102,34 +102,42 @@ void checkHappyDayCities(const vector<vector<string> >& csv) {
 	vector<string> header {"city_id", "city_name", "province", "population", "x_coord", "y_coord", "latitude", "longitude"};
 	EXPECT_EQ(csv.at(0), header);
 
-	if (csv.at(1).at(1) == "Brussels") {
-		// The city names must be equal
-		EXPECT_EQ(csv.at(1).at(1), "Brussels");
-		EXPECT_EQ(csv.at(2).at(1), "Antwerp");
+	set<string> unique_column;
+	vector<GeoCoordinate> unique_coord;
+	/// Go over every column (except the latitude-longitude one cause they belong to each other)
+	for (uint i = 0; i < 7; i++) {
+		unique_coord.clear();
+		unique_column.clear();
+		for (uint j = 1; j < csv.size(); j++) {
+			const vector<string>& row = csv.at(j);
+			if (i >= 2 && i <= 5) {
+				break;
+			} else if (i == 6) {
+				/// Test for unique coordinates
+				double lat = stod(row.at(i));
+				double lon = stod(row.at(i + 1));
 
-		// The coordinates must be the same
-		EXPECT_EQ(csv.at(1).at(6), "54.567");
-		EXPECT_EQ(csv.at(1).at(7), "5.89");
-		EXPECT_EQ(csv.at(2).at(6), "51.123");
-		EXPECT_EQ(csv.at(2).at(7), "4.567");
-	} else {
-		// The city names must be equal
-		EXPECT_EQ(csv.at(2).at(1), "Brussels");
-		EXPECT_EQ(csv.at(1).at(1), "Antwerp");
+				EXPECT_EQ(find(unique_coord.begin(), unique_coord.end(), GeoCoordinate(lat, lon)), unique_coord.end());
 
-		// The coordinates must be the same
-		EXPECT_EQ(csv.at(2).at(6), "54.567");
-		EXPECT_EQ(csv.at(2).at(7), "5.89");
-		EXPECT_EQ(csv.at(1).at(6), "51.123");
-		EXPECT_EQ(csv.at(1).at(7), "4.567");
+				unique_coord.push_back(GeoCoordinate(lat, lon));
+			} else {
+				/// When here, we're talking about city id or name, 
+				uint previous_size = unique_column.size();
+				unique_column.insert(row.at(i));
+				EXPECT_EQ(previous_size, unique_column.size() - 1);
+			}
+		}
 	}
 
-	double pop1 = stod(csv.at(1).at(3));
-	double pop2 = stod(csv.at(2).at(3));
+	double pop = 0.0;
+	for (uint i = 1; i < csv.size(); i++) {
+		const vector<string>& row = csv.at(i);
+		pop += stod(row.at(3));
+	}
 
-	EXPECT_LT(1.0 - pop1 - pop2, 0.0001);
+	EXPECT_NEAR(1.0, pop, 0.0001);
 
-	// TODO not tested: is the size ok? how do we even test this? what is x_coord and y_coord? provinces? id?
+	// TODO not tested: is the size ok?
 }
 
 void checkHappyDayPop (const string& file, const string& household_file) {
