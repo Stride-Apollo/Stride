@@ -118,7 +118,7 @@ private:
  */
 template<typename T>
 std::ostream& operator<<(std::ostream& oss, Stopwatch<T> const& stopwatch) {
-	return (oss << stopwatch.ToString());
+	return (oss << stopwatch.toString());
 }
 
 }

@@ -98,6 +98,7 @@ if( NOT STRIDE_FORCE_NO_OPENMP )
     	set( OPENMP_FOUND TRUE )
         set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
         set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+        message( "OpenMP CXX Flags ${OpenMP_CXX_FLAGS}" )
     else()
     	# This is done to eliminate blank output of undefined CMake variables.
     	set( OPENMP_FOUND FALSE )
@@ -107,6 +108,9 @@ else()
     set( OPENMP_FOUND FALSE )
     set( HAVE_CHECKED_OpenMP FALSE )
     set( HAVE_FOUND_OpenMP FALSE )
+    
+    # Otherwise, STRIDE_FORCE_NO_OPENMP fails
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread" )
 endif()
 # If not found, use the dummy omp.
 if( NOT OPENMP_FOUND )

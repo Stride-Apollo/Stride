@@ -18,7 +18,7 @@
  * Main program: command line handling.
  */
 
-#include "run_stride.h"
+#include "run_stride2.h"
 
 #include <tclap/CmdLine.h>
 
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 		// -----------------------------------------------------------------------------------------
 		// Run the Stride simulator.
 		// -----------------------------------------------------------------------------------------
-		run_stride(index_case_Arg.getValue(), config_file_Arg.getValue());
+		run_stride2(index_case_Arg.getValue(), config_file_Arg.getValue());
 
 	}
 	catch (exception& e) {

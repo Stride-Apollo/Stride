@@ -16,33 +16,17 @@
 
 /**
  * @file
- * Header file for the core Population class
+ * Header for the Simulator class.
  */
 
-#include "Person.h"
-#include "core/Health.h"
-#include "sim/Simulator.h"
-
-#include <numeric>
-#include <vector>
+#include <string>
 
 namespace stride {
 
 /**
- * Container for persons in population.
+ * Run the simulator with config information provided.
  */
-class Population : public std::vector<Simulator::PersonType> {
-public:
-	/// Get the cumulative number of cases.
-	unsigned int getInfectedCount() const {
-		unsigned int total {0U};
-		for (const auto& p : *this) {
-			const auto& h = p.getHealth();
-			total += h.isInfected() || h.isRecovered();
-		}
-		return total;
-	}
-};
+void run_stride2(bool track_index_case, const std::string& config_file_name);
 
 }
 

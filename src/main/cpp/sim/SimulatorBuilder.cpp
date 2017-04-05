@@ -102,7 +102,7 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	Random rng(seed);
 
 	// Build population.
-	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, rng);
+	sim->m_population = RegionBuilder::build(pt_config, pt_disease, rng);
 
 	// initialize clusters.
 	initializeClusters(sim);

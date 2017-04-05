@@ -146,8 +146,7 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	// Run the simulation.
 	// -----------------------------------------------------------------------------------------
 	Stopwatch<> run_clock("run_clock");
-	const unsigned int num_days = pt_config.get < unsigned
-	int > ("run.num_days");
+	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
 	vector<unsigned int> cases(num_days);
 	for (unsigned int i = 0; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;

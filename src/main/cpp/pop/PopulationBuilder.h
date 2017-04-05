@@ -34,7 +34,7 @@ class Population;
 /**
  * Initializes Population objects.
  */
-class PopulationBuilder {
+class RegionBuilder {
 public:
 
 	/**
