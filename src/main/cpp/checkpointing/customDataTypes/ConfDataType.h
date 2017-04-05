@@ -1,7 +1,7 @@
 #pragma once
 
 struct ConfDataType {
-	unsigned int checkpointing_frequency;
+	/*unsigned int checkpointing_frequency;
 	unsigned long rng_seed;
 	const char* disease_config_file;
 	const char* holidays_file;
@@ -16,5 +16,6 @@ struct ConfDataType {
 	unsigned int num_participants_survey;
 	const char* start_date;
 	const char* log_level;
-	const char* population_file;
+	const char* population_file;*/
+	const char* conf_content;
 };

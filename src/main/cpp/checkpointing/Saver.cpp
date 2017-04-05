@@ -4,6 +4,7 @@
  */
 
 #include <boost/date_time/gregorian/greg_date.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 #include "Saver.h"
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
@@ -27,86 +28,18 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 		dims[0] = 1;
 		Group group(file.createGroup("/configuration"));
 
-		// TODO Perhaps the dataset of disease is not necessary
-		/*DataSpace* dataspace = new DataSpace(1, dims);
-		DataSet* dataset = new DataSet(group.createDataSet("disease", PredType::STD_I32BE, *dataspace));
-		delete dataspace;
-		delete dataset;*/
-
 		DataSpace* dataspace = new DataSpace(1, dims);
 
-		typeConf = CompType(sizeof(ConfDataType));
-		typeConf.insertMember(H5std_string("checkpointing_frequency"),
-							  HOFFSET(ConfDataType, checkpointing_frequency), PredType::NATIVE_UINT);
-		typeConf.insertMember(H5std_string("rng_seed"), HOFFSET(ConfDataType, rng_seed), PredType::NATIVE_ULONG);
-		typeConf.insertMember(H5std_string("r0"), HOFFSET(ConfDataType, r0), PredType::NATIVE_UINT);
-		typeConf.insertMember(H5std_string("seeding_rate"),
-							  HOFFSET(ConfDataType, seeding_rate), PredType::NATIVE_DOUBLE);
-		typeConf.insertMember(H5std_string("immunity_rate"),
-							  HOFFSET(ConfDataType, immunity_rate), PredType::NATIVE_DOUBLE);
-		typeConf.insertMember(H5std_string("num_days"), HOFFSET(ConfDataType, num_days), PredType::NATIVE_UINT);
 		StrType tid1(0, H5T_VARIABLE);
-		typeConf.insertMember(H5std_string("population_file"), HOFFSET(ConfDataType, population_file), tid1);
-		typeConf.insertMember(H5std_string("disease_config_file"), HOFFSET(ConfDataType, disease_config_file), tid1);
-		typeConf.insertMember(H5std_string("holidays_file"), HOFFSET(ConfDataType, holidays_file), tid1);
-		typeConf.insertMember(H5std_string("age_contact_matrix_file"), HOFFSET(ConfDataType, age_contact_matrix_file), tid1);
-		typeConf.insertMember(H5std_string("checkpointing_file"), HOFFSET(ConfDataType, checkpointing_file), tid1);
-
-		typeConf.insertMember(H5std_string("output_prefix"), HOFFSET(ConfDataType, output_prefix), tid1);
-		typeConf.insertMember(H5std_string("generate_person_file"),
-							  HOFFSET(ConfDataType, generate_person_file), PredType::NATIVE_HBOOL);
-		typeConf.insertMember(H5std_string("num_participants_survey"),
-							  HOFFSET(ConfDataType, num_participants_survey), PredType::NATIVE_UINT);
-		typeConf.insertMember(H5std_string("start_date"), HOFFSET(ConfDataType, start_date), tid1);
-		typeConf.insertMember(H5std_string("log_level"), HOFFSET(ConfDataType, log_level), tid1);
-
-		ConfDataType configData[1];
-		configData[0].checkpointing_frequency = frequency;
-		configData[0].rng_seed = pt_config.get<unsigned long>("run.rng_seed");
-		configData[0].r0 = pt_config.get<unsigned int>("run.r0");
-		configData[0].seeding_rate = pt_config.get<double>("run.seeding_rate");
-		configData[0].immunity_rate = pt_config.get<double>("run.immunity_rate");
-		configData[0].num_days = pt_config.get<unsigned int>("run.num_days");
-		std::string output = pt_config.get<std::string>("run.output_prefix");
-		configData[0].output_prefix = output.c_str();
-		std::cout << configData[0].output_prefix << "\n";
-		int generate = pt_config.get<unsigned int>("run.generate_person_file");
-		configData[0].generate_person_file = generate == 1 ? true : false;
-		configData[0].num_participants_survey = pt_config.get<unsigned int>("run.num_participants_survey");
-		std::string start = pt_config.get<std::string>("run.start_date");
-		configData[0].start_date = start.c_str();
-		std::cout << configData[0].start_date << "\n";
-		std::string log = pt_config.get<std::string>("run.log_level");
-		configData[0].log_level = log.c_str();
-		std::cout << configData[0].log_level << "\n";
-		std::string pop = pt_config.get<std::string>("run.population_file");
-		configData[0].population_file = pop.c_str();
-		std::string dis = pt_config.get<std::string>("run.disease_config_file");
-		configData[0].disease_config_file = dis.c_str();
-		std::string holidays = pt_config.get<std::string>("run.holidays_file");
-		configData[0].holidays_file = holidays.c_str();
-		std::string age_contact = pt_config.get<std::string>("run.age_contact_matrix_file");
-		configData[0].age_contact_matrix_file = age_contact.c_str();
-		std::string checkpoint = pt_config.get<std::string>("run.checkpointing_file");
-		configData[0].checkpointing_file = checkpoint.c_str();
-
-		std::cout << "Population: " << configData[0].population_file << "\n";
-		std::cout << "Disease: " << configData[0].disease_config_file << "\n";
-		std::cout << "Holidays: " << configData[0].holidays_file << "\n";
-		std::cout << "Age Contact: " << configData[0].age_contact_matrix_file << "\n";
-		std::cout << "Checkpointing: " << configData[0].checkpointing_file << "\n";
-
-		DataSet* dataset = new DataSet(group.createDataSet(H5std_string("configuration"), typeConf, *dataspace));
-		dataset->write(configData, typeConf);
-
+		DataSet* dataset = new DataSet(group.createDataSet(H5std_string("configuration"), tid1, *dataspace));
+		std::ostringstream oss;
+		boost::property_tree::xml_parser::write_xml(oss, pt_config);
+		std::string xml = oss.str();
+		const char* configData[1] = {xml.c_str()};
+		std::cout << configData[0];
+		dataset->write(configData, tid1);
 		delete dataspace;
 		delete dataset;
-
-		/*dataspace = new DataSpace(1, dims);
-		// TODO Custom holiday? Still necessary?
-		dataset = new DataSet(group.createDataSet("holiday", PredType::NATIVE_INT, *dataspace));
-		delete dataspace;
-		delete dataset;*/
 
 		hsize_t dims2[2];
 		// TODO amt_ages
@@ -140,7 +73,6 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 }
 
 void Saver::update(const Simulator& sim) {
-	std::cout << "update\n";
 	m_current_step++;
 	if (m_frequency != 0 && m_current_step%m_frequency == 0) {
 		try {
@@ -148,9 +80,7 @@ void Saver::update(const Simulator& sim) {
 
 			if (m_current_step == 0) {
 				// Save Person Time Independent
-				std::cout << "Getting population:\n";
 				hsize_t dims[1] = {sim.getPopulation().get()->size()};
-				std::cout << "Size: " << dims[0] << "\n";
 				CompType typePersonTI(sizeof(PersonTIDataType));
 				typePersonTI.insertMember(H5std_string("ID"), HOFFSET(PersonTIDataType, ID), PredType::NATIVE_UINT);
 				typePersonTI.insertMember(H5std_string("age"), HOFFSET(PersonTIDataType, age), PredType::NATIVE_DOUBLE);

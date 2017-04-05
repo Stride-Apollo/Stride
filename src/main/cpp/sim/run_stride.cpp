@@ -140,17 +140,15 @@ void run_stride(bool track_index_case,
 	if (hdf5file.good()) {
 		Loader loader(checkpoint_filename.c_str(), num_threads);
 		pt_config = loader.get_config();
-		cout << "Simulator correctly loaded!";
 		track_index_case = loader.get_track_index_case();
 		sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
 
-		// Load from timestep 2
-		loader.load_from_timestep(2, sim);
+		// Load from timestep 6
+		loader.load_from_timestep(6, sim);
 	} else {
 		sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	}
 	cout << "Done building the simulator. " << endl << endl;
-
 	// -----------------------------------------------------------------------------------------
 	// Add observers to the simulator.
 	// -----------------------------------------------------------------------------------------

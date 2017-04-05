@@ -29,65 +29,22 @@ Loader::Loader(const char *filename, unsigned int num_threads): m_filename(filen
 		m_num_threads = num_threads;
 		Exception::dontPrint();
 		H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
-		std::cout << "Start load\n";
-		CompType typeConf = CompType(sizeof(ConfDataType));
-		typeConf.insertMember(H5std_string("checkpointing_frequency"),
-							  HOFFSET(ConfDataType, checkpointing_frequency), PredType::NATIVE_UINT);
-		typeConf.insertMember(H5std_string("rng_seed"), HOFFSET(ConfDataType, rng_seed), PredType::NATIVE_ULONG);
-		typeConf.insertMember(H5std_string("r0"), HOFFSET(ConfDataType, r0), PredType::NATIVE_UINT);
-		typeConf.insertMember(H5std_string("seeding_rate"),
-							  HOFFSET(ConfDataType, seeding_rate), PredType::NATIVE_DOUBLE);
-		typeConf.insertMember(H5std_string("immunity_rate"),
-							  HOFFSET(ConfDataType, immunity_rate), PredType::NATIVE_DOUBLE);
-		typeConf.insertMember(H5std_string("num_days"), HOFFSET(ConfDataType, num_days), PredType::NATIVE_UINT);
+
 		StrType tid1(0, H5T_VARIABLE);
-		typeConf.insertMember(H5std_string("output_prefix"), HOFFSET(ConfDataType, output_prefix), tid1);
-		typeConf.insertMember(H5std_string("generate_person_file"),
-							  HOFFSET(ConfDataType, generate_person_file), PredType::NATIVE_HBOOL);
-		typeConf.insertMember(H5std_string("num_participants_survey"),
-							  HOFFSET(ConfDataType, num_participants_survey), PredType::NATIVE_UINT);
-		typeConf.insertMember(H5std_string("start_date"), HOFFSET(ConfDataType, start_date), tid1);
-		typeConf.insertMember(H5std_string("log_level"), HOFFSET(ConfDataType, log_level), tid1);
-		typeConf.insertMember(H5std_string("population_file"), HOFFSET(ConfDataType, population_file), tid1);
-		typeConf.insertMember(H5std_string("disease_config_file"), HOFFSET(ConfDataType, disease_config_file), tid1);
-		typeConf.insertMember(H5std_string("holidays_file"), HOFFSET(ConfDataType, holidays_file), tid1);
-		typeConf.insertMember(H5std_string("age_contact_matrix_file"), HOFFSET(ConfDataType, age_contact_matrix_file), tid1);
-		typeConf.insertMember(H5std_string("checkpointing_file"), HOFFSET(ConfDataType, checkpointing_file), tid1);
-
 		ConfDataType configData[1];
-		std::cout << "first open\n";
 		DataSet* dataset = new DataSet(file.openDataSet("configuration/configuration"));
-		std::cout << "first read\n";
-		dataset->read(configData, typeConf);
+		dataset->read(configData, tid1);
 
-		m_pt_config.add("run.checkpointing_frequency", configData[0].checkpointing_frequency);
-		m_pt_config.add("run.rng_seed", configData[0].rng_seed);
-		m_pt_config.add("run.r0", configData[0].r0);
-		m_pt_config.add("run.seeding_rate", configData[0].seeding_rate);
-		m_pt_config.add("run.immunity_rate", configData[0].immunity_rate);
-		m_pt_config.add("run.num_days", configData[0].num_days);
-		m_pt_config.add("run.output_prefix", std::string(configData[0].output_prefix));
-		m_pt_config.add("run.generate_person_file", configData[0].generate_person_file ? 1 : 0);
-		m_pt_config.add("run.num_participants_survey", configData[0].num_participants_survey);
-		m_pt_config.add("run.start_date", std::string(configData[0].start_date));
-		m_pt_config.add("run.log_level", std::string(configData[0].log_level));
-		m_pt_config.add("run.population_file", std::string(configData[0].population_file));
-		m_pt_config.add("run.disease_config_file", std::string(configData[0].disease_config_file));
-		m_pt_config.add("run.holidays_file", std::string(configData[0].holidays_file));
-		m_pt_config.add("run.age_contact_matrix_file", std::string(configData[0].age_contact_matrix_file));
-		m_pt_config.add("run.checkpointing_file", std::string(configData[0].checkpointing_file));
-		std::cout << "parse tree\n";
+		istringstream iss(configData[0].conf_content);
+		xml_parser::read_xml(iss, m_pt_config);
 		delete dataset;
 
 		dataset = new DataSet(file.openDataSet("track_index_case"));
-		std::cout << "Second open\n";
 		bool track[1];
 		dataset->read(track, PredType::NATIVE_HBOOL);
-		std::cout << "Second read\n";
 		m_track_index_case = track[0];
 
 		delete dataset;
-		std::cout << "\nDone with the initial loading!!\n\n";
 
 		dataset = new DataSet(file.openDataSet("personsTI"));
 		DataSpace dataspace = dataset->getSpace();
