@@ -3,6 +3,7 @@
 #include "sim/Simulator.h"
 #include "pop/Population.h"
 #include "checkpointing/customDataTypes/ConfDataType.h"
+#include "util/InstallDirs.h"
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
@@ -38,6 +39,8 @@ public:
 		config_tree.put("run.age_contact_matrix_file", g_age_contact_matrix_file);
 		config_tree.put("run.log_level", g_log_level);
 		config_tree.put("run.generate_person_file", g_generate_person_file);
+		config_tree.put("run.checkpointing_file", g_checkpointing_file);
+		config_tree.put("run.checkpointing_frequency", g_checkpointing_frequency);
 		return config_tree;
 	}
 	virtual ~HDF5UnitTests() {}
@@ -58,6 +61,8 @@ protected:
 	static const string				g_age_contact_matrix_file;
 	static const string				g_log_level;
 	static const unsigned int		g_generate_person_file;
+	static const string				g_checkpointing_file;
+	static const int				g_checkpointing_frequency;
 };
 
 const string		HDF5UnitTests::g_population_file				= "pop_nassau.csv";
@@ -74,6 +79,8 @@ const string		HDF5UnitTests::g_start_date						= "2017-01-01";
 const string		HDF5UnitTests::g_age_contact_matrix_file		= "contact_matrix_average.xml";
 const string		HDF5UnitTests::g_log_level						= "None";
 const unsigned int	HDF5UnitTests::g_generate_person_file			= 0;
+const string		HDF5UnitTests::g_checkpointing_file				= "testOutput.h5";
+const int			HDF5UnitTests::g_checkpointing_frequency		= 1;
 
 
 
@@ -86,7 +93,7 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	omp_set_num_threads(num_threads);
 	omp_set_schedule(omp_sched_static,1);
 
-	unsigned int num_days = 50;
+	unsigned int num_days = 10;
 	string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
@@ -119,7 +126,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	omp_set_num_threads(num_threads);
 	omp_set_schedule(omp_sched_static,1);
 
-	unsigned int num_days = 50;
+	unsigned int num_days = 10;
 	string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
@@ -153,7 +160,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	omp_set_num_threads(num_threads);
 	omp_set_schedule(omp_sched_static,1);
 
-	unsigned int num_days = 50;
+	unsigned int num_days = 10;
 	string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
@@ -241,27 +248,34 @@ TEST_F(HDF5UnitTests, CreateSaver) {
 }
 
 
+/**
+ *	Test that checks the amount of persons stored in the hdf5 file.
+ */
 TEST_F(HDF5UnitTests, CheckAmtPersons) {
-	string h5filename = "testOutput.h5";
+	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/testOutput.h5").string();
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
 	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 0, false));
+		(Saver(h5filename.c_str(), pt_config, 1, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
 	sim->timeStep();
-
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
-	DataSet dataset = h5file.openDataSet("personsTI");
 
-	hsize_t dims[1];
-	dataset.getSpace().getSimpleExtentDims(dims, NULL);
+	DataSet* dataset = new DataSet(h5file.openDataSet("personsTI"));
+	DataSpace dataspace = dataset->getSpace();
+	const int amt_dims = dataspace.getSimpleExtentNdims();
+
+	EXPECT_EQ(amt_dims, 1);
+
+	hsize_t dims[amt_dims];
+	dataspace.getSimpleExtentDims(dims, NULL);
+	dataspace.close();
 	h5file.close();
 
-	// TODO uncomment when completed in saver
-	// EXPECT_EQ(sim->getPopulation()->size(), dims[0]);
+	EXPECT_EQ(sim->getPopulation()->size(), dims[0]);
 }
 
 
