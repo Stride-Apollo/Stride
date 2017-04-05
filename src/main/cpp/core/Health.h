@@ -28,6 +28,7 @@ enum class HealthStatus {
  *
  */
 class Health {
+friend class Loader;
 public:
 	///
 	Health(unsigned int start_infectiousness, unsigned int start_symptomatic,
