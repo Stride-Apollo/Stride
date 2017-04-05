@@ -30,13 +30,28 @@ Loader::Loader(const char *filename, unsigned int num_threads): m_filename(filen
 		Exception::dontPrint();
 		H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 
+
 		StrType tid1(0, H5T_VARIABLE);
+		CompType typeConfData(sizeof(ConfDataType));
+		typeConfData.insertMember(H5std_string("conf_content"), HOFFSET(ConfDataType, conf_content), tid1);
+		typeConfData.insertMember(H5std_string("disease_content"), HOFFSET(ConfDataType, disease_content), tid1);
+		typeConfData.insertMember(H5std_string("age_contact_content"), HOFFSET(ConfDataType, age_contact_content), tid1);
+		typeConfData.insertMember(H5std_string("holidays_content"), HOFFSET(ConfDataType, holidays_content), tid1);
 		ConfDataType configData[1];
 		DataSet* dataset = new DataSet(file.openDataSet("configuration/configuration"));
-		dataset->read(configData, tid1);
+		dataset->read(configData, typeConfData);
 
 		istringstream iss(configData[0].conf_content);
 		xml_parser::read_xml(iss, m_pt_config);
+		iss.clear();
+		iss.str("");
+		iss.str(configData[0].disease_content);
+		xml_parser::read_xml(iss, m_pt_disease);
+		iss.clear();
+		iss.str("");
+		iss.str(configData[0].age_contact_content);
+		xml_parser::read_xml(iss, m_pt_contact);
+
 		delete dataset;
 
 		dataset = new DataSet(file.openDataSet("track_index_case"));
@@ -52,20 +67,6 @@ Loader::Loader(const char *filename, unsigned int num_threads): m_filename(filen
 		hsize_t dims[ndims];
 		dataspace.getSimpleExtentDims(dims, NULL);
 		dataspace.close();
-
-		const auto file_name_d {m_pt_config.get<string>("run.disease_config_file")};
-		const auto file_path_d {InstallDirs::getDataDir() /= file_name_d};
-		if (!is_regular_file(file_path_d)) {
-			throw runtime_error(std::string(__func__) + "> No file " + file_path_d.string());
-		}
-		read_xml(file_path_d.string(), m_pt_disease);
-
-		const auto file_name_c {m_pt_config.get<string>("run.age_contact_matrix_file")};
-		const auto file_path_c {InstallDirs::getDataDir() /= file_name_c};
-		if (!is_regular_file(file_path_c)) {
-			throw runtime_error(std::string(__func__) + "> No file " + file_path_c.string());
-		}
-		read_xml(file_path_c.string(), m_pt_contact);
 
 		const auto seed = m_pt_config.get<double>("run.rng_seed");
 		Random rng(seed);
@@ -86,26 +87,10 @@ void Loader::setup_population(std::shared_ptr<Simulator> sim) {
 	dataspace.getSimpleExtentDims(dims, NULL);
 	dataspace.close();
 
-	ptree pt_disease;
-	const auto file_name_d {m_pt_config.get<string>("run.disease_config_file")};
-	const auto file_path_d {InstallDirs::getDataDir() /= file_name_d};
-	if (!is_regular_file(file_path_d)) {
-		throw runtime_error(std::string(__func__) + "> No file " + file_path_d.string());
-	}
-	read_xml(file_path_d.string(), pt_disease);
-
-	ptree pt_contact;
-	const auto file_name_c {m_pt_config.get<string>("run.age_contact_matrix_file")};
-	const auto file_path_c {InstallDirs::getDataDir() /= file_name_c};
-	if (!is_regular_file(file_path_c)) {
-		throw runtime_error(std::string(__func__) + "> No file " + file_path_c.string());
-	}
-	read_xml(file_path_c.string(), pt_contact);
-
 	const auto seed = m_pt_config.get<double>("run.rng_seed");
 	Random rng(seed);
 
-	sim = SimulatorBuilder::build(m_pt_config, pt_disease, pt_contact, m_num_threads, m_track_index_case);
+	sim = SimulatorBuilder::build(m_pt_config, m_pt_disease, m_pt_contact, m_num_threads, m_track_index_case);
 
 	//sim->m_population = PopulationBuilder::build(m_pt_config, pt_disease, rng);
 

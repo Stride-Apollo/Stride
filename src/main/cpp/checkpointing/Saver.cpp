@@ -5,7 +5,9 @@
 
 #include <boost/date_time/gregorian/greg_date.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include "Saver.h"
+#include "util/InstallDirs.h"
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
 #include "checkpointing/customDataTypes/CalendarDataType.h"
@@ -15,6 +17,7 @@
 #include "checkpointing/customDataTypes/RNGDataType.h"
 
 using namespace H5;
+using namespace stride::util;
 
 namespace stride {
 
@@ -30,14 +33,70 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 
 		DataSpace* dataspace = new DataSpace(1, dims);
 
+		CompType typeConfData(sizeof(ConfDataType));
 		StrType tid1(0, H5T_VARIABLE);
-		DataSet* dataset = new DataSet(group.createDataSet(H5std_string("configuration"), tid1, *dataspace));
+		typeConfData.insertMember(H5std_string("conf_content"), HOFFSET(ConfDataType, conf_content), tid1);
+		typeConfData.insertMember(H5std_string("disease_content"), HOFFSET(ConfDataType, disease_content), tid1);
+		typeConfData.insertMember(H5std_string("age_contact_content"), HOFFSET(ConfDataType, age_contact_content), tid1);
+		typeConfData.insertMember(H5std_string("holidays_content"), HOFFSET(ConfDataType, holidays_content), tid1);
+		DataSet* dataset = new DataSet(group.createDataSet(H5std_string("configuration"), typeConfData, *dataspace));
 		std::ostringstream oss;
 		boost::property_tree::xml_parser::write_xml(oss, pt_config);
-		std::string xml = oss.str();
-		const char* configData[1] = {xml.c_str()};
-		std::cout << configData[0];
-		dataset->write(configData, tid1);
+		std::string conf_xml = oss.str();
+		ConfDataType configData[1];
+
+		configData[0].conf_content = conf_xml.c_str();
+		const auto file_name_d {m_pt_config.get<std::string>("run.disease_config_file")};
+		const auto file_path_d {InstallDirs::getDataDir() /= file_name_d};
+		if (!is_regular_file(file_path_d)) {
+			throw std::runtime_error(std::string(__func__) + "> No file " + file_path_d.string());
+		}
+		ptree temp;
+		xml_parser::read_xml(file_path_d.string(), temp);
+		std::ostringstream oss2;
+		xml_parser::write_xml(oss2, temp);
+		std::string xml = oss2.str();
+		configData[0].disease_content = xml.c_str();
+		std::string filepath = pt_config.get<std::string>("run.holidays_file");
+		const auto file_name_c {m_pt_config.get<std::string>("run.holidays_file")};
+		const auto file_path_c {InstallDirs::getDataDir() /= file_name_c};
+		if (!is_regular_file(file_path_c)) {
+			throw std::runtime_error(std::string(__func__) + "> No file " + file_path_c.string());
+		}
+
+		json_parser::read_json(file_path_c.string(), temp);
+		std::ostringstream oss3;
+		json_parser::write_json(oss3, temp);
+		std::string json = oss3.str();
+		configData[0].holidays_content = json.c_str();
+		const auto file_name_a {m_pt_config.get<std::string>("run.age_contact_matrix_file")};
+		const auto file_path_a {InstallDirs::getDataDir() /= file_name_a};
+		if (!is_regular_file(file_path_a)) {
+			throw std::runtime_error(std::string(__func__) + "> No file " + file_path_a.string());
+		}
+		xml_parser::read_xml(file_path_a.string(), temp);
+		std::ostringstream oss4;
+		xml_parser::write_xml(oss4, temp);
+		std::string age_xml = oss4.str();
+		configData[0].age_contact_content = age_xml.c_str();
+		/*const auto file_name_p {m_pt_config.get<std::string>("run.population_file")};
+		const auto file_path_p {InstallDirs::getDataDir() /= file_name_p};
+		if (!is_regular_file(file_path_p)) {
+			throw std::runtime_error(std::string(__func__) + "> No file " + file_path_p.string());
+		}
+		xml_parser::read_xml(file_path_p.string(), temp);
+		oss.str("");
+		xml_parser::write_xml(oss, temp);
+		xml = oss.str();
+		configData[0].population_content = xml.c_str();
+
+		std::cout << configData[0].holidays_content;*/
+		//std::cout << "CONF CONTENT: " << configData[0].conf_content << std::endl;
+		//std::cout << "DISEASE CONTENT: " << configData[0].disease_content << std::endl;
+		//std::cout << "HOLIDAYS CONTENT: " << configData[0].holidays_content << std::endl;
+		//std::cout << "AGE CONTENT: " << configData[0].age_contact_content << std::endl;
+
+		dataset->write(configData, typeConfData);
 		delete dataspace;
 		delete dataset;
 

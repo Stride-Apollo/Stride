@@ -18,4 +18,7 @@ struct ConfDataType {
 	const char* log_level;
 	const char* population_file;*/
 	const char* conf_content;
+	const char* disease_content;
+	const char* holidays_content;
+	const char* age_contact_content;
 };
