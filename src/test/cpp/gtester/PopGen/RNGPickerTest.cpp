@@ -89,8 +89,13 @@ TEST_F(RNGPickerDemos, HappyDay_default) {
 
 TEST_F(RNGPickerDemos, UnhappyDay_default) {
 	// Tests on certain values given to the constructor of the AliasDistribution (e.g. empty vector of probabilities)
+	RNGPicker rng;
 
+	// No rng specified
+	EXPECT_THROW(rng(), runtime_error);
 
+	// Bad rng name given
+	EXPECT_THROW(rng.set("bad_rng_name", 123456789), invalid_argument);
 }
 
 } //end-of-namespace-Tests
