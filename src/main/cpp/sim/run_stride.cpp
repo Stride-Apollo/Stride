@@ -95,20 +95,27 @@ void run_stride(bool track_index_case,
 	Stopwatch<> total_clock("total_clock", true);
 	ptree pt_config;
 	shared_ptr<Simulator> sim;
+	bool config_file_exists = exists(system_complete(config_file_name));
+	bool hdf5_file_exists = exists(system_complete(hdf5_file_name));
+
+
 
 	if (simulator_run_mode == "initial") {
-		const auto file_path_config = canonical(system_complete(config_file_name));
-		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
-		// TODO add check for existence of files (throws exception before it reaches the if next line)
-		if (!is_regular_file(file_path_config) && !is_regular_file(file_path_hdf5)) {
+
+		if (!config_file_exists && !hdf5_file_exists) {
 			throw runtime_error(string(__func__)
-								+ "> Config file " + file_path_config.string()
-								+ " and HDF5 file " + file_path_hdf5.string()
+								+ "> Config file " + system_complete(config_file_name).string()
+								+ " and Hdf5 file " + system_complete(hdf5_file_name).string()
 								+ " both not present. Aborting.");
 		}
 
-		if (is_regular_file(file_path_config)) {
+		if (config_file_exists) {
 			// Start the simulation from the config file if present
+			const auto file_path_config = canonical(system_complete(config_file_name));
+			if (!is_regular_file(file_path_config)) {
+				throw runtime_error(string(__func__) + "> Configuration file is not a regular file.");
+			}
+
 			read_xml(file_path_config.string(), pt_config);
 			cout << "Configuration file:  " << file_path_config.string() << endl << endl;
 
@@ -119,24 +126,36 @@ void run_stride(bool track_index_case,
 
 		} else {
 			// Start the simulation from the initial state saved in the hdf5 file
+			const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
+			if (!is_regular_file(file_path_hdf5)) {
+				throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
+			}
+
 			Loader loader(file_path_hdf5.string().c_str(), num_threads);
 			pt_config = loader.get_config();
 			cout << "Configuration file retreived from hdf5 file." << endl << endl;
 
 			track_index_case = loader.get_track_index_case();
+			cout << "Building the simulator. " << endl;
 			sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
+			cout << "Done building the simulator. " << endl << endl;
 
 			// Load from timestep 0
 			loader.load_from_timestep(0, sim);
 		}
 
 	} else if (simulator_run_mode == "extend") {
+		// Start the simulation at the last checkpoint in the hdf5 file
 		// TODO If hdf5 file not present, start the simulation from the start?
+		
+		if (!hdf5_file_exists) {
+			throw runtime_error(string(__func__) + "> Hdf5 file " + 
+								system_complete(hdf5_file_name).string() + " does not exist.");
+		}
 
 		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
-
 		if (!is_regular_file(file_path_hdf5)) {
-			throw runtime_error(string(__func__) + "> HDF5 file not present.");
+			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
 		}
 
 		Loader loader(file_path_hdf5.string().c_str(), num_threads);
