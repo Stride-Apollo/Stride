@@ -67,7 +67,7 @@ AliasDistribution AliasDistributionDemos::g_alias_big                       = Al
 AliasDistribution AliasDistributionDemos::g_alias_zero                      = AliasDistribution({0.0});
 AliasDistribution AliasDistributionDemos::g_alias_near_zero                       = AliasDistribution({0.0, 0.0, 0.0, 0.0, 0.01});
 random_device           AliasDistributionDemos::g_rd;
-mt19937                 AliasDistributionDemos::g_rng_mt                    = mt19937(AliasDistributionDemos::g_rd());
+mt19937                 AliasDistributionDemos::g_rng_mt                    = mt19937(123456);
 const double            AliasDistributionDemos::g_confidence                = 0.975;
 	// Big value for the confidence => see if the distribution is certainly NOT correct (instead of certainly correct)
 const uint              AliasDistributionDemos::g_happy_day_amount          = 1000000;
@@ -77,6 +77,8 @@ bool chi_sq_test(vector<pair<uint, double> > observed_vs_theoretical, double con
 	/// See http://www.cse.wustl.edu/~jain/cse567-08/ftp/k_27trg.pdf for the maths behind this
 	/// Or you could also use the course "Elementaire Statistiek" by Florence Guillame (University of Antwerp)
 	/// First in the pair is the observed frequency, second is the theoretical frequency
+
+	/// TODO are these tests ok?
 	double degrees_of_freedom = double(observed_vs_theoretical.size()) - 1.0;
 	double D = 0;
 
