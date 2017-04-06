@@ -134,6 +134,16 @@ void Loader::setup_population(std::shared_ptr<Simulator> sim) {
 	file.close();
 }
 
+void Loader::extend_simulation(std::shared_ptr<Simulator> sim) {
+	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
+	DataSet* dataset = new DataSet(file.openDataSet("amt_timesteps"));
+	unsigned int data[1];
+	dataset->read(data, PredType::NATIVE_UINT);
+	dataset->close();
+	file.close();
+	load_from_timestep(data[0], sim);
+}
+
 void Loader::load_from_timestep(unsigned int timestep, std::shared_ptr<Simulator> sim) {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 	CompType typeCalendar(sizeof(CalendarDataType));

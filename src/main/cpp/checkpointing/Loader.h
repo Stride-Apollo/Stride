@@ -35,6 +35,8 @@ public:
 
 	void load_from_timestep(unsigned int timestep, std::shared_ptr<Simulator> sim);
 
+	void extend_simulation(std::shared_ptr<Simulator> sim);
+
 	void setup_population(std::shared_ptr<Simulator> sim);
 
 	bool get_track_index_case() {

@@ -140,14 +140,12 @@ void run_stride(bool track_index_case,
 			sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
 			cout << "Done building the simulator. " << endl << endl;
 
-			// Load from timestep 0
-			loader.load_from_timestep(0, sim);
+			// Load from timestep 0 I Think this is unneccessary
+			// loader.load_from_timestep(0, sim);
 		}
 
 	} else if (simulator_run_mode == "extend") {
 		// Start the simulation at the last checkpoint in the hdf5 file
-		// TODO If hdf5 file not present, start the simulation from the start?
-		
 		if (!hdf5_file_exists) {
 			throw runtime_error(string(__func__) + "> Hdf5 file " + 
 								system_complete(hdf5_file_name).string() + " does not exist.");
@@ -165,10 +163,7 @@ void run_stride(bool track_index_case,
 		track_index_case = loader.get_track_index_case();
 		sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
 
-		// TODO load from last timestep
-		// loader.load_from_timestep(5, sim);
-
-
+		loader.extend_simulation(sim);
 	} else {
 		throw runtime_error(string(__func__) + "> '" + simulator_run_mode + "' is not an accepted running mode.");
 	}
