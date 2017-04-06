@@ -164,6 +164,20 @@ void run_stride(bool track_index_case,
 		sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
 
 		loader.extend_simulation(sim);
+	} else if (simulator_run_mode == "extract") {
+		// Start the simulation at the last checkpoint in the hdf5 file
+		if (!hdf5_file_exists) {
+			throw runtime_error(string(__func__) + "> Hdf5 file " +
+								system_complete(hdf5_file_name).string() + " does not exist.");
+		}
+
+		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
+		if (!is_regular_file(file_path_hdf5)) {
+			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
+		}
+
+		Loader loader(file_path_hdf5.string().c_str());
+		return;
 	} else {
 		throw runtime_error(string(__func__) + "> '" + simulator_run_mode + "' is not an accepted running mode.");
 	}

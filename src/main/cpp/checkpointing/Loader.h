@@ -19,6 +19,9 @@ using namespace boost::property_tree;
 
 class Loader {
 public:
+	// Special constructor; Only task is to extract config files.
+	Loader(const char* filename);
+
 	Loader(const char* filename, unsigned int num_threads);
 
 	ptree get_config() {

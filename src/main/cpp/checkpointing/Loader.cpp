@@ -24,6 +24,70 @@ using namespace boost::filesystem;
 using namespace stride::util;
 
 namespace stride {
+Loader::Loader(const char* filename): m_filename(filename) {
+	try{
+		H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
+		StrType tid1(0, H5T_VARIABLE);
+		CompType typeConfData(sizeof(ConfDataType));
+		typeConfData.insertMember(H5std_string("conf_content"), HOFFSET(ConfDataType, conf_content), tid1);
+		typeConfData.insertMember(H5std_string("disease_content"), HOFFSET(ConfDataType, disease_content), tid1);
+		typeConfData.insertMember(H5std_string("age_contact_content"), HOFFSET(ConfDataType, age_contact_content), tid1);
+		typeConfData.insertMember(H5std_string("holidays_content"), HOFFSET(ConfDataType, holidays_content), tid1);
+		ConfDataType configData[1];
+		DataSet* dataset = new DataSet(file.openDataSet("configuration/configuration"));
+		dataset->read(configData, typeConfData);
+
+		istringstream iss(configData[0].conf_content);
+
+		std::ofstream output_stream;
+		stringstream output;
+		output << filename << "_config.xml";
+		output_stream.open(output.str());
+		output_stream << iss.rdbuf();
+
+		iss.clear();
+		iss.str("");
+		iss.str(configData[0].disease_content);
+		output.clear();
+		output.str("");
+		output << filename << "_disease.xml";
+		output_stream.close();
+		output_stream.clear();
+		output_stream.flush();
+		output_stream.open(output.str());
+		output_stream << iss.rdbuf();
+
+		iss.clear();
+		iss.str("");
+		iss.str(configData[0].age_contact_content);
+		output.clear();
+		output.str("");
+		output << filename << "_contact.xml";
+		output_stream.close();
+		output_stream.clear();
+		output_stream.flush();
+		output_stream.open(output.str());
+		output_stream << iss.rdbuf();
+
+		iss.clear();
+		iss.str("");
+		iss.str(configData[0].holidays_content);
+		output.clear();
+		output.str("");
+		output << filename << "_holidays.json";
+		output_stream.close();
+		output_stream.clear();
+		output_stream.flush();
+		output_stream.open(output.str());
+		output_stream << iss.rdbuf();
+
+		dataset->close();
+		file.close();
+	} catch(FileIException error) {
+		error.printError();
+	}
+}
+
 Loader::Loader(const char *filename, unsigned int num_threads): m_filename(filename), m_num_threads(num_threads) {
 	try {
 		m_num_threads = num_threads;
