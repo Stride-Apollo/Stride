@@ -34,6 +34,7 @@ set( SRC
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp
 		PopGen/AliasDistributionTest.cpp
+		PopGen/RNGPickerTest.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)

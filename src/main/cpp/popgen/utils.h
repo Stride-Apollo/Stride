@@ -81,7 +81,7 @@ class RandomGenerator {
 public:
 	virtual ~RandomGenerator(){}
 
-	using result_type = unsigned int;
+	using result_type = long unsigned int;
 
 	virtual result_type operator()() = 0;
 
@@ -190,7 +190,7 @@ private:
 
 class RNGPicker {
 public:
-	using result_type = unsigned int;
+	using result_type = long unsigned int;
 
 	RNGPicker();
 
