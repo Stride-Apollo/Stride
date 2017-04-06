@@ -2,11 +2,13 @@
 
 #include <random>
 #include <string>
+#include "util/GeoCoordinate.h"
 
 namespace stride {
 namespace popgen {
 
 using namespace std;
+using namespace util;
 
 #define PI 3.14159265
 
@@ -15,16 +17,6 @@ extern uniform_real_distribution<double> real01;
 using uint = unsigned int;
 
 class PopulationGenerator;
-
-struct GeoCoordinate {
-	// Note that it is required (precondition) to have valid long- and latitudes
-	GeoCoordinate(){}
-	GeoCoordinate(double lat, double lon) {m_latitude = lat; m_longitude = lon;}
-	double m_longitude = 0.0;
-	double m_latitude = 0.0;
-};
-
-bool operator==(const GeoCoordinate& coord1, const GeoCoordinate& coord2);
 
 class SimplePerson {
 public:
@@ -206,32 +198,6 @@ public:
 
 private:
 	RandomGenerator* m_rng;
-};
-
-std::ostream& operator<<(std::ostream& os, const GeoCoordinate& g);
-
-class GeoCoordCalculator {
-	/// Singleton pattern
-public:
-	static const GeoCoordCalculator& getInstance();
-
-	double getDistance(const GeoCoordinate& coord1, const GeoCoordinate& coord2) const;
-	/// Result is in kilometres
-	/// Uses the haversine formula
-	/// See: http://www.movable-type.co.uk/scripts/latlong.html
-
-	GeoCoordinate generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius, RNGPicker& rng) const;
-	/// radius is in kilometres
-	/// TODO make the distribution fair
-
-/// TODO why is this public?
-private:
-	GeoCoordCalculator(){}
-
-	~GeoCoordCalculator(){}
-
-	GeoCoordCalculator(GeoCoordCalculator const&) = delete;
-	void operator=(GeoCoordCalculator const&)  = delete;
 };
 
 }

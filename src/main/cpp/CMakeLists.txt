@@ -43,22 +43,26 @@ set(LIB_SRC
 #---
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
+	util/GeoCoordinate.cpp
+	util/GeoCoordCalculator.cpp
 #---
 	patterns/Publisher.cpp
 #---
 	hdf5Prototype/subsets.cpp
 #---
 	popgen/PopulationGenerator.cpp
-	popgen/AgeDistribution.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
 )
 
 set(POPGEN_SRC
+#---
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
+	util/GeoCoordinate.cpp
+	util/GeoCoordCalculator.cpp
+#---
 	popgen/PopulationGenerator.cpp
-	popgen/AgeDistribution.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
 )

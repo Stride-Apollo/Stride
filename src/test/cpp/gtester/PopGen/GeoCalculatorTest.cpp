@@ -3,7 +3,7 @@
  * Implementation of tests for the GeoCoordCalculator.
  */
 
-#include "popgen/utils.h"
+#include "util/GeoCoordCalculator.h"
 
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
@@ -16,7 +16,7 @@
 
 using namespace std;
 using namespace stride;
-using namespace popgen;
+using namespace util;
 using namespace ::testing;
 
 namespace Tests {

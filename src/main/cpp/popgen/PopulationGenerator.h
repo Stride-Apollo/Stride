@@ -13,8 +13,8 @@
 #include <boost/property_tree/ptree.hpp>
 
 #include "util/AliasDistribution.h"
-
-#include "utils.h"
+#include "util/GeoCoordCalculator.h"
+#include "popgen/utils.h"
 
 namespace stride {
 namespace popgen {
