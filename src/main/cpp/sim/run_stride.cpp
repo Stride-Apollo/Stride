@@ -48,6 +48,8 @@ using namespace std::chrono;
 /// Run the stride simulator.
 void run_stride(bool track_index_case, 
 				const string& config_file_name,
+				const string& hdf5_file_name,
+				const string& simulator_run_mode,
 				const int checkpointing_frequency) {
 	// -----------------------------------------------------------------------------------------
 	// print output to command line.
@@ -71,18 +73,6 @@ void run_stride(bool track_index_case,
 	}
 
 	// -----------------------------------------------------------------------------------------
-	// Configuration.
-	// -----------------------------------------------------------------------------------------
-	ptree pt_config;
-	const auto file_path = canonical(system_complete(config_file_name));
-	if (!is_regular_file(file_path)) {
-		throw runtime_error(string(__func__)
-							+ ">Config file " + file_path.string() + " not present. Aborting.");
-	}
-	read_xml(file_path.string(), pt_config);
-	cout << "Configuration file:  " << file_path.string() << endl;
-
-	// -----------------------------------------------------------------------------------------
 	// OpenMP.
 	// -----------------------------------------------------------------------------------------
 	unsigned int num_threads;
@@ -90,11 +80,80 @@ void run_stride(bool track_index_case,
 	{
 		num_threads = omp_get_num_threads();
 	}
+	cout << endl;
 	if (ConfigInfo::haveOpenMP()) {
 		cout << "Using OpenMP threads:  " << num_threads << endl;
 	} else {
 		cout << "Not using OpenMP threads." << endl;
 	}
+	cout << endl;
+
+	// -----------------------------------------------------------------------------------------
+	// Configuration.
+	// -----------------------------------------------------------------------------------------
+	
+	Stopwatch<> total_clock("total_clock", true);
+	ptree pt_config;
+	shared_ptr<Simulator> sim;
+
+	if (simulator_run_mode == "initial") {
+		const auto file_path_config = canonical(system_complete(config_file_name));
+		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
+		// TODO add check for existence of files (throws exception before it reaches the if next line)
+		if (!is_regular_file(file_path_config) && !is_regular_file(file_path_hdf5)) {
+			throw runtime_error(string(__func__)
+								+ "> Config file " + file_path_config.string()
+								+ " and HDF5 file " + file_path_hdf5.string()
+								+ " both not present. Aborting.");
+		}
+
+		if (is_regular_file(file_path_config)) {
+			// Start the simulation from the config file if present
+			read_xml(file_path_config.string(), pt_config);
+			cout << "Configuration file:  " << file_path_config.string() << endl << endl;
+
+			// Build the simulator from bottom up
+			cout << "Building the simulator. " << endl;
+			sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+			cout << "Done building the simulator. " << endl << endl;
+
+		} else {
+			// Start the simulation from the initial state saved in the hdf5 file
+			Loader loader(file_path_hdf5.string().c_str(), num_threads);
+			pt_config = loader.get_config();
+			cout << "Configuration file retreived from hdf5 file." << endl << endl;
+
+			track_index_case = loader.get_track_index_case();
+			sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
+
+			// Load from timestep 0
+			loader.load_from_timestep(0, sim);
+		}
+
+	} else if (simulator_run_mode == "extend") {
+		// TODO If hdf5 file not present, start the simulation from the start?
+
+		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
+
+		if (!is_regular_file(file_path_hdf5)) {
+			throw runtime_error(string(__func__) + "> HDF5 file not present.");
+		}
+
+		Loader loader(file_path_hdf5.string().c_str(), num_threads);
+		pt_config = loader.get_config();
+		cout << "Configuration file retreived from hdf5 file." << endl << endl;
+
+		track_index_case = loader.get_track_index_case();
+		sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
+
+		// TODO load from last timestep
+		// loader.load_from_timestep(5, sim);
+
+
+	} else {
+		throw runtime_error(string(__func__) + "> '" + simulator_run_mode + "' is not an accepted running mode.");
+	}
+
 	// -----------------------------------------------------------------------------------------
 	// Set output path prefix.
 	// -----------------------------------------------------------------------------------------
@@ -127,40 +186,23 @@ void run_stride(bool track_index_case,
 												  std::numeric_limits<size_t>::max());
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
-	// -----------------------------------------------------------------------------------------
-	// Create simulator.
-	// -----------------------------------------------------------------------------------------
-	Stopwatch<> total_clock("total_clock", true);
-	cout << "Building the simulator. " << endl;
 
-	string checkpoint_filename = pt_config.get<string>("run.checkpointing_file");
-	ifstream hdf5file(checkpoint_filename.c_str());
-
-	shared_ptr<Simulator> sim;
-	if (hdf5file.good()) {
-		Loader loader(checkpoint_filename.c_str(), num_threads);
-		pt_config = loader.get_config();
-		track_index_case = loader.get_track_index_case();
-		sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
-
-		// Load from timestep 6
-		loader.load_from_timestep(6, sim);
-	} else {
-		sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	}
-	cout << "Done building the simulator. " << endl << endl;
 	// -----------------------------------------------------------------------------------------
 	// Add observers to the simulator.
 	// -----------------------------------------------------------------------------------------
 
 	cout << "Adding observers to the simulator." << endl;
-	int frequency = checkpointing_frequency == -1 ?
-						pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
 
-	auto classInstance = std::make_shared<Saver>
-		(Saver(checkpoint_filename.c_str(), pt_config, frequency, track_index_case));
-	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	sim->registerObserver(classInstance, fnCaller);
+	// Is checkpointing 'enabled'?
+	if (hdf5_file_name != "") {
+		int frequency = checkpointing_frequency == -1 ?
+							pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
+	
+		auto classInstance = std::make_shared<Saver>
+			(Saver(hdf5_file_name.c_str(), pt_config, frequency, track_index_case));
+		std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+		sim->registerObserver(classInstance, fnCaller);
+	}
 	cout << "Done adding the observers." << endl << endl;
 
 	// -----------------------------------------------------------------------------------------
