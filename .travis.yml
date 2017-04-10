@@ -1,6 +1,6 @@
 # TODO specify exact versions on which it has to work
 language: none
-script: make test
+script: make test_all
 os:
   - linux
   #- osx
