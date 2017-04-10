@@ -25,6 +25,7 @@
 #include "core/RngHandler.h"
 #include "behavior/behavior_policies/NoBehavior.h"
 #include "pop/Person.h"
+#include "pop/Traveller.h"
 #include "util/Subject.h"
 
 #include "behavior/belief_policies/NoBelief.h"
@@ -32,6 +33,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace stride {
 
@@ -45,6 +47,7 @@ class Cluster;
 class Simulator : public util::Subject<Simulator> {
 public:
 	using PersonType = Person<NoBelief, NoBehavior>;
+	using TravellerType = Traveller<PersonType>;
 
 	// Default constructor for empty Simulator.
 	Simulator();
@@ -57,6 +60,14 @@ public:
 
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
+
+	void host(const std::vector<Simulator::TravellerType>& travellers);
+
+private:
+	// Information about travellers
+	// original ID ->
+	std::map<unsigned int, Simulator::TravellerType> m_trav_elsewhere;
+	std::map<unsigned int, Simulator::TravellerType> m_trav_hosting;
 
 private:
 	/// Update the contacts in the given clusters.

@@ -15,6 +15,8 @@ public:
 
 	virtual future<bool> timeStep() override;
 
+	virtual void host(const vector<Simulator::TravellerType>& travellers) override;
+
 private:
 	Simulator* m_sim;
 };

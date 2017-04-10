@@ -22,6 +22,7 @@ set( EXEC       gtester     )
 set( SRC
 		main.cpp
 		BatchRuns.cpp
+		UtilTests.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)
