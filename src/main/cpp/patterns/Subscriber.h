@@ -1,5 +1,4 @@
-#ifndef SUBSCRIBER_H_INCLUDED
-#define SUBSCRIBER_H_INCLUDED
+#pragma once
 
 /**
  * @file
@@ -31,4 +30,3 @@ public:
 } // end_of_namespace
 } // end_of_namespace
 
-#endif // end of include guard

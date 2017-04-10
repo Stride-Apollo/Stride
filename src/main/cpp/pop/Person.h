@@ -24,6 +24,8 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <behavior/behavior_policies/NoBehavior.h>
+#include <behavior/belief_policies/NoBelief.h>
 
 namespace stride {
 
@@ -34,6 +36,7 @@ enum class ClusterType;
 /**
  * Store and handle person data.
  */
+template<class BeliefPolicy, class BehaviorPolicy>
 class Person {
 public:
 	/// Constructor: set the person data.
@@ -84,9 +87,9 @@ public:
 	void update(bool is_work_off, bool is_school_off);
 
 private:
-	unsigned int m_id;                     ///< The id.
-	double m_age;                    ///< The age.
-	char m_gender;                 ///< The gender.
+	unsigned int m_id;  ///< The id.
+	double m_age;       ///< The age.
+	char m_gender;      ///< The gender.
 
 	unsigned int m_household_id;           ///< The household id.
 	unsigned int m_school_id;              ///< The school cluster id
@@ -98,12 +101,17 @@ private:
 	bool m_at_school;              ///< Is person present at school today?
 	bool m_at_work;                ///< Is person present at work today?
 	bool m_at_primary_community;   ///< Is person present at primary_community today?
-	bool m_at_secondary_community;  ///< Is person present at secundary_community today?
+	bool m_at_secondary_community; ///< Is person present at secundary_community today?
 
-	Health m_health;                ///< Health info for this person.
+	Health m_health;                           ///< Health info for this person.
+	typename BeliefPolicy::Data m_belief_data; ///< Info w.r.t. this Person's health beliefs
 
-	bool m_is_participant;        ///< Is participating in the social contact study
+	bool m_is_participant;  ///< Is participating in the social contact study
 };
+
+/// Explicit instantiations in .cpp file
+extern template
+class Person<NoBelief, NoBehavior>;
 
 }
 

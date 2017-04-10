@@ -128,8 +128,19 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	// -----------------------------------------------------------------------------------------
 	Stopwatch<> total_clock("total_clock", true);
 	cout << "Building the simulator. " << endl;
-	auto sim = SimulatorBuilder::Build(pt_config, num_threads, track_index_case);
+	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	cout << "Done building the simulator. " << endl << endl;
+
+	// -----------------------------------------------------------------------------------------
+	// Add observers to the simulator.
+	// -----------------------------------------------------------------------------------------
+
+	cout << "Adding observers to the simulator." << endl;
+	/// example on how to use:
+		// auto classInstance = std::make_shared<Class>();
+		// std::function<void(const Simulator&)> fnCaller = std::bind(&Class::update, classInstance, std::placeholders::_1); 
+		// sim->registerObserver(classInstance, fnCaller); 
+	cout << "Done adding the observers." << endl << endl;
 
 	// -----------------------------------------------------------------------------------------
 	// Run the simulation.

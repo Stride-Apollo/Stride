@@ -20,12 +20,24 @@
 
 #include "PopulationBuilder.h"
 
+#include "core/Health.h"
+#include "pop/Person.h"
+#include "pop/Population.h"
 #include "util/InstallDirs.h"
+#include "util/Random.h"
 #include "util/StringUtils.h"
 
 #include <spdlog/spdlog.h>
+#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace stride {
 
@@ -34,7 +46,7 @@ using namespace boost::filesystem;
 using namespace boost::property_tree;
 using namespace stride::util;
 
-shared_ptr<Population> PopulationBuilder::Build(
+shared_ptr<Population> PopulationBuilder::build(
 		const boost::property_tree::ptree& pt_config,
 		const boost::property_tree::ptree& pt_disease,
 		util::Random& rng) {
@@ -87,7 +99,7 @@ shared_ptr<Population> PopulationBuilder::Build(
 		const auto time_infectious = sample(rng, distrib_time_infectious);
 		const auto time_symptomatic = sample(rng, distrib_time_symptomatic);
 		const auto values = StringUtils::split(line, ",");
-		population.emplace_back(Person(person_id,
+		population.emplace_back(Simulator::PersonType(person_id,
 									   StringUtils::fromString<unsigned int>(values[0]),
 									   StringUtils::fromString<unsigned int>(values[1]),
 									   StringUtils::fromString<unsigned int>(values[2]),
@@ -120,7 +132,7 @@ shared_ptr<Population> PopulationBuilder::Build(
 		unsigned int num_samples = 0;
 		const shared_ptr<spdlog::logger> logger = spdlog::get("contact_logger");
 		while (num_samples < num_participants) {
-			Person& p = population[rng(max_population_index)];
+			Simulator::PersonType& p = population[rng(max_population_index)];
 			if (!p.isParticipatingInSurvey()) {
 				p.participateInSurvey();
 				logger->info("[PART] {} {} {}", p.getId(), p.getAge(), p.getGender());
@@ -134,7 +146,7 @@ shared_ptr<Population> PopulationBuilder::Build(
 	//------------------------------------------------
 	unsigned int num_immune = floor(static_cast<double>(population.size()) * immunity_rate);
 	while (num_immune > 0) {
-		Person& p = population[rng(max_population_index)];
+		Simulator::PersonType& p = population[rng(max_population_index)];
 		if (p.getHealth().isSusceptible()) {
 			p.getHealth().setImmune();
 			num_immune--;
@@ -146,7 +158,7 @@ shared_ptr<Population> PopulationBuilder::Build(
 	//------------------------------------------------
 	unsigned int num_infected = floor(static_cast<double> (population.size()) * seeding_rate);
 	while (num_infected > 0) {
-		Person& p = population[rng(max_population_index)];
+		Simulator::PersonType& p = population[rng(max_population_index)];
 		if (p.getHealth().isSusceptible()) {
 			p.getHealth().startInfection();
 			num_infected--;
