@@ -1,7 +1,7 @@
 #############################################################################
 #  This is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by 
-#  the Free Software Foundation, either version 3 of the License, or any 
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or any
 #  later version.
 #  The software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,47 +16,32 @@
 
 
 #============================================================================
-# Add subdirectories:
-#============================================================================
-add_subdirectory( PopGen )
-
-#############################################################################
-
-
-#============================================================================
 # Build & install the (OpenMP enabled if OpenMP available) executable.
 #============================================================================
-set( EXEC       gtester     )
+set( EXEC       poptester     )
 set( SRC
 		main.cpp
-		BatchRuns.cpp
-		UtilTests.cpp
-		PopGen/PopulationGeneratorTest.cpp
-		PopGen/FamilyParserTest.cpp
-		PopGen/GeoCalculatorTest.cpp
-		PopGen/AliasDistributionTest.cpp
-		PopGen/RNGPickerTest.cpp
+		GeoCalculatorTest.cpp
+		AliasDistributionTest.cpp
+		FamilyParserTest.cpp
+		PopulationGeneratorTest.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)
 target_link_libraries(${EXEC} libstride)
-target_link_libraries( ${EXEC}    ${LIBS} gtest pthread) 
+target_link_libraries( ${EXEC}    ${LIBS} gtest pthread)
 install(TARGETS ${EXEC}  DESTINATION   ${BIN_INSTALL_LOCATION})
+
+
+#============================================================================
+# Include the input and output files of the tests
+#============================================================================
+file(COPY "input" DESTINATION "${CMAKE_BINARY_DIR}/test/cpp/gtester/PopGen")
 
 #============================================================================
 # Define tests.
 #============================================================================
-add_test( NAME  ${EXEC}_default 
-		WORKING_DIRECTORY  ${TESTS_DIR}
-		COMMAND   ${CMAKE_INSTALL_PREFIX}/${BIN_INSTALL_LOCATION}/${EXEC} 
-			--gtest_filter=*default*  --gtest_output=xml:gtester_default.xml
-)
-
-add_test( NAME  ${EXEC}_all 		
-        WORKING_DIRECTORY  ${TESTS_DIR}
-		COMMAND   ${CMAKE_INSTALL_PREFIX}/${BIN_INSTALL_LOCATION}/${EXEC} 
-		         --gtest_output=xml:gtester_all.xml
-)
+# TODO
 
 #============================================================================
 # Clean up.
