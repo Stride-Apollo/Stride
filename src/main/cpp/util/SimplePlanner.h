@@ -2,6 +2,7 @@
 #include <list>
 #include <vector>
 #include <memory>
+#include <iterator>
 
 namespace stride {
 namespace util {
@@ -28,12 +29,13 @@ public:
 		Block* block;
 		if (days >= m_agenda.size()) {
 			// make sure there are enough blocks in place
-			for (unsigned int i=0; i<((days+1) - m_agenda.size()); i++) {
+			uint new_blocks =  (days+1) - m_agenda.size();
+			for (unsigned int i=0; i < new_blocks; i++) {
 				block = new Block();
 				m_agenda.emplace_back(block);
 			}
 		} else {
-			block = *(m_agenda.begin()+days);
+			block = next(m_agenda.begin(), days)->get();
 		}
 		return block;
 	}
@@ -43,8 +45,12 @@ public:
 			// nothing planned, return an empty one
 			return &g_empty_day;
 		} else {
-			return *(m_agenda.cbegin()+days);
+			return next(m_agenda.cbegin(), days)->get();
 		}
+	}
+
+	const Block* today() const {
+		return getDay(0);
 	}
 
 	void add(unsigned int days, T thing) {
@@ -53,14 +59,17 @@ public:
 	}
 
 	void nextDay() {
-		m_agenda.pop_front();
+		if (not m_agenda.empty()) m_agenda.pop_front();
 	}
 
 private:
 	Agenda m_agenda;
-	static Block g_empty_day = Block();
+	static Block g_empty_day;
 };
 
+// look at how elegant C++ templates are
+template <typename T>
+typename SimplePlanner<T>::Block SimplePlanner<T>::g_empty_day = SimplePlanner<T>::Block();
 
 }
 }
