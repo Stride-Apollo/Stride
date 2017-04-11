@@ -44,7 +44,7 @@ matrix:
 notifications:
   slack: 
     rooms:
-      - apollo-stride:u6J7UHJdtlvVNtnUjyRndtgh#code
+      - apollo-stride:u6J7UHJdtlvVNtnUjyRndtgh#repo
     on_failure: always
     on_success: change
   email: false
