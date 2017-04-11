@@ -19,6 +19,8 @@ public:
 	// In fact, no communication will happen to return someone home, it just 'happens'
 	virtual void host(const vector<Simulator::TravellerType>& travellers) = 0;
 
+	// TODO returnHome(...)
+
 	virtual ~AsyncSimulator() {};
 };
 

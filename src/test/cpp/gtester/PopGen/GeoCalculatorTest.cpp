@@ -74,11 +74,6 @@ TEST_F(GeoCalculatorDemos, SingletonPattern_default) {
 	const GeoCoordCalculator& calc1 = GeoCoordCalculator::getInstance();
 	const GeoCoordCalculator& calc2 = GeoCoordCalculator::getInstance();
 	EXPECT_EQ(&calc1, &calc2);
-
-	// -----------------------------------------------------------------------------------------
-	// Release and close logger.
-	// -----------------------------------------------------------------------------------------
-	spdlog::drop_all();
 }
 
 TEST_F(GeoCalculatorDemos, distance) {

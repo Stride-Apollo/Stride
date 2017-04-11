@@ -46,13 +46,14 @@ using namespace boost::filesystem;
 using namespace boost::property_tree;
 using namespace stride::util;
 
-shared_ptr<Population> RegionBuilder::build(
+shared_ptr<Population> PopulationBuilder::build(
 		const boost::property_tree::ptree& pt_config,
 		const boost::property_tree::ptree& pt_disease,
 		util::Random& rng) {
 	//------------------------------------------------
 	// Setup.
 	//------------------------------------------------
+	// TODO first determine how many people are needed (by scanning the file twice)
 	const auto pop = make_shared<Population>();
 	Population& population = *pop;
 	const double seeding_rate = pt_config.get<double>("run.seeding_rate");
@@ -172,7 +173,7 @@ shared_ptr<Population> RegionBuilder::build(
 }
 
 
-vector<double> RegionBuilder::getDistribution(const boost::property_tree::ptree& pt_root, const string& xml_tag) {
+vector<double> PopulationBuilder::getDistribution(const boost::property_tree::ptree& pt_root, const string& xml_tag) {
 	vector<double> values;
 	boost::property_tree::ptree subtree = pt_root.get_child(xml_tag);
 	for (const auto& tree : subtree) {
@@ -181,14 +182,14 @@ vector<double> RegionBuilder::getDistribution(const boost::property_tree::ptree&
 	return values;
 }
 
-unsigned int RegionBuilder::sample(Random& rng, const vector<double>& distribution) {
+unsigned int PopulationBuilder::sample(Random& rng, const vector<double>& distribution) {
 	double random_value = rng.nextDouble();
 	for (unsigned int i = 0; i < distribution.size(); i++) {
 		if (random_value <= distribution[i]) {
 			return i;
 		}
 	}
-	cerr << "WARNING: PROBLEM WITH DISEASE DISTRIBUTION [RegionBuilder]" << endl;
+	cerr << "WARNING: PROBLEM WITH DISEASE DISTRIBUTION [PopulationBuilder]" << endl;
 	return distribution.size();
 }
 
