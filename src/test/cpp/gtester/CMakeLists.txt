@@ -31,6 +31,7 @@ set( SRC
 		main.cpp
 		BatchRuns.cpp
 		UtilTests.cpp
+		PopulationTests.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp

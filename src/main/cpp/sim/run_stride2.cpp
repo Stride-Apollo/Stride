@@ -135,7 +135,7 @@ void run_stride2(bool track_index_case, const string& config_file_name) {
 	// Summary
 	SummaryFile summary_file(output_prefix);
 	summary_file.print(pt_config,
-					   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
+					   sim->getPopulation()->m_original.size(), sim->getPopulation()->getInfectedCount(),
 					   duration_cast<milliseconds>(total_clock.get()).count(),
 					   duration_cast<milliseconds>(total_clock.get()).count());
 

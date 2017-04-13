@@ -20,11 +20,10 @@ using namespace std;
  */
 template <typename T>
 class SimplePlanner {
-private:
+public:
 	using Block = vector<T>;
 	using Agenda = list<unique_ptr<Block>>;
 
-public:
 	Block* getModifiableDay(unsigned int days) {
 		Block* block;
 		if (days >= m_agenda.size()) {
@@ -60,6 +59,18 @@ public:
 
 	void nextDay() {
 		if (not m_agenda.empty()) m_agenda.pop_front();
+	}
+
+	unsigned int days() const {
+		return m_agenda.size();
+	}
+
+	Agenda& getAgenda() {
+		return m_agenda;
+	}
+
+	const Agenda& getAgenda() const {
+		return m_agenda;
 	}
 
 private:
