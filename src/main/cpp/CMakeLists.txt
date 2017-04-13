@@ -49,6 +49,7 @@ set(LIB_SRC
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
+	util/RNGPicker.cpp
 #---
 	patterns/Publisher.cpp
 #---
@@ -65,6 +66,7 @@ set(POPGEN_SRC
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
+	util/RNGPicker.cpp
 #---
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp

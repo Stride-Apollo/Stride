@@ -14,6 +14,7 @@
 
 #include "util/AliasDistribution.h"
 #include "util/GeoCoordCalculator.h"
+#include "util/RNGPicker.h"
 #include "popgen/utils.h"
 
 namespace stride {

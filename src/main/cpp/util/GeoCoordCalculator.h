@@ -2,13 +2,13 @@
 
 #include <iostream>
 
-#include "popgen/utils.h"
+#include "util/RNGPicker.h"
+#include "util/GeoCoordinate.h"
 
 namespace stride {
 namespace util {
 
 using namespace std;
-using namespace popgen;
 
 class GeoCoordCalculator {
 	/// Singleton pattern

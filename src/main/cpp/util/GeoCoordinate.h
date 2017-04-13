@@ -5,6 +5,8 @@
 namespace stride {
 namespace util {
 
+#define PI 3.14159265
+
 using namespace std;
 
 struct GeoCoordinate {
