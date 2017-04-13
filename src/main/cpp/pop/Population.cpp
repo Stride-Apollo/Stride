@@ -10,10 +10,10 @@ using namespace std;
 
 unsigned int Population::getInfectedCount() const {
 	unsigned int total = 0;
-	//for (const auto& p : *this) {
-	//	const auto& h = p.getHealth();
-	//	total += h.isInfected() || h.isRecovered();
-	//}
+	for (const auto& p : *this) {
+		const auto& h = p.getHealth();
+		total += h.isInfected() || h.isRecovered();
+	}
 	return total;
 }
 
