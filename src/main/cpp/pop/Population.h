@@ -26,8 +26,6 @@
 
 #include <numeric>
 #include <vector>
-// time to bring out the big guns
-#include <type_traits>
 
 namespace stride {
 
