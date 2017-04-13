@@ -40,6 +40,7 @@ namespace stride {
 class Population;
 class Calendar;
 class Cluster;
+class LocalSimulatorAdapter;
 
 /**
  * Main class that contains and direct the virtual world.
@@ -98,6 +99,7 @@ private:
 
 private:
 	friend class SimulatorBuilder;
+	friend class LocalSimulatorAdapter;
 };
 
 

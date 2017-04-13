@@ -61,6 +61,8 @@ public:
 		return g_profiles.at(toSizeType(m_cluster_type))[effectiveAge(p->getAge())] / m_members.size();;
 	}
 
+	std::size_t getId() const {return m_cluster_id;}
+
 public:
 	/// Add contact profile.
 	static void addContactProfile(ClusterType cluster_type, const ContactProfile& profile);
