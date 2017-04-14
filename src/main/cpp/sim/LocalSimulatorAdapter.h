@@ -4,10 +4,13 @@
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
+#include "util/SimplePlanner.h"
+#include "pop/Traveller.h"
 
 namespace stride {
 
 using namespace std;
+using namespace util;
 
 class LocalSimulatorAdapter : public AsyncSimulator {
 public:
@@ -26,9 +29,12 @@ public:
 
 private:
 	Simulator* m_sim;
+	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;
 
 	uint m_next_id;
 	uint m_next_hh_id;
+
+
 };
 
 }

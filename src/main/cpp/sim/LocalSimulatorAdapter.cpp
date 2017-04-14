@@ -35,6 +35,16 @@ LocalSimulatorAdapter::LocalSimulatorAdapter(Simulator* sim)
 }
 
 future<bool> LocalSimulatorAdapter::timeStep() {
+	// Get the people that return home today (according to the planner in the population of this simulator)
+	SimplePlanner<Simulator::TravellerType>::Block* returning_people = m_planner.getModifiableDay(0);
+
+	// Make sure the "home stats" of the person is back
+	for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
+		it->resetPerson();
+	}
+
+	m_planner.nextDay();
+	
 	return async([&](){m_sim->timeStep(); return true;});
 }
 
@@ -46,7 +56,7 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 			// set random community id's
 		// Step 2:
 			// Return the travellers back home (except for United Airlines' passengers, they don't get to travel anymore)
-		// Step 3: Notion of cities / airports
+		// >>>>> Step 3: Notion of cities / airports
 			// set non-random work id
 			// set non-random community id's
 		// Step 4:
@@ -60,23 +70,42 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 	for (const Simulator::TravellerType& traveller: travellers) {
 		uint start_infectiousness = traveller.getPerson()->getHealth().getStartInfectiousness();
 		uint start_symptomatic = traveller.getPerson()->getHealth().getStartSymptomatic();
+
+
 		Simulator::PersonType new_person = Simulator::PersonType(m_next_id, traveller.getPerson()->getAge(), m_next_hh_id, 0,
 																	work_id, primary_community_id, secondary_community_id,
 																	start_infectiousness, start_symptomatic,
 																	traveller.getPerson()->getHealth().getEndInfectiousness() - start_infectiousness,
 																	traveller.getPerson()->getHealth().getEndSymptomatic() - start_symptomatic);
 
+		Simulator::TravellerType new_traveller = traveller;
+		*(new_traveller.getPerson()) = new_person;
+		new_traveller.getPerson()->m_is_on_vacation = true;
+		m_planner.add(days, new_traveller);
+
+		new_person.m_is_on_vacation = false;
+
 		++m_next_id;
 		++m_next_hh_id;
 		m_sim->m_population.get()->m_visitors.getModifiableDay(days)->push_back(new_person);
+	}
+
+	for (Simulator::TravellerType traveller: travellers) {
 	}
 
 	return true;
 }
 
 bool LocalSimulatorAdapter::returnHome(const vector<Simulator::TravellerType>& travellers) {
-	// async([&](){m_sim->})
-	// TODO
+	// TODO remove?
+	for (auto& traveller: travellers) {
+		for (auto& person: m_sim->m_population.get()->m_original) {
+			if (traveller.getPerson() == &person) {
+
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -88,7 +117,6 @@ future<bool> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, Async
 	for (auto& person: population) {
 		if (person.m_work_id != 0) {
 			working_people.push_back(&person);
-			break;
 		}
 	}
 
@@ -96,7 +124,6 @@ future<bool> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, Async
 		// TODO throw exception
 	}
 
-	// TODO choose person
 	vector<Simulator::TravellerType> chosen_people;
 	chosen_people.reserve(amount);
 

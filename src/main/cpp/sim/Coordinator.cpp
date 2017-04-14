@@ -6,6 +6,7 @@ using namespace util;
 using namespace std;
 
 void Coordinator::timeStep() {
+	static bool send = true;
 	vector<future<bool>> fut_results;
 
 	// Run the simulator for the day
@@ -17,8 +18,12 @@ void Coordinator::timeStep() {
 	// Give each simulator a planning containing todays travellers
 	// The simulators will exchange travellers
 	// TODO not hardcoded
-	fut_results.clear();
-	for (uint i = 0; i < m_sims.size(); ++i) {
-		fut_results.push_back(m_sims.at(i)->sendTravellers(1, 1, m_sims.at(i % m_sims.size())));
+	if (send) {
+		fut_results.clear();
+		for (uint i = 0; i < m_sims.size(); ++i) {
+			fut_results.push_back(m_sims.at(i)->sendTravellers(1, 5, m_sims.at(i % m_sims.size())));
+		}
 	}
+
+	send = false;
 }

@@ -7,6 +7,9 @@ namespace stride {
 // Perhaps a solution based on inheritance would have 'looked' nicer
 // However, since people 'become' travellers at random, that would have
 // been very difficult to achieve (and either hacky or inefficient, too)
+
+class LocalSimulatorAdapter;
+
 template <class PersonType>
 class Traveller {
 public:
@@ -25,7 +28,12 @@ public:
 	}
 
 	void resetPerson() {
-		// TODO
+		m_person->m_id = m_home_id;
+		m_person->m_household_id = m_home_household_id;
+		m_person->m_work_id = m_home_work_id;
+		m_person->m_primary_community_id = m_home_primary_community_id;
+		m_person->m_secondary_community_id = m_home_secondary_community_id;
+		m_person->m_is_on_vacation = false;
 	}
 
 private:
