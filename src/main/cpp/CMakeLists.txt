@@ -68,6 +68,8 @@ set(POPGEN_SRC
 	util/GeoCoordCalculator.cpp
 	util/RNGPicker.cpp
 #---
+	core/ClusterType.cpp
+#---
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp

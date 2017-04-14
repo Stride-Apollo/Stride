@@ -97,7 +97,6 @@ private:
 
 	bool m_track_index_case;     ///< General simulation or tracking index case.
 
-private:
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;
 };
