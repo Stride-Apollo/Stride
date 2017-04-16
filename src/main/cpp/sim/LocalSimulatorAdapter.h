@@ -19,13 +19,13 @@ public:
 	virtual future<bool> timeStep() override;
 
 	// Receive travelers
-	virtual bool host(const vector<Simulator::TravellerType>& travellers, uint days);
+	virtual bool host(const vector<Simulator::TravellerType>& travellers, uint days) override;
 
 	// Return these travellers back home (in this simulator instance)
-	virtual bool returnHome(const vector<Simulator::TravellerType>& travellers);
+	virtual bool returnHome(const vector<Simulator::TravellerType>& travellers) override;
 
 	// Send travellers to the destination region
-	virtual future<bool> sendTravellers(uint amount, uint days, AsyncSimulator* destination_sim);
+	virtual future<bool> sendTravellers(uint amount, uint days, AsyncSimulator* destination_sim) override;
 
 private:
 	Simulator* m_sim;
