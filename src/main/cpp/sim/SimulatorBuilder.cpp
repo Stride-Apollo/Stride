@@ -42,7 +42,6 @@ namespace stride {
 
 using namespace std;
 using namespace util;
-using namespace boost::filesystem;
 using namespace boost::property_tree;
 using namespace stride::util;
 
