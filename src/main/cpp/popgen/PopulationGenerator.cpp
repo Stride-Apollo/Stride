@@ -194,8 +194,6 @@ void PopulationGenerator::writeClusters(const string& target_clusters) const {
 									ClusterType::Work,
 									ClusterType::PrimaryCommunity,
 									ClusterType::SecondaryCommunity,
-									ClusterType::Village,
-									ClusterType::City,
 									ClusterType::Null};
 
 		for (auto& cluster_type: types) {
@@ -509,8 +507,6 @@ void PopulationGenerator::makeCities() {
 			new_city.m_coord.m_longitude = longitude;
 			new_city.m_coord.m_latitude = latitude;
 
-			m_locations[make_pair(ClusterType::City, new_city.m_id)] = new_city.m_coord;
-
 			m_cities.push_back(new_city);
 		}
 		generated++;
@@ -574,7 +570,6 @@ double PopulationGenerator::getVillagePopulation() const {
 
 void PopulationGenerator::makeVillages() {
 	// Do NOT reset the id counter (cities and villages will be treated as one)
-	m_next_id = 1;
 	auto village_config = m_props.get_child("POPULATION.VILLAGES");
 	double village_radius_factor = village_config.get<double>("<xmlattr>.radius");
 	GeoCoordinate middle = getCityMiddle();
@@ -624,7 +619,6 @@ void PopulationGenerator::makeVillages() {
 		auto it_cities = find_if(m_cities.begin(), m_cities.end(), same_coordinate_city);
 
 		if (it_villages == m_villages.end() && it_cities == m_cities.end()) {
-			m_locations[make_pair(ClusterType::Village, new_village.m_id)] = new_village.m_coord;
 			m_villages.push_back(new_village);
 			unassigned_population -= new_village.m_max_size;
 		}
