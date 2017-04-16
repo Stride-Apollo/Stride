@@ -26,7 +26,7 @@ namespace stride {
 
 /// Enumerates the cluster types.
 enum class ClusterType {
-	Household, School, Work, PrimaryCommunity, SecondaryCommunity, Village, City, Null
+	Household, School, Work, PrimaryCommunity, SecondaryCommunity, Null
 };
 
 /// Number of Cluster types (not including Null type).

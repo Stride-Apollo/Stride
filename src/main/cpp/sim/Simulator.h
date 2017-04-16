@@ -23,6 +23,7 @@
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/RngHandler.h"
+#include "core/District.h"
 #include "behavior/behavior_policies/NoBehavior.h"
 #include "pop/Person.h"
 #include "pop/Traveller.h"
@@ -91,7 +92,9 @@ private:
 	std::vector<Cluster> m_school_clusters;      ///< Container with school Clusters.
 	std::vector<Cluster> m_work_clusters;        ///< Container with work Clusters.
 	std::vector<Cluster> m_primary_community;    ///< Container with primary community Clusters.
-	std::vector<Cluster> m_secondary_community;  ///< Container with secondary community  Clusters.
+	std::vector<Cluster> m_secondary_community;  ///< Container with secondary community Clusters.
+
+	std::vector<District> m_districts;    ///< Container with districts (villages and cities).
 
 	DiseaseProfile m_disease_profile;      ///< Profile of disease.
 

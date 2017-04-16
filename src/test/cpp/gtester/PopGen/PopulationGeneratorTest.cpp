@@ -108,8 +108,7 @@ void checkHappyDayCities(const vector<vector<string> >& csv) {
 	set<string> unique_column;
 	vector<GeoCoordinate> unique_coord;
 	// Go over every column (except the latitude-longitude one cause they belong to each other)
-	// TODO, find out a way to make the difference between city and village (currently disabled because i starts from 1)
-	for (uint i = 1; i < 7; i++) {
+	for (uint i = 0; i < 7; i++) {
 		unique_coord.clear();
 		unique_column.clear();
 		for (uint j = 1; j < csv.size(); j++) {

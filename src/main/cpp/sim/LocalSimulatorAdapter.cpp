@@ -89,10 +89,6 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 		++m_next_hh_id;
 		m_sim->m_population.get()->m_visitors.getModifiableDay(days)->push_back(new_person);
 	}
-
-	for (Simulator::TravellerType traveller: travellers) {
-	}
-
 	return true;
 }
 

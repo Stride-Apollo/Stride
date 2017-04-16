@@ -25,13 +25,23 @@
 #include "pop/Population.h"
 #include "pop/PopulationBuilder.h"
 #include "util/InstallDirs.h"
+#include "util/GeoCoordinate.h"
+#include "util/StringUtils.h"
 #include "core/Cluster.h"
+#include "core/ClusterType.h"
 
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/optional/optional.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include <map>
+#include <string>
+#include <utility>
 
 namespace stride {
 
 using namespace std;
+using namespace util;
 using namespace boost::filesystem;
 using namespace boost::property_tree;
 using namespace stride::util;
@@ -105,7 +115,10 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, rng);
 
 	// initialize clusters.
-	initializeClusters(sim);
+	initializeClusters(sim, pt_config);
+
+	// initialize districts.
+	initializeDistricts(sim, pt_config);
 
 	// initialize disease profile.
 	sim->m_disease_profile.initialize(pt_config, pt_disease);
@@ -129,7 +142,7 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	return sim;
 }
 
-void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim) {
+void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim, const boost::property_tree::ptree& pt_config) {
 	// Determine number of clusters.
 	unsigned int max_id_households = 0U;
 	unsigned int max_id_school_clusters = 0U;
@@ -151,26 +164,38 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim) {
 	// Keep separate id counter to provide a unique id for every cluster.
 	unsigned int cluster_id = 1;
 
+	string cluster_filename = "";
+
+	// Get the name of the file with the locations of the clusters
+	boost::optional<const ptree&> cluster_locations_config = pt_config.get_child_optional("run.cluster_location_file");
+	if(cluster_locations_config) {
+		cluster_filename = pt_config.get<string>("run.cluster_location_file");
+	}
+
+	map<pair<ClusterType, uint>, GeoCoordinate> locations = initializeLocations(cluster_filename);
+
 	for (size_t i = 0; i <= max_id_households; i++) {
-		sim->m_households.emplace_back(Cluster(cluster_id, ClusterType::Household));
+		sim->m_households.emplace_back(Cluster(cluster_id, ClusterType::Household, locations[make_pair(ClusterType::Household, cluster_id)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_school_clusters; i++) {
-		sim->m_school_clusters.emplace_back(Cluster(cluster_id, ClusterType::School));
+		sim->m_school_clusters.emplace_back(Cluster(cluster_id, ClusterType::School, locations[make_pair(ClusterType::School, cluster_id)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_work_clusters; i++) {
-		sim->m_work_clusters.emplace_back(Cluster(cluster_id, ClusterType::Work));
+		sim->m_work_clusters.emplace_back(Cluster(cluster_id, ClusterType::Work, locations[make_pair(ClusterType::Work, cluster_id)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_primary_community; i++) {
-		sim->m_primary_community.emplace_back(Cluster(cluster_id, ClusterType::PrimaryCommunity));
+		sim->m_primary_community.emplace_back(Cluster(cluster_id, ClusterType::PrimaryCommunity, locations[make_pair(ClusterType::PrimaryCommunity, cluster_id)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_secondary_community; i++) {
-		sim->m_secondary_community.emplace_back(Cluster(cluster_id, ClusterType::SecondaryCommunity));
+		sim->m_secondary_community.emplace_back(Cluster(cluster_id, ClusterType::SecondaryCommunity, locations[make_pair(ClusterType::SecondaryCommunity, cluster_id)]));
 		cluster_id++;
 	}
+
+	// TODO add cities and villages
 
 	// Cluster id '0' means "not present in any cluster of that type".
 	for (auto& p: population) {
@@ -195,6 +220,84 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim) {
 			sim->m_secondary_community[secCom_id].addPerson(&p);
 		}
 	}
+}
+
+void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boost::property_tree::ptree& pt_config) {
+	// Get the name of the file with the locations of the clusters
+	boost::optional<const ptree&> districts_config = pt_config.get_child_optional("run.district_file");
+	if(districts_config) {
+		string district_filename = pt_config.get<string>("run.district_file");
+
+		// Check for the correctness of the file
+		const auto file_path = InstallDirs::getDataDir() /= district_filename;
+		if (!is_regular_file(file_path)) {
+			throw runtime_error(string(__func__)
+								+ ">Districts file " + file_path.string() + " not present. Aborting.");
+		}
+
+		// Open the file
+		boost::filesystem::ifstream districts_file;
+		districts_file.open(file_path.string());
+		if (!districts_file.is_open()) {
+			throw runtime_error(string(__func__)
+								+ "> Error opening districts file " + file_path.string());
+		}
+
+		// Parse the file and fill the map
+		string line;
+		getline(districts_file, line); // step over file header
+
+		while (getline(districts_file, line)) {
+			auto values = StringUtils::split(line, ",");
+
+			// Remove the quotes
+			values[1].erase(values[1].begin());
+			values[1].erase(values[1].end());
+
+			// Check for duplicates
+			auto search_duplicate = [&] (const District& district) {return district.getName() == values[1];};
+			if (find_if(sim->m_districts.cbegin(), sim->m_districts.cend(), search_duplicate) != sim->m_districts.cend()) {
+				sim->m_districts.push_back(District(values[1],
+												GeoCoordinate(StringUtils::fromString<double>(values[6]),
+																StringUtils::fromString<double>(values[7]))));
+			}
+		}
+	}
+}
+
+
+map<pair<ClusterType, uint>, GeoCoordinate> SimulatorBuilder::initializeLocations(string filename) {
+	map<pair<ClusterType, uint>, GeoCoordinate> cluster_locations;
+
+	if (filename != "") {
+		// Check for the correctness of the file
+		const auto file_path = InstallDirs::getDataDir() /= filename;
+		if (!is_regular_file(file_path)) {
+			throw runtime_error(string(__func__)
+								+ ">Cluster location file " + file_path.string() + " not present. Aborting.");
+		}
+
+		// Open the file
+		boost::filesystem::ifstream locations_file;
+		locations_file.open(file_path.string());
+		if (!locations_file.is_open()) {
+			throw runtime_error(string(__func__)
+								+ "> Error opening cluster location file " + file_path.string());
+		}
+
+		// Parse the file and fill the map
+		string line;
+		getline(locations_file, line); // step over file header
+
+		while (getline(locations_file, line)) {
+			const auto values = StringUtils::split(line, ",");
+			// NOTE: if the values are invalid, it will be zero/Null due to StringUtils/ClusterType
+			cluster_locations[make_pair(toClusterType(values[1]), StringUtils::fromString<unsigned int>(values[0]))] = GeoCoordinate(
+							 StringUtils::fromString<double>(values[2]),
+							 StringUtils::fromString<double>(values[3]));
+		}
+	}
+	return cluster_locations;
 }
 
 }

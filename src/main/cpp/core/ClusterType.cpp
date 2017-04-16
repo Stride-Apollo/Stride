@@ -35,8 +35,6 @@ map<ClusterType, string> g_cluster_type_name {
 		make_pair(ClusterType::Work, "work"),
 		make_pair(ClusterType::PrimaryCommunity, "primary_community"),
 		make_pair(ClusterType::SecondaryCommunity, "secondary_community"),
-		make_pair(ClusterType::Village, "village"),
-		make_pair(ClusterType::City, "city"),
 		make_pair(ClusterType::Null, "null")
 };
 
@@ -46,8 +44,6 @@ map<string, ClusterType> g_name_cluster_type {
 		make_pair("WORK", ClusterType::Work),
 		make_pair("PRIMARY_COMMUNITY", ClusterType::PrimaryCommunity),
 		make_pair("SECONDARY_COMMUNITY", ClusterType::SecondaryCommunity),
-		make_pair("VILLAGE", ClusterType::Village),
-		make_pair("CITY", ClusterType::City),
 		make_pair("NULL", ClusterType::Null)
 };
 
