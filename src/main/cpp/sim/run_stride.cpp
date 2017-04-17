@@ -18,13 +18,14 @@
  * Actually run the simulator.
  */
 
-# include "run_stride.h"
+#include "run_stride.h"
 
 #include "output/CasesFile.h"
 #include "output/PersonFile.h"
 #include "output/SummaryFile.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
+#include "sim/SimulatorSetup.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
@@ -93,79 +94,8 @@ void run_stride(bool track_index_case,
 	// -----------------------------------------------------------------------------------------
 	
 	Stopwatch<> total_clock("total_clock", true);
-	ptree pt_config;
-	shared_ptr<Simulator> sim;
-	bool config_file_exists = exists(system_complete(config_file_name));
-	bool hdf5_file_exists = exists(system_complete(hdf5_file_name));
-
-
-
-	if (simulator_run_mode == "initial") {
-
-		if (!config_file_exists && !hdf5_file_exists) {
-			throw runtime_error(string(__func__)
-								+ "> Config file " + system_complete(config_file_name).string()
-								+ " and Hdf5 file " + system_complete(hdf5_file_name).string()
-								+ " both not present. Aborting.");
-		}
-
-		if (config_file_exists) {
-			// Start the simulation from the config file if present
-			const auto file_path_config = canonical(system_complete(config_file_name));
-			if (!is_regular_file(file_path_config)) {
-				throw runtime_error(string(__func__) + "> Configuration file is not a regular file.");
-			}
-
-			read_xml(file_path_config.string(), pt_config);
-			cout << "Configuration file:  " << file_path_config.string() << endl << endl;
-
-			// Build the simulator from bottom up
-			cout << "Building the simulator. " << endl;
-			sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-			cout << "Done building the simulator. " << endl << endl;
-
-		} else {
-			// Start the simulation from the initial state saved in the hdf5 file
-			const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
-			if (!is_regular_file(file_path_hdf5)) {
-				throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
-			}
-
-			Loader loader(file_path_hdf5.string().c_str(), num_threads);
-			pt_config = loader.get_config();
-			cout << "Configuration file retreived from hdf5 file." << endl << endl;
-
-			track_index_case = loader.get_track_index_case();
-			cout << "Building the simulator. " << endl;
-			sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
-			cout << "Done building the simulator. " << endl << endl;
-
-			// Load from timestep 0 I Think this is unneccessary
-			// loader.load_from_timestep(0, sim);
-		}
-
-	} else if (simulator_run_mode == "extend") {
-		// Start the simulation at the last checkpoint in the hdf5 file
-		if (!hdf5_file_exists) {
-			throw runtime_error(string(__func__) + "> Hdf5 file " + 
-								system_complete(hdf5_file_name).string() + " does not exist.");
-		}
-
-		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
-		if (!is_regular_file(file_path_hdf5)) {
-			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
-		}
-
-		Loader loader(file_path_hdf5.string().c_str(), num_threads);
-		pt_config = loader.get_config();
-		cout << "Configuration file retreived from hdf5 file." << endl << endl;
-
-		track_index_case = loader.get_track_index_case();
-		sim = SimulatorBuilder::build(pt_config, loader.get_disease(), loader.get_contact(), num_threads, track_index_case);
-
-		loader.extend_simulation(sim);
-	} else if (simulator_run_mode == "extract") {
-		// Start the simulation at the last checkpoint in the hdf5 file
+	if (simulator_run_mode == "extract") {
+		bool hdf5_file_exists = exists(system_complete(hdf5_file_name));
 		if (!hdf5_file_exists) {
 			throw runtime_error(string(__func__) + "> Hdf5 file " +
 								system_complete(hdf5_file_name).string() + " does not exist.");
@@ -178,9 +108,15 @@ void run_stride(bool track_index_case,
 
 		Loader loader(file_path_hdf5.string().c_str());
 		return;
-	} else {
-		throw runtime_error(string(__func__) + "> '" + simulator_run_mode + "' is not an accepted running mode.");
-	}
+	} 
+
+	cout << "Constructing configuration tree and building the simulator." << endl << endl;
+	
+	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case);
+	ptree pt_config = setup.getConfigTree();
+	shared_ptr<Simulator> sim = setup.getSimulator();
+
+	cout << "Done building the simulator." << endl;
 
 	// -----------------------------------------------------------------------------------------
 	// Set output path prefix.
@@ -201,7 +137,7 @@ void run_stride(bool track_index_case,
 	// -----------------------------------------------------------------------------------------
 	// Track index case setting.
 	// -----------------------------------------------------------------------------------------
-	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
+	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl << endl;
 
 	// -----------------------------------------------------------------------------------------
 	// Create logger
