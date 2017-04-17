@@ -40,6 +40,7 @@ set(LIB_SRC
 	sim/run_stride.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
+    sim/SimulatorSetup.cpp
 #---
 	util/InstallDirs.cpp
 #---
