@@ -94,7 +94,7 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 10;
-	string h5filename = "testOutput.h5";
+	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/tests/testOutput.h5").string();
 	auto pt_config = getConfigTree();
 
 
@@ -127,7 +127,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 10;
-	string h5filename = "testOutput.h5";
+	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/tests/testOutput.h5").string();
 	auto pt_config = getConfigTree();
 
 
@@ -161,7 +161,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 10;
-	string h5filename = "testOutput.h5";
+	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/tests/testOutput.h5").string();
 	auto pt_config = getConfigTree();
 
 
@@ -188,53 +188,48 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
  *	Test that checks the stored config data.
  */
 TEST_F(HDF5UnitTests, CheckConfigTree) {
-	string h5filename = "testOutput.h5";
+	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/tests/testOutput.h5").string();
 	auto pt_config = getConfigTree();
 
 	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
 
 
-	// ================================================
-	// Constructing datatype to read configuration data
-	// ================================================
+	// Retrieve the configuration settings from the Hdf5 file.
+	StrType h5_str (0, H5T_VARIABLE);
+	CompType typeConfData(sizeof(ConfDataType));
+	typeConfData.insertMember(H5std_string("conf_content"), HOFFSET(ConfDataType, conf_content), h5_str);
+	typeConfData.insertMember(H5std_string("disease_content"), HOFFSET(ConfDataType, disease_content), h5_str);
+	typeConfData.insertMember(H5std_string("age_contact_content"), HOFFSET(ConfDataType, age_contact_content), h5_str);
+	typeConfData.insertMember(H5std_string("holidays_content"), HOFFSET(ConfDataType, holidays_content), h5_str);
+	ConfDataType configData[1];
 
-	/*CompType typeConf = CompType(sizeof(ConfDataType));
-	typeConf.insertMember(H5std_string("checkpointing_frequency"),
-						  HOFFSET(ConfDataType, checkpointing_frequency), PredType::NATIVE_UINT);
-	typeConf.insertMember(H5std_string("rng_seed"), HOFFSET(ConfDataType, rng_seed), PredType::NATIVE_ULONG);
-	typeConf.insertMember(H5std_string("r0"), HOFFSET(ConfDataType, r0), PredType::NATIVE_UINT);
-	typeConf.insertMember(H5std_string("seeding_rate"),
-						  HOFFSET(ConfDataType, seeding_rate), PredType::NATIVE_DOUBLE);
-	typeConf.insertMember(H5std_string("immunity_rate"),
-						  HOFFSET(ConfDataType, immunity_rate), PredType::NATIVE_DOUBLE);
-	typeConf.insertMember(H5std_string("num_days"), HOFFSET(ConfDataType, num_days), PredType::NATIVE_UINT);
-	StrType tid1(0, H5T_VARIABLE);
-	typeConf.insertMember(H5std_string("output_prefix"), HOFFSET(ConfDataType, output_prefix), tid1);
-	typeConf.insertMember(H5std_string("generate_person_file"),
-						  HOFFSET(ConfDataType, generate_person_file), PredType::NATIVE_HBOOL);
-	typeConf.insertMember(H5std_string("num_participants_survey"),
-						  HOFFSET(ConfDataType, num_participants_survey), PredType::NATIVE_UINT);
-	typeConf.insertMember(H5std_string("start_date"), HOFFSET(ConfDataType, start_date), tid1);
-	typeConf.insertMember(H5std_string("log_level"), HOFFSET(ConfDataType, log_level), tid1);
-	*/
-	// ================================================
+	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
+	DataSet dataset = h5file.openDataSet("configuration/configuration");
+	dataset.read(configData, typeConfData);
+
+	istringstream iss(configData[0].conf_content);
+	ptree pt_config_hdf5;
+	xml_parser::read_xml(iss, pt_config_hdf5);
 
 
 	/// Check if the stored data conforms to the original data
-	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
-	DataSet dataset = h5file.openDataSet("configuration/configuration");
-
-	ConfDataType config[1];
-	//dataset.read(config, typeConf);
-	/*ASSERT_EQ(g_r0, config->r0);
-	ASSERT_EQ(g_rng_seed, config->rng_seed);
-	ASSERT_EQ(g_immunity_rate, config->immunity_rate);
-	ASSERT_EQ(g_num_days, config->num_days);
-	ASSERT_EQ(g_output_prefix, config->output_prefix);
-	ASSERT_EQ(g_generate_person_file, config->generate_person_file);
-	ASSERT_EQ(g_num_participants_survey, config->num_participants_survey);
-	ASSERT_EQ(g_start_date, config->start_date);
-	ASSERT_EQ(g_log_level, config->log_level);*/
+	ASSERT_EQ(g_population_file, pt_config_hdf5.get<string>("run.population_file"));
+	ASSERT_EQ(g_r0, pt_config_hdf5.get<double>("run.r0"));
+	ASSERT_EQ(g_num_days, pt_config_hdf5.get<unsigned int>("run.num_days"));
+	ASSERT_EQ(g_rng_seed, pt_config_hdf5.get<unsigned int>("run.rng_seed"));
+	ASSERT_EQ(g_seeding_rate, pt_config_hdf5.get<double>("run.seeding_rate"));
+	ASSERT_EQ(g_immunity_rate, pt_config_hdf5.get<double>("run.immunity_rate"));
+	ASSERT_EQ(g_output_prefix, pt_config_hdf5.get<string>("run.output_prefix"));
+	ASSERT_EQ(g_num_participants_survey, pt_config_hdf5.get<unsigned int>("run.num_participants_survey"));
+	ASSERT_EQ(g_start_date, pt_config_hdf5.get<string>("run.start_date"));
+	ASSERT_EQ(g_log_level, pt_config_hdf5.get<string>("run.log_level"));
+	ASSERT_EQ(g_generate_person_file, pt_config_hdf5.get<unsigned int>("run.generate_person_file"));
+	ASSERT_EQ(g_checkpointing_file, pt_config_hdf5.get<string>("run.checkpointing_file"));
+	ASSERT_EQ(g_checkpointing_frequency, pt_config_hdf5.get<int>("run.checkpointing_frequency"));
+	
+	// Cleanup
+	dataset.close();
+	h5file.close();
 }
 
 
@@ -243,8 +238,9 @@ TEST_F(HDF5UnitTests, CheckConfigTree) {
  */
 TEST_F(HDF5UnitTests, CreateSaver) {
 	auto pt_config = getConfigTree();
-	string output = "testOutput.h5";
+	string output = "/tmp/testOutput.h5";
 	Saver saver = Saver(output.c_str(), pt_config, 1, false);
+
 }
 
 
@@ -252,7 +248,8 @@ TEST_F(HDF5UnitTests, CreateSaver) {
  *	Test that checks the amount of persons stored in the hdf5 file.
  */
 TEST_F(HDF5UnitTests, CheckAmtPersons) {
-	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/testOutput.h5").string();
+	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/tests/testOutput.h5").string();
+	// const string h5filename = "/tmp/testOutput.h5";
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
@@ -273,6 +270,8 @@ TEST_F(HDF5UnitTests, CheckAmtPersons) {
 	hsize_t dims[amt_dims];
 	dataspace.getSimpleExtentDims(dims, NULL);
 	dataspace.close();
+	dataset->close();
+	delete dataset;
 	h5file.close();
 
 	EXPECT_EQ(sim->getPopulation()->size(), dims[0]);
