@@ -58,7 +58,8 @@ set( EXEC       gtester     )
 set( SRC
 		main.cpp
 		BatchRuns.cpp
-		Hdf5Runs.cpp
+		Hdf5UnitTests.cpp
+        Hdf5ScenarioTests.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)
