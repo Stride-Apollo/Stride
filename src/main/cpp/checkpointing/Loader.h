@@ -24,25 +24,25 @@ public:
 
 	Loader(const char* filename, unsigned int num_threads);
 
-	ptree get_config() {
+	ptree getConfig() {
 		return m_pt_config;
 	}
 
-	ptree get_disease() {
+	ptree getDisease() {
 		return m_pt_disease;
 	}
 
-	ptree get_contact() {
+	ptree getContact() {
 		return m_pt_contact;
 	}
 
-	void load_from_timestep(unsigned int timestep, std::shared_ptr<Simulator> sim);
+	void loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> sim);
 
-	void extend_simulation(std::shared_ptr<Simulator> sim);
+	void extendSimulation(std::shared_ptr<Simulator> sim);
 
-	void setup_population(std::shared_ptr<Simulator> sim);
+	void setupPopulation(std::shared_ptr<Simulator> sim);
 
-	bool get_track_index_case() {
+	bool getTrackIndexCase() {
 		return m_track_index_case;
 	};
 

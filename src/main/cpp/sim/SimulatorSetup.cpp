@@ -44,7 +44,7 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() const {
 			}
 
 			Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-			return SimulatorBuilder::build(m_pt_config, loader.get_disease(), loader.get_contact(), m_num_threads, m_track_index_case);
+			return SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
 		}
 	} else if (m_simulator_mode == "extend") {
 		// Build the simulator and adjust it to the most recent saved checkpoint in the hdf5 file.
@@ -54,8 +54,8 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() const {
 		}
 
 		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-		auto sim = SimulatorBuilder::build(m_pt_config, loader.get_disease(), loader.get_contact(), m_num_threads, m_track_index_case);
-		loader.extend_simulation(sim);
+		auto sim = SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
+		loader.extendSimulation(sim);
 		return sim;
 	} else {
 		// Should not be able to get here (runtime error in constructor), but you never know.
@@ -87,8 +87,8 @@ void SimulatorSetup::constructConfigTreeInitial() {
 			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
 		}
 		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-		m_pt_config = loader.get_config();	
-		m_track_index_case = loader.get_track_index_case();
+		m_pt_config = loader.getConfig();	
+		m_track_index_case = loader.getTrackIndexCase();
 	}
 }
 
@@ -105,8 +105,8 @@ void SimulatorSetup::constructConfigTreeExtend() {
 	}
 
 	Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-	m_pt_config = loader.get_config();
-	m_track_index_case = loader.get_track_index_case();
+	m_pt_config = loader.getConfig();
+	m_track_index_case = loader.getTrackIndexCase();
 }
 
 bool SimulatorSetup::fileExists(string filename) const {

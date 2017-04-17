@@ -142,7 +142,7 @@ Loader::Loader(const char *filename, unsigned int num_threads): m_filename(filen
 	}
 }
 
-void Loader::setup_population(std::shared_ptr<Simulator> sim) {
+void Loader::setupPopulation(std::shared_ptr<Simulator> sim) {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 	DataSet* dataset = new DataSet(file.openDataSet("personsTI"));
 	DataSpace dataspace = dataset->getSpace();
@@ -198,17 +198,17 @@ void Loader::setup_population(std::shared_ptr<Simulator> sim) {
 	file.close();
 }
 
-void Loader::extend_simulation(std::shared_ptr<Simulator> sim) {
+void Loader::extendSimulation(std::shared_ptr<Simulator> sim) {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 	DataSet* dataset = new DataSet(file.openDataSet("amt_timesteps"));
 	unsigned int data[1];
 	dataset->read(data, PredType::NATIVE_UINT);
 	dataset->close();
 	file.close();
-	load_from_timestep(data[0], sim);
+	loadFromTimestep(data[0], sim);
 }
 
-void Loader::load_from_timestep(unsigned int timestep, std::shared_ptr<Simulator> sim) {
+void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> sim) {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 	CompType typeCalendar(sizeof(CalendarDataType));
 	StrType tid1(0, H5T_VARIABLE);

@@ -117,8 +117,8 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	const unsigned int num_cases_original = sim->getPopulation()->getInfectedCount();
 
 	Loader loader(h5filename.c_str(), num_threads);
-	auto sim_checkpointed = SimulatorBuilder::build(loader.get_config(), loader.get_disease(), loader.get_contact(), num_threads, false);
-	loader.extend_simulation(sim_checkpointed);
+	auto sim_checkpointed = SimulatorBuilder::build(loader.getConfig(), loader.getDisease(), loader.getContact(), num_threads, false);
+	loader.extendSimulation(sim_checkpointed);
 	cout << "Infected count after loading from last timestep: " << sim_checkpointed->getPopulation()->getInfectedCount() << endl;
 
 	for (unsigned int i = 0; i < NUM_DAYS - num_days_checkpointed; i++) {
