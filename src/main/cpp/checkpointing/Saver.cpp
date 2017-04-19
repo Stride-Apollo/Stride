@@ -16,6 +16,9 @@
 #include "checkpointing/customDataTypes/PersonTIDataType.h"
 #include "checkpointing/customDataTypes/RNGDataType.h"
 
+#include <string>
+#include <vector>
+
 using namespace H5;
 using namespace stride::util;
 
@@ -226,13 +229,17 @@ void Saver::update(const Simulator& sim) {
 			DataSpace* dataspace = new DataSpace(1, dims);
 			CompType typeRng(sizeof(RNGDataType));
 			typeRng.insertMember(H5std_string("seed"), HOFFSET(RNGDataType, seed), PredType::NATIVE_ULONG);
+			StrType tid1(0, H5T_VARIABLE);
+			typeRng.insertMember(H5std_string("state"), HOFFSET(RNGDataType, rng_state), tid1);
 			DataSet* dataset = new DataSet(group.createDataSet("randomgen", typeRng, *dataspace));
 
-			RNGDataType seeds[sim.m_num_threads];
+			RNGDataType rngs[sim.m_num_threads];
+			std::vector<std::string> rng_states = sim.getRngStates();
 			for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
-				seeds[i].seed = sim.m_rng_handler.at(i).getSeed();
+				rngs[i].seed = sim.m_rng_handler.at(i).getSeed();
+				rngs[i].rng_state = rng_states[i].c_str();
 			}
-			dataset->write(seeds, typeRng);
+			dataset->write(rngs, typeRng);
 
 			delete dataspace;
 			delete dataset;
@@ -241,7 +248,6 @@ void Saver::update(const Simulator& sim) {
 			// Save Calendar
 			dims[0] = 1;
 			CompType typeCalendar(sizeof(CalendarDataType));
-			StrType tid1(0, H5T_VARIABLE);
 			typeCalendar.insertMember(H5std_string("day"), HOFFSET(CalendarDataType, day), PredType::NATIVE_HSIZE);
 			typeCalendar.insertMember(H5std_string("date"), HOFFSET(CalendarDataType, date), tid1);
 			dataspace = new DataSpace(1, dims);

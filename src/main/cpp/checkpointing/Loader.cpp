@@ -17,6 +17,9 @@
 #include "sim/SimulatorBuilder.h"
 #include "pop/PopulationBuilder.h"
 
+#include <vector>
+#include <string>
+
 using namespace H5;
 using namespace boost::property_tree;
 using namespace std;
@@ -227,6 +230,45 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 
 	std::cout << "Initialized calendar to " << calendar[0].day << " " << calendar[0].date << "\n";
 	delete dataset;
+
+
+	// Set up rng states
+	dataset = new DataSet(file.openDataSet(ss.str() + "/randomgen"));
+
+	DataSpace dataspace_rng = dataset->getSpace();
+	const int ndims_rng = dataspace_rng.getSimpleExtentNdims();
+	hsize_t dims_rng[ndims_rng];
+	dataspace_rng.getSimpleExtentDims(dims_rng, NULL);
+	dataspace_rng.close();
+
+	CompType typeRng(sizeof(RNGDataType));
+	typeRng.insertMember(H5std_string("seed"), HOFFSET(RNGDataType, seed), PredType::NATIVE_ULONG);
+	typeRng.insertMember(H5std_string("state"), HOFFSET(RNGDataType, rng_state), tid1);
+
+	vector<string> states;
+	for (unsigned int i = 0; i < dims_rng[0]; i++) {
+		RNGDataType rng_state[1];
+		hsize_t dim_sub[1] = {1};
+		DataSpace memspace(1, dim_sub, NULL);
+
+		hsize_t offset[1] = {i};
+		hsize_t count[1] = {1};
+		hsize_t stride[1] = {1};
+		hsize_t block[1] = {1};
+
+		DataSpace dataspace = dataset->getSpace();
+		dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
+		dataset->read(rng_state, typeRng, memspace, dataspace);
+
+		string state = rng_state[0].rng_state;
+		states.push_back(state);
+
+		memspace.close();
+		dataspace.close();
+	}
+	sim->setRngStates(states);
+	delete dataset;
+
 
 	dataset = new DataSet(file.openDataSet(ss.str() + "/PersonTD"));
 	unsigned long dims[1] = {sim->m_population->size()};

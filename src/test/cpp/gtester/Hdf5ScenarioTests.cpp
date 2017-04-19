@@ -84,6 +84,58 @@ const int			HDF5ScenarioTests::g_checkpointing_frequency		= 1;
 
 const unsigned int NUM_DAYS = 50;
 
+
+
+/// This test is similair to the parametrized test below, but alot more efficient (only runs original simulation once).
+/// Still keeping the test below for debugging reasons 
+TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
+	unsigned int num_threads = 1;
+	#pragma omp parallel
+	{
+		num_threads = omp_get_num_threads();
+	}
+	omp_set_num_threads(num_threads);
+	omp_set_schedule(omp_sched_static,1);
+
+	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/tests/testOutput.h5").string();
+	auto pt_config = getConfigTree();
+
+
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto classInstance = std::make_shared<Saver>
+		(Saver(h5filename.c_str(), pt_config, 1, false));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	sim->registerObserver(classInstance, fnCaller);
+
+	vector<unsigned int> cases_original;
+	for (unsigned int i = 0; i < NUM_DAYS; i++) {
+		sim->timeStep();
+		cases_original.push_back(sim->getPopulation()->getInfectedCount());
+	}
+
+
+	int num_cases_original = cases_original.at(NUM_DAYS-1);
+
+	for (unsigned int i = 1; i < NUM_DAYS; i++) {
+		Loader loader(h5filename.c_str(), num_threads);
+		auto sim_checkpointed = SimulatorBuilder::build(loader.getConfig(), loader.getDisease(), loader.getContact(), num_threads, false);
+		loader.loadFromTimestep(i, sim_checkpointed);
+
+		ASSERT_EQ(cases_original.at(i), sim_checkpointed->getPopulation()->getInfectedCount());
+		// cout << "Infected count after loading from last timestep: " << sim_checkpointed->getPopulation()->getInfectedCount() << endl;
+
+		for (unsigned int j = 0; j < NUM_DAYS - i; j++) {
+			sim_checkpointed->timeStep();
+		}
+		const unsigned int num_cases_checkpointed = sim_checkpointed->getPopulation()->getInfectedCount();
+
+		cout << "Original: " << num_cases_original << ", checkpointed: " << num_cases_checkpointed << endl;
+		ASSERT_NEAR(num_cases_original, num_cases_checkpointed, 10000);
+		
+	}
+}
+
+/// TODO remove this test if debugging is over
 TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	unsigned int num_days_checkpointed = GetParam();
 
@@ -109,9 +161,9 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	for (unsigned int i = 0; i < NUM_DAYS; i++) {
 		if (i == num_days_checkpointed) {
 			sim->unregister(classInstance);
+			cout << "Infected count at save: " << sim->getPopulation()->getInfectedCount() << endl;
 		}
 		sim->timeStep();
-
 	}
 
 	const unsigned int num_cases_original = sim->getPopulation()->getInfectedCount();
@@ -126,8 +178,8 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	}
 	const unsigned int num_cases_checkpointed = sim_checkpointed->getPopulation()->getInfectedCount();
 
-
-	// ASSERT_NEAR(num_cases_original, num_cases_checkpointed, 10000);
+	cout << "Original: " << num_cases_original << ", checkpointed: " << num_cases_checkpointed << endl;
+	ASSERT_NEAR(num_cases_original, num_cases_checkpointed, 10000);
 }
 
 
@@ -135,7 +187,7 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 
 
 
-unsigned int days[NUM_DAYS] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 
+unsigned int days[NUM_DAYS-1] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 
 							 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 
 							 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 
 							 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 

@@ -2,5 +2,5 @@
 
 struct RNGDataType {
 	unsigned long seed;
-	// TODO Save the state of the rng
+	const char* rng_state;
 };
