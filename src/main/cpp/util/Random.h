@@ -22,6 +22,7 @@
 #include <trng/mrg2.hpp>
 #include <trng/uniform01_dist.hpp>
 #include <trng/uniform_int_dist.hpp>
+#include <iostream>
 
 namespace stride {
 namespace util {
@@ -57,6 +58,12 @@ public:
 	 */
 	void split(unsigned int total, unsigned int id) {
 		m_engine.split(total, id);
+	}
+
+
+	friend std::ostream& operator<<(std::ostream& os, const Random& random) {
+		os << random.m_engine;
+		return os;
 	}
 
 private:

@@ -45,8 +45,6 @@ class Loader;
  * Main class that contains and direct the virtual world.
  */
 class Simulator : public util::Subject<Simulator> {
-friend class Saver;
-friend class Loader;
 public:
 	using PersonType = Person<NoBelief, NoBehavior>;
 
@@ -66,6 +64,9 @@ private:
 	/// Update the contacts in the given clusters.
 	template<LogMode log_level, bool track_index_case = false>
 	void updateClusters();
+
+	/// Retrieve the states of the rng's
+	std::vector<std::string> getRngStates() const;
 
 private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
@@ -91,6 +92,8 @@ private:
 
 private:
 	friend class SimulatorBuilder;
+	friend class Saver;
+	friend class Loader;
 };
 
 }

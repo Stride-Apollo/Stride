@@ -21,6 +21,7 @@
 
 #include "util/Random.h"
 #include "math.h"
+#include <iostream>
 
 namespace stride {
 
@@ -54,6 +55,11 @@ public:
 	bool hasContact(double contact_rate) {
 		return m_rng.nextDouble() < rateToProbability(contact_rate);
 	}
+
+	friend std::ostream& operator<<(std::ostream& os, const RngHandler& handler) {
+		os << handler.m_rng;
+		return os;
+	} 
 
 private:
 	unsigned int m_seed;
