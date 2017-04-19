@@ -23,6 +23,8 @@
 #include <trng/uniform01_dist.hpp>
 #include <trng/uniform_int_dist.hpp>
 #include <iostream>
+#include <sstream>
+#include <string>
 
 namespace stride {
 namespace util {
@@ -60,6 +62,11 @@ public:
 		m_engine.split(total, id);
 	}
 
+	void setState(std::string state) {
+		std::stringstream ss;
+		ss.str(state);
+		ss >> m_engine;
+	}
 
 	friend std::ostream& operator<<(std::ostream& os, const Random& random) {
 		os << random.m_engine;

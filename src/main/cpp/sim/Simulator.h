@@ -68,6 +68,9 @@ private:
 	/// Retrieve the states of the rng's
 	std::vector<std::string> getRngStates() const;
 
+	/// Set the states of the rng's
+	void setRngStates(std::vector<std::string> states);
+
 private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 

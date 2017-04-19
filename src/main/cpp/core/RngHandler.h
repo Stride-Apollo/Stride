@@ -22,6 +22,7 @@
 #include "util/Random.h"
 #include "math.h"
 #include <iostream>
+#include <string>
 
 namespace stride {
 
@@ -54,6 +55,10 @@ public:
 	/// Check if two individuals have contact.
 	bool hasContact(double contact_rate) {
 		return m_rng.nextDouble() < rateToProbability(contact_rate);
+	}
+
+	void setState(std::string state) {
+		m_rng.setState(state);
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const RngHandler& handler) {

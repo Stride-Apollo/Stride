@@ -91,9 +91,16 @@ vector<string> Simulator::getRngStates() const {
 		ss << rng_handler;
 		states.push_back(ss.str());
 	}
-
 	return states;
 }
+
+void Simulator::setRngStates(vector<string> states) {
+	int i = 0;
+	for (auto state : states) {
+		m_rng_handler.at(i++).setState(state);
+	}
+}
+
 
 void Simulator::timeStep() {
 	shared_ptr<DaysOffInterface> days_off {nullptr};
@@ -141,7 +148,6 @@ void Simulator::timeStep() {
 	}
 
 	notify(*this);
-	getRngStates();
 	m_calendar->advanceDay();
 }
 }
