@@ -19,35 +19,20 @@
 			& dims & 1 \\
 			& dtype & ConfDatatype \\ \hline
 
-		\multirow{3}{*}{\begin{tabular}{l}/configuration/disease \\ \textit{(might not be necessary)}\end{tabular}} 
+		\multirow{3}{*}{/track\_index\_case} 
 			& rank & 1 \\
 			& dims & 1 \\
-			& dtype & DiseaseConfigType \\ \hline
-
-		\multirow{3}{*}{/configuration/holiday} 
-			& rank & 1 \\
-			& dims & 1 \\
-			& dtype & HolidayConfigType \\ \hline
-
-		\multirow{3}{*}{/configuration/agecontact} 
-			& rank & amt\_ages \\
-			& dims & amt\_ages \\
-			& dtype & H5T\_NATIVE\_DOUBLE \\ \hline
-
-		\multirow{3}{*}{/amt\_persons} 
-			& rank & 1 \\
-			& dims & 1 \\
-			& dtype & H5T\_NATIVE\_UINT \\ \hline
-
-		\multirow{3}{*}{/personsTI} 
-			& rank & 1 \\
-			& dims & amt\_persons \\
-			& dtype & PersonTIDatatype \\ \hline
+			& dtype & H5T\_NATIVE\_INT \\ \hline
 
 		\multirow{3}{*}{/amt\_timesteps} 
 			& rank & 1 \\
 			& dims & n\_steps \\
 			& dtype & H5T\_NATIVE\_UINT \\ \hline
+		
+		\multirow{3}{*}{/personsTI} 
+			& rank & 1 \\
+			& dims & amt\_persons \\
+			& dtype & PersonTIDatatype \\ \hline
 
 		\multirow{3}{*}{/Timestep\_n/randomgen} 
 			& rank & 1 \\
@@ -69,29 +54,16 @@
 		\subsection{Custom datatypes}
 			\subsubsection{ConfDatatype}
 				\begin{itemize}
-					\item H5T\_NATIVE\_UINT - checkpointing\_frequency
-					\item H5T\_NATIVE\_ULONG - rng\_seed (in the simulationbuilder, they parse the seed as a double, possible mistake/oversight?)
-					\item H5T\_NATIVE\_UINT - r0
-					\item H5T\_NATIVE\_DOUBLE - seeding\_rate
-					\item H5T\_NATIVE\_DOUBLE - immunity\_rate
-					\item H5T\_NATIVE\_UINT - num\_days
-					\item \textit{Compound Datatype of string?} - output\_prefix
-					\item H5T\_NATIVE\_HBOOL - generate\_person\_file
-					\item H5T\_NATIVE\_UINT - num\_participants\_survey
-					\item Compound Datatype := dateString (8x H5T\_NATIVE\_CHAR) - start\_date
-						\\ \textit{Date in iso format, string of 8 characters.}
-					\item H5T\_NATIVE\_B8 - log\_level 
-						\\ \textit{(3 possible values for log level, not sure what else to use.)} \\
-					
-					\item  \sout{DiseaseConfigType - disease\_xml} 
-					\item  \sout{HolidayConfigType - holiday\_json} 
-					\item  \sout{AgeContactConfigType - age\_contact\_matrix\_xml}
+					\item StrType (variable length) - conf\_content
+					\item StrType (variable length) - disease\_content
+					\item StrType (variable length) - holidays\_content
+					\item StrType (variable length) - age\_contact\_content
 				\end{itemize}
 
 			\subsubsection{RNGDatatype}
 				\begin{itemize}
 					\item H5T\_NATIVE\_ULONG - seed
-					\item (things to hold state of generator(s), \textbf{\underline{tricky}} business)
+					\item StrType (variable length) - rng\_state
 				\end{itemize}
 
 			\subsubsection{PersonTIDatatype (time independent)}
@@ -100,41 +72,33 @@
 					\item H5T\_NATIVE\_DOUBLE - age
 					\item H5T\_NATIVE\_CHAR - gender
 
-					\item H5T\_NATIVE\_UINT - householdID
-					\item H5T\_NATIVE\_UINT - schoolID
-					\item H5T\_NATIVE\_UINT - workID
-					\item H5T\_NATIVE\_UINT - primcommID
-					\item H5T\_NATIVE\_UINT - seccommID
+					\item H5T\_NATIVE\_UINT - household\_ID
+					\item H5T\_NATIVE\_UINT - school\_ID
+					\item H5T\_NATIVE\_UINT - work\_ID
+					\item H5T\_NATIVE\_UINT - prim\_comm\_ID
+					\item H5T\_NATIVE\_UINT - sec\_comm\_ID
+
+					\item H5T\_NATIVE\_UINT - start\_infectiousness
+					\item H5T\_NATIVE\_UINT - time\_infectiousness
+					\item H5T\_NATIVE\_UINT - start\_symptomatic
+					\item H5T\_NATIVE\_UINT - time\_symptomatic
 				\end{itemize}
 
 			\subsubsection{PersonTDDatatype (time dependent)}
 				\begin{itemize}
-					\item H5T\_NATIVE\_HBOOL - athousehold
-					\item H5T\_NATIVE\_HBOOL - atschool
-					\item H5T\_NATIVE\_HBOOL - atwork
-					\item H5T\_NATIVE\_HBOOL - atprimcomm
-					\item H5T\_NATIVE\_HBOOL - atseccomm
+					\item H5T\_NATIVE\_HBOOL - at\_household
+					\item H5T\_NATIVE\_HBOOL - at\_school
+					\item H5T\_NATIVE\_HBOOL - at\_work
+					\item H5T\_NATIVE\_HBOOL - at\_prim\_comm
+					\item H5T\_NATIVE\_HBOOL - at\_sec\_comm
 					\item H5T\_NATIVE\_HBOOL - participant
 
-					\item Compound Datatype := \\
-						\hspace*{1cm} health (5x H5T\_NATIVE\_UINT, 1x H5T\_NATIVE\_B8) \\
-						\textit{(Attributes from Health class, 8 bit type for enum?)}
+					\item H5T\_NATIVE\_UINT - health\_status
 				\end{itemize}
 
 			\subsubsection{CalendarDatatype}
 				\begin{itemize}
 					\item H5T\_NATIVE\_HSIZE - day
-					\item Compound Datatype := dateString (8x H5T\_NATIVE\_CHAR) - date
-							\\ \textit{Date in iso format, string of 8 characters.}
-				\end{itemize}
-
-			\subsubsection{DiseaseConfigType}
-				\textit{Might not be necessary, this configuration file is only used for building the population.}
-
-			\subsubsection{HolidayConfigType}
-				\begin{itemize}
-					\item H5T\_NATIVE\_UINT - year
-					\item 12x31 H5T\_NATIVE\_HBOOL - general
-					\item 12x31 H5T\_NATIVE\_HBOOL - school
+					\item StrType (variable length) - date
 				\end{itemize}
 \end{document}
