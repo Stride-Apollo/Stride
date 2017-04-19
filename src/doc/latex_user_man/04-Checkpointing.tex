@@ -1,0 +1,126 @@
+
+\chapter{Checkpointing}
+\label{chap:checkpointing}
+
+
+\section{Configuring checkpointing}
+	\textit{Checkpointing is configured using command line options and/or specifying certain parameters in the configuration file. These options are specified in the chapters above.}
+	\textit{For more detailed information on how to configure checkpointing, read the Simulator chapter (Run the simulator part).}
+
+
+	Checkpointing enables the ability to save the state of the simulator multiple times during the simulation itself. The simulator state is saved in a binary format, based on a HDF5 storage format. The format of this file is described below. \\
+	Checkpointing is configured by 3 parameters: the checkpointing frequency, the checkpointing file and the simulator run mode. \\
+
+
+\subsection{Checkpointing frequency}
+	The amount of times the simulator will be saved, can be set by the checkpointing frequency parameter. This parameter can be set by using a commandline argument or specifying the parameter in the xml configuration file. This are the possible values for the parameter: \\
+	\begin{itemize}
+		\item 0 - Only save the last timestep of the simulation
+		\item x - Save the simulator state every x timesteps
+	\end{itemize}
+
+\subsection{Checkpointing file}
+	This paramater specifies the name of the checkpointing file. The use for the file depends on the simulator run mode parameter.
+
+\subsection{Simulator run mode}
+	The simulator can be run in different modes. Currently, these run modes are supported: \\
+	\begin{itemize}
+		\item Initial - The simulator is built from scratch using the configuration file, and saved every x timesteps according to the checkpointing frequency. If no configuration file is present, the initial saved state in the checkpointing file is used to start the simulation.
+		\item Extend - The simulation is extended from the last saved checkpoint in the checkpointing file.
+		\item Extract - A configuration file is extracted from the checkpointing file. This mode will not actually run the simulator itself.
+	\end{itemize}
+
+
+\newpage
+
+\section{Table structure}
+	\begin{tabular}{ |l|l|l| }
+	\hline
+
+	\multirow{3}{*}{/configuration} 
+		& rank & 1 \\
+		& dims & 1 \\
+		& dtype & ConfDatatype \\ \hline
+
+	\multirow{3}{*}{/track\_index\_case} 
+		& rank & 1 \\
+		& dims & 1 \\
+		& dtype & H5T\_NATIVE\_INT \\ \hline
+
+	\multirow{3}{*}{/amt\_timesteps} 
+		& rank & 1 \\
+		& dims & n\_steps \\
+		& dtype & H5T\_NATIVE\_UINT \\ \hline
+	
+	\multirow{3}{*}{/personsTI} 
+		& rank & 1 \\
+		& dims & amt\_persons \\
+		& dtype & PersonTIDatatype \\ \hline
+
+	\multirow{3}{*}{/Timestep\_n/randomgen} 
+		& rank & 1 \\
+		& dims & amt\_threads \\
+		& dtype & RNGDatatype \\ \hline
+
+	\multirow{3}{*}{/Timestep\_n/PersonTD} 
+		& rank & 1 \\
+		& dims & amt\_persons \\
+		& dtype & PersonTDDatatype \\ \hline
+
+	\multirow{3}{*}{/Timestep\_n/Calendar} 
+		& rank & 1 \\
+		& dims & 1 \\
+		& dtype & CalendarDatatype \\ \hline
+	\end{tabular}
+
+	\newpage
+	\subsection{Custom datatypes}
+		\subsubsection{ConfDatatype}
+			\begin{itemize}
+				\item StrType (variable length) - conf\_content
+				\item StrType (variable length) - disease\_content
+				\item StrType (variable length) - holidays\_content
+				\item StrType (variable length) - age\_contact\_content
+			\end{itemize}
+
+		\subsubsection{RNGDatatype}
+			\begin{itemize}
+				\item H5T\_NATIVE\_ULONG - seed
+				\item StrType (variable length) - rng\_state
+			\end{itemize}
+
+		\subsubsection{PersonTIDatatype (time independent)}
+			\begin{itemize}
+				\item H5T\_NATIVE\_UINT - ID
+				\item H5T\_NATIVE\_DOUBLE - age
+				\item H5T\_NATIVE\_CHAR - gender
+
+				\item H5T\_NATIVE\_UINT - household\_ID
+				\item H5T\_NATIVE\_UINT - school\_ID
+				\item H5T\_NATIVE\_UINT - work\_ID
+				\item H5T\_NATIVE\_UINT - prim\_comm\_ID
+				\item H5T\_NATIVE\_UINT - sec\_comm\_ID
+
+				\item H5T\_NATIVE\_UINT - start\_infectiousness
+				\item H5T\_NATIVE\_UINT - time\_infectiousness
+				\item H5T\_NATIVE\_UINT - start\_symptomatic
+				\item H5T\_NATIVE\_UINT - time\_symptomatic
+			\end{itemize}
+
+		\subsubsection{PersonTDDatatype (time dependent)}
+			\begin{itemize}
+				\item H5T\_NATIVE\_HBOOL - at\_household
+				\item H5T\_NATIVE\_HBOOL - at\_school
+				\item H5T\_NATIVE\_HBOOL - at\_work
+				\item H5T\_NATIVE\_HBOOL - at\_prim\_comm
+				\item H5T\_NATIVE\_HBOOL - at\_sec\_comm
+				\item H5T\_NATIVE\_HBOOL - participant
+
+				\item H5T\_NATIVE\_UINT - health\_status
+			\end{itemize}
+
+		\subsubsection{CalendarDatatype}
+			\begin{itemize}
+				\item H5T\_NATIVE\_HSIZE - day
+				\item StrType (variable length) - date
+			\end{itemize}
