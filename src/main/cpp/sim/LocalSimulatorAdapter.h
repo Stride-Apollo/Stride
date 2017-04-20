@@ -27,7 +27,7 @@ public:
 	// Send travellers to the destination region, return a vector with the ID's of the sent people
 	virtual vector<unsigned int> sendTravellers(uint amount, uint days, AsyncSimulator* destination_sim, string destination_district, string destination_facility) override;
 
-private:
+public:	// TODO make private again
 	Simulator* m_sim;
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;
 

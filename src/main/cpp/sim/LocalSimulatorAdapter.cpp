@@ -48,25 +48,22 @@ future<bool> LocalSimulatorAdapter::timeStep() {
 	for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
 		Simulator::PersonType* returning_person = it->getNewPerson();
 
-		auto work_id = returning_person->m_work_id;
-		auto prim_comm_id = returning_person->m_primary_community_id;
-		auto sec_comm_id = returning_person->m_secondary_community_id;
+		auto work_index = returning_person->m_work_id;
+		auto prim_comm_index = returning_person->m_primary_community_id;
+		auto sec_comm_index = returning_person->m_secondary_community_id;
 
 		// TODO check for out of range stuff
 
-		auto start_work_id = m_sim->m_work_clusters.at(0).getId();
-		auto start_prim_comm_id = m_sim->m_primary_community.at(0).getId();
-		auto start_sec_comm_id = m_sim->m_secondary_community.at(0).getId();
-
-		m_sim->m_work_clusters.at(work_id - start_work_id).removePerson(returning_person->m_id);
-		m_sim->m_primary_community.at(prim_comm_id - start_prim_comm_id).removePerson(returning_person->m_id);
-		m_sim->m_secondary_community.at(sec_comm_id - start_sec_comm_id).removePerson(returning_person->m_id);
+		m_sim->m_work_clusters.at(work_index).removePerson(returning_person->m_id);
+		m_sim->m_primary_community.at(prim_comm_index).removePerson(returning_person->m_id);
+		m_sim->m_secondary_community.at(sec_comm_index).removePerson(returning_person->m_id);
 
 
 		it->resetPerson();
 	}
 
 	m_planner.nextDay();
+	m_sim->m_population->m_visitors.nextDay();
 	
 	return async([&](){m_sim->timeStep(); return true;});
 }

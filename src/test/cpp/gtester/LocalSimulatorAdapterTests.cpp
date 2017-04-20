@@ -76,12 +76,12 @@ protected:
 	/// Tearing down the test fixture
 	virtual void TearDown() {}
 
-	shared_ptr<Simulator> m_sim1;
-	shared_ptr<Simulator> m_sim2;
-	shared_ptr<Simulator> m_sim3;
-	unique_ptr<LocalSimulatorAdapter> m_sim_adapter_1;
-	unique_ptr<LocalSimulatorAdapter> m_sim_adapter_2;
-	unique_ptr<LocalSimulatorAdapter> m_sim_adapter_3;
+	// shared_ptr<Simulator> m_sim1;
+	// shared_ptr<Simulator> m_sim2;
+	// shared_ptr<Simulator> m_sim3;
+	// unique_ptr<LocalSimulatorAdapter> m_sim_adapter_1;
+	// unique_ptr<LocalSimulatorAdapter> m_sim_adapter_2;
+	// unique_ptr<LocalSimulatorAdapter> m_sim_adapter_3;
 
 
 };
@@ -182,39 +182,54 @@ TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
 	}
 
 	// Run the simulation.
-	vector<unsigned int> cases(10);
-	for (unsigned int i = 0; i < 10; i++) {
+	// Note: not 10 days, but 11, because the 10th day, these people will still be there, they depart (and instantly arrive) the day after
+	for (unsigned int i = 0; i < 11; i++) {
+
+		// Test whether they are present in the population of the hosting region
+		EXPECT_EQ(sim2->m_population->m_visitors.getDay(10 - i)->size(), 10U);
+		for (unsigned int j = 0; j < sim2->m_population->m_visitors.getDay(10 - i)->size(); ++j) {
+			// They shouldn't be on vacation
+			const Simulator::PersonType& person = sim2->m_population->m_visitors.getModifiableDay(10 - i)->at(j);
+			EXPECT_FALSE(person.isOnVacation());
+		}
+
 		vector<future<bool>> fut_results;
 		fut_results.push_back(l1->timeStep());
 		fut_results.push_back(l2->timeStep());
 		fut_results.push_back(l3->timeStep());
 		future_pool(fut_results);
 
-		cases[i] = sim->getPopulation()->getInfectedCount();
-
-
-		for (unsigned int j = 0; j < sim2->m_population->m_visitors.m_agenda.size(); ++j) {
-			auto it = sim2->m_population->m_visitors.m_agenda.begin();
+		for (unsigned int j = 0; j < l1->m_planner.m_agenda.size(); ++j) {
+			auto it = l2->m_planner.m_agenda.begin();
 			auto block = (*(next(it, j))).get();
 
-			if (j == sim2->m_population->m_visitors.m_agenda.size() - 1) {
+			// Test whether they are present in the planner hosting region
+			if (j == l2->m_planner.m_agenda.size() - 1) {
 				EXPECT_EQ(block->size(), 10U);
-				// These people can't be on vacation
-				for (auto& person: *block) {
-					EXPECT_FALSE(person.isOnVacation());
-				}
 			} else {
 				EXPECT_EQ(block->size(), 0U);
 			}
 		}
 	}
 
-	// TODO test clusters
+	// The agendas are empty now (or at least, it should be)
+	EXPECT_EQ(l2->m_planner.m_agenda.size(), 0U);
+	EXPECT_EQ(sim2->m_population->m_visitors.m_agenda.size(), 0U);
+
+	// TODO test clusters of the target simulator (the travellers must have left)
+
+	// Test whether the population in both manipulated sims is not on vacation
+	for (const auto& person: sim->m_population->m_original) {
+		EXPECT_FALSE(person.isOnVacation());
+	}
+
+	for (const auto& person: sim2->m_population->m_original) {
+		EXPECT_FALSE(person.isOnVacation());
+	}
 
 	// Generate output files
 	// Cases
 	CasesFile cases_file(output_prefix);
-	cases_file.print(cases);
 
 	// Summary
 	SummaryFile summary_file(output_prefix);
