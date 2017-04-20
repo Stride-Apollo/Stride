@@ -51,7 +51,8 @@ void run_stride(bool track_index_case,
 				const string& config_file_name,
 				const string& hdf5_file_name,
 				const string& simulator_run_mode,
-				const int checkpointing_frequency) {
+				const int checkpointing_frequency,
+				const int timestamp_replay) {
 	// -----------------------------------------------------------------------------------------
 	// print output to command line.
 	// -----------------------------------------------------------------------------------------
@@ -112,7 +113,7 @@ void run_stride(bool track_index_case,
 
 	cout << "Constructing configuration tree and building the simulator." << endl << endl;
 	
-	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case);
+	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
 	shared_ptr<Simulator> sim = setup.getSimulator();
 

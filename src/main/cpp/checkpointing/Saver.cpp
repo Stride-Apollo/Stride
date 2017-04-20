@@ -237,7 +237,8 @@ void Saver::update(const Simulator& sim) {
 			std::vector<std::string> rng_states = sim.getRngStates();
 			for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
 				rngs[i].seed = sim.m_rng_handler.at(i).getSeed();
-				rngs[i].rng_state = rng_states[i].c_str();
+				std::string str = rng_states[i];
+				rngs[i].rng_state = str.c_str();
 			}
 			dataset->write(rngs, typeRng);
 
