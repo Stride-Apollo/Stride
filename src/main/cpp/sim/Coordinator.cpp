@@ -21,7 +21,8 @@ void Coordinator::timeStep() {
 	if (send) {
 		fut_results.clear();
 		for (uint i = 0; i < m_sims.size(); ++i) {
-			fut_results.push_back(m_sims.at(i)->sendTravellers(1, 5, m_sims.at(i % m_sims.size())));
+			// TODO multithreaded
+			m_sims.at(i)->sendTravellers(100, 8, m_sims.at(i % m_sims.size()), "Antwerp", "Airport 1");
 		}
 	}
 

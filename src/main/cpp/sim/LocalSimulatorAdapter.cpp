@@ -3,11 +3,13 @@
 #include "pop/Traveller.h"
 #include "core/Cluster.h"
 #include "util/RNGPicker.h"
+#include "util/GeoCoordinate.h"
 #include <memory>
 #include <random>
 
 using namespace stride;
 using namespace std;
+using namespace util;
 
 LocalSimulatorAdapter::LocalSimulatorAdapter(Simulator* sim)
 	: m_sim(sim) {
@@ -32,14 +34,35 @@ LocalSimulatorAdapter::LocalSimulatorAdapter(Simulator* sim)
 	}
 
 	m_next_hh_id = max_id + 1;
+
+	// TODO remove hardcoded airports
+	m_sim->m_districts.at(0).addFacility("Airport 1");
+	m_sim->m_districts.at(1).addFacility("Airport 1");
 }
 
 future<bool> LocalSimulatorAdapter::timeStep() {
 	// Get the people that return home today (according to the planner in the population of this simulator)
 	SimplePlanner<Simulator::TravellerType>::Block* returning_people = m_planner.getModifiableDay(0);
 
-	// Make sure the "home stats" of the person is back
+	// Make sure the "home stats" of the person are back
 	for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
+		Simulator::PersonType* returning_person = it->getNewPerson();
+
+		auto work_id = returning_person->m_work_id;
+		auto prim_comm_id = returning_person->m_primary_community_id;
+		auto sec_comm_id = returning_person->m_secondary_community_id;
+
+		// TODO check for out of range stuff
+
+		auto start_work_id = m_sim->m_work_clusters.at(0).getId();
+		auto start_prim_comm_id = m_sim->m_primary_community.at(0).getId();
+		auto start_sec_comm_id = m_sim->m_secondary_community.at(0).getId();
+
+		m_sim->m_work_clusters.at(work_id - start_work_id).removePerson(returning_person->m_id);
+		m_sim->m_primary_community.at(prim_comm_id - start_prim_comm_id).removePerson(returning_person->m_id);
+		m_sim->m_secondary_community.at(sec_comm_id - start_sec_comm_id).removePerson(returning_person->m_id);
+
+
 		it->resetPerson();
 	}
 
@@ -48,7 +71,7 @@ future<bool> LocalSimulatorAdapter::timeStep() {
 	return async([&](){m_sim->timeStep(); return true;});
 }
 
-bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travellers, uint days) {
+bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) {
 	// Planning:
 		// Step 1: No notion of cities / airports, no return of people
 			// set family id to 0
@@ -61,56 +84,100 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 			// set non-random community id's
 		// Step 4:
 			// add sphere of influence for airports
+	GeoCoordinate facility_location;
+	bool found_airport = false;
 
-	// TODO choose wisely
-	uint work_id = 1000000;
-	uint primary_community_id = 2000000;
-	uint secondary_community_id = 3000000;
+	for (auto& district: m_sim->m_districts) {
+		if (district.getName() == destination_district && district.hasFacility(destination_facility)) {
+			found_airport = true;
+			facility_location = district.getLocation();
+			break;
+		}
+	}
+
+	if (!found_airport) {
+		return false;
+	}
+
+	// So that the addresses don't break, reserve the space needed in the vector
+	m_sim->m_population.get()->m_visitors.getDay(days);
+	m_sim->m_population.get()->m_visitors.getModifiableDay(days)->reserve(travellers.size());
 
 	for (const Simulator::TravellerType& traveller: travellers) {
-		uint start_infectiousness = traveller.getPerson()->getHealth().getStartInfectiousness();
-		uint start_symptomatic = traveller.getPerson()->getHealth().getStartSymptomatic();
 
+		// Choose the clusters the traveller will reside in
+		uint work_index = chooseCluster(facility_location, m_sim->m_work_clusters);
+		uint prim_comm_index = chooseCluster(facility_location, m_sim->m_primary_community);
+		uint sec_comm_index = chooseCluster(facility_location, m_sim->m_secondary_community);
 
-		Simulator::PersonType new_person = Simulator::PersonType(m_next_id, traveller.getPerson()->getAge(), m_next_hh_id, 0,
-																	work_id, primary_community_id, secondary_community_id,
+		if (work_index == m_sim->m_work_clusters.size()
+			|| prim_comm_index == m_sim->m_primary_community.size()
+			|| sec_comm_index == m_sim->m_secondary_community.size()) {
+
+			// TODO exception
+			cerr << "Failed to find cluster for traveller\n";
+		}
+
+		// Get the ID's of these workplaces		
+		uint work_id = m_sim->m_work_clusters.at(work_index).getId();
+		uint primary_community_id = m_sim->m_primary_community.at(prim_comm_index).getId();
+		uint secondary_community_id = m_sim->m_secondary_community.at(sec_comm_index).getId();
+
+		// Make the person
+		uint start_infectiousness = traveller.getOldPerson()->getHealth().getStartInfectiousness();
+		uint start_symptomatic = traveller.getOldPerson()->getHealth().getStartSymptomatic();
+
+		// Note: the "ID" given to the constructor of a person is actually an index!
+		Simulator::PersonType new_person = Simulator::PersonType(m_next_id, traveller.getOldPerson()->getAge(), m_next_hh_id, 0,
+																	work_index, prim_comm_index, sec_comm_index,
 																	start_infectiousness, start_symptomatic,
-																	traveller.getPerson()->getHealth().getEndInfectiousness() - start_infectiousness,
-																	traveller.getPerson()->getHealth().getEndSymptomatic() - start_symptomatic);
+																	traveller.getOldPerson()->getHealth().getEndInfectiousness() - start_infectiousness,
+																	traveller.getOldPerson()->getHealth().getEndSymptomatic() - start_symptomatic);
 
-		Simulator::TravellerType new_traveller = traveller;
-		*(new_traveller.getPerson()) = new_person;
-		new_traveller.getPerson()->m_is_on_vacation = true;
+		
+		// Add the person to the planner and set him on "vacation mode" in his home region
+		m_sim->m_population.get()->m_visitors.add(days, new_person);
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(), &(m_sim->m_population.get()->m_visitors.getModifiableDay(days)->back()));
+		new_traveller.getOldPerson()->m_is_on_vacation = true;
+		new_traveller.getNewPerson()->m_is_on_vacation = false;
 		m_planner.add(days, new_traveller);
 
-		new_person.m_is_on_vacation = false;
+		// Get a pointer to the person you just made
+		Simulator::PersonType* person = &(m_sim->m_population.get()->m_visitors.getModifiableDay(days)->back());
+
+		// Add the person to the clusters
+		m_sim->m_work_clusters.at(work_index).addPerson(person);
+		m_sim->m_primary_community.at(prim_comm_index).addPerson(person);
+		m_sim->m_secondary_community.at(sec_comm_index).addPerson(person);
 
 		++m_next_id;
 		++m_next_hh_id;
-		m_sim->m_population.get()->m_visitors.getModifiableDay(days)->push_back(new_person);
 	}
+
 	return true;
 }
 
 bool LocalSimulatorAdapter::returnHome(const vector<Simulator::TravellerType>& travellers) {
 	// TODO remove?
-	for (auto& traveller: travellers) {
-		for (auto& person: m_sim->m_population.get()->m_original) {
-			if (traveller.getPerson() == &person) {
+	// for (auto& traveller: travellers) {
+	// 	for (auto& person: m_sim->m_population.get()->m_original) {
+	// 		if (traveller.getPerson() == &person) {
 
-			}
-		}
-	}
+	// 		}
+	// 	}
+	// }
 
 	return true;
 }
 
-future<bool> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, AsyncSimulator* destination_sim) {
+vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, AsyncSimulator* destination_sim, string destination_district, string destination_facility) {
 	list<Simulator::PersonType*> working_people;
+	vector<unsigned int> people_id_s;
 
 	// Get the working people
 	Population& population = *(m_sim->m_population.get());
-	for (auto& person: population) {
+	for (uint i = 0; i < population.m_original.size(); ++i) {
+		Simulator::PersonType& person = population.m_original.at(i);
 		if (person.m_work_id != 0) {
 			working_people.push_back(&person);
 		}
@@ -121,22 +188,25 @@ future<bool> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, Async
 	}
 
 	vector<Simulator::TravellerType> chosen_people;
-	chosen_people.reserve(amount);
+	//chosen_people.reserve(amount);
 
 	while (chosen_people.size() != amount) {
 		// Randomly generate an index in working_people
-		uniform_int_distribution<int> dist(0, working_people.size() - 1);
-		int index = dist(m_rng);
+		uniform_int_distribution<unsigned int> dist(0, working_people.size() - 1);
+		unsigned int index = dist(m_rng);
 
 		// Get the person to be sent
 		Simulator::PersonType* person = *(next(working_people.begin(), index));
-		person->m_is_on_vacation = true;
+		// Note: don't set vacation on true, the target simulator will do this for you (if he can house the person)
 
 		// Make the sender and make sure he can't be sent twice
-		Simulator::TravellerType new_traveller {days, person};
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(person, nullptr);
 		chosen_people.push_back(new_traveller);
 		working_people.erase(next(working_people.begin(), index));
+		people_id_s.push_back(person->m_id);
+
 	}
 
-	destination_sim->host(chosen_people, days);
+	destination_sim->host(chosen_people, days, destination_district, destination_facility);
+	return people_id_s;
 }
