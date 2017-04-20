@@ -199,6 +199,7 @@ void PopulationGenerator::writeClusters(const string& target_clusters) const {
 		for (auto& cluster_type: types) {
 			uint current_id = 1;
 			while (m_locations.find(make_pair(cluster_type, current_id)) != m_locations.end()) {
+				my_file.precision(std::numeric_limits<double>::max_digits10);
 				my_file << current_id << ","
 					<< toString(cluster_type) << ","
 					<< m_locations.at(make_pair(cluster_type, current_id)).m_latitude << ","
