@@ -32,6 +32,7 @@ set( SRC
 		BatchRuns.cpp
 		UtilTests.cpp
 		PopulationTests.cpp
+		LocalSimulatorAdapterTests.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp
