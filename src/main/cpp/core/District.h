@@ -27,13 +27,15 @@ public:
 	void addFacility(string facility_name) {m_transportations_facilities.insert(facility_name);}
 
 	/// If the facility is found in this district, return true
-	bool hasFacility(string facility_name) {return m_transportations_facilities.find(facility_name) == m_transportations_facilities.end();}
+	bool hasFacility(string facility_name) {return m_transportations_facilities.find(facility_name) != m_transportations_facilities.end();}
 
 	/// Equals operator for districts, two districts are equal if their name is the same
 	bool operator==(const District& other_district) {return other_district.m_name == m_name;}
 
 	/// Return the name of the district
 	string getName() const {return m_name;}
+
+	GeoCoordinate getLocation() {return m_location;}
 
 private:
 	unordered_set<string> m_transportations_facilities;		///< The transportation facilities have a name (string)

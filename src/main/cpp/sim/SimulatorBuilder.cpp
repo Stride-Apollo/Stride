@@ -116,11 +116,11 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	// Build population.
 	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, rng);
 
-	// initialize clusters.
-	initializeClusters(sim, pt_config);
-
 	// initialize districts.
 	initializeDistricts(sim, pt_config);
+
+	// initialize clusters.
+	initializeClusters(sim, pt_config);
 
 	// initialize disease profile.
 	sim->m_disease_profile.initialize(pt_config, pt_disease);
@@ -177,23 +177,23 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim, const boost
 	map<pair<ClusterType, uint>, GeoCoordinate> locations = initializeLocations(cluster_filename);
 
 	for (size_t i = 0; i <= max_id_households; i++) {
-		sim->m_households.emplace_back(Cluster(cluster_id, ClusterType::Household, locations[make_pair(ClusterType::Household, cluster_id)]));
+		sim->m_households.emplace_back(Cluster(cluster_id, ClusterType::Household, locations[make_pair(ClusterType::Household, i + 1)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_school_clusters; i++) {
-		sim->m_school_clusters.emplace_back(Cluster(cluster_id, ClusterType::School, locations[make_pair(ClusterType::School, cluster_id)]));
+		sim->m_school_clusters.emplace_back(Cluster(cluster_id, ClusterType::School, locations[make_pair(ClusterType::School, i + 1)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_work_clusters; i++) {
-		sim->m_work_clusters.emplace_back(Cluster(cluster_id, ClusterType::Work, locations[make_pair(ClusterType::Work, cluster_id)]));
+		sim->m_work_clusters.emplace_back(Cluster(cluster_id, ClusterType::Work, locations[make_pair(ClusterType::Work, i + 1)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_primary_community; i++) {
-		sim->m_primary_community.emplace_back(Cluster(cluster_id, ClusterType::PrimaryCommunity, locations[make_pair(ClusterType::PrimaryCommunity, cluster_id)]));
+		sim->m_primary_community.emplace_back(Cluster(cluster_id, ClusterType::PrimaryCommunity, locations[make_pair(ClusterType::PrimaryCommunity, i + 1)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_secondary_community; i++) {
-		sim->m_secondary_community.emplace_back(Cluster(cluster_id, ClusterType::SecondaryCommunity, locations[make_pair(ClusterType::SecondaryCommunity, cluster_id)]));
+		sim->m_secondary_community.emplace_back(Cluster(cluster_id, ClusterType::SecondaryCommunity, locations[make_pair(ClusterType::SecondaryCommunity, i + 1)]));
 		cluster_id++;
 	}
 
@@ -254,11 +254,11 @@ void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boos
 
 			// Remove the quotes
 			values[1].erase(values[1].begin());
-			values[1].erase(values[1].end());
+			values[1].erase(values[1].end() - 1);
 
 			// Check for duplicates
 			auto search_duplicate = [&] (const District& district) {return district.getName() == values[1];};
-			if (find_if(sim->m_districts.cbegin(), sim->m_districts.cend(), search_duplicate) != sim->m_districts.cend()) {
+			if (find_if(sim->m_districts.cbegin(), sim->m_districts.cend(), search_duplicate) == sim->m_districts.cend()) {
 				sim->m_districts.push_back(District(values[1],
 												GeoCoordinate(StringUtils::fromString<double>(values[6]),
 																StringUtils::fromString<double>(values[7]))));

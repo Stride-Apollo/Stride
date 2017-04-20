@@ -42,7 +42,6 @@ class Population;
 class Calendar;
 class Cluster;
 class LocalSimulatorAdapter;
-
 /**
  * Main class that contains and direct the virtual world.
  */
@@ -85,7 +84,7 @@ private:
 	LogMode m_log_level;            		///< Specifies logging mode.
 	std::shared_ptr<Calendar> m_calendar;	///< Management of calendar.
 
-private:
+public:	// TODO set private again
 	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
 
 	std::vector<Cluster> m_households;           ///< Container with household Clusters.

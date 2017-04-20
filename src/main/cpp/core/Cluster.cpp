@@ -47,6 +47,16 @@ void Cluster::addPerson(Simulator::PersonType* p) {
 	m_index_immune++;
 }
 
+void Cluster::removePerson(unsigned int id) {
+	for (unsigned int i_member = 0; i_member < m_members.size(); ++i_member) {
+		if (m_members.at(i_member).first->getId() == id) {
+			m_members.erase(m_members.begin() + i_member);
+			m_index_immune--;
+			return;
+		}
+	}
+}
+
 tuple<bool, size_t> Cluster::sortMembers() {
 	bool infectious_cases = false;
 	size_t num_cases = 0;

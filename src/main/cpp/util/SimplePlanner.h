@@ -74,7 +74,7 @@ public:
 		return m_agenda;
 	}
 
-private:
+public:	// TODO set private again
 	Agenda m_agenda;
 	static Block g_empty_day;
 };

@@ -53,6 +53,9 @@ public:
 	/// Add the given Person to the Cluster.
 	void addPerson(Simulator::PersonType* p);
 
+	/// Remove the given Person from the Cluster.
+	void removePerson(unsigned int id);
+
 	/// Return number of persons in this cluster.
 	std::size_t getSize() const { return m_members.size(); }
 
@@ -84,7 +87,7 @@ private:
 	/// Calculate which members are present in the cluster on the current day.
 	void updateMemberPresence();
 
-private:
+public:	// TODO make private again
 	std::size_t m_cluster_id;     ///< The ID of the Cluster (for logging purposes).
 	ClusterType m_cluster_type;   ///< The type of the Cluster (for logging purposes).
 	std::size_t m_index_immune;   ///< Index of the first immune member in the Cluster.

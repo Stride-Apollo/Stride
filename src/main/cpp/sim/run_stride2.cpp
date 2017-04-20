@@ -113,6 +113,7 @@ void run_stride2(bool track_index_case, const string& config_file_name) {
 	auto l1 = make_unique<LocalSimulatorAdapter>(sim.get());
 	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
 	auto l3 = make_unique<LocalSimulatorAdapter>(sim3.get());
+
 	Coordinator coord({l1.get(), l2.get(), l3.get()});
 
 	// Run the simulation.

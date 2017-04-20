@@ -95,7 +95,7 @@ public:
 	friend class LocalSimulatorAdapter;
 	template<class PersonType> friend class Traveller;
 
-private:
+public:	// TODO make private again
 	unsigned int m_id;  ///< The id.
 	double m_age;       ///< The age.
 	char m_gender;      ///< The gender.
