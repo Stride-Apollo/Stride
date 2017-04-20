@@ -9,14 +9,13 @@
 #include "sim/SimulatorBuilder.h"
 #include "sim/AsyncSimulator.h"
 #include "sim/LocalSimulatorAdapter.h"
-#include "util/InstallDirs.h"
-#include "util/TimeStamp.h"
-#include "util/stdlib.h"
 #include "util/async.h"
+#include "util/ConfigInfo.h"
+#include "util/InstallDirs.h"
+#include "util/stdlib.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 #include <omp.h>
-#include <spdlog/spdlog.h>
 #include <memory>
 #include <cassert>
 #include <string>
@@ -24,71 +23,20 @@
 #include <future>
 #include <utility>
 
-
-
-#include "output/CasesFile.h"
-#include "output/PersonFile.h"
-#include "output/SummaryFile.h"
-#include "sim/Simulator.h"
-#include "sim/SimulatorBuilder.h"
-#include "sim/AsyncSimulator.h"
-#include "sim/LocalSimulatorAdapter.h"
-#include "sim/Coordinator.h"
-#include "util/ConfigInfo.h"
-#include "util/InstallDirs.h"
-#include "util/Stopwatch.h"
-#include "util/TimeStamp.h"
-#include "util/stdlib.h"
-
-#include <boost/property_tree/xml_parser.hpp>
-#include <omp.h>
-#include <spdlog/spdlog.h>
-#include <memory>
-#include <cassert>
-
-
 using namespace std;
 using namespace stride;
 using namespace util;
 using namespace boost::filesystem;
 using namespace boost::property_tree;
-using namespace std;
-using namespace output;
-using namespace std::chrono;
 
 namespace Tests {
 
-class LocalSimulatorAdapterTest: public ::testing::Test {
-public:
-	/// TestCase set up.
-	static void SetUpTestCase() {}
-
-	/// Tearing down TestCase
-	static void TearDownTestCase() {}
-
-protected:
-	/// Destructor has to be virtual.
-	virtual ~LocalSimulatorAdapterTest() {}
-
-	/// Set up for the test fixture
-	virtual void SetUp() {}
-
-	/// Tearing down the test fixture
-	virtual void TearDown() {}
-
-	// shared_ptr<Simulator> m_sim1;
-	// shared_ptr<Simulator> m_sim2;
-	// shared_ptr<Simulator> m_sim3;
-	// unique_ptr<LocalSimulatorAdapter> m_sim_adapter_1;
-	// unique_ptr<LocalSimulatorAdapter> m_sim_adapter_2;
-	// unique_ptr<LocalSimulatorAdapter> m_sim_adapter_3;
-
-
-};
-
-TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
+TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	// Tests which reflect the regular use
-	// TODO remove sim 3 if I don't need it
+
+	// -----------------------------------------------------------------------------------------
+	// Prepare test configuration.
+	// -----------------------------------------------------------------------------------------
 
 	ptree pt_config;
 	const auto file_path = canonical(system_complete("../config/run_flanders.xml"));
@@ -113,19 +61,8 @@ TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
 		pt_config.put("run.num_participants_survey", 1);
 	}
 
-	spdlog::set_async_mode(1048576);
-	auto file_logger = spdlog::rotating_logger_mt("contact_logger", output_prefix + "_logfile",
-												  std::numeric_limits<size_t>::max(),
-												  std::numeric_limits<size_t>::max());
-	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
-
-	// Create simulator.
-	Stopwatch<> total_clock("total_clock", true);
+	// Create simulators
 	auto sim = SimulatorBuilder::build(pt_config, num_threads, false);
-
-	// No observers in C++. Logger was never intended as an observer per timestep.
-
-	// MR test
 	auto sim2 = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto sim3 = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto l1 = make_unique<LocalSimulatorAdapter>(sim.get());
@@ -134,6 +71,11 @@ TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
 
 	// Migrate 10 people for 10 days
 	vector<unsigned int> id_s = l1->sendTravellers(10, 10, l2.get(), "Antwerp", "Airport 1");
+
+
+	// -----------------------------------------------------------------------------------------
+	// Actual tests.
+	// -----------------------------------------------------------------------------------------
 
 	// Test if the people arrived in the destination simulator
 	for (unsigned int i = 0; i < sim2->m_population->m_visitors.m_agenda.size(); ++i) {
@@ -155,7 +97,7 @@ TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
 		EXPECT_TRUE(sim->m_population->m_original.at(id).isOnVacation());
 	}
 		
-	// Test clusters of the target simulator
+	// Test clusters of the target simulator, the travellers must be in the clusters
 	for (unsigned int i = 0; i < sim2->m_population->m_visitors.m_agenda.back()->size(); ++i) {
 		auto& person = sim2->m_population->m_visitors.m_agenda.back()->at(i);
 
@@ -216,7 +158,7 @@ TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
 	EXPECT_EQ(l2->m_planner.m_agenda.size(), 0U);
 	EXPECT_EQ(sim2->m_population->m_visitors.m_agenda.size(), 0U);
 
-	// TODO test clusters of the target simulator (the travellers must have left)
+	// TODO test clusters of sim2
 
 	// Test whether the population in both manipulated sims is not on vacation
 	for (const auto& person: sim->m_population->m_original) {
@@ -226,28 +168,6 @@ TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
 	for (const auto& person: sim2->m_population->m_original) {
 		EXPECT_FALSE(person.isOnVacation());
 	}
-
-	// Generate output files
-	// Cases
-	CasesFile cases_file(output_prefix);
-
-	// Summary
-	SummaryFile summary_file(output_prefix);
-	summary_file.print(pt_config,
-					   sim->getPopulation()->m_original.size(), sim->getPopulation()->getInfectedCount(),
-					   duration_cast<milliseconds>(total_clock.get()).count(),
-					   duration_cast<milliseconds>(total_clock.get()).count());
-
-	if (pt_config.get<double>("run.generate_person_file") == 1) {
-		PersonFile person_file(output_prefix);
-		person_file.print(sim->getPopulation());
-	}
-
-	spdlog::drop_all();
-}
-
-TEST_F(LocalSimulatorAdapterTest, UnHappyDay_default) {
-
 }
 
 } //end-of-namespace-Tests

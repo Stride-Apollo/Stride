@@ -15,5 +15,5 @@
     <start_date>2017-01-01</start_date>
     <holidays_file>holidays_none.json</holidays_file>
     <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
-    <log_level>Transmissions</log_level>
+    <log_level>None</log_level>
 </run>
