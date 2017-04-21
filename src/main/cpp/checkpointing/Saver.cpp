@@ -166,7 +166,7 @@ void Saver::update(const Simulator& sim) {
 
 				// Persons are saved per chunk
 				unsigned int i = 0;
-				hsize_t chunk_dims[1] = {100};
+				hsize_t chunk_dims[1] = {40000};
 				while (i < dims[0]) {
 					hsize_t selected_dims[1];
 					if (i + chunk_dims[0] < dims[0]) {
@@ -287,7 +287,7 @@ void Saver::update(const Simulator& sim) {
 			// Dataspace can fit all persons but is chunked in parts of 100 persons
 			dataspace = new DataSpace(1, dims);
 			DSetCreatPropList  *plist = new  DSetCreatPropList;
-			hsize_t chunk_dims[1] = {100};
+			hsize_t chunk_dims[1] = {40000};
 			plist->setChunk(1, chunk_dims);
 			dataset = new DataSet(group.createDataSet("PersonTD", typePersonTD, *dataspace, *plist));
 
