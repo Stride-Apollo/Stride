@@ -10,4 +10,5 @@ struct PersonTDDataType {
 	int at_sec_comm;
 	int participant;
 	unsigned int health_status;
+	unsigned int disease_counter;
 };

@@ -127,7 +127,6 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 		dataset->write(track, PredType::NATIVE_INT);
 		dataset->close();
 		dataspace->close();
-		std::cout << "Correctly ended initial save\n";
 		file.close();
 	} catch(FileIException error) {
 		error.printError();
@@ -283,6 +282,8 @@ void Saver::update(const Simulator& sim) {
 									  HOFFSET(PersonTDDataType, participant), PredType::NATIVE_HBOOL);
 			typePersonTD.insertMember(H5std_string("health_status"),
 									  HOFFSET(PersonTDDataType, health_status), PredType::NATIVE_UINT);
+			typePersonTD.insertMember(H5std_string("disease_counter"),
+									  HOFFSET(PersonTDDataType, disease_counter), PredType::NATIVE_UINT);
 
 			// Dataspace can fit all persons but is chunked in parts of 100 persons
 			dataspace = new DataSpace(1, dims);
@@ -310,6 +311,7 @@ void Saver::update(const Simulator& sim) {
 					personData[j].at_sec_comm = sim.getPopulation().get()->at(i).m_at_secondary_community;
 					personData[j].participant = sim.getPopulation().get()->at(i).m_is_participant;
 					personData[j].health_status = (unsigned int) sim.getPopulation().get()->at(i).m_health.getHealthStatus();
+					personData[j].disease_counter = (unsigned int) sim.getPopulation().get()->at(i).m_health.getDiseaseCounter();
 					i++;
 				}
 

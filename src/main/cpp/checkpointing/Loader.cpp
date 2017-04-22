@@ -135,8 +135,8 @@ Loader::Loader(const char *filename, unsigned int num_threads): m_filename(filen
 		dataspace.getSimpleExtentDims(dims, NULL);
 		dataspace.close();
 
-		const auto seed = m_pt_config.get<double>("run.rng_seed");
-		Random rng(seed);
+		// const auto seed = m_pt_config.get<double>("run.rng_seed");
+		// Random rng(seed);
 
 		dataset->close();
 		file.close();
@@ -219,7 +219,6 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 	typeCalendar.insertMember(H5std_string("date"), HOFFSET(CalendarDataType, date), tid1);
 	std::stringstream ss;
 	ss << "/Timestep_" << timestep;
-	std::cout << "Loading: " << ss.str() << "\n";
 	DataSet* dataset = new DataSet(file.openDataSet(ss.str() + "/Calendar"));
 	CalendarDataType calendar[1];
 	dataset->read(calendar, typeCalendar);
@@ -228,7 +227,6 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 	sim->m_calendar.get()->m_day = calendar[0].day;
 	sim->m_calendar.get()->m_date = boost::gregorian::from_simple_string(calendar[0].date);
 
-	std::cout << "Initialized calendar to " << calendar[0].day << " " << calendar[0].date << "\n";
 	delete dataset;
 
 
@@ -287,6 +285,8 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 							  HOFFSET(PersonTDDataType, participant), PredType::NATIVE_HBOOL);
 	typePersonTD.insertMember(H5std_string("health_status"),
 							  HOFFSET(PersonTDDataType, health_status), PredType::NATIVE_UINT);
+	typePersonTD.insertMember(H5std_string("disease_counter"),
+							  HOFFSET(PersonTDDataType, disease_counter), PredType::NATIVE_UINT);
 	for (unsigned int i = 0; i < dims[0]; i++) {
 		PersonTDDataType person[1];
 		hsize_t dim_sub[1] = {1};
@@ -308,6 +308,7 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 		sim.get()->m_population.get()->at(i).m_at_secondary_community = person[0].at_sec_comm;
 		sim.get()->m_population.get()->at(i).m_is_participant = person[0].participant;
 		sim.get()->m_population.get()->at(i).m_health.m_status = HealthStatus(person[0].health_status);
+		sim.get()->m_population.get()->at(i).m_health.m_disease_counter = person[0].disease_counter;
 		memspace.close();
 		dataspace.close();
 	}

@@ -9,6 +9,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <omp.h>
 #include <string>
+#include <iostream>
 #include <gtest/gtest.h>
 
 using namespace std;
@@ -158,11 +159,17 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
+	vector<string> rng_states_step_after_save = vector<string>();
+	vector<string> rng_states_step_after_load = vector<string>();
+
 	for (unsigned int i = 0; i < NUM_DAYS; i++) {
 		if (i == num_days_checkpointed) {
 			sim->unregister(classInstance);
 			cout << "Infected count at save: " << sim->getPopulation()->getInfectedCount() << endl;
 		}
+		// if (i == num_days_checkpointed ) {
+		// 	rng_states_step_after_save = sim->getRngStates();
+		// }
 		sim->timeStep();
 	}
 
@@ -174,9 +181,24 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	cout << "Infected count after loading from last timestep: " << sim_checkpointed->getPopulation()->getInfectedCount() << endl;
 
 	for (unsigned int i = 0; i < NUM_DAYS - num_days_checkpointed; i++) {
+		// if (i == 0) {
+		// 	rng_states_step_after_load = sim_checkpointed->getRngStates();
+		// }
 		sim_checkpointed->timeStep();
 	}
 	const unsigned int num_cases_checkpointed = sim_checkpointed->getPopulation()->getInfectedCount();
+
+	// cout << "States of rng after one iteration (after saving):" << endl;
+	// for (auto state : rng_states_step_after_save) {
+	// 	cout << state << endl;
+	// }
+	// cout << "States of rng after one iteration after loading from save:" << endl;
+	// for (auto state : rng_states_step_after_load) {
+	// 	cout << state << endl;
+	// }
+	// for (unsigned int i = 0; i < rng_states_step_after_save.size(); i++) {
+	// 	ASSERT_EQ(rng_states_step_after_save.at(i), rng_states_step_after_load.at(i));
+	// }
 
 	cout << "Original: " << num_cases_original << ", checkpointed: " << num_cases_checkpointed << endl;
 	ASSERT_NEAR(num_cases_original, num_cases_checkpointed, 10000);
@@ -186,15 +208,13 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 
 
 
+auto days = [&](unsigned int amt_days){
+	vector<unsigned int> days; 
+	for (unsigned int i = 1; i < amt_days; i++) days.push_back(i); 
+	return days;
+};
 
-unsigned int days[NUM_DAYS-1] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 
-							 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 
-							 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 
-							 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 
-							 41, 42, 43, 44, 45, 46, 47, 48, 49};
 
-
-INSTANTIATE_TEST_CASE_P(StartFromCheckpointX, HDF5ScenarioTests, ::testing::ValuesIn(days));
-
+INSTANTIATE_TEST_CASE_P(StartFromCheckpointX, HDF5ScenarioTests, ::testing::ValuesIn(days(NUM_DAYS)));
 
 }
