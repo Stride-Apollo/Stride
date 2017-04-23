@@ -85,7 +85,7 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 			ASSERT_EQ(block->size(), 10U);
 			// These people can't be on vacation
 			for (auto& person: *block) {
-				EXPECT_FALSE(person.isOnVacation());
+				EXPECT_FALSE(person->isOnVacation());
 			}
 		} else {
 			EXPECT_EQ(block->size(), 0U);
@@ -101,9 +101,9 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	for (unsigned int i = 0; i < sim2->m_population->m_visitors.m_agenda.back()->size(); ++i) {
 		auto& person = sim2->m_population->m_visitors.m_agenda.back()->at(i);
 
-		unsigned int work_index = person.m_work_id;
-		unsigned int prim_comm_index = person.m_primary_community_id;
-		unsigned int sec_comm_index = person.m_secondary_community_id;
+		unsigned int work_index = person->m_work_id;
+		unsigned int prim_comm_index = person->m_primary_community_id;
+		unsigned int sec_comm_index = person->m_secondary_community_id;
 
 		// Test whether the clusters exist
 		ASSERT_NO_THROW(sim2->m_work_clusters.at(work_index));
@@ -111,7 +111,7 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 		ASSERT_NO_THROW(sim2->m_secondary_community.at(sec_comm_index));
 
 		// Test every cluster on the presence of this person
-		auto search_person = [&] (const pair<Simulator::PersonType*, bool> person_presence_pair) {return &person == person_presence_pair.first;};
+		auto search_person = [&] (const pair<Simulator::PersonType*, bool> person_presence_pair) {return person.get() == person_presence_pair.first;};
 
 		auto it = find_if(sim2->m_work_clusters.at(work_index).m_members.begin(), sim2->m_work_clusters.at(work_index).m_members.end(), search_person);
 		EXPECT_NE(it, sim2->m_work_clusters.at(work_index).m_members.end());
@@ -131,7 +131,7 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 		EXPECT_EQ(sim2->m_population->m_visitors.getDay(10 - i)->size(), 10U);
 		for (unsigned int j = 0; j < sim2->m_population->m_visitors.getDay(10 - i)->size(); ++j) {
 			// They shouldn't be on vacation
-			const Simulator::PersonType& person = sim2->m_population->m_visitors.getModifiableDay(10 - i)->at(j);
+			const Simulator::PersonType& person = *(sim2->m_population->m_visitors.getModifiableDay(10 - i)->at(j));
 			EXPECT_FALSE(person.isOnVacation());
 		}
 

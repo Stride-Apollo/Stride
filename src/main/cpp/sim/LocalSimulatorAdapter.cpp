@@ -46,7 +46,7 @@ future<bool> LocalSimulatorAdapter::timeStep() {
 
 	// Make sure the "home stats" of the person are back
 	for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
-		Simulator::PersonType* returning_person = it->getNewPerson();
+		Simulator::PersonType* returning_person = (**it).getNewPerson();
 
 		auto work_index = returning_person->m_work_id;
 		auto prim_comm_index = returning_person->m_primary_community_id;
@@ -59,7 +59,7 @@ future<bool> LocalSimulatorAdapter::timeStep() {
 		m_sim->m_secondary_community.at(sec_comm_index).removePerson(returning_person->m_id);
 
 
-		it->resetPerson();
+		(**it).resetPerson();
 	}
 
 	m_planner.nextDay();
@@ -133,14 +133,14 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 
 		
 		// Add the person to the planner and set him on "vacation mode" in his home region
-		m_sim->m_population.get()->m_visitors.add(days, new_person);
-		Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(), &(m_sim->m_population.get()->m_visitors.getModifiableDay(days)->back()));
+		m_sim->m_population->m_visitors.add(days, new_person);
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(), m_sim->m_population->m_visitors.getModifiableDay(days)->back().get());
 		new_traveller.getOldPerson()->m_is_on_vacation = true;
 		new_traveller.getNewPerson()->m_is_on_vacation = false;
 		m_planner.add(days, new_traveller);
 
 		// Get a pointer to the person you just made
-		Simulator::PersonType* person = &(m_sim->m_population.get()->m_visitors.getModifiableDay(days)->back());
+		Simulator::PersonType* person = m_sim->m_population->m_visitors.getModifiableDay(days)->back().get();
 
 		// Add the person to the clusters
 		m_sim->m_work_clusters.at(work_index).addPerson(person);

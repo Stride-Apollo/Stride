@@ -36,6 +36,6 @@ PopulationBeginEnd(const, ConstPopulationIterator)
 // ------------------
 
 Population::PersonType& PopulationIterator::operator*() const {
-	if (m_in_planner) return (*m_day_iter->get())[m_index];
+	if (m_in_planner) return *((*m_day_iter->get())[m_index]);
 	else return m_pop.m_original[m_index];
 }
