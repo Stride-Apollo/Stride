@@ -400,6 +400,7 @@ void PopulationGenerator::makeRNG() {
 		generator_type = rng_config.get<string>("<xmlattr>.generator");
 
 		/// This might throw an exception, but we'll just rethrow it
+		std::cout << "Generator type:" << generator_type << std::endl;
 		m_rng.set(generator_type, seed);
 	} catch(invalid_argument& e) {
 		throw e;

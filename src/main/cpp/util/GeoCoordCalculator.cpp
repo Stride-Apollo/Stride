@@ -1,6 +1,7 @@
 #include "util/GeoCoordinate.h"
 #include "util/GeoCoordCalculator.h"
 #include "popgen/utils.h"
+#include <trng/uniform_dist.hpp>
 
 using namespace stride;
 using namespace util;
@@ -27,10 +28,11 @@ double GeoCoordCalculator::getDistance(const GeoCoordinate& coord1, const GeoCoo
 	return earth_radius * temp2;
 }
 
+template<typename T>
 GeoCoordinate GeoCoordCalculator::generateRandomCoord(
 		const GeoCoordinate& coord,
 		double radius,
-		RNGPicker& rng) const {
+		RNGPicker<T>& rng) const {
 	/// Partially the inverse of GeoCoordCalculator::getDistance, therefore i use the same variable names
 	/// For future improvements, use this: http://gis.stackexchange.com/questions/25877/generating-random-locations-nearby
 	double temp2 = radius / earth_radius;
@@ -42,8 +44,10 @@ GeoCoordinate GeoCoordCalculator::generateRandomCoord(
 	double my_pow = pow(my_cos, 2);
 	double max_delta_longitude = asin(sqrt(temp1 / my_pow)) * 360.0 / PI;
 
-	std::uniform_real_distribution<double> dist_longitude(-max_delta_longitude, max_delta_longitude);
-	std::uniform_real_distribution<double> dist_latitude(-max_delta_latitude, max_delta_latitude);
+	// std::uniform_real_distribution<double> dist_longitude(-max_delta_longitude, max_delta_longitude);
+	// std::uniform_real_distribution<double> dist_latitude(-max_delta_latitude, max_delta_latitude);
+	trng::uniform_dist<double> dist_longitude(-max_delta_longitude, max_delta_longitude);
+	trng::uniform_dist<double> dist_latitude(-max_delta_latitude, max_delta_latitude);
 	GeoCoordinate random_coordinate;
 
 	do {

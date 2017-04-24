@@ -1,18 +1,24 @@
 #pragma once
 
-#include <random>
 #include <string>
 #include "util/GeoCoordinate.h"
+
+// Distribution and random generator from the TRNG library
+#include <trng/uniform01_dist.hpp>
+#include <trng/lcg64.hpp>
+#include <trng/lcg64_shift.hpp>
+#include <trng/mt19937.hpp>
+#include <trng/mt19937_64.hpp>
 
 namespace stride {
 namespace popgen {
 
-using namespace std;
-using namespace util;
+// using namespace std;
+// using namespace util;
 
 #define PI 3.14159265
 
-extern uniform_real_distribution<double> real01;
+extern trng::uniform01_dist<double> real01;
 
 using uint = unsigned int;
 
@@ -32,27 +38,27 @@ public:
 	uint m_work_id = 0;
 	uint m_primary_community = 0;
 	uint m_secondary_community = 0;
-	GeoCoordinate m_coord;
+	util::GeoCoordinate m_coord;
 };
 
 struct SimpleHousehold {
 	uint m_id = 0;
-	vector<uint> m_indices;
+	std::vector<uint> m_indices;
 };
 
 struct SimpleCluster {
 	uint m_current_size = 0;
 	uint m_max_size = 0;
 	uint m_id = 0;
-	GeoCoordinate m_coord;
+	util::GeoCoordinate m_coord;
 };
 
 struct SimpleCity {
 	uint m_current_size = 0;
 	uint m_max_size = 0;
 	uint m_id = 0;
-	string m_name = "";
-	GeoCoordinate m_coord;
+	std::string m_name = "";
+	util::GeoCoordinate m_coord;
 };
 
 std::ostream& operator<<(std::ostream& os, const SimplePerson& p);
@@ -69,135 +75,58 @@ struct MinMaxAvg: public MinMax {
 	uint avg;
 };
 
-class RandomGenerator {
-public:
-	virtual ~RandomGenerator(){}
+// template<class T>
+// class RandomGenerator {
+// public:
+// 	RandomGenerator(std::string, long unsigned int);
+// 	~RandomGenerator() = default;
+//
+// 	using result_type = long unsigned int;
+//
+// 	result_type operator()();
+//
+// 	result_type min(){return m_generator.min();};
+//
+// 	result_type max(){return m_generator.max();};
+//
+// private:
+// 	T m_generator;
+//
+// };
 
-	using result_type = long unsigned int;
-
-	virtual result_type operator()() = 0;
-
-	virtual result_type min() = 0;
-
-	virtual result_type max() = 0;
-};
-
-class MinStdRand0: public RandomGenerator {
-public:
-	MinStdRand0 (result_type seed);
-
-	virtual result_type operator()() override;
-
-	virtual result_type min() override {return m_generator.min();}
-
-	virtual result_type max() override {return m_generator.max();}
-
-private:
-	minstd_rand0 m_generator;
-};
-
-class MinStdRand: public RandomGenerator {
-public:
-	MinStdRand (result_type seed);
-
-	virtual result_type operator()() override;
-
-	virtual result_type min() override {return result_type(m_generator.min());}
-
-	virtual result_type max() override {return result_type(m_generator.max());}
-
-private:
-	minstd_rand m_generator;
-};
-
-class MT19937: public RandomGenerator {
-public:
-	MT19937 (result_type seed);
-
-	virtual result_type operator()() override;
-
-	virtual result_type min() override {return result_type(m_generator.min());}
-
-	virtual result_type max() override {return result_type( m_generator.max());}
-
-private:
-	mt19937 m_generator;
-};
-
-class MT19937_64: public RandomGenerator {
-public:
-	MT19937_64 (result_type seed);
-
-	virtual result_type operator()() override;
-
-	virtual result_type min() override {return result_type(m_generator.min());}
-
-	virtual result_type max() override {return result_type(m_generator.max());}
-
-private:
-	mt19937_64 m_generator;
-};
-
-class Ranlux24: public RandomGenerator {
-public:
-	Ranlux24 (result_type seed);
-
-	virtual result_type operator()() override;
-
-	virtual result_type min() override {return result_type(m_generator.min());}
-
-	virtual result_type max() override {return result_type(m_generator.max());}
-
-private:
-	ranlux24 m_generator;
-};
-
-class Ranlux48: public RandomGenerator {
-public:
-	Ranlux48 (result_type seed);
-
-	virtual result_type operator()() override;
-
-	virtual result_type min() override {return result_type(m_generator.min());}
-
-	virtual result_type max() override {return result_type(m_generator.max());}
-
-private:
-	std::discard_block_engine<std::ranlux48_base, 389, 11> m_generator;
-};
-
-class KnuthB: public RandomGenerator {
-public:
-	KnuthB (result_type seed);
-
-	virtual result_type operator()() override;
-
-	virtual result_type min() override {return result_type(m_generator.min());}
-
-	virtual result_type max() override {return result_type(m_generator.max());}
-
-private:
-	knuth_b m_generator;
-};
-
+// class MinStdRand0: public RandomGenerator {
+// public:
+// 	MinStdRand0 (result_type seed);
+//
+// 	virtual result_type operator()() override;
+//
+// 	virtual result_type min() override {return m_generator.min();}
+//
+// 	virtual result_type max() override {return m_generator.max();}
+//
+// private:
+// 	trng::lcg64 m_generator;
+// };
+template <class T>
 class RNGPicker {
 public:
 	using result_type = long unsigned int;
 
-	RNGPicker();
+	RNGPicker(){m_rng = nullptr;};
 
-	void set(string generator_type, result_type seed);
+	void set(std::string generator_type, result_type seed);
 
 	~RNGPicker();
 
-	result_type operator()();
+	long unsigned int operator()();
 
-	result_type min();
+  // TODO fix this
+	constexpr static const result_type min() { return 0; }
 
-	result_type max();
+	constexpr static const result_type max() { return 1000; }
 
 private:
-	RandomGenerator* m_rng;
+	static T* m_rng;
 };
 
 }

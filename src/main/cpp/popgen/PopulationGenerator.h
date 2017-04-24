@@ -4,7 +4,6 @@
 #include <vector>
 #include <map>
 #include <iostream>
-#include <random>
 #include <cassert>
 #include <exception>
 #include <limits>
@@ -15,6 +14,7 @@
 #include "util/AliasDistribution.h"
 #include "util/GeoCoordCalculator.h"
 #include "popgen/utils.h"
+#include <trng/lcg64.hpp>
 
 namespace stride {
 namespace popgen {
@@ -187,7 +187,7 @@ private:
 	void assignToCommunities();
 
 	boost::property_tree::ptree m_props;							/// > The content of the xml file
-	mutable RNGPicker m_rng;										/// > The random generator
+	mutable RNGPicker<trng::lcg64> m_rng;										/// > The random generator
 	uint m_total;													/// > The total amount of people to be generated (according to the xml)
 	vector<SimplePerson> m_people;									/// > All the people
 	vector<SimpleHousehold> m_households;							/// > The households (a household is a vector of indices in the vector above)
@@ -214,4 +214,3 @@ private:
 
 }
 }
-

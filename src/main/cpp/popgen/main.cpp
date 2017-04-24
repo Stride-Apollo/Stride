@@ -1,7 +1,6 @@
 
 #include <iostream>
 #include <string>
-
 #include "PopulationGenerator.h"
 
 using namespace std;

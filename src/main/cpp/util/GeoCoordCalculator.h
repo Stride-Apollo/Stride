@@ -20,7 +20,8 @@ public:
 	/// Uses the haversine formula
 	/// See: http://www.movable-type.co.uk/scripts/latlong.html
 
-	GeoCoordinate generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius, RNGPicker& rng) const;
+	template <typename T>
+	GeoCoordinate generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius, RNGPicker<T>& rng) const;
 	/// radius is in kilometres
 	/// TODO make the distribution fair
 
