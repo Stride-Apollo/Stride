@@ -33,6 +33,7 @@ set( SRC
 		UtilTests.cpp
 		PopulationTests.cpp
 		LocalSimulatorAdapterTests.cpp
+		TravelSchedulerTest.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp

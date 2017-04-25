@@ -17,25 +17,33 @@ namespace util {
 using uint = unsigned int;
 
 struct Flight {
-	Flight(uint source_sim, uint destination_sim, uint amount, uint duration, uint day_of_the_week) {}
+	Flight(uint source_sim, uint destination_sim, uint amount, uint duration, uint day_of_the_week)
+		: m_source_sim(source_sim),
+		m_destination_sim(destination_sim),
+		m_amount(amount),
+		m_duration(duration),
+		m_day_of_the_week(day_of_the_week)
+		{}
 	~Flight() {}
 
 	uint m_source_sim;
-	uint m_destionation_sim;
+	uint m_destination_sim;
 	uint m_amount;
 	uint m_duration;
 	uint m_day_of_the_week;	/// The current day of the week (0 (Sunday), ..., 6 (Saturday))
 
 };
 
+bool operator==(const Flight& flight1, const Flight& flight2);
+
 using Schedule = array<vector<Flight>, 7>;
 
 class TravellerScheduleReader {
 public:
-	Schedule parseTree(string filename);
+	Schedule readSchedule(string filename);
 
 private:
-	void readSchedule(string filename);
+	void parseTree(string filename);
 
 	Flight parseFlight(boost::property_tree::ptree& node) const;
 
