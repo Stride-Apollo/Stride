@@ -22,7 +22,7 @@ extern trng::uniform01_dist<double> real01;
 
 using uint = unsigned int;
 
-class PopulationGenerator;
+template<class T> class PopulationGenerator;
 
 class SimplePerson {
 public:
@@ -30,7 +30,7 @@ public:
 	SimplePerson(uint age=0, uint family_id=0);
 
 	friend std::ostream& operator<<(std::ostream& os, const SimplePerson& p);
-	friend class PopulationGenerator;
+	template<class U> friend class PopulationGenerator;
 
 	uint m_age = 0;
 	uint m_household_id = 0;

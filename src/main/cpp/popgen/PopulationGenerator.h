@@ -27,6 +27,7 @@ using uint = unsigned int;
 /**
  * Generate Populations
  */
+template <class U>
 class PopulationGenerator {
 public:
 	/// Constructor: Check if the xml is valid and set up the basic things like a random generator
@@ -187,7 +188,7 @@ private:
 	void assignToCommunities();
 
 	boost::property_tree::ptree m_props;							/// > The content of the xml file
-	mutable RNGPicker<trng::lcg64> m_rng;										/// > The random generator
+	mutable RNGPicker<U> m_rng;										/// > The random generator
 	uint m_total;													/// > The total amount of people to be generated (according to the xml)
 	vector<SimplePerson> m_people;									/// > All the people
 	vector<SimpleHousehold> m_households;							/// > The households (a household is a vector of indices in the vector above)
