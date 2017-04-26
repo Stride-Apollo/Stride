@@ -1,12 +1,14 @@
 #include "Coordinator.h"
 #include "util/async.h"
+#include "util/TravellerScheduleReader.h"
+#include "calendar/Calendar.h"
+#include "sim/LocalSimulatorAdapter.h"
 
 using namespace stride;
 using namespace util;
 using namespace std;
 
 void Coordinator::timeStep() {
-	static bool send = true;
 	vector<future<bool>> fut_results;
 
 	// Run the simulator for the day
@@ -17,14 +19,14 @@ void Coordinator::timeStep() {
 
 	// Give each simulator a planning containing todays travellers
 	// The simulators will exchange travellers
-	// TODO not hardcoded
-	if (send) {
-		fut_results.clear();
-		for (uint i = 0; i < m_sims.size(); ++i) {
-			// TODO multithreaded
-			m_sims.at(i)->sendTravellers(100, 8, m_sims.at(i % m_sims.size()), "Antwerp", "Airport 1");
-		}
-	}
+	// TODO fix the thing with this dynamic cast
+	
+	auto some_sim = dynamic_cast<LocalSimulatorAdapter*>(m_sims.at(0));
+	uint current_day = some_sim->m_sim->m_calendar->getDayOfTheWeek();
 
-	send = false;
+	for (uint i = 0; i < m_traveller_schedule[current_day].size(); ++i) {
+		// TODO multithreaded, remove hardcoded district, check sim index ou of range
+		Flight& new_flight = m_traveller_schedule[current_day].at(i);
+		m_sims.at(i)->sendTravellers(new_flight.m_amount, new_flight.m_duration, m_sims.at(new_flight.m_destination_sim), "Antwerp", "Airport 1");
+	}
 }

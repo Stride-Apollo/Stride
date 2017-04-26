@@ -114,7 +114,19 @@ void run_stride2(bool track_index_case, const string& config_file_name) {
 	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
 	auto l3 = make_unique<LocalSimulatorAdapter>(sim3.get());
 
-	Coordinator coord({l1.get(), l2.get(), l3.get()});
+	// Build the coordinator
+	string traveller_file = "";
+	if (pt_config.count("run.traveller_file") == 1) {
+		traveller_file = pt_config.get<string>("run.traveller_file");
+	}
+
+	if (InstallDirs::getDataDir().empty()) {
+		throw runtime_error(string(__func__) + "> Data directory not present! Aborting.");
+	}
+	vector<LocalSimulatorAdapter*> sim_vector = {l1.get(), l2.get(), l3.get()};
+	Coordinator coord(sim_vector, (InstallDirs::getDataDir() /= traveller_file).string());
+
+
 
 	// Run the simulation.
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");

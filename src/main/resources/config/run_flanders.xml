@@ -7,6 +7,7 @@
     <population_file>pop_flanders.csv</population_file>
     <cluster_location_file>clusters_flanders.csv</cluster_location_file>
     <district_file>districts_flanders.csv</district_file>
+    <traveller_file>traveller_schedule.json</traveller_file>
     <num_days>50</num_days>
     <output_prefix></output_prefix>
     <disease_config_file>disease_measles.xml</disease_config_file>
