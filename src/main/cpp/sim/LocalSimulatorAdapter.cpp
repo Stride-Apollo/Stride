@@ -175,13 +175,14 @@ vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint day
 	Population& population = *(m_sim->m_population.get());
 	for (uint i = 0; i < population.m_original.size(); ++i) {
 		Simulator::PersonType& person = population.m_original.at(i);
-		if (person.m_work_id != 0) {
+		if (person.m_work_id != 0 && !person.m_is_on_vacation) {
 			working_people.push_back(&person);
 		}
 	}
 
 	if (amount > working_people.size()) {
 		// TODO throw exception
+		cout << "Warning, more people to send than actual people in region.\n";
 	}
 
 	vector<Simulator::TravellerType> chosen_people;
