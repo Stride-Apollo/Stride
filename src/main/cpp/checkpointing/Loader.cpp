@@ -16,6 +16,7 @@
 #include "checkpointing/customDataTypes/RNGDataType.h"
 #include "sim/SimulatorBuilder.h"
 #include "pop/PopulationBuilder.h"
+#include "core/Cluster.h"
 
 #include <vector>
 #include <string>
@@ -312,10 +313,30 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 		memspace.close();
 		dataspace.close();
 	}
+	this->updateClusterImmuneIndices(sim);
 
 	dataset->close();
 	file.close();
 }
+
+void Loader::updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const {
+	for (auto cluster : sim->m_households) {
+		cluster.m_index_immune = cluster.m_members.size()-1;
+	}
+	for (auto cluster : sim->m_school_clusters) {
+		cluster.m_index_immune = cluster.m_members.size()-1;
+	}
+	for (auto cluster : sim->m_work_clusters) {
+		cluster.m_index_immune = cluster.m_members.size()-1;
+	}
+	for (auto cluster : sim->m_primary_community) {
+		cluster.m_index_immune = cluster.m_members.size()-1;
+	}
+	for (auto cluster : sim->m_secondary_community) {
+		cluster.m_index_immune = cluster.m_members.size()-1;
+	}
+}
+
 
 }
 

@@ -36,6 +36,9 @@ public:
 		return m_pt_contact;
 	}
 
+	void updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const;
+
+
 	void loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> sim);
 
 	void extendSimulation(std::shared_ptr<Simulator> sim);

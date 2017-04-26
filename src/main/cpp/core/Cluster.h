@@ -25,6 +25,7 @@
 #include "pop/Person.h"
 #include "pop/PopulationBuilder.h"
 #include "sim/Simulator.h"
+#include "checkpointing/Loader.h"
 
 #include <array>
 #include <cstddef>
@@ -84,6 +85,8 @@ private:
 	const ContactProfile& m_profile;
 private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
+private:
+	friend class Loader;
 };
 
 }
