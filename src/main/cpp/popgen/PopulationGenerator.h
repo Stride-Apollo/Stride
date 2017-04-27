@@ -33,6 +33,7 @@ public:
 	/// Constructor: Check if the xml is valid and set up the basic things like a random generator
 	PopulationGenerator(const string& filename, bool output = true);
 
+
 	/// Generates a population, writes the result to the files found in the data directory
 	/// Output files are respectively formatted according to the following template files: belgium_population.csv, pop_miami.csv, pop_miami_geo.csv
 	void generate(const string& target_cities, const string& target_pop, const string& target_households);

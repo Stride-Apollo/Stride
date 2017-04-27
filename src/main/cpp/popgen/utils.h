@@ -112,21 +112,25 @@ class RNGPicker {
 public:
 	using result_type = long unsigned int;
 
-	RNGPicker(){m_rng = nullptr;};
+	RNGPicker():m_rng(nullptr){};
+	RNGPicker(unsigned long seed){ m_rng = new T(seed); };
 
-	void set(std::string generator_type, result_type seed);
 
-	~RNGPicker();
+	void set(long int seed){
+		// m_rng = new T(1);
+	};
+
+	~RNGPicker() = default;
 
 	long unsigned int operator()();
 
   // TODO fix this
-	constexpr static const result_type min() { return 0; }
+	result_type min() { return 0; }
 
-	constexpr static const result_type max() { return 1000; }
+	result_type max() { return 1000; }
 
 private:
-	static T* m_rng;
+	T* m_rng;
 };
 
 }

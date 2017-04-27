@@ -62,30 +62,30 @@ SimplePerson::SimplePerson(uint age, uint family_id) :
 // RNGPicker<T>::RNGPicker(long unsigned int seed) {
 // 	m_rng = T(seed);
 // }
-template <typename T>
-void RNGPicker<T>::set(std::string generator_type, long unsigned int seed) {
-	if (m_rng != nullptr) {
-		delete m_rng;
-		m_rng = nullptr;
-	}
+// template <typename T>
+// void RNGPicker<T>::set(std::string generator_type, long unsigned int seed) {
+// 	// if (m_rng != nullptr) {
+// 	// 	delete m_rng;
+// 	// 	m_rng = nullptr;
+// 	// }
+// 	//
+// 	// // if (generator_type == "MinStdRand0")
+// 	// m_rng = new T(seed);
+// 	// else if (generator_type == "MinStdRand")
+// 	// 	m_rng = new MinStdRand(seed);
+// 	// else if (generator_type == "MT19937")
+// 	// 	m_rng = new MT19937(seed);
+// 	// else if (generator_type == "MT19937_64")
+// 	// 	m_rng = new MT19937_64(seed);
+// 	// else
+// 	// 	throw std::invalid_argument("Invalid RNG name");
+// }
 
-	if (generator_type == "MinStdRand0")
-		m_rng = T(seed);
-	// else if (generator_type == "MinStdRand")
-	// 	m_rng = new MinStdRand(seed);
-	// else if (generator_type == "MT19937")
-	// 	m_rng = new MT19937(seed);
-	// else if (generator_type == "MT19937_64")
-	// 	m_rng = new MT19937_64(seed);
-	else
-		throw std::invalid_argument("Invalid RNG name");
-}
-
-template <typename T>
-RNGPicker<T>::~RNGPicker() {
-	if (m_rng != nullptr)
-		delete m_rng;
-}
+// template <typename T>
+// RNGPicker<T>::~RNGPicker() {
+// 	if (m_rng != nullptr)
+// 		delete m_rng;
+// }
 
 template <typename T>
 long unsigned int RNGPicker<T>::operator ()() {

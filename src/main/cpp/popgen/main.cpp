@@ -1,7 +1,8 @@
 
 #include <iostream>
 #include <string>
-#include "PopulationGenerator.h"
+#include "PopulationGenerator.cpp"
+#include <trng/lcg64.hpp>
 
 using namespace std;
 using namespace stride;
@@ -13,8 +14,8 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	cerr << "Starting...\n";
-	PopulationGenerator generator {argv[1]};
-	cerr << "Generating...\n";
-	generator.generate(argv[2], argv[3], argv[4]);
-	cerr << "Done!\n";
+	PopulationGenerator<trng::lcg64> generator {argv[1]};
+	// cerr << "Generating...\n";
+	// generator.generate(argv[2], argv[3], argv[4]);
+	// cerr << "Done!\n";
 }

@@ -408,7 +408,9 @@ void PopulationGenerator<U>::makeRNG() {
 
 		/// This might throw an exception, but we'll just rethrow it
 		std::cout << "Generator type:" << generator_type << std::endl;
-		m_rng.set(generator_type, seed);
+		// m_rng.set(generator_type, seed);
+		RNGPicker<U> m_rng{};
+		m_rng.set(seed);
 	} catch(invalid_argument& e) {
 		throw e;
 	} catch(exception& e) {
