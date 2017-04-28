@@ -13,9 +13,9 @@ using namespace std;
 namespace stride {
 
 SimulatorSetup::SimulatorSetup(string simulator_mode, string conf_file, 
-							   string hdf5_file, int num_threads, bool track_index_case, const int timestamp_replay)
-	: m_simulator_mode(simulator_mode), m_conf_file(conf_file), m_hdf5_file(hdf5_file), m_timestamp_replay(timestamp_replay),
-	  m_num_threads(num_threads), m_track_index_case(track_index_case) {
+							   string hdf5_file, int num_threads, bool track_index_case, const unsigned int timestamp_replay)
+	: m_simulator_mode(simulator_mode), m_conf_file(conf_file), m_hdf5_file(hdf5_file), m_num_threads(num_threads), 
+	  m_timestamp_replay(timestamp_replay), m_track_index_case(track_index_case) {
 
 	m_conf_file_exists = fileExists(m_conf_file);
 	m_hdf5_file_exists = fileExists(m_hdf5_file);
@@ -44,6 +44,7 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() const {
 			}
 
 			Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
+			m_timestamp_replay = 0;
 			return SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
 		}
 	} else if (m_simulator_mode == "extend") {
@@ -56,9 +57,10 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() const {
 		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
 		auto sim = SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
 		loader.extendSimulation(sim);
+		m_timestamp_replay = loader.getLastSavedTimestep();
 		return sim;
 	} else if (m_simulator_mode == "replay") {
-		// Build the simulator and adjust it to the most recent saved checkpoint in the hdf5 file.
+		// Build the simulator and adjust it to the speicified checkpoint in the hdf5 file.
 		const auto file_path_hdf5 = canonical(system_complete(m_hdf5_file));
 		if (!is_regular_file(file_path_hdf5)) {
 			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
@@ -122,6 +124,7 @@ void SimulatorSetup::constructConfigTreeExtend() {
 bool SimulatorSetup::fileExists(string filename) const {
 	return exists(system_complete(filename));
 }
+
 
 
 }

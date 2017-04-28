@@ -52,7 +52,7 @@ void run_stride(bool track_index_case,
 				const string& hdf5_file_name,
 				const string& simulator_run_mode,
 				const int checkpointing_frequency,
-				const int timestamp_replay) {
+				const unsigned int timestamp_replay) {
 	// -----------------------------------------------------------------------------------------
 	// print output to command line.
 	// -----------------------------------------------------------------------------------------
@@ -116,6 +116,7 @@ void run_stride(bool track_index_case,
 	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
 	shared_ptr<Simulator> sim = setup.getSimulator();
+	unsigned int startDay = setup.getStartDay();
 
 	cout << "Done building the simulator." << endl;
 
@@ -174,10 +175,14 @@ void run_stride(bool track_index_case,
 	// Run the simulation.
 	// -----------------------------------------------------------------------------------------
 	Stopwatch<> run_clock("run_clock");
-	const unsigned int num_days = pt_config.get < unsigned
-	int > ("run.num_days");
+
+	// The initial save
+	if (startDay == 0)
+		sim->notify(*sim);
+
+	const unsigned int num_days = pt_config.get <unsigned int> ("run.num_days");
 	vector<unsigned int> cases(num_days);
-	for (unsigned int i = 0; i < num_days; i++) {
+	for (unsigned int i = startDay; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
 		run_clock.start();
 		sim->timeStep();

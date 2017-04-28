@@ -108,7 +108,10 @@ TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
+	sim->notify(*sim);
 	vector<unsigned int> cases_original;
+	cases_original.push_back(sim->getPopulation()->getInfectedCount());
+
 	for (unsigned int i = 0; i < NUM_DAYS; i++) {
 		sim->timeStep();
 		cases_original.push_back(sim->getPopulation()->getInfectedCount());
@@ -159,6 +162,8 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
+	sim->notify(*sim);
+
 	vector<string> rng_states_step_after_save = vector<string>();
 	vector<string> rng_states_step_after_load = vector<string>();
 
@@ -178,7 +183,7 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	Loader loader(h5filename.c_str(), num_threads);
 	auto sim_checkpointed = SimulatorBuilder::build(loader.getConfig(), loader.getDisease(), loader.getContact(), num_threads, false);
 	loader.extendSimulation(sim_checkpointed);
-	cout << "Infected count after loading from last timestep: " << sim_checkpointed->getPopulation()->getInfectedCount() << endl;
+	cout << "Infected count after loading from last timestep (step " << num_days_checkpointed << "): " << sim_checkpointed->getPopulation()->getInfectedCount() << endl;
 
 	for (unsigned int i = 0; i < NUM_DAYS - num_days_checkpointed; i++) {
 		// if (i == 0) {

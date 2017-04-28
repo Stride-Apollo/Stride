@@ -49,6 +49,8 @@ public:
 		return m_track_index_case;
 	};
 
+	int getLastSavedTimestep() const;
+
 private:
 	const char* m_filename;
 	bool m_track_index_case;

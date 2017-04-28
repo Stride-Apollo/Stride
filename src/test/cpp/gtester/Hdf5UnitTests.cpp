@@ -103,6 +103,7 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 		(Saver(h5filename.c_str(), pt_config, 1, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
+	sim->notify(*sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
 		sim->timeStep();
@@ -114,7 +115,7 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
 	h5file.close();
 
-	EXPECT_EQ(num_days-1, hdf5_timesteps[0]);
+	EXPECT_EQ(num_days, hdf5_timesteps[0]);
 }
 
 /**
@@ -136,6 +137,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 		(Saver(h5filename.c_str(), pt_config, 2, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
+	sim->notify(*sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
 		sim->timeStep();
@@ -147,7 +149,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
 	h5file.close();
 
-	EXPECT_EQ((num_days/2)-1, hdf5_timesteps[0]);
+	EXPECT_EQ((num_days/2), hdf5_timesteps[0]);
 }
 
 /**
@@ -170,6 +172,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 		(Saver(h5filename.c_str(), pt_config, 0, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
+	sim->notify(*sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
 		sim->timeStep();
@@ -257,6 +260,7 @@ TEST_F(HDF5UnitTests, CheckAmtPersons) {
 		(Saver(h5filename.c_str(), pt_config, 1, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
+	sim->notify(*sim);
 
 	sim->timeStep();
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);

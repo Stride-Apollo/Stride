@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 										 "./config/run_default.xml", "CONFIGURATION FILE", cmd);
 		ValueArg<int> checkpointing_frequency_Arg("f", "frequency", "Checkpointing Frequency", false,
 										 -1, "CHECKPOINTING FREQUENCY", cmd);
-		ValueArg<int> timestamp_replay_Arg("t", "timestamp", "Replay from Timestamp", false, 0, "REPLAY FROM TIMESTAMP", cmd);
+		ValueArg<unsigned int> timestamp_replay_Arg("t", "timestamp", "Replay from Timestamp", false, 0, "REPLAY FROM TIMESTAMP", cmd);
 		ValueArg<string> simulator_mode_Arg("m", "mode", "Simulator Mode", false,
 										 "extend", "SIMULATOR MODE", cmd);
 		ValueArg<string> hdf5_file_Arg("h", "hdf5", "HDF5 File", false,
