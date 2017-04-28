@@ -35,7 +35,7 @@ void TravellerScheduleReader::parseTree(string filename) {
 	// Check if the file exists
 	ifstream f(filename.c_str());
 	if (!f.good()) {
-		throw invalid_argument("Invalid schedule file");
+		throw invalid_argument("Invalid schedule file.");
 	}
 
 	// Parse the file

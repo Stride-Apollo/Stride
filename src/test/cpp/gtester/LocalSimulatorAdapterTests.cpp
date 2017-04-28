@@ -13,6 +13,7 @@
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/stdlib.h"
+#include "core/Cluster.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 #include <omp.h>
@@ -22,6 +23,7 @@
 #include <vector>
 #include <future>
 #include <utility>
+#include <algorithm>
 
 using namespace std;
 using namespace stride;
@@ -30,6 +32,32 @@ using namespace boost::filesystem;
 using namespace boost::property_tree;
 
 namespace Tests {
+
+bool sameCluster(const Cluster& cluster1, const Cluster& cluster2) {
+	if (cluster1.m_cluster_id != cluster2.m_cluster_id) {
+		return false;
+	}
+	
+	if (cluster1.m_cluster_type != cluster2.m_cluster_type) {
+		return false;
+	}
+
+	if (cluster1.m_members.size() != cluster2.m_members.size()) {
+		return false;
+	}
+
+	for (auto& person_pair: cluster1.m_members) {
+		Simulator::PersonType* person = person_pair.first;
+
+		auto find_person = [&] (const pair<Simulator::PersonType*, bool>& pair) {return person == pair.first;};
+		auto it = find_if(cluster2.m_members.begin(), cluster2.m_members.end(), find_person);
+
+		if (it == cluster2.m_members.end()) {
+			return false;
+		}
+	}
+	return true;
+}
 
 TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	// Tests which reflect the regular use
@@ -69,6 +97,14 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
 	auto l3 = make_unique<LocalSimulatorAdapter>(sim3.get());
 
+	// Keep the original work, primary and secondary communities of simulator 2
+	vector<Cluster> work_clusters = sim2->m_work_clusters;
+	vector<Cluster> primary_community = sim2->m_primary_community;
+	vector<Cluster> secondary_community = sim2->m_secondary_community;
+
+	// Keep the address of the first person, this is to avoid vector resizing causing a segmentation fault
+	auto first_person = &(sim2->m_population->m_original.at(0));
+
 	// Migrate 10 people for 10 days
 	vector<unsigned int> id_s = l1->sendTravellers(10, 10, l2.get(), "Antwerp", "Airport 1");
 
@@ -76,6 +112,8 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	// -----------------------------------------------------------------------------------------
 	// Actual tests.
 	// -----------------------------------------------------------------------------------------
+
+	ASSERT_EQ(&(sim2->m_population->m_original.at(0)), first_person);
 
 	// Test if the people arrived in the destination simulator
 	for (unsigned int i = 0; i < sim2->m_population->m_visitors.m_agenda.size(); ++i) {
@@ -154,18 +192,37 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 		}
 	}
 
+	ASSERT_EQ(&(sim2->m_population->m_original.at(0)), first_person);
+
 	// The agendas are empty now (or at least, it should be)
 	EXPECT_EQ(l2->m_planner.m_agenda.size(), 0U);
 	EXPECT_EQ(sim2->m_population->m_visitors.m_agenda.size(), 0U);
 
-	// TODO test clusters of sim2
+	// Test clusters of sim2, they must contain the same people as before
+	for (uint i = 0; i < sim2->m_work_clusters.size(); ++i) {
+		auto& cluster = sim2->m_work_clusters.at(i);
+		EXPECT_TRUE(sameCluster(cluster, work_clusters.at(i)));
+	}
+
+	for (uint i = 0; i < sim2->m_primary_community.size(); ++i) {
+		auto& cluster = sim2->m_primary_community.at(i);
+		EXPECT_TRUE(sameCluster(cluster, primary_community.at(i)));
+	}
+
+	for (uint i = 0; i < sim2->m_secondary_community.size(); ++i) {
+		auto& cluster = sim2->m_secondary_community.at(i);
+		EXPECT_TRUE(sameCluster(cluster, secondary_community.at(i)));
+	}
 
 	// Test whether the population in both manipulated sims is not on vacation
-	for (const auto& person: sim->m_population->m_original) {
+
+	for (uint i = 0; i < sim->m_population->m_original.size(); ++i) {
+		auto& person = sim->m_population->m_original.at(i);
 		EXPECT_FALSE(person.isOnVacation());
 	}
 
-	for (const auto& person: sim2->m_population->m_original) {
+	for (uint i = 0; i < sim2->m_population->m_original.size(); ++i) {
+		auto& person = sim2->m_population->m_original.at(i);
 		EXPECT_FALSE(person.isOnVacation());
 	}
 }

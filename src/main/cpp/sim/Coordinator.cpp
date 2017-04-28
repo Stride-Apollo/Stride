@@ -13,6 +13,10 @@ using namespace std;
 void Coordinator::timeStep() {
 	vector<future<bool>> fut_results;
 
+	for (AsyncSimulator* sim: m_sims) {
+		sim->returnHome({});
+	}
+
 	// Run the simulator for the day
 	for (AsyncSimulator* sim: m_sims) {
 		fut_results.push_back(sim->timeStep());

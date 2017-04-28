@@ -40,6 +40,7 @@ using Schedule = array<vector<Flight>, 7>;
 
 class TravellerScheduleReader {
 public:
+	/// Expects a worthy path
 	Schedule readSchedule(string filename);
 
 private:

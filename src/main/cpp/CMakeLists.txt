@@ -51,6 +51,7 @@ set(LIB_SRC
 	util/GeoCoordCalculator.cpp
 	util/RNGPicker.cpp
 	util/TravellerScheduleReader.cpp
+	util/TransportFacilityReader.cpp
 #---
 	patterns/Publisher.cpp
 #---

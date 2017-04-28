@@ -51,7 +51,7 @@ void Cluster::removePerson(unsigned int id) {
 	for (unsigned int i_member = 0; i_member < m_members.size(); ++i_member) {
 		if (m_members.at(i_member).first->getId() == id) {
 			m_members.erase(m_members.begin() + i_member);
-			m_index_immune--;
+			m_index_immune = m_members.size() - 1;
 			return;
 		}
 	}
