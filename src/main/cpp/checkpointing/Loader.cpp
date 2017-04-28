@@ -267,7 +267,7 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 	unsigned long dims[1] = {sim->m_population->size()};
 	CompType typePersonTD(sizeof(PersonTDDataType));
 	typePersonTD.insertMember(H5std_string("at_household"),
-							  HOFFSET(PersonTDDataType, at_household), PredType::NATIVE_INT);
+							  HOFFSET(PersonTDDataType, at_household), PredType::NATIVE_HBOOL);
 	typePersonTD.insertMember(H5std_string("at_school"),
 							  HOFFSET(PersonTDDataType, at_school), PredType::NATIVE_HBOOL);
 	typePersonTD.insertMember(H5std_string("at_work"),

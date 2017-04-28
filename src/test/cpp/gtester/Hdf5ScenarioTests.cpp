@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include <gtest/gtest.h>
+#include <fstream>
 
 using namespace std;
 using namespace stride;
@@ -91,10 +92,9 @@ const unsigned int NUM_DAYS = 50;
 /// Still keeping the test below for debugging reasons 
 TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
 	unsigned int num_threads = 1;
-	#pragma omp parallel
-	{
+	#ifdef _OPENMP
 		num_threads = omp_get_num_threads();
-	}
+	#endif
 	omp_set_num_threads(num_threads);
 	omp_set_schedule(omp_sched_static,1);
 
@@ -112,13 +112,13 @@ TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
 	vector<unsigned int> cases_original;
 	cases_original.push_back(sim->getPopulation()->getInfectedCount());
 
+
 	for (unsigned int i = 0; i < NUM_DAYS; i++) {
 		sim->timeStep();
 		cases_original.push_back(sim->getPopulation()->getInfectedCount());
 	}
 
-
-	int num_cases_original = cases_original.at(NUM_DAYS-1);
+	int num_cases_original = cases_original.at(NUM_DAYS);
 
 	for (unsigned int i = 1; i < NUM_DAYS; i++) {
 		Loader loader(h5filename.c_str(), num_threads);
@@ -127,6 +127,7 @@ TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
 
 		ASSERT_EQ(cases_original.at(i), sim_checkpointed->getPopulation()->getInfectedCount());
 		// cout << "Infected count after loading from last timestep: " << sim_checkpointed->getPopulation()->getInfectedCount() << endl;
+
 
 		for (unsigned int j = 0; j < NUM_DAYS - i; j++) {
 			sim_checkpointed->timeStep();
@@ -143,12 +144,10 @@ TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
 TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	unsigned int num_days_checkpointed = GetParam();
 
-	// TODO maybe parametrize this as well	
 	unsigned int num_threads = 1;
-	#pragma omp parallel
-	{
+	#ifdef _OPENMP
 		num_threads = omp_get_num_threads();
-	}
+	#endif
 	omp_set_num_threads(num_threads);
 	omp_set_schedule(omp_sched_static,1);
 
@@ -172,9 +171,6 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 			sim->unregister(classInstance);
 			cout << "Infected count at save: " << sim->getPopulation()->getInfectedCount() << endl;
 		}
-		// if (i == num_days_checkpointed ) {
-		// 	rng_states_step_after_save = sim->getRngStates();
-		// }
 		sim->timeStep();
 	}
 
@@ -186,24 +182,9 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 	cout << "Infected count after loading from last timestep (step " << num_days_checkpointed << "): " << sim_checkpointed->getPopulation()->getInfectedCount() << endl;
 
 	for (unsigned int i = 0; i < NUM_DAYS - num_days_checkpointed; i++) {
-		// if (i == 0) {
-		// 	rng_states_step_after_load = sim_checkpointed->getRngStates();
-		// }
 		sim_checkpointed->timeStep();
 	}
 	const unsigned int num_cases_checkpointed = sim_checkpointed->getPopulation()->getInfectedCount();
-
-	// cout << "States of rng after one iteration (after saving):" << endl;
-	// for (auto state : rng_states_step_after_save) {
-	// 	cout << state << endl;
-	// }
-	// cout << "States of rng after one iteration after loading from save:" << endl;
-	// for (auto state : rng_states_step_after_load) {
-	// 	cout << state << endl;
-	// }
-	// for (unsigned int i = 0; i < rng_states_step_after_save.size(); i++) {
-	// 	ASSERT_EQ(rng_states_step_after_save.at(i), rng_states_step_after_load.at(i));
-	// }
 
 	cout << "Original: " << num_cases_original << ", checkpointed: " << num_cases_checkpointed << endl;
 	ASSERT_NEAR(num_cases_original, num_cases_checkpointed, 10000);

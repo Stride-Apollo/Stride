@@ -57,7 +57,7 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() const {
 		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
 		auto sim = SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
 		loader.extendSimulation(sim);
-		m_timestamp_replay = loader.getLastSavedTimestep();
+		m_timestamp_replay = loader.getLastSavedTimestep() - 1;
 		return sim;
 	} else if (m_simulator_mode == "replay") {
 		// Build the simulator and adjust it to the speicified checkpoint in the hdf5 file.
