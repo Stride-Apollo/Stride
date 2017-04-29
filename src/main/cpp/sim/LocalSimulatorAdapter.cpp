@@ -126,6 +126,7 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 																	start_infectiousness, start_symptomatic,
 																	traveller.getOldPerson()->getHealth().getEndInfectiousness() - start_infectiousness,
 																	traveller.getOldPerson()->getHealth().getEndSymptomatic() - start_symptomatic);
+		new_person.getHealth() = traveller.getOldPerson()->getHealth();
 
 		
 		// Add the person to the planner and set him on "vacation mode" in his home region
