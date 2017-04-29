@@ -103,7 +103,7 @@ public:
 	}
 
 	const typename PopT::PersonType& operator*() const {
-		if (m_in_planner) return (*m_day_iter->get()).at(m_index);
+		if (m_in_planner) return *((*m_day_iter->get()).at(m_index));
 		else return m_pop.m_original.at(m_index);
 	}
 

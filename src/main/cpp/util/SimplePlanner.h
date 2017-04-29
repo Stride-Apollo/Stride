@@ -1,3 +1,4 @@
+#pragma once
 
 #include <list>
 #include <vector>
@@ -21,7 +22,7 @@ using namespace std;
 template <typename T>
 class SimplePlanner {
 public:
-	using Block = vector<T>;
+	using Block = vector<unique_ptr<T>>;
 	using Agenda = list<unique_ptr<Block>>;
 
 	Block* getModifiableDay(unsigned int days) {
@@ -54,7 +55,8 @@ public:
 
 	void add(unsigned int days, T thing) {
 		Block* block = getModifiableDay(days);
-		block->push_back(thing);
+		T* new_thing = new T(thing);
+		block->emplace_back(new_thing);
 	}
 
 	void nextDay() {
@@ -73,7 +75,7 @@ public:
 		return m_agenda;
 	}
 
-private:
+public:	// TODO set private again
 	Agenda m_agenda;
 	static Block g_empty_day;
 };
