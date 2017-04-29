@@ -111,11 +111,6 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 			cerr << "Failed to find cluster for traveller\n";
 		}
 
-		// Get the ID's of these workplaces		
-		uint work_id = m_sim->m_work_clusters.at(work_index).getId();
-		uint primary_community_id = m_sim->m_primary_community.at(prim_comm_index).getId();
-		uint secondary_community_id = m_sim->m_secondary_community.at(sec_comm_index).getId();
-
 		// Make the person
 		uint start_infectiousness = traveller.getOldPerson()->getHealth().getStartInfectiousness();
 		uint start_symptomatic = traveller.getOldPerson()->getHealth().getStartSymptomatic();

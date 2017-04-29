@@ -36,6 +36,7 @@ public:
 	/// Current policy: search for the first cluster with equal coordinates
 	/// Return the size of the vectpr if you can't find any
 	uint chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters) {
+		vector<uint> available_clusters;
 		for (uint i = 0; i < clusters.size(); ++i) {
 			if (i == 0) {
 				// Because 0 is an invalid id and thus it must be skipped
@@ -45,10 +46,16 @@ public:
 			const auto& cluster = clusters.at(i);
 
 			if (coordinate == cluster.getLocation()) {
-				return i;
+				available_clusters.push_back(i);
 			}
 		}
-		return clusters.size();
+
+		if (available_clusters.size() != 0) {
+			uniform_int_distribution<int> dist(0,available_clusters.size() - 1);
+			return available_clusters[dist(m_rng)];
+
+		} else
+			return clusters.size();
 	}
 
 	virtual ~AsyncSimulator() {};

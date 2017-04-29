@@ -113,7 +113,6 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	// -----------------------------------------------------------------------------------------
 	// Actual tests.
 	// -----------------------------------------------------------------------------------------
-
 	ASSERT_EQ(&(sim2->m_population->m_original.at(0)), first_person);
 
 	// Test if the people arrived in the destination simulator
