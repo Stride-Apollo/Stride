@@ -20,6 +20,7 @@ vector<pair<string, string> > TransportFacilityReader::readFacilities(string fil
 	vector<pair<string, string> > result;
 
 	string line;
+	getline(my_file,line);	// Skip the header
 	while (getline(my_file,line)) {
 		result.push_back(parseFacility(line));
 	}
@@ -27,7 +28,7 @@ vector<pair<string, string> > TransportFacilityReader::readFacilities(string fil
 	return result;
 }
 
-pair<string, string> parseFacility(string row) {
+pair<string, string> TransportFacilityReader::parseFacility(string row) {
 	vector<string> values = StringUtils::split(row, ",");
 	
 	if (values.size() != 2) {
