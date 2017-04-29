@@ -27,6 +27,7 @@
 #include "util/InstallDirs.h"
 #include "util/GeoCoordinate.h"
 #include "util/StringUtils.h"
+#include "util/TransportFacilityReader.h"
 #include "core/Cluster.h"
 #include "core/ClusterType.h"
 
@@ -39,6 +40,7 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <algorithm>
 
 namespace stride {
 
@@ -118,6 +120,9 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 
 	// initialize districts.
 	initializeDistricts(sim, pt_config);
+
+	// initialize the facilities
+	initializeFacilities(sim, pt_config);
 
 	// initialize clusters.
 	initializeClusters(sim, pt_config);
@@ -295,11 +300,36 @@ map<pair<ClusterType, uint>, GeoCoordinate> SimulatorBuilder::initializeLocation
 			const auto values = StringUtils::split(line, ",");
 			// NOTE: if the values are invalid, it will be zero/Null due to StringUtils/ClusterType
 			cluster_locations[make_pair(toClusterType(values[1]), StringUtils::fromString<unsigned int>(values[0]))] = GeoCoordinate(
-							 StringUtils::fromString<double>(values[2]),
-							 StringUtils::fromString<double>(values[3]));
+							StringUtils::fromString<double>(values[2]),
+							StringUtils::fromString<double>(values[3]));
 		}
 	}
 	return cluster_locations;
+}
+
+void SimulatorBuilder::initializeFacilities(shared_ptr<Simulator> sim, const boost::property_tree::ptree& pt_config) {
+	// Get the name of the file with the names of the facilities
+	boost::optional<const ptree&> facilities_config = pt_config.get_child_optional("run.facility_file");
+	if(facilities_config) {
+		string facility_filename = pt_config.get<string>("run.facility_file");
+
+		// Check for the correctness of the file
+		const auto file_path = InstallDirs::getDataDir() /= facility_filename;
+		
+		TransportFacilityReader reader;
+		auto facilities = reader.readFacilities(file_path.string());
+
+		for (auto facility: facilities) {
+			// Check if the referenced district exists
+			auto find_district = [&] (const District& district) {return district.getName() == facility.first;};
+			auto it = find_if(sim->m_districts.begin(), sim->m_districts.end(), find_district);
+
+			// If the district exists, add the facility
+			if (it != sim->m_districts.end()) {
+				it->addFacility(facility.second);
+			}
+		}
+	}
 }
 
 }

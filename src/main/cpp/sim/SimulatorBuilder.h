@@ -75,6 +75,12 @@ private:
 	/// If the filename is "", it will assume that you use an older version of stride which has no locations, all locations will be in the origin (0,0)
 	/// Unreadable input will result in zeroes/ClusterType::Null
 	static std::map<std::pair<ClusterType, uint>, util::GeoCoordinate> initializeLocations(std::string filename);
+
+	/// Initialize the facilities, duplicate facility names are ignored (only the first occurrence is counted)
+	/// Unknown districts are ignored
+	static void initializeFacilities(
+			std::shared_ptr<Simulator> sim,
+			const boost::property_tree::ptree& pt_config);
 };
 
 }
