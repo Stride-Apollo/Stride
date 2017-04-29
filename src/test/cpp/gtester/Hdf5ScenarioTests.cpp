@@ -194,7 +194,7 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoint) {
 
 
 
-auto days = [&](unsigned int amt_days){
+auto days = [](unsigned int amt_days){
 	vector<unsigned int> days; 
 	for (unsigned int i = 1; i < amt_days; i++) days.push_back(i); 
 	return days;
