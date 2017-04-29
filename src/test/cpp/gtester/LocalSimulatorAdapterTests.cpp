@@ -106,7 +106,8 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	auto first_person = &(sim2->m_population->m_original.at(0));
 
 	// Migrate 10 people for 10 days
-	vector<unsigned int> id_s = l1->sendTravellers(10, 10, l2.get(), "Antwerp", "Airport 1");
+	vector<unsigned int> id_s = l1->sendTravellers(10, 10, l2.get(), "Antwerp", "ANR");
+	EXPECT_EQ(id_s.size(), 10U);
 
 
 	// -----------------------------------------------------------------------------------------

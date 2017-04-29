@@ -34,10 +34,6 @@ LocalSimulatorAdapter::LocalSimulatorAdapter(Simulator* sim)
 	}
 
 	m_next_hh_id = max_id + 1;
-
-	// TODO remove hardcoded airports
-	m_sim->m_districts.at(0).addFacility("Airport 1");
-	m_sim->m_districts.at(1).addFacility("Airport 1");
 }
 
 future<bool> LocalSimulatorAdapter::timeStep() {

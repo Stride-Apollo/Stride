@@ -33,6 +33,10 @@ void Coordinator::timeStep() {
 	for (uint i = 0; i < m_traveller_schedule[current_day].size(); ++i) {
 		// TODO multithreaded, remove hardcoded district, check sim index ou of range
 		Flight& new_flight = m_traveller_schedule[current_day].at(i);
-		m_sims.at(new_flight.m_source_sim)->sendTravellers(new_flight.m_amount, new_flight.m_duration, m_sims.at(new_flight.m_destination_sim), "Antwerp", "Airport 1");
+		m_sims.at(new_flight.m_source_sim)->sendTravellers(new_flight.m_amount,
+															new_flight.m_duration,
+															m_sims.at(new_flight.m_destination_sim),
+															new_flight.m_district,
+															new_flight.m_facility);
 	}
 }
