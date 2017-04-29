@@ -71,6 +71,9 @@ Flight TravellerScheduleReader::parseFlight(boost::property_tree::ptree& node) c
 	if (day_of_the_week < 0 || day_of_the_week > 6) {
 		throw invalid_argument("In TravellerScheduleReader: Invalid day of the week.");
 	}
+	
+	string district = node.get<string>("district");
+	string facility = node.get<string>("facility");
 
-	return Flight(uint(source_sim), uint(destination_sim), uint(amount), uint(duration), uint(day_of_the_week));
+	return Flight(uint(source_sim), uint(destination_sim), uint(amount), uint(duration), uint(day_of_the_week), district, facility);
 }

@@ -17,12 +17,14 @@ namespace util {
 using uint = unsigned int;
 
 struct Flight {
-	Flight(uint source_sim, uint destination_sim, uint amount, uint duration, uint day_of_the_week)
+	Flight(uint source_sim, uint destination_sim, uint amount, uint duration, uint day_of_the_week, string district, string facility)
 		: m_source_sim(source_sim),
 		m_destination_sim(destination_sim),
 		m_amount(amount),
 		m_duration(duration),
-		m_day_of_the_week(day_of_the_week)
+		m_day_of_the_week(day_of_the_week),
+		m_district(district),
+		m_facility(facility)
 		{}
 	~Flight() {}
 
@@ -31,6 +33,8 @@ struct Flight {
 	uint m_amount;
 	uint m_duration;
 	uint m_day_of_the_week;	/// The current day of the week (0 (Sunday), ..., 6 (Saturday))
+	string m_district;
+	string m_facility;
 
 };
 

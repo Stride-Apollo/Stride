@@ -5,14 +5,18 @@
 			"destination_sim": 1,
 			"amount": 10,
 			"duration": 20,
-			"day_of_the_week": 0
+			"day_of_the_week": 0,
+			"district": "Antwerp",
+			"facility": "ANR"
 		},
 		{
 			"source_sim": 1,
 			"destination_sim": 2,
 			"amount": 20,
 			"duration": 40,
-			"day_of_the_week": 1
+			"day_of_the_week": 1,
+			"district": "Antwerp",
+			"facility": "ANR2"
 		}
 	]
 }

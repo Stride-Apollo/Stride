@@ -26,7 +26,7 @@ TEST(TravelSchedulerTest, happy_day_default) {
 
 	// Loop over all days
 	for (uint i = 0; i < 7; ++i) {
-		Flight flight = Flight(i, i + 1, 10 * i + 10, 20 * i + 20, i);
+		Flight flight = Flight(i, i + 1, 10 * i + 10, 20 * i + 20, i, "Antwerp", "ANR");
 		EXPECT_EQ(flight, schedule[i].at(0));
 
 		// Check the amount of scheduled flights
@@ -39,5 +39,7 @@ TEST(TravelSchedulerTest, happy_day_default) {
 
 	// Make sure that there can be multiple flights in one day
 	ASSERT_NO_THROW(schedule[0].at(1));
-	EXPECT_EQ(Flight(0, 1, 80, 160, 0), schedule[0].at(1));
+	EXPECT_EQ(Flight(0, 1, 80, 160, 0, "Antwerp", "ANR"), schedule[0].at(1));
 }
+
+// TODO exception tests
