@@ -16,7 +16,7 @@ The population generator needs two files:
 
 An example of an xml configuration file looks as follows:
 
-.. todo:: example xml config?
+.. literalinclude:: PopGenExample.xml
 
 Meaning of the attributes in this file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
