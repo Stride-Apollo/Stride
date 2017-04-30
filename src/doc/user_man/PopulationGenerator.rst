@@ -17,107 +17,82 @@ The population generator needs two files:
 
 An example of an xml configuration file looks as follows:
 
+.. todo:: example xml config?
+
 Meaning of the attributes in this file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- \|L7cm\|R7cm\|
+   * ``Population::total``: The total size of the population, the result may contain a small difference
 
-| Population::total & The total size of the population, the result may
-  contain a small difference
+   * ``Population::provinces``: The amount of provinces (currently has no effect in stride)
 
-| Population::provinces & The amount of provinces (currently has no
-  effect in stride)
+   * ``Population.Random::generator``: The RNG that is used, for a list of allowed random generators, see later
 
-| Population.Random::generator & The RNG that is used, for a list of
-  allowed random generators, see later
+   * ``Population.Random::seed``: The seed of the random generator
 
-| Population.Random::seed & The seed of the random generator
+   * ``Population.Family::file``: The file containing the family configurations
 
-| Population.Family::file & The file containing the family
-  configurations
+   * ``Population.Cities.City::name``: The name of a city, this city will be generated
 
-| Population.Cities.City::name & The name of a city, this city will be
-  generated
+   * ``Population.Cities.City::pop``: The amount of people in this city
 
-| Population.Cities.City::pop & The amount of people in this city
+   * ``Population.Cities.City::lat``: The latitude of the city
 
-| Population.Cities.City::lat & The latitude of the city
+   * ``Population.Cities.City::lon``: The longitude of the city
 
-| Population.Cities.City::lon & The longitude of the city
+   * ``Population.Villages::radius``: When calculating the position of a village, the generator first calulates the middle of the cities. Then it calculates the maximum distance between this middle and any city. The radius is then used as a factor to determine the maximum distance a village is located from the middle.
 
-| Population.Villages::radius & When calculating the position of a
-  village, the generator first calulates the middle of the cities. Then
-  it calculates the maximum distance between this middle and any city.
-  The radius is then used as a factor to determine the maximum distance
-  a village is located from the middle.
+   * ``Population.Villages.Village``: This contains a template of a village. When a village is needed, the generator will pick a random template
 
-| Population.Villages.Village & This contains a template of a village
-  When a village is needed, the generator will pick a random template
+   * ``Population.Villages.Village::min``: The minimum size of the village
 
-| Population.Villages.Village::min & The minimum size of the village
+   * ``Population.Villages.Village::max``: The maximum size of the village
 
-| Population.Villages.Village::max & The maximum size of the village
+   * ``Population.Villages.Village::fraction``: The chance of this village template being chosen, all fractions must add up to one
 
-| Population.Villages.Village::fraction & The chance of this village
-  template being chosen, all fractions must add up to one
+   * ``Population.Education.Mandatory``: Contains the configuration for mandatory schools
 
-| Population.Education.Mandatory & Contains the configuration for
-  mandatory schools
+   * ``Population.Education.Mandatory::total_size``: Size of an institution
 
-| Population.Education.Mandatory:: total\_size & Size of an institution
+   * ``Population.Education.Mandatory::cluster_size``: Size of a group within a school
 
- \|L7cm\|R7cm\|
+   * ``Population.Education.Mandatory::radius``: When a pupil is searching for a school, he looks for schools within this radius If he can’t find a school, the range is doubled
 
-| Population.Education.Mandatory:: cluster\_size & Size of a group
-  within a school
+   * ``Population.Education.Optional``: It's attributes and purpose are the same as Mandatory schools
 
-| Population.Education.Mandatory:: radius & When a pupil is searching
-  for a school, he looks for schools within this radius If he can’t find
-  a school, the range is doubled
+   * ``Population.Education.Optional.Far::fraction``: Fraction of students that goes to a school that is further away from his home
 
-| Population.Education.Optional & Its attributes and purpose are the
-  same as Mandatory schools
+   * ``Population.Work::size``: The size of a workplace
 
-| Population.Education.Optional. Far::fraction & Fraction of students
-  that goes to a school that is further away from his home
+   * ``Population.Work.Far::fraction``: The fraction of working people that goes to workplaces that are located far away from their homes
 
-| Population.Work::size & The size of a workplace
+   * ``Population.Work.Far::radius``: Analogue as the radius for schools
 
-| Population.Work.Far::fraction & The fraction of working people that
-  goes to workplaces that are located far away from their homes
+   * ``Population.Community::size``: The size of a community
 
-| Population.Work.Far::radius & Analogue as the radius for schools
+   * ``Population.Community:: average_per_person``: Currently not used
 
-| Population.Community::size & The size of a community
+   * ``Population.Community::radius``: Analogue as the radius for schools
 
-| Population.Community:: average\_per\_person & Currently not used
+   * ``Population.School_work_profile.Mandatory::min``: The minimum age for
+     students on a mandatory school
 
-| Population.Community::radius & Analogue as the radius for schools
+   * ``Population.School_work_profile.Mandatory::max``: The maximum age for
+     students on a mandatory school
 
-| Population.School\_work\_profile. Mandatory::min & The minimum age for
-  students on a mandatory school
+   * ``Population.School_work_profile.Employable::fraction``: Fraction of
+     people that is employed The others are either student on an optional
+     school, or unemployed
 
-| Population.School\_work\_profile. Mandatory::max & The maximum age for
-  students on a mandatory school
+   * ``Population.School_work_profile.Employable.Young_employee::min``: Minimum age for students at an optional school
 
-| Population.School\_work\_profile. Employable::fraction & Fraction of
-  people that is employed The others are either student on an optional
-  school, or unemployed
+   * ``Population.School_work_profile.Employable.Young_employee::max``: Maximum age for students at an optional school
 
-| Population.School\_work\_profile. Employable.Young\_employee::min &
-  Minimum age for students at an optional school
+   * ``Population.School_work_profile.Employable.Young_employee::fraction``: Fraction of people within the age range of students that have a job
 
-| Population.School\_work\_profile. Employable.Young\_employee::max &
-  Maximum age for students at an optional school
+   * ``Population.School_work_profile.Employable.Employee::min``: Minimum age of a working person
 
-| Population.School\_work\_profile. Employable.Young\_employee::fraction
-  & Fraction of people within the age range of students that have a job
-
-| Population.School\_work\_profile. Employable.Employee::min & Minimum
-  age of a working person
-
-| Population.School\_work\_profile. Employable.Employee::max & Maximum
-  age of a working person
+   * ``Population.School_work_profile.Employable.Employee::max``: Maximum age of a working person
 
 Family configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~
