@@ -28,7 +28,8 @@ namespace stride {
  */
 void run_stride(bool track_index_case, 
 				const std::string& config_file_name, 
-				const std::string& hdf5_file_name, 
+				const std::string& hdf5_file_name,
+				const std::string& hdf5_output_file_name,
 				const std::string& simulator_run_mode,
 				const int checkpoining_frequency,
 				const unsigned int timestamp_replay);

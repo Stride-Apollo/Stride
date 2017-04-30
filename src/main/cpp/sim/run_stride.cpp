@@ -50,6 +50,7 @@ using namespace std::chrono;
 void run_stride(bool track_index_case, 
 				const string& config_file_name,
 				const string& hdf5_file_name,
+				const string& hdf5_output_file_name,
 				const string& simulator_run_mode,
 				const int checkpointing_frequency,
 				const unsigned int timestamp_replay) {
@@ -116,7 +117,7 @@ void run_stride(bool track_index_case,
 	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
 	shared_ptr<Simulator> sim = setup.getSimulator();
-	unsigned int startDay = setup.getStartDay();
+	unsigned int start_day = setup.getStartDay();
 
 	cout << "Done building the simulator." << endl;
 
@@ -163,9 +164,10 @@ void run_stride(bool track_index_case,
 	if (hdf5_file_name != "") {
 		int frequency = checkpointing_frequency == -1 ?
 							pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
-	
+		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
 		auto classInstance = std::make_shared<Saver>
-			(Saver(hdf5_file_name.c_str(), pt_config, frequency, track_index_case));
+			// (Saver(hdf5_file_name.c_str(), pt_config, frequency, track_index_case));
+			(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 		sim->registerObserver(classInstance, fnCaller);
 	}
@@ -177,12 +179,12 @@ void run_stride(bool track_index_case,
 	Stopwatch<> run_clock("run_clock");
 
 	// The initial save
-	if (startDay == 0)
+	if (start_day == 0)
 		sim->notify(*sim);
 
 	const unsigned int num_days = pt_config.get <unsigned int> ("run.num_days");
 	vector<unsigned int> cases(num_days);
-	for (unsigned int i = startDay; i < num_days; i++) {
+	for (unsigned int i = start_day; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
 		run_clock.start();
 		sim->timeStep();

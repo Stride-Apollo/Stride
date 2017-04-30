@@ -9,6 +9,7 @@
 #include "util/Observer.h"
 #include "sim/Simulator.h"
 #include <boost/property_tree/xml_parser.hpp>
+#include <string>
 
 namespace stride {
 using namespace boost::property_tree;
@@ -19,7 +20,10 @@ using namespace boost::property_tree;
 
 class Saver : public util::Observer<Simulator> {
 public:
-	Saver(const char* filename, ptree pt_config, int frequency, bool track_index_case);
+	Saver(const char* filename, ptree pt_config, 
+		  int frequency, bool track_index_case, 
+		  std::string simulator_run_mode = "initial", 
+		  int start_timestep = 0);
 
 	virtual void update(const Simulator& sim);
 

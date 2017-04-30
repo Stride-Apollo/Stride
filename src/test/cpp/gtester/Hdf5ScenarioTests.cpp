@@ -134,7 +134,7 @@ TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
 		}
 		const unsigned int num_cases_checkpointed = sim_checkpointed->getPopulation()->getInfectedCount();
 
-		cout << "Original: " << num_cases_original << ", checkpointed: " << num_cases_checkpointed << endl;
+		// cout << "Original: " << num_cases_original << ", checkpointed: " << num_cases_checkpointed << endl;
 		ASSERT_NEAR(num_cases_original, num_cases_checkpointed, 10000);
 		
 	}

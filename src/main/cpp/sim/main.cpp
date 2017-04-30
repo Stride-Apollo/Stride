@@ -44,6 +44,8 @@ int main(int argc, char** argv) {
 										 "extend", "SIMULATOR MODE", cmd);
 		ValueArg<string> hdf5_file_Arg("h", "hdf5", "HDF5 File", false,
 										 "", "HDF5 FILE", cmd);
+		ValueArg<string> hdf5_output_file_Arg("o", "hdf5output", "HDF5 Output File", false,
+										 "", "HDF5 OUTPUT FILE", cmd);
 		cmd.parse(argc, argv);
 
 		// -----------------------------------------------------------------------------------------
@@ -52,8 +54,10 @@ int main(int argc, char** argv) {
 		run_stride(	index_case_Arg.getValue(), 
 					config_file_Arg.getValue(),
 					hdf5_file_Arg.getValue(),
+					hdf5_output_file_Arg.getValue(),
 					simulator_mode_Arg.getValue(),
-					checkpointing_frequency_Arg.getValue(), timestamp_replay_Arg.getValue());
+					checkpointing_frequency_Arg.getValue(), 
+					timestamp_replay_Arg.getValue());
 
 	}
 	catch (exception& e) {

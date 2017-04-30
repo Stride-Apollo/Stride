@@ -289,7 +289,7 @@ TEST_F(HDF5UnitTests, CheckAmtPersons) {
 	unsigned int threads[] { 1U };
 #endif
 
-INSTANTIATE_TEST_CASE_P(AmtCheckpointsThreads, HDF5UnitTests, ::testing::ValuesIn(threads));
+INSTANTIATE_TEST_CASE_P(HDF5UnitTestsAmtCheckpoints, HDF5UnitTests, ::testing::ValuesIn(threads));
 
 
 }

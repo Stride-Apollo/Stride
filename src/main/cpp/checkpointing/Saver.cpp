@@ -6,6 +6,7 @@
 #include <boost/date_time/gregorian/greg_date.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/filesystem.hpp>
 #include "Saver.h"
 #include "util/InstallDirs.h"
 #include "calendar/Calendar.h"
@@ -16,16 +17,21 @@
 #include "checkpointing/customDataTypes/PersonTIDataType.h"
 #include "checkpointing/customDataTypes/RNGDataType.h"
 
-#include <string>
 #include <vector>
 
 using namespace H5;
 using namespace stride::util;
+using namespace boost::filesystem;
 
 namespace stride {
 
-Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_index_case):
-		m_filename(filename), m_frequency(frequency), m_pt_config(pt_config), m_current_step(-1), m_timestep(0) {
+Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_index_case, std::string simulator_run_mode, int start_timestep):
+		m_filename(filename), m_frequency(frequency), m_pt_config(pt_config), m_current_step(start_timestep - 1), m_timestep(start_timestep) {
+	if (start_timestep != 0 && simulator_run_mode == "extend") {
+		// If the file exists, append the data, otherwise still run the whole constructor
+		if (exists(system_complete(std::string(filename))))
+			return;
+	}
 	try {
 		Exception::dontPrint();
 		H5File file(m_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
