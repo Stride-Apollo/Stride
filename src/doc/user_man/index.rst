@@ -27,5 +27,6 @@ The following research groups or institutes have provided contributions:
    introduction.rst
    software.rst
    simulator.rst
+   checkpointing.rst
    bibliography.rst
    
