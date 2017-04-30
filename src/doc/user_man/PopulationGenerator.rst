@@ -14,7 +14,7 @@ The population generator needs two files:
 
 -  A file with the configuration of families
 
-An example of an xml configuration file looks as follows:
+An example of an xml configuration file can be found here: ``src/main/resources/templates/PopGenerator.xml``
 
 .. literalinclude:: PopGenExample.xml
 
