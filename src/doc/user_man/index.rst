@@ -3,8 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Stride User Manual's documentation!
-==============================================
+Stride User Manual
+==================
+
+The following research groups or institutes have provided contributions:
 
   * Centre for Health Economics Research & Modeling of
     Infectious Diseases, Vaccine and Infectious Disease
