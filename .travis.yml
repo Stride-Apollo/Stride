@@ -46,7 +46,7 @@ matrix:
         - OMP_NUM_THREADS=4
 
 before_install:
-  - make install
+  - PARALLEL_MAKE=2 make install
 
 script:
   - ./travis.sh

@@ -19,6 +19,6 @@
 # Add subdirs:
 #############################################################################
 add_subdirectory( doxygen_ref_man )
-add_subdirectory( latex_user_man )
+add_subdirectory( user_man )
 
 #############################################################################
