@@ -27,13 +27,3 @@ Welcome to Stride User Manual's documentation!
    simulator.rst
    bibliography.rst
    
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-
