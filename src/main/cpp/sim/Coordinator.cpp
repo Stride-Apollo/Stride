@@ -8,8 +8,6 @@ using namespace stride;
 using namespace util;
 using namespace std;
 
-#include <iostream>
-
 void Coordinator::timeStep() {
 	vector<future<bool>> fut_results;
 
@@ -33,6 +31,12 @@ void Coordinator::timeStep() {
 	for (uint i = 0; i < m_traveller_schedule[current_day].size(); ++i) {
 		// TODO multithreaded, remove hardcoded district, check sim index ou of range
 		Flight& new_flight = m_traveller_schedule[current_day].at(i);
+
+		// For now, just skip those out-of-bounds simulators
+		if (new_flight.m_destination_sim >= m_sims.size() || new_flight.m_source_sim >= m_sims.size()) {
+			continue;
+		}
+
 		m_sims.at(new_flight.m_source_sim)->sendTravellers(new_flight.m_amount,
 															new_flight.m_duration,
 															m_sims.at(new_flight.m_destination_sim),

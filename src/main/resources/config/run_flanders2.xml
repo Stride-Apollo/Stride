@@ -3,7 +3,7 @@
     <rng_seed>1</rng_seed>
     <r0>11</r0>
     <seeding_rate>0.002</seeding_rate>
-    <immunity_rate>0.8</immunity_rate>
+    <immunity_rate>0.1</immunity_rate>
     <population_file>pop_flanders.csv</population_file>
     <cluster_location_file>clusters_flanders.csv</cluster_location_file>
     <district_file>districts_flanders.csv</district_file>
