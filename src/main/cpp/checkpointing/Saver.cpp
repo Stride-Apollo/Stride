@@ -338,7 +338,7 @@ void Saver::update(const Simulator& sim) {
 			dataspace->close();
 			dataset->close();
 			delete plist;
-			m_timestep++;
+			m_timestep += m_frequency;
 			file.close();
 		} catch (GroupIException error) {
 			error.printError();
