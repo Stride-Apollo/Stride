@@ -35,11 +35,15 @@ template<class PersonType> class Traveller;
 
 enum class ClusterType;
 
+class Saver;
+
 /**
  * Store and handle person data.
  */
 template<class BeliefPolicy, class BehaviorPolicy>
 class Person {
+friend class Saver;
+friend class Loader;
 public:
 	/// Constructor: set the person data.
 	Person(unsigned int id, double age, unsigned int household_id, unsigned int school_id,

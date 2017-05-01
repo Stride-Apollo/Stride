@@ -26,6 +26,7 @@
 #include "pop/PopulationBuilder.h"
 #include "sim/Simulator.h"
 #include "util/GeoCoordinate.h"
+#include "checkpointing/Loader.h"
 
 #include <array>
 #include <cstddef>
@@ -96,6 +97,8 @@ public:	// TODO make private again
 	const GeoCoordinate m_coordinate;
 private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
+private:
+	friend class Loader;
 };
 
 }

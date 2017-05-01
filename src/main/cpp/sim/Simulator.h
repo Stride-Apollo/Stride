@@ -42,6 +42,9 @@ class Population;
 class Calendar;
 class Cluster;
 class LocalSimulatorAdapter;
+class Saver;
+class Loader;
+
 /**
  * Main class that contains and direct the virtual world.
  */
@@ -75,6 +78,12 @@ private:
 	template<LogMode log_level, bool track_index_case = false>
 	void updateClusters();
 
+	/// Retrieve the states of the rng's
+	std::vector<std::string> getRngStates() const;
+
+	/// Set the states of the rng's
+	void setRngStates(std::vector<std::string> states);
+
 private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 
@@ -101,6 +110,8 @@ public:	// TODO set private again
 
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;
+	friend class Saver;
+	friend class Loader;
 };
 
 

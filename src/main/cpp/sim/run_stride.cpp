@@ -18,17 +18,20 @@
  * Actually run the simulator.
  */
 
-# include "run_stride.h"
+#include "run_stride.h"
 
 #include "output/CasesFile.h"
 #include "output/PersonFile.h"
 #include "output/SummaryFile.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
+#include "sim/SimulatorSetup.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
+#include "checkpointing/Saver.h"
+#include "checkpointing/Loader.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 #include <omp.h>
@@ -44,7 +47,13 @@ using namespace std;
 using namespace std::chrono;
 
 /// Run the stride simulator.
-void run_stride(bool track_index_case, const string& config_file_name) {
+void run_stride(bool track_index_case, 
+				const string& config_file_name,
+				const string& hdf5_file_name,
+				const string& hdf5_output_file_name,
+				const string& simulator_run_mode,
+				const int checkpointing_frequency,
+				const unsigned int timestamp_replay) {
 	// -----------------------------------------------------------------------------------------
 	// print output to command line.
 	// -----------------------------------------------------------------------------------------
@@ -67,18 +76,6 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	}
 
 	// -----------------------------------------------------------------------------------------
-	// Configuration.
-	// -----------------------------------------------------------------------------------------
-	ptree pt_config;
-	const auto file_path = canonical(system_complete(config_file_name));
-	if (!is_regular_file(file_path)) {
-		throw runtime_error(string(__func__)
-							+ ">Config file " + file_path.string() + " not present. Aborting.");
-	}
-	read_xml(file_path.string(), pt_config);
-	cout << "Configuration file:  " << file_path.string() << endl;
-
-	// -----------------------------------------------------------------------------------------
 	// OpenMP.
 	// -----------------------------------------------------------------------------------------
 	unsigned int num_threads;
@@ -86,11 +83,46 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	{
 		num_threads = omp_get_num_threads();
 	}
+	cout << endl;
 	if (ConfigInfo::haveOpenMP()) {
 		cout << "Using OpenMP threads:  " << num_threads << endl;
 	} else {
 		cout << "Not using OpenMP threads." << endl;
 	}
+	cout << endl;
+
+	// -----------------------------------------------------------------------------------------
+	// Configuration.
+	// -----------------------------------------------------------------------------------------
+	
+	Stopwatch<> total_clock("total_clock", true);
+
+	// Special case for extract mode -> don't run the simulator, just extract the config file.
+	if (simulator_run_mode == "extract") {
+		bool hdf5_file_exists = exists(system_complete(hdf5_file_name));
+		if (!hdf5_file_exists) {
+			throw runtime_error(string(__func__) + "> Hdf5 file " +
+								system_complete(hdf5_file_name).string() + " does not exist.");
+		}
+
+		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
+		if (!is_regular_file(file_path_hdf5)) {
+			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
+		}
+
+		Loader loader(file_path_hdf5.string().c_str());
+		return;
+	} 
+
+	cout << "Constructing configuration tree and building the simulator." << endl << endl;
+	
+	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case, timestamp_replay);
+	ptree pt_config = setup.getConfigTree();
+	shared_ptr<Simulator> sim = setup.getSimulator();
+	unsigned int start_day = setup.getStartDay();
+
+	cout << "Done building the simulator." << endl;
+
 	// -----------------------------------------------------------------------------------------
 	// Set output path prefix.
 	// -----------------------------------------------------------------------------------------
@@ -110,7 +142,7 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	// -----------------------------------------------------------------------------------------
 	// Track index case setting.
 	// -----------------------------------------------------------------------------------------
-	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
+	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl << endl;
 
 	// -----------------------------------------------------------------------------------------
 	// Create logger
@@ -123,32 +155,47 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 												  std::numeric_limits<size_t>::max());
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
-	// -----------------------------------------------------------------------------------------
-	// Create simulator.
-	// -----------------------------------------------------------------------------------------
-	Stopwatch<> total_clock("total_clock", true);
-	cout << "Building the simulator. " << endl;
-	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	cout << "Done building the simulator. " << endl << endl;
 
 	// -----------------------------------------------------------------------------------------
 	// Add observers to the simulator.
 	// -----------------------------------------------------------------------------------------
 
 	cout << "Adding observers to the simulator." << endl;
-	/// example on how to use:
-		// auto classInstance = std::make_shared<Class>();
-		// std::function<void(const Simulator&)> fnCaller = std::bind(&Class::update, classInstance, std::placeholders::_1); 
-		// sim->registerObserver(classInstance, fnCaller); 
+
+	std::shared_ptr<Saver> saver = 0;
+	// Is checkpointing 'enabled'?
+	if (hdf5_file_name != "" || hdf5_output_file_name != "") {
+		int frequency = checkpointing_frequency == -1 ?
+							pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
+		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
+		saver = std::make_shared<Saver>
+			(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
+		std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
+		sim->registerObserver(saver, fnCaller);
+	}
 	cout << "Done adding the observers." << endl << endl;
 
 	// -----------------------------------------------------------------------------------------
 	// Run the simulation.
 	// -----------------------------------------------------------------------------------------
 	Stopwatch<> run_clock("run_clock");
-	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
+
+	// The initial save
+	if (saver != 0 && (simulator_run_mode != "extend" && start_day != 0)) {
+		saver->forceSave(*sim);
+	}
+
+	unsigned int num_days;
+	if (simulator_run_mode == "extend") {
+		// Extend the amount of days that should be run according to the config param or cmd argument
+		num_days = start_day + (timestamp_replay == 0 ? pt_config.get<unsigned int>("run.num_days") : timestamp_replay); 
+	} else {
+		num_days = pt_config.get<unsigned int>("run.num_days");
+	}
+
 	vector<unsigned int> cases(num_days);
-	for (unsigned int i = 0; i < num_days; i++) {
+	
+	for (unsigned int i = start_day; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
 		run_clock.start();
 		sim->timeStep();
@@ -156,6 +203,11 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 		cout << "     Done, infected count: ";
 		cases[i] = sim->getPopulation()->getInfectedCount();
 		cout << setw(10) << cases[i] << endl;
+	}
+
+	if (saver != 0 && checkpointing_frequency == 0) {
+		// Force save the last timestep
+		saver->forceSave(*sim, num_days);
 	}
 
 	// -----------------------------------------------------------------------------------------
@@ -168,7 +220,7 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	// Summary
 	SummaryFile summary_file(output_prefix);
 	summary_file.print(pt_config,
-					   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
+					   sim->getPopulation()->m_original.size(), sim->getPopulation()->getInfectedCount(),
 					   duration_cast<milliseconds>(run_clock.get()).count(),
 					   duration_cast<milliseconds>(total_clock.get()).count());
 

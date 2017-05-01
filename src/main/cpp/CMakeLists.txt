@@ -39,11 +39,12 @@ set(LIB_SRC
 	pop/Population.cpp
 
 #---
-	sim/run_stride2.cpp
+	sim/run_stride.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
 	sim/Coordinator.cpp
+    sim/SimulatorSetup.cpp
 #---
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
@@ -55,11 +56,12 @@ set(LIB_SRC
 #---
 	patterns/Publisher.cpp
 #---
-	hdf5Prototype/subsets.cpp
-#---
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
+#---
+    checkpointing/Saver.cpp
+    checkpointing/Loader.cpp
 )
 
 set(POPGEN_SRC

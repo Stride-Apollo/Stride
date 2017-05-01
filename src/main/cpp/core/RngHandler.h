@@ -21,6 +21,8 @@
 
 #include "util/Random.h"
 #include "math.h"
+#include <iostream>
+#include <string>
 
 namespace stride {
 
@@ -33,6 +35,11 @@ public:
 	RngHandler(unsigned int seed, unsigned int stream_count, unsigned int id)
 			: m_rng(seed) {
 		m_rng.split(stream_count, id);
+	}
+
+	/// Gets the seed (for saving purposes)
+	unsigned int getSeed() const {
+		return m_seed;
 	}
 
 	/// Convert rate into probability
@@ -50,7 +57,17 @@ public:
 		return m_rng.nextDouble() < rateToProbability(contact_rate);
 	}
 
+	void setState(std::string state) {
+		m_rng.setState(state);
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const RngHandler& handler) {
+		os << handler.m_rng;
+		return os;
+	} 
+
 private:
+	unsigned int m_seed;
 	util::Random m_rng;                        ///< Random number engine.
 };
 

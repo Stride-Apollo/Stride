@@ -27,6 +27,8 @@
 #include "core/Cluster.h"
 
 #include <omp.h>
+#include <sstream>
+#include <iostream>
 
 namespace stride {
 
@@ -81,6 +83,25 @@ void Simulator::updateClusters() {
 	}
 }
 
+vector<string> Simulator::getRngStates() const {
+	vector<string> states;
+
+	for (auto rng_handler : m_rng_handler) {
+		stringstream ss;
+		ss << rng_handler;
+		states.push_back(ss.str());
+	}
+	return states;
+}
+
+void Simulator::setRngStates(vector<string> states) {
+	int i = 0;
+	for (auto state : states) {
+		m_rng_handler.at(i++).setState(state);
+	}
+}
+
+
 void Simulator::timeStep() {
 	shared_ptr<DaysOffInterface> days_off {nullptr};
 
@@ -126,8 +147,8 @@ void Simulator::timeStep() {
 		}
 	}
 
-	notify(*this);
 	m_calendar->advanceDay();
+	notify(*this);
 }
 
 void Simulator::host(const std::vector<Simulator::TravellerType>& travellers) {
