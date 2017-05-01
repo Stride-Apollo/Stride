@@ -189,21 +189,57 @@ vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint day
 }
 
 bool LocalSimulatorAdapter::forceHost(const Simulator::TravellerType& traveller, const TravellerData& traveller_data) {
+	uint work_index = traveller_data.m_destination_work_id;
+	uint prim_comm_index = traveller_data.m_destination_primary_id;
+	uint sec_comm_index = traveller_data.m_destination_secondary_id;
+	uint days = traveller_data.m_days_left;
 
+	// Make the person
+	uint start_infectiousness = traveller.getOldPerson()->getHealth().getStartInfectiousness();
+	uint start_symptomatic = traveller.getOldPerson()->getHealth().getStartSymptomatic();
+
+	// Note: the "ID" given to the constructor of a person is actually an index!
+	Simulator::PersonType new_person = Simulator::PersonType(m_next_id, traveller.getOldPerson()->getAge(), m_next_hh_id, 0,
+																work_index, prim_comm_index, sec_comm_index,
+																start_infectiousness, start_symptomatic,
+																traveller.getOldPerson()->getHealth().getEndInfectiousness() - start_infectiousness,
+																traveller.getOldPerson()->getHealth().getEndSymptomatic() - start_symptomatic);
+	new_person.getHealth() = traveller.getOldPerson()->getHealth();
+
+	
+	// Add the person to the planner and set him on "vacation mode" in his home region
+	m_sim->m_population->m_visitors.add(days, new_person);
+	Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(), m_sim->m_population->m_visitors.getModifiableDay(days)->back().get());
+	new_traveller.getOldPerson()->m_is_on_vacation = true;
+	new_traveller.getNewPerson()->m_is_on_vacation = false;
+	m_planner.add(days, new_traveller);
+
+	// Get a pointer to the person you just made
+	Simulator::PersonType* person = m_sim->m_population->m_visitors.getModifiableDay(days)->back().get();
+
+	// Add the person to the clusters
+	m_sim->m_work_clusters.at(work_index).addPerson(person);
+	m_sim->m_primary_community.at(prim_comm_index).addPerson(person);
+	m_sim->m_secondary_community.at(sec_comm_index).addPerson(person);
+
+	++m_next_id;
+	++m_next_hh_id;
 }
 
 vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
 	vector<TravellerData> returned_travellers;
+	uint days_left = 0;
 	while (m_planner.m_agenda.size() != 0) {
 		auto returning_people = m_planner.getDay(0);
 
 		for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
-			TravellerData new_data = TravellerData(*(**it).getOldPerson(), *(**it).getNewPerson());
+			TravellerData new_data = TravellerData(*(**it).getOldPerson(), *(**it).getNewPerson(), days_left);
 			returned_travellers.push_back(new_data);
 
 			returnTraveller(**it);
 		}
 
+		++days_left;
 		m_planner.nextDay();
 		m_sim->m_population->m_visitors.nextDay();
 	}
@@ -223,7 +259,6 @@ void LocalSimulatorAdapter::returnTraveller(Simulator::TravellerType& traveller)
 	m_sim->m_work_clusters.at(work_index).removePerson(returning_person->m_id);
 	m_sim->m_primary_community.at(prim_comm_index).removePerson(returning_person->m_id);
 	m_sim->m_secondary_community.at(sec_comm_index).removePerson(returning_person->m_id);
-
 
 	traveller.resetPerson();
 }

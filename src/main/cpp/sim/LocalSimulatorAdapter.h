@@ -36,9 +36,9 @@ public:
 	/// Return all travellers in this simulator back home
 	virtual vector<TravellerData> forceReturn() override;
 
+public:	// TODO make private again
 	void returnTraveller(Simulator::TravellerType& traveller);
 
-public:	// TODO make private again
 	Simulator* m_sim;
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;
 
