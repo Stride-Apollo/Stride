@@ -65,7 +65,6 @@ private:
 	uint m_home_secondary_community_id; ///< The home secondary community id
 	uint m_home_simulator_id;			///< The id of the home simulator
 	uint m_destination_simulator_id;	///< The id of the destination simulator
-	// TODO: destination city/airport
 
 	PersonType* m_old_person;			///< The person in the region of origin
 	PersonType* m_new_person;			///< The person when he travelled to the other region
