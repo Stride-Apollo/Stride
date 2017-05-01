@@ -68,7 +68,7 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 		cerr << "Generating " << m_total << " people...\n";
 		makeHouseholds();
 		makeCities();
-		// makeVillages();
+		makeVillages();
 		placeHouseholds();
 		makeSchools();
 		makeUniversities();
