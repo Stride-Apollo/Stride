@@ -96,7 +96,7 @@ TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
 	omp_set_num_threads(num_threads);
 	omp_set_schedule(omp_sched_static,1);
 
-	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/tests/testOutput.h5").string();
+	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/testOutput.h5").string();
 	auto pt_config = getConfigTree();
 
 
