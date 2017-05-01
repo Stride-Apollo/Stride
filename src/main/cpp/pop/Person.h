@@ -30,13 +30,12 @@
 namespace stride {
 
 class Calendar;
-
 enum class ClusterType;
 
 /**
  * Store and handle person data.
  */
-template<class BeliefPolicy, class BehaviorPolicy>
+template <class BehaviorPolicy, class BeliefPolicy>
 class Person {
 public:
 	/// Constructor: set the person data.
@@ -110,8 +109,7 @@ private:
 };
 
 /// Explicit instantiations in .cpp file
-extern template
-class Person<NoBelief, NoBehavior>;
+extern template class Person<NoBehavior, NoBelief>;
 
 }
 
