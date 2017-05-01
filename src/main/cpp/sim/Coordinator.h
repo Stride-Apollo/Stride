@@ -19,10 +19,19 @@ public:
 			TravellerScheduleReader reader;
 			m_traveller_schedule = reader.readSchedule(filename);
 		}
+		initializeSimulators();
 	}
 
 	Coordinator(initializer_list<AsyncSimulator*> sims)
-		: m_sims(sims.begin(), sims.end()) {}
+		: m_sims(sims.begin(), sims.end()) {initializeSimulators();}
+
+	void initializeSimulators() {
+		uint id = 0;
+		for (auto sim: m_sims) {
+			sim->setId(id);
+			++id;
+		}
+	}
 
 	void timeStep();
 

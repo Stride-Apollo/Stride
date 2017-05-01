@@ -256,6 +256,9 @@ TEST(LocalSimulatorAdapterTest, ForceReturn_default) {
 	auto sim2 = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto l1 = make_unique<LocalSimulatorAdapter>(sim.get());
 	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
+	l1->setId(1);
+	l2->setId(2);
+	cout << l1->getId() << " " << l2->getId() << endl;
 
 	// Keep the original work, primary and secondary communities of simulator 2
 	vector<Cluster> work_clusters = sim2->m_work_clusters;
@@ -318,6 +321,8 @@ TEST(LocalSimulatorAdapterTest, ForceReturn_default) {
 
 		EXPECT_NE(it, migrated_people_data.end());
 		EXPECT_EQ(data.m_days_left, 10U);
+		EXPECT_EQ(data.m_source_simulator, 1U);
+		EXPECT_EQ(data.m_destination_simulator, 2U);
 	}
 
 	// Test the traveller data for correctness in the home simulator

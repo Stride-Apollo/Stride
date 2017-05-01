@@ -19,6 +19,10 @@ using namespace util;
 
 class AsyncSimulator {
 public:
+	void setId(uint id) {m_id = id;}
+	
+	uint getId() const {return m_id;}
+
 	/// The bool doesn't matter, C++ can't handle void
 	/// We just need to wait until it is done
 	virtual future<bool> timeStep() = 0;
@@ -74,6 +78,7 @@ public:
 
 protected:
 	RNGPicker m_rng;
+	uint m_id = 0;
 };
 
 }

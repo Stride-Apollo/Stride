@@ -113,7 +113,11 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 		
 		// Add the person to the planner and set him on "vacation mode" in his home region
 		m_sim->m_population->m_visitors.add(days, new_person);
-		Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(), m_sim->m_population->m_visitors.getModifiableDay(days)->back().get());
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(),
+																			m_sim->m_population->m_visitors.getModifiableDay(days)->back().get(),
+																			traveller.getHomeSimulatorId(),
+																			traveller.getDestinationSimulatorId());
+
 		new_traveller.getOldPerson()->m_is_on_vacation = true;
 		new_traveller.getNewPerson()->m_is_on_vacation = false;
 		m_planner.add(days, new_traveller);
@@ -177,7 +181,7 @@ vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint day
 		// Note: don't set vacation on true, the target simulator will do this for you (if he can house the person)
 
 		// Make the sender and make sure he can't be sent twice
-		Simulator::TravellerType new_traveller = Simulator::TravellerType(person, nullptr);
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(person, nullptr, m_id, destination_sim->getId());
 		chosen_people.push_back(new_traveller);
 		working_people.erase(next(working_people.begin(), index));
 		people_id_s.push_back(person->m_id);
@@ -209,7 +213,10 @@ bool LocalSimulatorAdapter::forceHost(const Simulator::TravellerType& traveller,
 	
 	// Add the person to the planner and set him on "vacation mode" in his home region
 	m_sim->m_population->m_visitors.add(days, new_person);
-	Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(), m_sim->m_population->m_visitors.getModifiableDay(days)->back().get());
+	Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(),
+																		m_sim->m_population->m_visitors.getModifiableDay(days)->back().get(),
+																		traveller.getHomeSimulatorId(),
+																		traveller.getDestinationSimulatorId());
 	new_traveller.getOldPerson()->m_is_on_vacation = true;
 	new_traveller.getNewPerson()->m_is_on_vacation = false;
 	m_planner.add(days, new_traveller);
@@ -233,7 +240,11 @@ vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
 		auto returning_people = m_planner.getDay(0);
 
 		for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
-			TravellerData new_data = TravellerData(*(**it).getOldPerson(), *(**it).getNewPerson(), days_left);
+			TravellerData new_data = TravellerData(*(**it).getOldPerson(),
+													*(**it).getNewPerson(),
+													days_left,
+													(**it).getHomeSimulatorId(),
+													(**it).getDestinationSimulatorId());
 			returned_travellers.push_back(new_data);
 
 			returnTraveller(**it);
@@ -265,7 +276,10 @@ void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, Async
 		return;
 	}
 
-	Simulator::TravellerType new_traveller = Simulator::TravellerType(target_person, nullptr);
+	Simulator::TravellerType new_traveller = Simulator::TravellerType(target_person,
+																		nullptr,
+																		m_id,
+																		destination_sim->getId());
 
 	destination_sim->forceHost(new_traveller, traveller_data);
 }
