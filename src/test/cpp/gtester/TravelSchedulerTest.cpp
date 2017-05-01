@@ -31,9 +31,9 @@ TEST(TravelSchedulerTest, happy_day_default) {
 
 		// Check the amount of scheduled flights
 		if (i != 0) {
-			EXPECT_EQ(schedule[i].size(), 1);
+			EXPECT_EQ(schedule[i].size(), 1U);
 		} else {
-			EXPECT_EQ(schedule[i].size(), 2);
+			EXPECT_EQ(schedule[i].size(), 2U);
 		}
 	}
 

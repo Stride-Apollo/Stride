@@ -50,7 +50,6 @@ unsigned int Person<BehaviorPolicy, BeliefPolicy>::getClusterId(ClusterType clus
 	}
 }
 
-
 template<class BehaviorPolicy, class BeliefPolicy>
 bool Person<BehaviorPolicy, BeliefPolicy>::isInCluster(ClusterType c) const {
 	switch (c) {
@@ -68,7 +67,6 @@ bool Person<BehaviorPolicy, BeliefPolicy>::isInCluster(ClusterType c) const {
 			throw runtime_error(string(__func__) + "> Should not reach default.");
 	}
 }
-
 
 template<class BehaviorPolicy, class BeliefPolicy>
 void Person<BehaviorPolicy, BeliefPolicy>::update(bool is_work_off, bool is_school_off) {
@@ -91,6 +89,6 @@ void Person<BehaviorPolicy, BeliefPolicy>::update(bool is_work_off, bool is_scho
 //--------------------------------------------------------------------------
 // All explicit instantiations.
 //--------------------------------------------------------------------------
-template class Person<NoBelief, NoBehavior>;
+template class Person<NoBehavior, NoBelief>;
 
 }

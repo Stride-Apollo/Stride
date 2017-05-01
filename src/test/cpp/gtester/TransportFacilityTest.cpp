@@ -21,7 +21,7 @@ TEST(TransportFacilityTest, happy_day_default) {
 
 	TransportFacilityReader reader;
 	auto facilities = reader.readFacilities(file_path.string());
-	EXPECT_EQ(facilities.size(), 3);
+	EXPECT_EQ(facilities.size(), 3U);
 
 	vector<pair<string, string> > solutions = {make_pair("Antwerp", "ANR"),
 												make_pair("Antwerp", "ANR2"),

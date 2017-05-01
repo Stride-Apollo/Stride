@@ -138,6 +138,10 @@ public:
 	/// Get the cumulative number of cases.
 	unsigned int getInfectedCount() const;
 
+	double getFractionInfected() const {
+		return getInfectedCount() / (this->m_original.size() + this->m_visitors.size());
+	}
+
 	PopulationIterator begin();
 	PopulationIterator end();
 

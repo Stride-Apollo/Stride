@@ -75,6 +75,16 @@ public:
 		return m_agenda;
 	}
 
+	unsigned int size() const {
+		unsigned int size = 0;
+
+		for (auto& block: m_agenda) {
+			size += block->size();
+		}
+
+		return size;
+	}
+
 public:	// TODO set private again
 	Agenda m_agenda;
 	static Block g_empty_day;

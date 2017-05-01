@@ -47,7 +47,7 @@ class LocalSimulatorAdapter;
  */
 class Simulator : public util::Subject<Simulator> {
 public:
-	using PersonType = Person<NoBelief, NoBehavior>;
+	using PersonType = Person<NoBehavior, NoBelief>;
 	using TravellerType = Traveller<PersonType>;
 
 	// Default constructor for empty Simulator.
@@ -102,7 +102,6 @@ public:	// TODO set private again
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;
 };
-
 
 
 }
