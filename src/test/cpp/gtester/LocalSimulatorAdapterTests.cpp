@@ -258,7 +258,6 @@ TEST(LocalSimulatorAdapterTest, ForceReturn_default) {
 	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
 	l1->setId(1);
 	l2->setId(2);
-	cout << l1->getId() << " " << l2->getId() << endl;
 
 	// Keep the original work, primary and secondary communities of simulator 2
 	vector<Cluster> work_clusters = sim2->m_work_clusters;
