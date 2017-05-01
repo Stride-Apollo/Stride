@@ -23,5 +23,9 @@
 class NoBelief {
 public:
 	using Data = Nothing;
+
+	static bool BelievesIn(Data belief_data) {
+		return false;
+	}
 };
 

@@ -1,45 +1,55 @@
-# TODO specify exact versions on which it has to work
-language: none
-script: make test_all
-os:
-  - linux
-  #- osx
-dist: trusty
-sudo: required
-addons:
-  apt:
-    sources:
-      - sourceline: 'ppa:ubuntu-toolchain-r/test'
-    packages:
-      - gcc-5
-      - g++-5
-      - libboost-all-dev
-      - libhdf5-serial-dev
-
 # Some advice on this configuration was taken from:
 # https://genbattle.bitbucket.io/blog/2016/01/17/c++-travis-ci/?
 
-env: 
-  - CXX=g++-5
-    OMP_NUM_THREADS=4
+# TODO specify exact versions on which it has to work
 
+# Generic language, because we prefer to handle C++ configuration ourselves
+language: generic
+
+dist: trusty
+
+addons:
+  apt:
+    sources: &sources
+      - ubuntu-toolchain-r-test
+    packages: &deps
+      - libboost-all-dev
+      - libhdf5-serial-dev
+  
 matrix:
   include:
-    - addons:
+    - compiler: gcc
+      addons:
         apt:
           sources:
-            - sourceline: 'ppa:ubuntu-toolchain-r/test'
+            - *sources
           packages:
-            - clang-3.8
-            - libboost-all-dev
-            - libhdf5-serial-dev
+            - *deps
+            - gcc-5
+            - g++-5
       env: 
-        - CXX=clang++-3.8
-          OMP_NUM_THREADS=4
+        - CC='gcc-5'
+        - CXX='g++-5'
+        - OMP_NUM_THREADS=4
+      
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - *sources
+          packages:
+            - *deps
+            - clang-3.8
+      env: 
+        - CC='clang-3.8'
+        - CXX='clang++-3.8'
+        - OMP_NUM_THREADS=4
 
-#before_install:
-  #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5; fi
-  #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 60 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-3.8; fi
+before_install:
+  - PARALLEL_MAKE=2 make install
+
+script:
+  - ./travis.sh
 
 notifications:
   slack: 

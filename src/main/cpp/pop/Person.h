@@ -32,7 +32,6 @@ namespace stride {
 class Calendar;
 class LocalSimulatorAdapter;
 template<class PersonType> class Traveller;
-
 enum class ClusterType;
 
 class Saver;
@@ -40,7 +39,7 @@ class Saver;
 /**
  * Store and handle person data.
  */
-template<class BeliefPolicy, class BehaviorPolicy>
+template <class BehaviorPolicy, class BeliefPolicy>
 class Person {
 friend class Saver;
 friend class Loader;
@@ -125,8 +124,7 @@ public:	// TODO make private again
 };
 
 /// Explicit instantiations in .cpp file
-extern template
-class Person<NoBelief, NoBehavior>;
+extern template class Person<NoBehavior, NoBelief>;
 
 }
 
