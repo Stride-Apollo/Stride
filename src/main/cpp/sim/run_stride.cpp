@@ -162,15 +162,16 @@ void run_stride(bool track_index_case,
 
 	cout << "Adding observers to the simulator." << endl;
 
+	std::shared_ptr<Saver> saver = 0;
 	// Is checkpointing 'enabled'?
 	if (hdf5_file_name != "" || hdf5_output_file_name != "") {
 		int frequency = checkpointing_frequency == -1 ?
 							pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
 		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
-		auto classInstance = std::make_shared<Saver>
+		saver = std::make_shared<Saver>
 			(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
-		std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-		sim->registerObserver(classInstance, fnCaller);
+		std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
+		sim->registerObserver(saver, fnCaller);
 	}
 	cout << "Done adding the observers." << endl << endl;
 
@@ -180,8 +181,9 @@ void run_stride(bool track_index_case,
 	Stopwatch<> run_clock("run_clock");
 
 	// The initial save
-	if (start_day == 0)
-		sim->notify(*sim);
+	if (saver != 0 && (simulator_run_mode != "extend" && start_day != 0)) {
+		saver->forceSave(*sim);
+	}
 
 	unsigned int num_days;
 	if (simulator_run_mode == "extend") {
@@ -200,6 +202,11 @@ void run_stride(bool track_index_case,
 		cout << "     Done, infected count: ";
 		cases[i] = sim->getPopulation()->getInfectedCount();
 		cout << setw(10) << cases[i] << endl;
+	}
+
+	if (saver != 0 && checkpointing_frequency == 0) {
+		// Force save the last timestep
+		saver->forceSave(*sim, num_days);
 	}
 
 	// -----------------------------------------------------------------------------------------

@@ -26,8 +26,12 @@ public:
 		  int start_timestep = 0);
 
 	virtual void update(const Simulator& sim);
+	void forceSave(const Simulator& sim, int timestep = -1);
 
 private:
+	void saveTimestep(const Simulator& sim);
+
+
 	const char* m_filename;
 	int m_frequency;
 	ptree m_pt_config;
@@ -35,6 +39,7 @@ private:
 
 	int m_current_step;
 	unsigned int m_timestep;
+	unsigned int m_save_count;
 };
 
 }

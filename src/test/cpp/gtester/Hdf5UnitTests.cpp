@@ -115,7 +115,7 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
 	h5file.close();
 
-	EXPECT_EQ(num_days, hdf5_timesteps[0]);
+	EXPECT_EQ(num_days + 1, hdf5_timesteps[0]);
 }
 
 /**
@@ -149,13 +149,13 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
 	h5file.close();
 
-	EXPECT_EQ((num_days/2), hdf5_timesteps[0]);
+	EXPECT_EQ((num_days/2) + 1, hdf5_timesteps[0]);
 }
 
 /**
  *	Test case that checks the amount of timestaps created in the H5 file,
  *		using checkpointing frequency = 0.
- *	With this frequency, the hdf5 saver should only store 1 timestep.
+ *	With this frequency, the hdf5 saver should save no timesteps automically.
  */
 TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	unsigned int num_threads = GetParam();
@@ -172,11 +172,12 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 		(Saver(h5filename.c_str(), pt_config, 0, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
-	sim->notify(*sim);
+	classInstance->forceSave(*sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
 		sim->timeStep();
 	}
+	classInstance->forceSave(*sim, num_days);
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
@@ -184,7 +185,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
 	h5file.close();
 
-	EXPECT_EQ(0U, hdf5_timesteps[0]);
+	EXPECT_EQ(2U, hdf5_timesteps[0]);
 }
 
 /**

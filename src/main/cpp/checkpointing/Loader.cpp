@@ -315,7 +315,7 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 
 int Loader::getLastSavedTimestep() const {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
-	DataSet* dataset = new DataSet(file.openDataSet("amt_timesteps"));
+	DataSet* dataset = new DataSet(file.openDataSet("last_timestep"));
 	unsigned int data[1];
 	dataset->read(data, PredType::NATIVE_UINT);
 	dataset->close();
