@@ -10,6 +10,7 @@
 #include "util/RNGPicker.h"
 #include "util/GeoCoordinate.h"
 #include "core/Cluster.h"
+#include "pop/TravellerData.h"
 
 namespace stride {
 
@@ -54,6 +55,14 @@ public:
 		} else
 			return clusters.size();
 	}
+
+	/// Helps to integrate multi region and HDF5 checkpointing
+	/// Receive a traveller, get your new IDs of the clusters from the traveller data
+	virtual bool forceHost(const Simulator::TravellerType& traveller, const TravellerData& traveller_data) = 0;
+
+	/// Helps to integrate multi region and HDF5 checkpointing
+	/// Return all travellers in this simulator back home
+	virtual vector<TravellerData> forceReturn() = 0;
 
 	virtual ~AsyncSimulator() {};
 

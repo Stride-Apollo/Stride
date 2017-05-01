@@ -42,20 +42,7 @@ future<bool> LocalSimulatorAdapter::timeStep() {
 
 	// Make sure the "home stats" of the person are back
 	for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
-		Simulator::PersonType* returning_person = (**it).getNewPerson();
-
-		auto work_index = returning_person->m_work_id;
-		auto prim_comm_index = returning_person->m_primary_community_id;
-		auto sec_comm_index = returning_person->m_secondary_community_id;
-
-		// TODO check for out of range stuff
-
-		m_sim->m_work_clusters.at(work_index).removePerson(returning_person->m_id);
-		m_sim->m_primary_community.at(prim_comm_index).removePerson(returning_person->m_id);
-		m_sim->m_secondary_community.at(sec_comm_index).removePerson(returning_person->m_id);
-
-
-		(**it).resetPerson();
+		returnTraveller(**it);
 	}
 
 	m_planner.nextDay();
@@ -199,4 +186,44 @@ vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint day
 
 	destination_sim->host(chosen_people, days, destination_district, destination_facility);
 	return people_id_s;
+}
+
+bool LocalSimulatorAdapter::forceHost(const Simulator::TravellerType& traveller, const TravellerData& traveller_data) {
+
+}
+
+vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
+	vector<TravellerData> returned_travellers;
+	while (m_planner.m_agenda.size() != 0) {
+		auto returning_people = m_planner.getDay(0);
+
+		for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
+			TravellerData new_data = TravellerData(*(**it).getOldPerson(), *(**it).getNewPerson());
+			returned_travellers.push_back(new_data);
+
+			returnTraveller(**it);
+		}
+
+		m_planner.nextDay();
+		m_sim->m_population->m_visitors.nextDay();
+	}
+
+	return returned_travellers;
+}
+
+void LocalSimulatorAdapter::returnTraveller(Simulator::TravellerType& traveller) {
+	Simulator::PersonType* returning_person = traveller.getNewPerson();
+
+	auto work_index = returning_person->m_work_id;
+	auto prim_comm_index = returning_person->m_primary_community_id;
+	auto sec_comm_index = returning_person->m_secondary_community_id;
+
+	// TODO check for out of range stuff
+
+	m_sim->m_work_clusters.at(work_index).removePerson(returning_person->m_id);
+	m_sim->m_primary_community.at(prim_comm_index).removePerson(returning_person->m_id);
+	m_sim->m_secondary_community.at(sec_comm_index).removePerson(returning_person->m_id);
+
+
+	traveller.resetPerson();
 }

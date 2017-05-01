@@ -6,6 +6,7 @@
 #include "Simulator.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
+#include "pop/TravellerData.h"
 
 namespace stride {
 
@@ -26,6 +27,16 @@ public:
 
 	// Send travellers to the destination region, return a vector with the ID's of the sent people
 	virtual vector<unsigned int> sendTravellers(uint amount, uint days, AsyncSimulator* destination_sim, string destination_district, string destination_facility) override;
+
+	/// Helps to integrate multi region and HDF5 checkpointing
+	/// Receive a traveller, get your new IDs of the clusters from the traveller data
+	virtual bool forceHost(const Simulator::TravellerType& traveller, const TravellerData& traveller_data) override;
+
+	/// Helps to integrate multi region and HDF5 checkpointing
+	/// Return all travellers in this simulator back home
+	virtual vector<TravellerData> forceReturn() override;
+
+	void returnTraveller(Simulator::TravellerType& traveller);
 
 public:	// TODO make private again
 	Simulator* m_sim;
