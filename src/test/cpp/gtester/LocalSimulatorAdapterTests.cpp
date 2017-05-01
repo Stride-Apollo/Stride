@@ -67,8 +67,12 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	// -----------------------------------------------------------------------------------------
 
 	ptree pt_config;
-	const auto file_path = canonical(system_complete("../config/run_flanders.xml"));
-	if (!is_regular_file(file_path)) {
+	const auto file_path = InstallDirs::getDataDir() /= string("../config/run_flanders.xml");
+
+	std::ifstream my_file;
+	my_file.open(file_path.string());
+
+	if (my_file.bad()) {
 		throw runtime_error(string(__func__)
 							+ ">Config file " + file_path.string() + " not present. Aborting.");
 	}
@@ -229,8 +233,12 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 
 TEST(LocalSimulatorAdapterTest, ForceReturn_default) {
 	ptree pt_config;
-	const auto file_path = canonical(system_complete("../config/run_flanders.xml"));
-	if (!is_regular_file(file_path)) {
+	const auto file_path = InstallDirs::getDataDir() /= string("../config/run_flanders.xml");
+
+	std::ifstream my_file;
+	my_file.open(file_path.string());
+
+	if (my_file.bad()) {
 		throw runtime_error(string(__func__)
 							+ ">Config file " + file_path.string() + " not present. Aborting.");
 	}
@@ -338,11 +346,17 @@ TEST(LocalSimulatorAdapterTest, ForceReturn_default) {
 
 TEST(LocalSimulatorAdapterTest, ForceHost_default) {
 	ptree pt_config;
-	const auto file_path = canonical(system_complete("../config/run_flanders.xml"));
-	if (!is_regular_file(file_path)) {
+	const auto file_path = InstallDirs::getDataDir() /= string("../config/run_flanders.xml");
+
+	std::ifstream my_file;
+	my_file.open(file_path.string());
+
+	if (my_file.bad()) {
 		throw runtime_error(string(__func__)
 							+ ">Config file " + file_path.string() + " not present. Aborting.");
 	}
+	my_file.close();
+
 	read_xml(file_path.string(), pt_config);
 
 	// OpenMP

@@ -1,11 +1,13 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <fstream>
 
 #include <gtest/gtest.h>
 #include <boost/filesystem/operations.hpp>
 
 #include "util/TransportFacilityReader.h"
+#include "util/InstallDirs.h"
 
 using namespace std;
 using namespace stride;
@@ -13,11 +15,16 @@ using namespace util;
 using namespace boost::filesystem;
 
 TEST(TransportFacilityTest, happy_day_default) {
-	const auto file_path = canonical(system_complete("../data/transportation_facilities.csv"));
-	if (!is_regular_file(file_path)) {
+	const auto file_path = InstallDirs::getDataDir() /= string("transportation_facilities.csv");
+
+	std::ifstream my_file;
+	my_file.open(file_path.string());
+
+	if (my_file.bad()) {
 		throw runtime_error(string(__func__)
-							+ ">Schedule file " + file_path.string() + " not present. Aborting.");
+							+ ">Config file " + file_path.string() + " not present. Aborting.");
 	}
+	my_file.close();
 
 	TransportFacilityReader reader;
 	auto facilities = reader.readFacilities(file_path.string());
