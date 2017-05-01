@@ -113,6 +113,7 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
 	unsigned int hdf5_timesteps[1];
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
+	dataset.close();
 	h5file.close();
 
 	EXPECT_EQ(num_days + 1, hdf5_timesteps[0]);
@@ -147,6 +148,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
 	unsigned int hdf5_timesteps[1];
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
+	dataset.close();
 	h5file.close();
 
 	EXPECT_EQ((num_days/2) + 1, hdf5_timesteps[0]);
@@ -183,6 +185,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
 	unsigned int hdf5_timesteps[1];
 	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
+	dataset.close();
 	h5file.close();
 
 	EXPECT_EQ(2U, hdf5_timesteps[0]);

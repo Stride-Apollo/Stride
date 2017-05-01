@@ -262,11 +262,13 @@ void Saver::saveTimestep(const Simulator& sim) {
 		DataSet timeset = file.openDataSet("amt_timesteps");
 		unsigned int amt_timesteps[1] = {m_save_count};
 		timeset.write(amt_timesteps, PredType::NATIVE_UINT);
+		timeset.close();
 
 		// Save the last timestep (current one that is being saved)
 		DataSet last_timestepset = file.openDataSet("last_timestep");
 		unsigned int last_timestep[1] = {m_timestep};
 		last_timestepset.write(last_timestep, PredType::NATIVE_UINT);
+		last_timestepset.close();
 
 		std::stringstream ss;
 		ss << "/Timestep_" << m_timestep;
