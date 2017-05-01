@@ -64,6 +64,10 @@ public:
 	/// Return all travellers in this simulator back home
 	virtual vector<TravellerData> forceReturn() = 0;
 
+	/// Helps to integrate multi region and HDF5 checkpointing
+	/// Force send a traveller to a simulator
+	virtual void forceSend(const TravellerData& traveller_data, AsyncSimulator* destination_sim) = 0;
+
 	virtual ~AsyncSimulator() {};
 
 	AsyncSimulator(string rng_name = "MT19937", uint seed = rand()) {m_rng.set(rng_name, seed);}

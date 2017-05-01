@@ -247,6 +247,29 @@ vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
 	return returned_travellers;
 }
 
+void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, AsyncSimulator* destination_sim) {
+	uint person_id = traveller_data.m_home_id;
+
+	// Find the person
+	Simulator::PersonType* target_person = nullptr;
+
+	for (auto& person: m_sim->m_population->m_original) {
+		if (person.getId() == traveller_data.m_home_id) {
+			target_person = &person;
+			break;
+		}
+	}
+
+	if (target_person == nullptr) {
+		// The data is probably not destined for me
+		return;
+	}
+
+	Simulator::TravellerType new_traveller = Simulator::TravellerType(target_person, nullptr);
+
+	destination_sim->forceHost(new_traveller, traveller_data);
+}
+
 void LocalSimulatorAdapter::returnTraveller(Simulator::TravellerType& traveller) {
 	Simulator::PersonType* returning_person = traveller.getNewPerson();
 

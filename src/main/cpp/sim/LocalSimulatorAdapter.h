@@ -36,6 +36,10 @@ public:
 	/// Return all travellers in this simulator back home
 	virtual vector<TravellerData> forceReturn() override;
 
+	/// Helps to integrate multi region and HDF5 checkpointing
+	/// Force send a traveller to a simulator
+	virtual void forceSend(const TravellerData& traveller_data, AsyncSimulator* destination_sim) override;
+
 public:	// TODO make private again
 	void returnTraveller(Simulator::TravellerType& traveller);
 

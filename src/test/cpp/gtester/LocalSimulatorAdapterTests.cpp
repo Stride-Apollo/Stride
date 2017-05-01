@@ -377,19 +377,8 @@ TEST(LocalSimulatorAdapterTest, ForceHost_default) {
 	auto traveller_data = l2->forceReturn();
 
 	// Find the person
-	Simulator::PersonType* target_person = nullptr;
-
-	for (auto& person: sim->m_population->m_original) {
-		if (person.getId() == id_s.at(0)) {
-			target_person = &person;
-			break;
-		}
-	}
-
-	Simulator::TravellerType new_traveller = Simulator::TravellerType(target_person, nullptr);
-
 	// Now force him back to his destination
-	l2->forceHost(new_traveller, traveller_data.at(0));
+	l1->forceSend(traveller_data.at(0), l2.get());
 
 	// Test if the person arrived in the destination simulator
 	for (unsigned int i = 0; i < sim2->m_population->m_visitors.m_agenda.size(); ++i) {
