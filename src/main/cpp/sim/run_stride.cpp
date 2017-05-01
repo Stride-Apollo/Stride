@@ -96,6 +96,8 @@ void run_stride(bool track_index_case,
 	// -----------------------------------------------------------------------------------------
 	
 	Stopwatch<> total_clock("total_clock", true);
+
+	// Special case for extract mode -> don't run the simulator, just extract the config file.
 	if (simulator_run_mode == "extract") {
 		bool hdf5_file_exists = exists(system_complete(hdf5_file_name));
 		if (!hdf5_file_exists) {
@@ -161,12 +163,11 @@ void run_stride(bool track_index_case,
 	cout << "Adding observers to the simulator." << endl;
 
 	// Is checkpointing 'enabled'?
-	if (hdf5_file_name != "") {
+	if (hdf5_file_name != "" || hdf5_output_file_name != "") {
 		int frequency = checkpointing_frequency == -1 ?
 							pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
 		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
 		auto classInstance = std::make_shared<Saver>
-			// (Saver(hdf5_file_name.c_str(), pt_config, frequency, track_index_case));
 			(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
 		sim->registerObserver(classInstance, fnCaller);
@@ -182,8 +183,15 @@ void run_stride(bool track_index_case,
 	if (start_day == 0)
 		sim->notify(*sim);
 
-	const unsigned int num_days = pt_config.get <unsigned int> ("run.num_days");
+	unsigned int num_days;
+	if (simulator_run_mode == "extend") {
+		// Extend the amount of days that should be run according to the config param or cmd argument
+		num_days = start_day + (timestamp_replay == 0 ? pt_config.get<unsigned int>("run.num_days") : timestamp_replay); 
+	} else {
+		num_days = pt_config.get<unsigned int>("run.num_days");
+	}
 	vector<unsigned int> cases(num_days);
+	
 	for (unsigned int i = start_day; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
 		run_clock.start();
