@@ -4,6 +4,8 @@
  */
 
 #include "popgen/PopulationGenerator.h"
+// TODO find another way to avoid linking errors but for now include the cpp file
+#include "popgen/PopulationGenerator.cpp"
 #include "popgen/FamilyParser.h"
 #include "util/StringUtils.h"
 #include "util/InstallDirs.h"
@@ -20,7 +22,7 @@
 #include <iterator>
 #include <map>
 #include <limits>
-#include <algorithm>
+#include <random>
 
 using namespace std;
 using namespace stride;
@@ -126,7 +128,7 @@ void checkHappyDayCities(const vector<vector<string> >& csv) {
 
 				unique_coord.push_back(GeoCoordinate(lat, lon));
 			} else {
-				/// When here, we're talking about city id or name, 
+				/// When here, we're talking about city id or name,
 				uint previous_size = unique_column.size();
 				unique_column.insert(row.at(i));
 				EXPECT_EQ(previous_size, unique_column.size() - 1);
@@ -304,7 +306,7 @@ TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 	// -----------------------------------------------------------------------------------------
 	// Actual tests
 	// -----------------------------------------------------------------------------------------
-	PopulationGenerator gen {g_happy_day_file, false};
+	PopulationGenerator<mt19937> gen {g_happy_day_file, false};
 	gen.generate("cities.csv", "pop.csv", "hh.csv");
 
 	vector<vector<string> > csv = readCSV("cities.csv");
@@ -317,13 +319,13 @@ TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 }
 
 TEST_F(PopulationGeneratorDemos, UnhappyDay_default) {
-	EXPECT_THROW(PopulationGenerator(g_no_cities_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_no_villages_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_invalid_syntax_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_input_violation_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_contradiction_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_non_existent_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_output_prefix, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>(g_no_cities_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>(g_no_villages_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>(g_invalid_syntax_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>(g_input_violation_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>(g_contradiction_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>(g_non_existent_file, false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>(g_output_prefix, false), invalid_argument);
 }
 
 } //end-of-namespace-Tests

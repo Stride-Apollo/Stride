@@ -43,8 +43,7 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, bool output)
 
 	m_next_id = 1;
 	m_output = output;
-	// makeRNG();
-	m_rng = U(1);
+	makeRNG();
 
 	try {
 		if (!m_output) {
@@ -408,7 +407,7 @@ void PopulationGenerator<U>::makeRNG() {
 		generator_type = rng_config.get<string>("<xmlattr>.generator");
 
 		/// This might throw an exception, but we'll just rethrow it
-		// m_rng = U(seed);
+		m_rng = U(seed);
 	} catch(invalid_argument& e) {
 		throw e;
 	} catch(exception& e) {
