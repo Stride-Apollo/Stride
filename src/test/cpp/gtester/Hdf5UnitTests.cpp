@@ -94,7 +94,7 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 10;
-	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/testOutput.h5").string();
+	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
 
@@ -128,7 +128,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 10;
-	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/testOutput.h5").string();
+	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
 
@@ -163,7 +163,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 10;
-	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/testOutput.h5").string();
+	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
 
@@ -192,7 +192,7 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
  *	Test that checks the stored config data.
  */
 TEST_F(HDF5UnitTests, CheckConfigTree) {
-	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/testOutput.h5").string();
+	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
 	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
@@ -242,7 +242,7 @@ TEST_F(HDF5UnitTests, CheckConfigTree) {
  */
 TEST_F(HDF5UnitTests, CreateSaver) {
 	auto pt_config = getConfigTree();
-	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/testOutput.h5").string();
+	const string h5filename = "testOutput.h5";
 	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
 
 }
@@ -252,7 +252,7 @@ TEST_F(HDF5UnitTests, CreateSaver) {
  *	Test that checks the amount of persons stored in the hdf5 file.
  */
 TEST_F(HDF5UnitTests, CheckAmtPersons) {
-	const string h5filename = (util::InstallDirs::getCurrentDir() /= "/testOutput.h5").string();
+	const string h5filename = "testOutput.h5";
 	// const string h5filename = "/tmp/testOutput.h5";
 	auto pt_config = getConfigTree();
 
