@@ -227,4 +227,83 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	}
 }
 
+TEST(LocalSimulatorAdapterTest, ForceReturn_default) {
+	ptree pt_config;
+	const auto file_path = canonical(system_complete("../config/run_flanders.xml"));
+	if (!is_regular_file(file_path)) {
+		throw runtime_error(string(__func__)
+							+ ">Config file " + file_path.string() + " not present. Aborting.");
+	}
+	read_xml(file_path.string(), pt_config);
+
+	// OpenMP
+	unsigned int num_threads;
+	#pragma omp parallel
+	{
+		num_threads = omp_get_num_threads();
+	}
+
+	// Set output path prefix.
+	string output_prefix = "";
+
+	// Additional run configurations.
+	if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
+		pt_config.put("run.num_participants_survey", 1);
+	}
+
+	// Create simulators
+	auto sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto sim2 = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto l1 = make_unique<LocalSimulatorAdapter>(sim.get());
+	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
+
+	// Migrate 10 people for 10 days
+	vector<unsigned int> id_s = l1->sendTravellers(10, 10, l2.get(), "Antwerp", "ANR");
+	EXPECT_EQ(id_s.size(), 10U);
+
+	// Test if the people are absent in the home simulator
+	for (auto id: id_s) {
+		EXPECT_TRUE(sim->m_population->m_original.at(id).isOnVacation());
+	}
+
+	// Get the data of the travellers
+	EXPECT_EQ(sim2->m_population->m_visitors.getDay(10)->size(), 10);
+	vector<Simulator::PersonType> migrated_people_data;
+	for (auto& person: *(sim2->m_population->m_visitors.getDay(10))) {
+		migrated_people_data.push_back(*person);
+	}
+
+	// Now force return them
+	auto traveller_data = l2->forceReturn();
+	EXPECT_EQ(traveller_data.size(), 10U);
+
+	// Test if the people are back in the home simulator
+	for (auto id: id_s) {
+		EXPECT_FALSE(sim->m_population->m_original.at(id).isOnVacation());
+	}
+
+	// Test the traveller data for correctness in the host simulator
+	EXPECT_EQ(traveller_data.size(), migrated_people_data.size());
+	for (auto data: traveller_data) {
+
+		auto find_person = [&] (const Simulator::PersonType& person) {return person.getClusterId(ClusterType::Work) == data.m_destination_work_id
+																				&& person.getClusterId(ClusterType::PrimaryCommunity) == data.m_destination_primary_id
+																				&& person.getClusterId(ClusterType::SecondaryCommunity) == data.m_destination_secondary_id;};
+		auto it = find_if(migrated_people_data.begin(), migrated_people_data.end(), find_person);
+
+		EXPECT_NE(it, migrated_people_data.end());
+	}
+
+	// Test the traveller data for correctness in the home simulator
+	EXPECT_EQ(traveller_data.size(), id_s.size());
+	for (auto data: traveller_data) {
+
+		auto find_person = [&] (const uint& id) {return sim->m_population->m_original.at(id).getAge() == data.m_home_age
+															&& sim->m_population->m_original.at(id).getId() == data.m_home_id;};
+		auto it = find_if(id_s.begin(), id_s.end(), find_person);
+
+		EXPECT_NE(it, id_s.end());
+	}
+}
+
 } //end-of-namespace-Tests
