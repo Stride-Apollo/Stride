@@ -16,6 +16,7 @@
 #include "checkpointing/customDataTypes/PersonTDDataType.h"
 #include "checkpointing/customDataTypes/PersonTIDataType.h"
 #include "checkpointing/customDataTypes/RNGDataType.h"
+// #include "checkpointing/customDataTypes/TravellerDataType.h"
 
 #include <vector>
 
@@ -313,11 +314,18 @@ void Saver::saveTimestep(const Simulator& sim) {
 		ss.str("");
 		ss.clear();
 		ss << sim.m_calendar->getYear() << "-" << sim.m_calendar->getMonth() << "-" << sim.m_calendar->getDay();
-		calendar[0].date = ss.str().c_str();
+		std::string save_date = ss.str();
+		calendar[0].date = save_date.c_str();
 		dataset->write(calendar, typeCalendar);
 
 		delete dataspace;
 		delete dataset;
+
+
+		// Save Traveller Person Data
+
+		// dims[0] = sim.getPopulation().get()->m_visitors.size();
+		// CompType typeTravellerData(sizeof(TravellerDataType));
 
 
 		// Save Person Time Dependent
