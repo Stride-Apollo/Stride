@@ -25,8 +25,8 @@ public:
 	Traveller(const Traveller& other_traveller)
 		: m_home_id(other_traveller.m_home_id), m_home_household_id(other_traveller.m_home_household_id), m_home_work_id(other_traveller.m_home_work_id),
 		m_home_primary_community_id(other_traveller.m_home_primary_community_id), m_home_secondary_community_id(other_traveller.m_home_secondary_community_id),
-		m_old_person(other_traveller.m_old_person), m_new_person(other_traveller.m_new_person),
-		m_home_simulator_id(other_traveller.m_home_simulator_id), m_destination_simulator_id(other_traveller.m_destination_simulator_id)
+		m_home_simulator_id(other_traveller.m_home_simulator_id), m_destination_simulator_id(other_traveller.m_destination_simulator_id),
+		m_old_person(other_traveller.m_old_person), m_new_person(other_traveller.m_new_person)
 		 {}
 
 	PersonType* getOldPerson() const {
