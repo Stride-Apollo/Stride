@@ -25,8 +25,8 @@ public:
 	Traveller(const Traveller& other_traveller)
 		: m_home_id(other_traveller.m_home_id), m_home_household_id(other_traveller.m_home_household_id), m_home_work_id(other_traveller.m_home_work_id),
 		m_home_primary_community_id(other_traveller.m_home_primary_community_id), m_home_secondary_community_id(other_traveller.m_home_secondary_community_id),
-		m_old_person(other_traveller.m_old_person), m_new_person(other_traveller.m_new_person),
-		m_home_simulator_id(other_traveller.m_home_simulator_id), m_destination_simulator_id(other_traveller.m_destination_simulator_id)
+		m_home_simulator_id(other_traveller.m_home_simulator_id), m_destination_simulator_id(other_traveller.m_destination_simulator_id),
+		m_old_person(other_traveller.m_old_person), m_new_person(other_traveller.m_new_person)
 		 {}
 
 	PersonType* getOldPerson() const {
@@ -65,7 +65,6 @@ private:
 	uint m_home_secondary_community_id; ///< The home secondary community id
 	uint m_home_simulator_id;			///< The id of the home simulator
 	uint m_destination_simulator_id;	///< The id of the destination simulator
-	// TODO: destination city/airport
 
 	PersonType* m_old_person;			///< The person in the region of origin
 	PersonType* m_new_person;			///< The person when he travelled to the other region

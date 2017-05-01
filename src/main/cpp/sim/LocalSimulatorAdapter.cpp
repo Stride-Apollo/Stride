@@ -231,6 +231,8 @@ bool LocalSimulatorAdapter::forceHost(const Simulator::TravellerType& traveller,
 
 	++m_next_id;
 	++m_next_hh_id;
+
+	return true;
 }
 
 vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
@@ -259,8 +261,6 @@ vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
 }
 
 void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, AsyncSimulator* destination_sim) {
-	uint person_id = traveller_data.m_home_id;
-
 	// Find the person
 	Simulator::PersonType* target_person = nullptr;
 
