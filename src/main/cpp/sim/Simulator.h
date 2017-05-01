@@ -46,7 +46,7 @@ class Cluster;
  */
 class Simulator : public util::Subject<Simulator> {
 public:
-	using PersonType = Person<NoBelief, NoBehavior>;
+	using PersonType = Person<NoBehavior, NoBelief>;
 	using TravellerType = Traveller<PersonType>;
 
 	// Default constructor for empty Simulator.

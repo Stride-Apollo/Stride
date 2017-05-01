@@ -44,7 +44,7 @@ public:
 	}
 
 	double getFractionInfected() const {
-		return GetInfectedCount() / this->size();
+		return getInfectedCount() / this->size();
 	}
 };
 
