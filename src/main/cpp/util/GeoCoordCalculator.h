@@ -21,7 +21,7 @@ public:
 	/// See: http://www.movable-type.co.uk/scripts/latlong.html
 
 	template <typename T>
-	GeoCoordinate generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius, RNGPicker<T>& rng) const;
+	GeoCoordinate generateRandomCoord(const GeoCoordinate& GeoCoordinate, double radius, T& rng) const;
 	/// radius is in kilometres
 	/// TODO make the distribution fair
 

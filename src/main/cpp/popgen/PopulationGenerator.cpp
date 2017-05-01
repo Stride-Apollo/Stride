@@ -43,7 +43,8 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, bool output)
 
 	m_next_id = 1;
 	m_output = output;
-	makeRNG();
+	// makeRNG();
+	m_rng = U(1);
 
 	try {
 		if (!m_output) {
@@ -67,7 +68,7 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 		cerr << "Generating " << m_total << " people...\n";
 		makeHouseholds();
 		makeCities();
-		makeVillages();
+		// makeVillages();
 		placeHouseholds();
 		makeSchools();
 		makeUniversities();
@@ -79,7 +80,7 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 		assignToCommunities();
 		cerr << "Generated " << m_people.size() << " people\n";
 
-		writeCities(target_cities);
+		// writeCities(target_cities);
 		writePop(target_pop);
 		writeHouseholds(target_households);
 		cerr.clear();
@@ -407,10 +408,7 @@ void PopulationGenerator<U>::makeRNG() {
 		generator_type = rng_config.get<string>("<xmlattr>.generator");
 
 		/// This might throw an exception, but we'll just rethrow it
-		std::cout << "Generator type:" << generator_type << std::endl;
-		// m_rng.set(generator_type, seed);
-		RNGPicker<U> m_rng{};
-		m_rng.set(seed);
+		// m_rng = U(seed);
 	} catch(invalid_argument& e) {
 		throw e;
 	} catch(exception& e) {

@@ -32,7 +32,7 @@ template<typename T>
 GeoCoordinate GeoCoordCalculator::generateRandomCoord(
 		const GeoCoordinate& coord,
 		double radius,
-		RNGPicker<T>& rng) const {
+		T& rng) const {
 	/// Partially the inverse of GeoCoordCalculator::getDistance, therefore i use the same variable names
 	/// For future improvements, use this: http://gis.stackexchange.com/questions/25877/generating-random-locations-nearby
 	double temp2 = radius / earth_radius;

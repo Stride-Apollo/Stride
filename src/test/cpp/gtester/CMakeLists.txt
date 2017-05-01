@@ -18,7 +18,7 @@
 #============================================================================
 # Add subdirectories:
 #============================================================================
-add_subdirectory( PopGen )
+#add_subdirectory( PopGen )
 
 #############################################################################
 
@@ -30,11 +30,11 @@ set( EXEC       gtester     )
 set( SRC
 		main.cpp
 		BatchRuns.cpp
-		PopGen/PopulationGeneratorTest.cpp
-		PopGen/FamilyParserTest.cpp
-		PopGen/GeoCalculatorTest.cpp
-		PopGen/AliasDistributionTest.cpp
-		PopGen/RNGPickerTest.cpp
+		#PopGen/PopulationGeneratorTest.cpp
+		#PopGen/FamilyParserTest.cpp
+		#PopGen/GeoCalculatorTest.cpp
+		#PopGen/AliasDistributionTest.cpp
+		#PopGen/RNGPickerTest.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)

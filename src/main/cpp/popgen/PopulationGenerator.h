@@ -189,7 +189,7 @@ private:
 	void assignToCommunities();
 
 	boost::property_tree::ptree m_props;							/// > The content of the xml file
-	mutable RNGPicker<U> m_rng;										/// > The random generator
+	U m_rng;										/// > The random generator
 	uint m_total;													/// > The total amount of people to be generated (according to the xml)
 	vector<SimplePerson> m_people;									/// > All the people
 	vector<SimpleHousehold> m_households;							/// > The households (a household is a vector of indices in the vector above)
