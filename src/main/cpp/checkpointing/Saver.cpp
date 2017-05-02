@@ -25,7 +25,7 @@ using namespace boost::filesystem;
 
 namespace stride {
 
-Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_index_case, std::string simulator_run_mode, int start_timestep)
+Saver::Saver(std::string filename, ptree pt_config, int frequency, bool track_index_case, std::string simulator_run_mode, int start_timestep)
 	: m_filename(filename), m_frequency(frequency), 
 	  m_pt_config(pt_config), m_current_step(start_timestep - 1), 
 	  m_timestep(start_timestep), m_save_count(0) {
@@ -36,7 +36,7 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 		if (exists(system_complete(std::string(filename)))) {
 
 			// Adjust the amount of saved timesteps
-			H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
+			H5File file(m_filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 			DataSet* dataset = new DataSet(file.openDataSet("amt_timesteps"));
 			unsigned int data[1];
 			dataset->read(data, PredType::NATIVE_UINT);
@@ -49,7 +49,7 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 	}
 	try {
 		Exception::dontPrint();
-		H5File file(m_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+		H5File file(m_filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
 		hsize_t dims[1];
 		dims[0] = 1;
@@ -183,7 +183,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 	try {
 		m_save_count++;
 
-		H5File file(m_filename, H5F_ACC_RDWR);
+		H5File file(m_filename.c_str(), H5F_ACC_RDWR);
 
 		if (m_current_step == 0) {
 			// Save Person Time Independent

@@ -20,7 +20,7 @@ using namespace boost::property_tree;
 
 class Saver : public util::Observer<Simulator> {
 public:
-	Saver(const char* filename, ptree pt_config, 
+	Saver(std::string filename, ptree pt_config, 
 		  int frequency, bool track_index_case, 
 		  std::string simulator_run_mode = "initial", 
 		  int start_timestep = 0);
@@ -32,7 +32,7 @@ private:
 	void saveTimestep(const Simulator& sim);
 
 
-	const char* m_filename;
+	std::string m_filename;
 	int m_frequency;
 	ptree m_pt_config;
 	H5::CompType typeConf;
