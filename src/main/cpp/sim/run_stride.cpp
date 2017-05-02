@@ -181,7 +181,7 @@ void run_stride(bool track_index_case,
 	Stopwatch<> run_clock("run_clock");
 
 	// The initial save
-	if (saver != 0 && (simulator_run_mode != "extend" && start_day != 0)) {
+	if (saver != 0 && !(simulator_run_mode == "extend" && start_day != 0)) {
 		saver->forceSave(*sim);
 	}
 

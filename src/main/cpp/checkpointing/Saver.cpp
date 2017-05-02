@@ -170,7 +170,7 @@ void Saver::update(const Simulator& sim) {
 }
 
 void Saver::forceSave(const Simulator& sim, int timestep) {
-	m_current_step++;
+	// m_current_step++;
 
 	if (timestep != -1) {
 		m_timestep = timestep;
