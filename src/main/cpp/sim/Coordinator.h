@@ -37,6 +37,8 @@ public:
 
 	vector<TravellerData> forceReturnTravellers();
 
+	vector<TravellerData> getTravellerData();
+
 	void forceSendTravellers(const vector<TravellerData>& traveller_data);
 
 private:
