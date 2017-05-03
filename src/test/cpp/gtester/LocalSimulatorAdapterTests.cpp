@@ -443,4 +443,71 @@ TEST(LocalSimulatorAdapterTest, ForceHost_default) {
 	// }
 }
 
+TEST(LocalSimulatorAdapterTest, getTravellerData_default) {
+	ptree pt_config;
+	const auto file_path = InstallDirs::getDataDir() /= string("../config/run_flanders.xml");
+
+	std::ifstream my_file;
+	my_file.open(file_path.string());
+
+	if (my_file.bad()) {
+		throw runtime_error(string(__func__)
+							+ ">Config file " + file_path.string() + " not present. Aborting.");
+	}
+	my_file.close();
+
+	read_xml(file_path.string(), pt_config);
+
+	// OpenMP
+	unsigned int num_threads;
+	#pragma omp parallel
+	{
+		num_threads = omp_get_num_threads();
+	}
+
+	// Set output path prefix.
+	string output_prefix = "";
+
+	// Additional run configurations.
+	if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
+		pt_config.put("run.num_participants_survey", 1);
+	}
+
+	// Create simulators
+	auto sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto sim2 = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto l1 = make_unique<LocalSimulatorAdapter>(sim.get());
+	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
+
+	// Migrate 1 person for 10 days
+	vector<unsigned int> id_s = l1->sendTravellers(1, 10, l2.get(), "Antwerp", "ANR");
+	EXPECT_EQ(id_s.size(), 1U);
+
+	// Get the data of the traveller
+	EXPECT_EQ(sim2->m_population->m_visitors.getDay(10)->size(), 1U);
+	vector<Simulator::PersonType> migrated_people_data;
+	for (auto& person: *(sim2->m_population->m_visitors.getDay(10))) {
+		migrated_people_data.push_back(*person);
+	}
+
+	// This data must be the same as getTravellerData
+	auto traveller_data = l2->getTravellerData();
+	ASSERT_EQ(traveller_data.size(), migrated_people_data.size());
+	ASSERT_EQ(traveller_data.size(), id_s.size());
+
+	for (uint i = 0; i < traveller_data.size(); ++i) {
+		auto& data = traveller_data.at(i);
+		auto& migrated_person = migrated_people_data.at(i);
+		auto& home_person = sim->getPopulation()->m_original.at(id_s[i]);
+
+		EXPECT_EQ(data.m_home_id, home_person.getId());
+		EXPECT_EQ(data.m_home_age, migrated_person.getAge());
+		EXPECT_EQ(data.m_home_age, home_person.getAge());
+		
+		EXPECT_EQ(migrated_person.getClusterId(ClusterType::Work), data.m_destination_work_id);
+		EXPECT_EQ(migrated_person.getClusterId(ClusterType::PrimaryCommunity), data.m_destination_primary_id);
+		EXPECT_EQ(migrated_person.getClusterId(ClusterType::SecondaryCommunity), data.m_destination_secondary_id);
+	}
+}
+
 } //end-of-namespace-Tests
