@@ -69,6 +69,10 @@ public:
 	virtual vector<TravellerData> forceReturn() = 0;
 
 	/// Helps to integrate multi region and HDF5 checkpointing
+	/// Does the same as AsyncSimulator::forceReturn except for the fact that the travellers aren't sent back home
+	virtual vector<TravellerData> getTravellerData() = 0;
+
+	/// Helps to integrate multi region and HDF5 checkpointing
 	/// Force send a traveller to a simulator
 	virtual void forceSend(const TravellerData& traveller_data, AsyncSimulator* destination_sim) = 0;
 
