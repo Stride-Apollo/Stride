@@ -241,20 +241,15 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 	StrType tid2(0, H5T_VARIABLE);
 	typeRng.insertMember(H5std_string("state"), HOFFSET(RNGDataType, rng_state), tid2);
 
-
+	DataSpace dataspace(H5S_SCALAR);
 	vector<string> states;
 	RNGDataType rng[amt_rng];
-	dataset->read(rng, typeRng);
+	dataset->read(rng, typeRng, dataspace);
 
 
 	for (unsigned int i = 0; i < amt_rng; i++) {
-		istringstream iss(rng[i].rng_state);
-		stringstream temp;
-		temp << iss.rdbuf();
-		string s = temp.str();
-		// string s = rng[i].rng_state;
-		// std::cout << "Seed: " << rng[i].seed << std::endl;
-		// std::cout << "Loading: " << s << std::endl;
+		const char* c = rng[i].rng_state.c_str();
+		string s = c;
 		states.push_back(s);
 	}
 	// cout << endl << endl;

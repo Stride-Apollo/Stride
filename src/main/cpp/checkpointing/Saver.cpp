@@ -292,7 +292,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 			rngs[i].seed = sim.m_rng_handler.at(i).getSeed();
 			std::string str = rng_states[i];
 			// std::cout << "Saving: " << str.c_str() << std::endl;
-			rngs[i].rng_state = str;
+			rngs[i].rng_state = str.c_str();
 		}
 		// std::cout << std::endl;
 		// for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
