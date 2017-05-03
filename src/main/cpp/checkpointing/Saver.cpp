@@ -124,15 +124,15 @@ Saver::Saver(std::string filename, ptree pt_config, int frequency, bool track_in
 		delete dataspace;
 		delete dataset;
 
-		hsize_t dims2[2];
 		// TODO amt_ages
+		/*hsize_t dims2[2];
 		dims2[0] = 5;
 		dims2[1] = 5;
 		dataspace = new DataSpace(2, dims2);
 		dataset = new DataSet(group.createDataSet("agecontact", PredType::NATIVE_DOUBLE, *dataspace));
 
 		delete dataspace;
-		delete dataset;
+		delete dataset;*/
 
 		dataspace = new DataSpace(1, dims);
 		unsigned int amt_time[1] = {0};
@@ -290,7 +290,11 @@ void Saver::saveTimestep(const Simulator& sim) {
 		for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
 			rngs[i].seed = sim.m_rng_handler.at(i).getSeed();
 			std::string str = rng_states[i];
+			std::cout << "Saving: " << str << std::endl;
 			rngs[i].rng_state = str.c_str();
+		}
+		for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
+			std::cout << "Saved: " << rngs[i].rng_state << std::endl;
 		}
 		dataset->write(rngs, typeRng);
 
@@ -311,7 +315,8 @@ void Saver::saveTimestep(const Simulator& sim) {
 		ss.str("");
 		ss.clear();
 		ss << sim.m_calendar->getYear() << "-" << sim.m_calendar->getMonth() << "-" << sim.m_calendar->getDay();
-		calendar[0].date = ss.str().c_str();
+		std::string date = ss.str();
+		calendar[0].date = date.c_str();
 		dataset->write(calendar, typeCalendar);
 
 		delete dataspace;
