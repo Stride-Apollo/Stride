@@ -287,15 +287,17 @@ void Saver::saveTimestep(const Simulator& sim) {
 
 		RNGDataType rngs[sim.m_num_threads];
 		std::vector<std::string> rng_states = sim.getRngStates();
+		// std::cout << std::endl;
 		for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
 			rngs[i].seed = sim.m_rng_handler.at(i).getSeed();
 			std::string str = rng_states[i];
-			std::cout << "Saving: " << str << std::endl;
-			rngs[i].rng_state = str.c_str();
+			// std::cout << "Saving: " << str.c_str() << std::endl;
+			rngs[i].rng_state = str;
 		}
-		for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
-			std::cout << "Saved: " << rngs[i].rng_state << std::endl;
-		}
+		// std::cout << std::endl;
+		// for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
+		// 	std::cout << "Saved: " << rngs[i].rng_state << std::endl;
+		// }
 		dataset->write(rngs, typeRng);
 
 		delete dataspace;

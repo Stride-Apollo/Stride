@@ -234,42 +234,53 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 	dataspace_rng.getSimpleExtentDims(dims_rng, NULL);
 	dataspace_rng.close();
 
+	const unsigned int amt_rng = dims_rng[0];
+
 	CompType typeRng(sizeof(RNGDataType));
 	typeRng.insertMember(H5std_string("seed"), HOFFSET(RNGDataType, seed), PredType::NATIVE_ULONG);
-	typeRng.insertMember(H5std_string("state"), HOFFSET(RNGDataType, rng_state), tid1);
+	StrType tid2(0, H5T_VARIABLE);
+	typeRng.insertMember(H5std_string("state"), HOFFSET(RNGDataType, rng_state), tid2);
+
 
 	vector<string> states;
-	RNGDataType rng[ndims_rng];
+	RNGDataType rng[amt_rng];
 	dataset->read(rng, typeRng);
-	for (int i = 0; i < ndims_rng; i++) {
-		string s = rng[i].rng_state;
+
+
+	for (unsigned int i = 0; i < amt_rng; i++) {
+		istringstream iss(rng[i].rng_state);
+		stringstream temp;
+		temp << iss.rdbuf();
+		string s = temp.str();
+		// string s = rng[i].rng_state;
+		// std::cout << "Seed: " << rng[i].seed << std::endl;
+		// std::cout << "Loading: " << s << std::endl;
 		states.push_back(s);
 	}
-	for (int i = 0; i < ndims_rng; i++) {
-		std::cout << states.at(i) << std::endl;
-	}
+	// cout << endl << endl;
+	// cout << endl << endl;
 
 
-	/*for (unsigned int i = 0; i < dims_rng[0]; i++) {
-		RNGDataType rng_state[1];
-		hsize_t dim_sub[1] = {1};
-		DataSpace memspace(1, dim_sub, NULL);
+	// for (unsigned int i = 0; i < dims_rng[0]; i++) {
+	// 	RNGDataType rng_state[1];
+	// 	hsize_t dim_sub[1] = {1};
+	// 	DataSpace memspace(1, dim_sub, NULL);
 
-		hsize_t offset[1] = {i};
-		hsize_t count[1] = {1};
-		hsize_t stride[1] = {1};
-		hsize_t block[1] = {1};
+	// 	hsize_t offset[1] = {i};
+	// 	hsize_t count[1] = {1};
+	// 	hsize_t stride[1] = {1};
+	// 	hsize_t block[1] = {1};
 
-		DataSpace dataspace = dataset->getSpace();
-		dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
-		dataset->read(rng_state, typeRng, memspace, dataspace);
+	// 	DataSpace dataspace = dataset->getSpace();
+	// 	dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
+	// 	dataset->read(rng_state, typeRng, memspace, dataspace);
 
-		string state = rng_state[0].rng_state;
-		states.push_back(state);
-
-		memspace.close();
-		dataspace.close();
-	}*/
+	// 	string state = rng_state[0].rng_state;
+	// 	states.push_back(state);
+	// 	// cout << "Loaded rng state: " << state << endl;
+	// 	memspace.close();
+	// 	dataspace.close();
+	// }
 	sim->setRngStates(states);
 	delete dataset;
 
