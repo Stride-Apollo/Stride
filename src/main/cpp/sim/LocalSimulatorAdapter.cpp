@@ -260,6 +260,24 @@ vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
 	return returned_travellers;
 }
 
+vector<TravellerData> LocalSimulatorAdapter::getTravellerData() {
+	vector<TravellerData> returned_travellers;
+	for (uint days_left = 0; days_left < m_planner.m_agenda.size(); ++days_left) {
+		auto returning_people = m_planner.getDay(days_left);
+
+		for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
+			TravellerData new_data = TravellerData(*(**it).getOldPerson(),
+													*(**it).getNewPerson(),
+													days_left,
+													(**it).getHomeSimulatorId(),
+													(**it).getDestinationSimulatorId());
+			returned_travellers.push_back(new_data);
+		}
+	}
+
+	return returned_travellers;
+}
+
 void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, AsyncSimulator* destination_sim) {
 	// Find the person
 	Simulator::PersonType* target_person = nullptr;
