@@ -18,6 +18,7 @@
 #include "pop/PopulationBuilder.h"
 #include "core/Cluster.h"
 
+#include <algorithm>
 #include <vector>
 #include <string>
 
@@ -297,10 +298,26 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 		memspace.close();
 		dataspace.close();
 	}
+
+	std::sort(sim.get()->m_population.get()->begin(), sim.get()->m_population.get()->end(), this->byId);
+
+	//   Household clusters
+	this->loadClusters(file, ss.str() + "/household_clusters", sim->m_households, sim.get()->m_population);
+	//   School clusters
+	this->loadClusters(file, ss.str() + "/school_clusters", sim->m_school_clusters, sim.get()->m_population);
+	//   Work clusters
+	this->loadClusters(file, ss.str() + "/work_clusters", sim->m_work_clusters, sim.get()->m_population);
+	//   Primary Community clusters
+	this->loadClusters(file, ss.str() + "/primary_community_clusters", sim->m_primary_community, sim.get()->m_population);
+	//   Secondary Community clusters
+	this->loadClusters(file, ss.str() + "/secondary_community_clusters", sim->m_secondary_community, sim.get()->m_population);
+
 	this->updateClusterImmuneIndices(sim);
 	dataset->close();
 	file.close();
 }
+
+bool Loader::byId(const Simulator::PersonType& lhs, const Simulator::PersonType& rhs) { return lhs.getId() < rhs.getId(); };
 
 int Loader::getLastSavedTimestep() const {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
@@ -328,6 +345,35 @@ void Loader::updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const {
 	for (auto cluster : sim->m_secondary_community) {
 		cluster.m_index_immune = cluster.m_members.size()-1;
 	}
+}
+
+void Loader::loadClusters(H5File& file, std::string dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Population> pop) {
+	DataSet* dataset = new DataSet(file.openDataSet(dataset_name));
+	DataSpace dataspace = dataset->getSpace();
+	hsize_t dims_clusters[1];
+	dataspace.getSimpleExtentDims(dims_clusters, NULL);
+	const unsigned int amtIds = dims_clusters[0];
+	dataspace.close();
+
+	std::cout << "Loading: " << dataset_name << std::endl;
+
+	unsigned int cluster_data[amtIds];
+	unsigned int index = 0;
+
+	std::cout << "Reading cluster data for " << amtIds << " ids\n";
+	dataset->read(cluster_data, PredType::NATIVE_UINT);
+
+	for(unsigned int i = 0; i < cluster.size(); i++) {
+		for(unsigned int j = 0; j < cluster.at(i).getSize(); j++) {
+			unsigned int id = cluster_data[index++];
+			Simulator::PersonType* person = &pop.get()->at(id);
+			cluster.at(i).m_members.at(j).first = person;
+			//cluster.at(i).m_members.at(j).second = person->m_at_household;
+			// TODO .second
+		}
+	}
+
+	delete dataset;
 }
 
 
