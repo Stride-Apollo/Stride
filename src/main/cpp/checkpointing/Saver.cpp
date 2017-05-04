@@ -443,11 +443,11 @@ void Saver::saveClusters(Group& group, std::string dataset_name, const vector<Cl
 	unsigned int amtIds = getAmtIds();
 
 	const unsigned int ndims_clusters = 1;
-	hsize_t dims_clusters[ndims_clusters] = {amdIds};
+	hsize_t dims_clusters[ndims_clusters] = {amtIds};
 	DataSpace* dataspace_clusters = new DataSpace(ndims_clusters, dims_clusters);
 	DataSet* dataset_clusters = new DataSet(group.createDataSet(H5std_string(dataset_name), PredType::NATIVE_UINT, *dataspace_clusters));
 
-	unsigned int cluster_data[amdIds];
+	unsigned int cluster_data[amtIds];
 	unsigned int index = 0;
 	for (unsigned int i = 0; i < clusters.size(); i++) {
 		for (unsigned int j = 0; j < clusters.at(i).getSize(); j++) {
