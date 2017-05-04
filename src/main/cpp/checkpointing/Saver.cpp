@@ -276,8 +276,8 @@ void Saver::saveTimestep(const Simulator& sim) {
 
 
 		// Save Random Number Generator
-		hsize_t dims[1];
-		dims[0] = sim.m_num_threads;
+		hsize_t dims[1] = {sim.m_num_threads};
+		// dims[0] = sim.m_num_threads;
 
 		DataSpace* dataspace = new DataSpace(1, dims);
 		CompType typeRng(sizeof(RNGDataType));
@@ -286,14 +286,14 @@ void Saver::saveTimestep(const Simulator& sim) {
 		typeRng.insertMember(H5std_string("rng_state"), HOFFSET(RNGDataType, rng_state), tid1);
 		DataSet* dataset = new DataSet(group.createDataSet("randomgen", typeRng, *dataspace));
 
-		RNGDataType rngs[sim.m_num_threads];
+		RNGDataType* rngs = new RNGDataType[dims[0]];
 		std::vector<std::string> rng_states = sim.getRngStates();
 		// std::cout << std::endl;
 		for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
-			rngs[i].seed = sim.m_rng_handler.at(i).getSeed();
+			(rngs + i)->seed = sim.m_rng_handler.at(i).getSeed();
 			std::string str = rng_states[i];
 			// std::cout << "Saving: " << str.c_str() << std::endl;
-			rngs[i].rng_state = str.c_str();
+			(rngs + i)->rng_state = str.c_str();
 		}
 		// std::cout << std::endl;
 		// for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
@@ -303,6 +303,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 
 		delete dataspace;
 		delete dataset;
+		delete[] rngs;
 
 
 		// Save Calendar

@@ -243,16 +243,17 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 	typeRng.insertMember(H5std_string("rng_state"), HOFFSET(RNGDataType, rng_state), tid2);
 
 	vector<string> states;
-	RNGDataType rng[amt_rng];
+	RNGDataType* rng = new RNGDataType[amt_rng];
 	dataset->read(rng, typeRng);
 
 	for (unsigned int i = 0; i < amt_rng; i++) {
-		const char* c = rng[i].rng_state.c_str();
+		const char* c = (rng + i)->rng_state.c_str();
 		string s = c;
 		states.push_back(s);
 	}
 	sim->setRngStates(states);
 	delete dataset;
+	delete[] rng;
 
 	dataset = new DataSet(file.openDataSet(ss.str() + "/PersonTD"));
 	unsigned long dims[1] = {sim->m_population->size()};
