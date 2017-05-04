@@ -283,7 +283,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 		CompType typeRng(sizeof(RNGDataType));
 		typeRng.insertMember(H5std_string("seed"), HOFFSET(RNGDataType, seed), PredType::NATIVE_ULONG);
 		StrType tid1(0, H5T_VARIABLE);
-		typeRng.insertMember(H5std_string("state"), HOFFSET(RNGDataType, rng_state), tid1);
+		typeRng.insertMember(H5std_string("rng_state"), HOFFSET(RNGDataType, rng_state), tid1);
 		DataSet* dataset = new DataSet(group.createDataSet("randomgen", typeRng, *dataspace));
 
 		RNGDataType rngs[sim.m_num_threads];
