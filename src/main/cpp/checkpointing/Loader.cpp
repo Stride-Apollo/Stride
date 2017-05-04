@@ -355,12 +355,12 @@ void Loader::loadClusters(H5File& file, std::string dataset_name, std::vector<Cl
 	const unsigned int amtIds = dims_clusters[0];
 	dataspace.close();
 
-	std::cout << "Loading: " << dataset_name << std::endl;
+	// std::cout << "Loading: " << dataset_name << std::endl;
 
 	unsigned int cluster_data[amtIds];
 	unsigned int index = 0;
 
-	std::cout << "Reading cluster data for " << amtIds << " ids\n";
+	// std::cout << "Reading cluster data for " << amtIds << " ids\n";
 	dataset->read(cluster_data, PredType::NATIVE_UINT);
 
 	for(unsigned int i = 0; i < cluster.size(); i++) {
@@ -368,8 +368,6 @@ void Loader::loadClusters(H5File& file, std::string dataset_name, std::vector<Cl
 			unsigned int id = cluster_data[index++];
 			Simulator::PersonType* person = &pop.get()->at(id);
 			cluster.at(i).m_members.at(j).first = person;
-			//cluster.at(i).m_members.at(j).second = person->m_at_household;
-			// TODO .second
 		}
 	}
 
@@ -378,4 +376,3 @@ void Loader::loadClusters(H5File& file, std::string dataset_name, std::vector<Cl
 
 
 }
-
