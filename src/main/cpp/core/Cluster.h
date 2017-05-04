@@ -87,7 +87,7 @@ private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
 private:
 	friend class Loader;
+	friend class Saver;
 };
 
 }
-

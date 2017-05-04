@@ -8,8 +8,12 @@
 #include "H5Cpp.h"
 #include "util/Observer.h"
 #include "sim/Simulator.h"
+#include "core/Cluster.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <string>
+#include <vector>
+
+using std::vector;
 
 namespace stride {
 using namespace boost::property_tree;
@@ -20,9 +24,9 @@ using namespace boost::property_tree;
 
 class Saver : public util::Observer<Simulator> {
 public:
-	Saver(std::string filename, ptree pt_config, 
-		  int frequency, bool track_index_case, 
-		  std::string simulator_run_mode = "initial", 
+	Saver(std::string filename, ptree pt_config,
+		  int frequency, bool track_index_case,
+		  std::string simulator_run_mode = "initial",
 		  int start_timestep = 0);
 
 	virtual void update(const Simulator& sim);
@@ -30,6 +34,7 @@ public:
 
 private:
 	void saveTimestep(const Simulator& sim);
+	void saveClusters(H5::Group& group, std::string dataset_name, const vector<Cluster>& clusters);
 
 
 	std::string m_filename;
@@ -43,4 +48,3 @@ private:
 };
 
 }
-

@@ -11,6 +11,7 @@
 #include "util/InstallDirs.h"
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
+#include "core/Cluster.h"
 #include "checkpointing/customDataTypes/CalendarDataType.h"
 #include "checkpointing/customDataTypes/ConfDataType.h"
 #include "checkpointing/customDataTypes/PersonTDDataType.h"
@@ -26,10 +27,10 @@ using namespace boost::filesystem;
 namespace stride {
 
 Saver::Saver(std::string filename, ptree pt_config, int frequency, bool track_index_case, std::string simulator_run_mode, int start_timestep)
-	: m_filename(filename), m_frequency(frequency), 
-	  m_pt_config(pt_config), m_current_step(start_timestep - 1), 
+	: m_filename(filename), m_frequency(frequency),
+	  m_pt_config(pt_config), m_current_step(start_timestep - 1),
 	  m_timestep(start_timestep), m_save_count(0) {
-	
+
 	// Check if the simulator is run in extend mode and not from timestep 0
 	if (start_timestep != 0 && simulator_run_mode == "extend") {
 		// If the hdf5 file already exists, append the data, otherwise still run the whole constructor
@@ -325,6 +326,21 @@ void Saver::saveTimestep(const Simulator& sim) {
 		delete dataset;
 
 
+		// =============
+		// Save clusters
+		// =============
+
+		//   Household clusters
+		this->saveClusters(group, "household_clusters", sim.m_households);
+		//   School clusters
+		this->saveClusters(group, "school_clusters", sim.m_school_clusters);
+		//   Work clusters
+		this->saveClusters(group, "work_clusters", sim.m_work_clusters);
+		//   Primary Community clusters
+		this->saveClusters(group, "primary_community_clusters", sim.m_primary_community);
+		//   Secondary Community clusters
+		this->saveClusters(group, "secondary_community_clusters", sim.m_secondary_community);
+
 		// Save Person Time Dependent
 		dims[0] = sim.getPopulation()->size();
 		CompType typePersonTD(sizeof(PersonTDDataType));
@@ -408,6 +424,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 		error.printError();
 		return;
 	} catch (DataSpaceIException error) {
+		std::cout << "Error while interacting with a dataspace." << std::endl;
 		error.printError();
 		return;
 	} catch (Exception error) {
@@ -415,6 +432,33 @@ void Saver::saveTimestep(const Simulator& sim) {
 		error.printError();
 	}
 	return;
+}
+
+void Saver::saveClusters(Group& group, std::string dataset_name, const vector<Cluster>& clusters) {
+	auto getAmtIds = [&]() {
+		unsigned int amt = 0;
+		for (unsigned int i = 0; i < clusters.size(); i++) amt += clusters.at(i).getSize();
+		return amt;
+	};
+	unsigned int amtIds = getAmtIds();
+
+	const unsigned int ndims_clusters = 1;
+	hsize_t dims_clusters[ndims_clusters] = {amdIds};
+	DataSpace* dataspace_clusters = new DataSpace(ndims_clusters, dims_clusters);
+	DataSet* dataset_clusters = new DataSet(group.createDataSet(H5std_string(dataset_name), PredType::NATIVE_UINT, *dataspace_clusters));
+
+	unsigned int cluster_data[amdIds];
+	unsigned int index = 0;
+	for (unsigned int i = 0; i < clusters.size(); i++) {
+		for (unsigned int j = 0; j < clusters.at(i).getSize(); j++) {
+			cluster_data[index++] = clusters.at(i).m_members.at(j).first->m_id;
+		}
+	}
+	dataset_clusters->write(cluster_data, PredType::NATIVE_UINT);
+	dataspace_clusters->close();
+	dataset_clusters->close();
+	delete dataspace_clusters;
+	delete dataset_clusters;
 }
 
 
