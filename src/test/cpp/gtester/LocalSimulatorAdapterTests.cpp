@@ -44,11 +44,9 @@ public:
 protected:
 	static std::shared_ptr<Simulator> 				m_sim1;
 	static std::shared_ptr<Simulator> 				m_sim2;
-	static std::shared_ptr<Simulator> 				m_sim3;
 
 	static std::unique_ptr<LocalSimulatorAdapter> 	m_l1;
 	static std::unique_ptr<LocalSimulatorAdapter> 	m_l2;
-	static std::unique_ptr<LocalSimulatorAdapter> 	m_l3;
 
 protected:
 	/// Destructor has to be virtual.
@@ -86,10 +84,8 @@ protected:
 		// Create simulators
 		m_sim1 = SimulatorBuilder::build(pt_config, num_threads, false);
 		m_sim2 = SimulatorBuilder::build(pt_config, num_threads, false);
-		m_sim3 = SimulatorBuilder::build(pt_config, num_threads, false);
 		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1.get());
 		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2.get());
-		m_l3 = make_unique<LocalSimulatorAdapter>(m_sim3.get());
 	}
 
 	/// Tearing down the test fixture
@@ -98,11 +94,9 @@ protected:
 
 std::shared_ptr<Simulator>					LocalSimulatorAdapterTest::m_sim1;
 std::shared_ptr<Simulator>					LocalSimulatorAdapterTest::m_sim2;
-std::shared_ptr<Simulator>					LocalSimulatorAdapterTest::m_sim3;
 
 std::unique_ptr<LocalSimulatorAdapter>		LocalSimulatorAdapterTest::m_l1;
 std::unique_ptr<LocalSimulatorAdapter>		LocalSimulatorAdapterTest::m_l2;
-std::unique_ptr<LocalSimulatorAdapter>		LocalSimulatorAdapterTest::m_l3;
 
 bool sameCluster(const Cluster& cluster1, const Cluster& cluster2) {
 	if (cluster1.getId() != cluster2.getId()) {
@@ -211,7 +205,6 @@ TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
 		vector<future<bool>> fut_results;
 		fut_results.push_back(m_l1->timeStep());
 		fut_results.push_back(m_l2->timeStep());
-		fut_results.push_back(m_l3->timeStep());
 		future_pool(fut_results);
 
 		for (unsigned int j = 0; j < m_l1->getPlanner().getAgenda().size(); ++j) {
@@ -363,48 +356,48 @@ TEST_F(LocalSimulatorAdapterTest, ForceHost_default) {
 	m_l1->forceSend(traveller_data.at(0), m_l2.get());
 
 	// // Test if the person arrived in the destination simulator
-	// for (unsigned int i = 0; i < m_sim2->getPopulation()->m_visitors.getAgenda().size(); ++i) {
-	// 	auto it = m_sim2->getPopulation()->m_visitors.getAgenda().begin();
-	// 	auto block = (*(next(it, i))).get();
-	// 	if (i == 10) {
-	// 		ASSERT_EQ(block->size(), 1U);
-	// 		// These people can't be on vacation
-	// 		for (auto& person: *block) {
-	// 			EXPECT_FALSE(person->isOnVacation());
-	// 		}
-	// 	} else {
-	// 		EXPECT_EQ(block->size(), 0U);
-	// 	}
-	// }
+	for (unsigned int i = 0; i < m_sim2->getPopulation()->m_visitors.getAgenda().size(); ++i) {
+		auto it = m_sim2->getPopulation()->m_visitors.getAgenda().begin();
+		auto block = (*(next(it, i))).get();
+		if (i == 10) {
+			ASSERT_EQ(block->size(), 1U);
+			// These people can't be on vacation
+			for (auto& person: *block) {
+				EXPECT_FALSE(person->isOnVacation());
+			}
+		} else {
+			EXPECT_EQ(block->size(), 0U);
+		}
+	}
 
-	// // Test if the person is absent in the home simulator
-	// EXPECT_TRUE(m_sim1->getPopulation()->m_original.at(id_s.at(0)).isOnVacation());
+	// Test if the person is absent in the home simulator
+	EXPECT_TRUE(m_sim1->getPopulation()->m_original.at(id_s.at(0)).isOnVacation());
 		
-	// // Test clusters of the target simulator, the travellers must be in the clusters
-	// for (unsigned int i = 0; i < m_sim2->getPopulation()->m_visitors.getAgenda().back()->size(); ++i) {
-	// 	auto& person = m_sim2->getPopulation()->m_visitors.getAgenda().back()->at(i);
+	// Test clusters of the target simulator, the travellers must be in the clusters
+	for (unsigned int i = 0; i < m_sim2->getPopulation()->m_visitors.getAgenda().back()->size(); ++i) {
+		auto& person = m_sim2->getPopulation()->m_visitors.getAgenda().back()->at(i);
 
-	// 	unsigned int work_index = person->m_work_id;
-	// 	unsigned int prim_comm_index = person->getClusters(ClusterType::PrimaryCommunity)_id;
-	// 	unsigned int sec_comm_index = person->getClusters(ClusterType::SecondaryCommunity)_id;
+		unsigned int work_index = person->getClusterId(ClusterType::Work);
+		unsigned int prim_comm_index = person->getClusterId(ClusterType::PrimaryCommunity);
+		unsigned int sec_comm_index = person->getClusterId(ClusterType::SecondaryCommunity);
 
-	// 	// Test whether the clusters exist
-	// 	ASSERT_NO_THROW(m_sim2->getClusters(ClusterType::Work).at(work_index));
-	// 	ASSERT_NO_THROW(m_sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index));
-	// 	ASSERT_NO_THROW(m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index));
+		// Test whether the clusters exist
+		ASSERT_NO_THROW(m_sim2->getClusters(ClusterType::Work).at(work_index));
+		ASSERT_NO_THROW(m_sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index));
+		ASSERT_NO_THROW(m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index));
 
-	// 	// Test every cluster on the presence of this person
-	// 	auto search_person = [&] (const pair<Simulator::PersonType*, bool> person_presence_pair) {return person.get() == person_presence_pair.first;};
+		// Test every cluster on the presence of this person
+		auto search_person = [&] (const pair<Simulator::PersonType*, bool> person_presence_pair) {return person.get() == person_presence_pair.first;};
 
-	// 	auto it = find_if(m_sim2->getClusters(ClusterType::Work).at(work_index).getMembers().begin(), m_sim2->getClusters(ClusterType::Work).at(work_index).getMembers().end(), search_person);
-	// 	EXPECT_NE(it, m_sim2->getClusters(ClusterType::Work).at(work_index).getMembers().end());
+		auto it = find_if(m_sim2->getClusters(ClusterType::Work).at(work_index).getMembers().begin(), m_sim2->getClusters(ClusterType::Work).at(work_index).getMembers().end(), search_person);
+		EXPECT_NE(it, m_sim2->getClusters(ClusterType::Work).at(work_index).getMembers().end());
 
-	// 	it = find_if(m_sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().begin(), m_sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().end(), search_person);
-	// 	EXPECT_NE(it, m_sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().end());
+		it = find_if(m_sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().begin(), m_sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().end(), search_person);
+		EXPECT_NE(it, m_sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().end());
 
-	// 	it = find_if(m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().begin(), m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end(), search_person);
-	// 	EXPECT_NE(it, m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end());
-	// }
+		it = find_if(m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().begin(), m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end(), search_person);
+		EXPECT_NE(it, m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end());
+	}
 }
 
 TEST_F(LocalSimulatorAdapterTest, getTravellerData_default) {
