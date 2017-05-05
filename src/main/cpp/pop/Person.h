@@ -30,7 +30,6 @@
 namespace stride {
 
 class Calendar;
-class LocalSimulatorAdapter;
 template<class PersonType> class Traveller;
 enum class ClusterType;
 
@@ -91,10 +90,9 @@ public:
 	bool isOnVacation() const { return m_is_on_vacation; }
 	void setOnVacation(bool is_on_vacation) { m_is_on_vacation = is_on_vacation; }
 
-	friend class LocalSimulatorAdapter;
 	template<class PersonType> friend class Traveller;
 
-public:	// TODO make private again
+private:
 	unsigned int m_id;  ///< The id.
 	double m_age;       ///< The age.
 	char m_gender;      ///< The gender.

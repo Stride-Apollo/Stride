@@ -70,7 +70,12 @@ public:
 		return g_profiles.at(toSizeType(m_cluster_type))[effectiveAge(p->getAge())] / m_members.size();;
 	}
 
+	/// Get the ID of this cluster
 	std::size_t getId() const {return m_cluster_id;}
+
+	/// Get the members of this vector
+	/// Rather for testing purposes
+	const std::vector<std::pair<Simulator::PersonType*, bool> >& getMembers() const {return m_members;}
 
 public:
 	/// Add contact profile.
@@ -87,13 +92,13 @@ private:
 	/// Calculate which members are present in the cluster on the current day.
 	void updateMemberPresence();
 
-public:	// TODO make private again
+private:
 	std::size_t m_cluster_id;     ///< The ID of the Cluster (for logging purposes).
 	ClusterType m_cluster_type;   ///< The type of the Cluster (for logging purposes).
 	std::size_t m_index_immune;   ///< Index of the first immune member in the Cluster.
 	std::vector<std::pair<Simulator::PersonType*, bool>> m_members;  ///< Container with pointers to Cluster members.
 	const ContactProfile& m_profile;
-	const GeoCoordinate m_coordinate;
+	const GeoCoordinate m_coordinate;	///< The location of the cluster
 private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
 };

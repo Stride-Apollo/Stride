@@ -118,8 +118,8 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 																			traveller.getHomeSimulatorId(),
 																			traveller.getDestinationSimulatorId());
 
-		new_traveller.getOldPerson()->m_is_on_vacation = true;
-		new_traveller.getNewPerson()->m_is_on_vacation = false;
+		new_traveller.getOldPerson()->setOnVacation(true);
+		new_traveller.getNewPerson()->setOnVacation(false);
 		m_planner.add(days, new_traveller);
 
 		// Get a pointer to the person you just made
@@ -139,14 +139,6 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 
 bool LocalSimulatorAdapter::returnHome(const vector<Simulator::TravellerType>& travellers) {
 	// TODO remove?
-	// for (auto& traveller: travellers) {
-	// 	for (auto& person: m_sim->m_population.get()->m_original) {
-	// 		if (traveller.getPerson() == &person) {
-
-	// 		}
-	// 	}
-	// }
-
 	return true;
 }
 
@@ -158,7 +150,7 @@ vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint day
 	Population& population = *(m_sim->m_population.get());
 	for (uint i = 0; i < population.m_original.size(); ++i) {
 		Simulator::PersonType& person = population.m_original.at(i);
-		if (person.m_work_id != 0 && !person.m_is_on_vacation) {
+		if (person.getClusterId(ClusterType::Work) != 0 && !person.isOnVacation()) {
 			working_people.push_back(&person);
 		}
 	}
@@ -184,7 +176,7 @@ vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint day
 		Simulator::TravellerType new_traveller = Simulator::TravellerType(person, nullptr, m_id, destination_sim->getId());
 		chosen_people.push_back(new_traveller);
 		working_people.erase(next(working_people.begin(), index));
-		people_id_s.push_back(person->m_id);
+		people_id_s.push_back(person->getId());
 
 	}
 
@@ -217,8 +209,8 @@ bool LocalSimulatorAdapter::forceHost(const Simulator::TravellerType& traveller,
 																		m_sim->m_population->m_visitors.getModifiableDay(days)->back().get(),
 																		traveller.getHomeSimulatorId(),
 																		traveller.getDestinationSimulatorId());
-	new_traveller.getOldPerson()->m_is_on_vacation = true;
-	new_traveller.getNewPerson()->m_is_on_vacation = false;
+	new_traveller.getOldPerson()->setOnVacation(true);
+	new_traveller.getNewPerson()->setOnVacation(false);
 	m_planner.add(days, new_traveller);
 
 	// Get a pointer to the person you just made
@@ -238,7 +230,7 @@ bool LocalSimulatorAdapter::forceHost(const Simulator::TravellerType& traveller,
 vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
 	vector<TravellerData> returned_travellers;
 	uint days_left = 0;
-	while (m_planner.m_agenda.size() != 0) {
+	while (m_planner.getAgenda().size() != 0) {
 		auto returning_people = m_planner.getDay(0);
 
 		for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
@@ -262,7 +254,7 @@ vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
 
 vector<TravellerData> LocalSimulatorAdapter::getTravellerData() {
 	vector<TravellerData> returned_travellers;
-	for (uint days_left = 0; days_left < m_planner.m_agenda.size(); ++days_left) {
+	for (uint days_left = 0; days_left < m_planner.getAgenda().size(); ++days_left) {
 		auto returning_people = m_planner.getDay(days_left);
 
 		for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
@@ -305,15 +297,15 @@ void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, Async
 void LocalSimulatorAdapter::returnTraveller(Simulator::TravellerType& traveller) {
 	Simulator::PersonType* returning_person = traveller.getNewPerson();
 
-	auto work_index = returning_person->m_work_id;
-	auto prim_comm_index = returning_person->m_primary_community_id;
-	auto sec_comm_index = returning_person->m_secondary_community_id;
+	auto work_index = returning_person->getClusterId(ClusterType::Work);
+	auto prim_comm_index = returning_person->getClusterId(ClusterType::PrimaryCommunity);
+	auto sec_comm_index = returning_person->getClusterId(ClusterType::SecondaryCommunity);
 
 	// TODO check for out of range stuff
 
-	m_sim->m_work_clusters.at(work_index).removePerson(returning_person->m_id);
-	m_sim->m_primary_community.at(prim_comm_index).removePerson(returning_person->m_id);
-	m_sim->m_secondary_community.at(sec_comm_index).removePerson(returning_person->m_id);
+	m_sim->m_work_clusters.at(work_index).removePerson(returning_person->getId());
+	m_sim->m_primary_community.at(prim_comm_index).removePerson(returning_person->getId());
+	m_sim->m_secondary_community.at(sec_comm_index).removePerson(returning_person->getId());
 
 	traveller.resetPerson();
 }

@@ -130,8 +130,21 @@ void Simulator::timeStep() {
 	m_calendar->advanceDay();
 }
 
-void Simulator::host(const std::vector<Simulator::TravellerType>& travellers) {
-	// TODO
+const vector<Cluster>& Simulator::getClusters(ClusterType cluster_type) const {
+	switch (cluster_type) {
+		case ClusterType::Household:
+			return m_households;
+		case ClusterType::School:
+			return m_school_clusters;
+		case ClusterType::Work:
+			return m_work_clusters;
+		case ClusterType::PrimaryCommunity:
+			return m_primary_community;
+		case ClusterType::SecondaryCommunity:
+			return m_secondary_community;
+		default:
+			throw runtime_error(string(__func__) + "> Should not reach default.");
+	}
 }
 
 }

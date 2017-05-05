@@ -33,26 +33,28 @@ using namespace boost::property_tree;
 
 namespace Tests {
 
+// TODO write in a fixture with a setup
+
 bool sameCluster(const Cluster& cluster1, const Cluster& cluster2) {
-	if (cluster1.m_cluster_id != cluster2.m_cluster_id) {
+	if (cluster1.getId() != cluster2.getId()) {
 		return false;
 	}
 	
-	if (cluster1.m_cluster_type != cluster2.m_cluster_type) {
+	if (cluster1.getClusterType() != cluster2.getClusterType()) {
 		return false;
 	}
 
-	if (cluster1.m_members.size() != cluster2.m_members.size()) {
+	if (cluster1.getMembers().size() != cluster2.getMembers().size()) {
 		return false;
 	}
 
-	for (auto& person_pair: cluster1.m_members) {
+	for (auto& person_pair: cluster1.getMembers()) {
 		Simulator::PersonType* person = person_pair.first;
 
 		auto find_person = [&] (const pair<Simulator::PersonType*, bool>& pair) {return person == pair.first;};
-		auto it = find_if(cluster2.m_members.begin(), cluster2.m_members.end(), find_person);
+		auto it = find_if(cluster2.getMembers().cbegin(), cluster2.getMembers().cend(), find_person);
 
-		if (it == cluster2.m_members.end()) {
+		if (it == cluster2.getMembers().cend()) {
 			return false;
 		}
 	}
@@ -102,12 +104,12 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	auto l3 = make_unique<LocalSimulatorAdapter>(sim3.get());
 
 	// Keep the original work, primary and secondary communities of simulator 2
-	vector<Cluster> work_clusters = sim2->m_work_clusters;
-	vector<Cluster> primary_community = sim2->m_primary_community;
-	vector<Cluster> secondary_community = sim2->m_secondary_community;
+	vector<Cluster> work_clusters = sim2->getClusters(ClusterType::Work);
+	vector<Cluster> primary_community = sim2->getClusters(ClusterType::PrimaryCommunity);
+	vector<Cluster> secondary_community = sim2->getClusters(ClusterType::SecondaryCommunity);
 
 	// Keep the address of the first person, this is to avoid vector resizing causing a segmentation fault
-	auto first_person = &(sim2->m_population->m_original.at(0));
+	auto first_person = &(sim2->getPopulation()->m_original.at(0));
 
 	// Migrate 10 people for 10 days
 	vector<unsigned int> id_s = l1->sendTravellers(10, 10, l2.get(), "Antwerp", "ANR");
@@ -117,11 +119,11 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	// -----------------------------------------------------------------------------------------
 	// Actual tests.
 	// -----------------------------------------------------------------------------------------
-	ASSERT_EQ(&(sim2->m_population->m_original.at(0)), first_person);
+	ASSERT_EQ(&(sim2->getPopulation()->m_original.at(0)), first_person);
 
 	// Test if the people arrived in the destination simulator
-	for (unsigned int i = 0; i < sim2->m_population->m_visitors.m_agenda.size(); ++i) {
-		auto it = sim2->m_population->m_visitors.m_agenda.begin();
+	for (unsigned int i = 0; i < sim2->getPopulation()->m_visitors.getAgenda().size(); ++i) {
+		auto it = sim2->getPopulation()->m_visitors.getAgenda().begin();
 		auto block = (*(next(it, i))).get();
 		if (i == 10) {
 			ASSERT_EQ(block->size(), 10U);
@@ -136,33 +138,33 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 
 	// Test if the people are absent in the home simulator
 	for (auto id: id_s) {
-		EXPECT_TRUE(sim->m_population->m_original.at(id).isOnVacation());
+		EXPECT_TRUE(sim->getPopulation()->m_original.at(id).isOnVacation());
 	}
 		
 	// Test clusters of the target simulator, the travellers must be in the clusters
-	for (unsigned int i = 0; i < sim2->m_population->m_visitors.m_agenda.back()->size(); ++i) {
-		auto& person = sim2->m_population->m_visitors.m_agenda.back()->at(i);
+	for (unsigned int i = 0; i < sim2->getPopulation()->m_visitors.getAgenda().back()->size(); ++i) {
+		auto& person = sim2->getPopulation()->m_visitors.getAgenda().back()->at(i);
 
-		unsigned int work_index = person->m_work_id;
-		unsigned int prim_comm_index = person->m_primary_community_id;
-		unsigned int sec_comm_index = person->m_secondary_community_id;
+		unsigned int work_index = person->getClusterId(ClusterType::Work);
+		unsigned int prim_comm_index = person->getClusterId(ClusterType::PrimaryCommunity);
+		unsigned int sec_comm_index = person->getClusterId(ClusterType::SecondaryCommunity);
 
 		// Test whether the clusters exist
-		ASSERT_NO_THROW(sim2->m_work_clusters.at(work_index));
-		ASSERT_NO_THROW(sim2->m_primary_community.at(prim_comm_index));
-		ASSERT_NO_THROW(sim2->m_secondary_community.at(sec_comm_index));
+		ASSERT_NO_THROW(sim2->getClusters(ClusterType::Work).at(work_index));
+		ASSERT_NO_THROW(sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index));
+		ASSERT_NO_THROW(sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index));
 
 		// Test every cluster on the presence of this person
 		auto search_person = [&] (const pair<Simulator::PersonType*, bool> person_presence_pair) {return person.get() == person_presence_pair.first;};
 
-		auto it = find_if(sim2->m_work_clusters.at(work_index).m_members.begin(), sim2->m_work_clusters.at(work_index).m_members.end(), search_person);
-		EXPECT_NE(it, sim2->m_work_clusters.at(work_index).m_members.end());
+		auto it = find_if(sim2->getClusters(ClusterType::Work).at(work_index).getMembers().begin(), sim2->getClusters(ClusterType::Work).at(work_index).getMembers().end(), search_person);
+		EXPECT_NE(it, sim2->getClusters(ClusterType::Work).at(work_index).getMembers().end());
 
-		it = find_if(sim2->m_primary_community.at(prim_comm_index).m_members.begin(), sim2->m_primary_community.at(prim_comm_index).m_members.end(), search_person);
-		EXPECT_NE(it, sim2->m_primary_community.at(prim_comm_index).m_members.end());
+		it = find_if(sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().begin(), sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().end(), search_person);
+		EXPECT_NE(it, sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().end());
 
-		it = find_if(sim2->m_secondary_community.at(sec_comm_index).m_members.begin(), sim2->m_secondary_community.at(sec_comm_index).m_members.end(), search_person);
-		EXPECT_NE(it, sim2->m_secondary_community.at(sec_comm_index).m_members.end());
+		it = find_if(sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().begin(), sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end(), search_person);
+		EXPECT_NE(it, sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end());
 	}
 
 	// Run the simulation.
@@ -170,10 +172,10 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 	for (unsigned int i = 0; i < 11; i++) {
 
 		// Test whether they are present in the population of the hosting region
-		EXPECT_EQ(sim2->m_population->m_visitors.getDay(10 - i)->size(), 10U);
-		for (unsigned int j = 0; j < sim2->m_population->m_visitors.getDay(10 - i)->size(); ++j) {
+		EXPECT_EQ(sim2->getPopulation()->m_visitors.getDay(10 - i)->size(), 10U);
+		for (unsigned int j = 0; j < sim2->getPopulation()->m_visitors.getDay(10 - i)->size(); ++j) {
 			// They shouldn't be on vacation
-			const Simulator::PersonType& person = *(sim2->m_population->m_visitors.getModifiableDay(10 - i)->at(j));
+			const Simulator::PersonType& person = *(sim2->getPopulation()->m_visitors.getDay(10 - i)->at(j));
 			EXPECT_FALSE(person.isOnVacation());
 		}
 
@@ -183,12 +185,12 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 		fut_results.push_back(l3->timeStep());
 		future_pool(fut_results);
 
-		for (unsigned int j = 0; j < l1->m_planner.m_agenda.size(); ++j) {
-			auto it = l2->m_planner.m_agenda.begin();
+		for (unsigned int j = 0; j < l1->getPlanner().getAgenda().size(); ++j) {
+			auto it = l2->getPlanner().getAgenda().begin();
 			auto block = (*(next(it, j))).get();
 
 			// Test whether they are present in the planner hosting region
-			if (j == l2->m_planner.m_agenda.size() - 1) {
+			if (j == l2->getPlanner().getAgenda().size() - 1) {
 				EXPECT_EQ(block->size(), 10U);
 			} else {
 				EXPECT_EQ(block->size(), 0U);
@@ -196,37 +198,37 @@ TEST(LocalSimulatorAdapterTest, HappyDay_default) {
 		}
 	}
 
-	ASSERT_EQ(&(sim2->m_population->m_original.at(0)), first_person);
+	ASSERT_EQ(&(sim2->getPopulation()->m_original.at(0)), first_person);
 
 	// The agendas are empty now (or at least, it should be)
-	EXPECT_EQ(l2->m_planner.m_agenda.size(), 0U);
-	EXPECT_EQ(sim2->m_population->m_visitors.m_agenda.size(), 0U);
+	EXPECT_EQ(l2->getPlanner().getAgenda().size(), 0U);
+	EXPECT_EQ(sim2->getPopulation()->m_visitors.getAgenda().size(), 0U);
 
 	// Test clusters of sim2, they must contain the same people as before
-	for (uint i = 0; i < sim2->m_work_clusters.size(); ++i) {
-		auto& cluster = sim2->m_work_clusters.at(i);
+	for (uint i = 0; i < sim2->getClusters(ClusterType::Work).size(); ++i) {
+		auto& cluster = sim2->getClusters(ClusterType::Work).at(i);
 		EXPECT_TRUE(sameCluster(cluster, work_clusters.at(i)));
 	}
 
-	for (uint i = 0; i < sim2->m_primary_community.size(); ++i) {
-		auto& cluster = sim2->m_primary_community.at(i);
+	for (uint i = 0; i < sim2->getClusters(ClusterType::PrimaryCommunity).size(); ++i) {
+		auto& cluster = sim2->getClusters(ClusterType::PrimaryCommunity).at(i);
 		EXPECT_TRUE(sameCluster(cluster, primary_community.at(i)));
 	}
 
-	for (uint i = 0; i < sim2->m_secondary_community.size(); ++i) {
-		auto& cluster = sim2->m_secondary_community.at(i);
+	for (uint i = 0; i < sim2->getClusters(ClusterType::SecondaryCommunity).size(); ++i) {
+		auto& cluster = sim2->getClusters(ClusterType::SecondaryCommunity).at(i);
 		EXPECT_TRUE(sameCluster(cluster, secondary_community.at(i)));
 	}
 
 	// Test whether the population in both manipulated sims is not on vacation
 
-	for (uint i = 0; i < sim->m_population->m_original.size(); ++i) {
-		auto& person = sim->m_population->m_original.at(i);
+	for (uint i = 0; i < sim->getPopulation()->m_original.size(); ++i) {
+		auto& person = sim->getPopulation()->m_original.at(i);
 		EXPECT_FALSE(person.isOnVacation());
 	}
 
-	for (uint i = 0; i < sim2->m_population->m_original.size(); ++i) {
-		auto& person = sim2->m_population->m_original.at(i);
+	for (uint i = 0; i < sim2->getPopulation()->m_original.size(); ++i) {
+		auto& person = sim2->getPopulation()->m_original.at(i);
 		EXPECT_FALSE(person.isOnVacation());
 	}
 }
@@ -268,9 +270,9 @@ TEST(LocalSimulatorAdapterTest, ForceReturn_default) {
 	l2->setId(2);
 
 	// Keep the original work, primary and secondary communities of simulator 2
-	vector<Cluster> work_clusters = sim2->m_work_clusters;
-	vector<Cluster> primary_community = sim2->m_primary_community;
-	vector<Cluster> secondary_community = sim2->m_secondary_community;
+	vector<Cluster> work_clusters = sim2->getClusters(ClusterType::Work);
+	vector<Cluster> primary_community = sim2->getClusters(ClusterType::PrimaryCommunity);
+	vector<Cluster> secondary_community = sim2->getClusters(ClusterType::SecondaryCommunity);
 
 	// Migrate 10 people for 10 days
 	vector<unsigned int> id_s = l1->sendTravellers(10, 10, l2.get(), "Antwerp", "ANR");
@@ -278,43 +280,43 @@ TEST(LocalSimulatorAdapterTest, ForceReturn_default) {
 
 	// Test if the people are absent in the home simulator
 	for (auto id: id_s) {
-		EXPECT_TRUE(sim->m_population->m_original.at(id).isOnVacation());
+		EXPECT_TRUE(sim->getPopulation()->m_original.at(id).isOnVacation());
 	}
 
 	// Get the data of the travellers
-	EXPECT_EQ(sim2->m_population->m_visitors.getDay(10)->size(), 10U);
+	EXPECT_EQ(sim2->getPopulation()->m_visitors.getDay(10)->size(), 10U);
 	vector<Simulator::PersonType> migrated_people_data;
-	for (auto& person: *(sim2->m_population->m_visitors.getDay(10))) {
+	for (auto& person: *(sim2->getPopulation()->m_visitors.getDay(10))) {
 		migrated_people_data.push_back(*person);
 	}
 
 	// Now force return them
 	auto traveller_data = l2->forceReturn();
 	EXPECT_EQ(traveller_data.size(), 10U);
-	EXPECT_EQ(sim2->m_population->m_visitors.m_agenda.size(), 0U);
-	EXPECT_EQ(l2->m_planner.m_agenda.size(), 0U);
-	EXPECT_EQ(sim->m_population->m_visitors.m_agenda.size(), 0U);
-	EXPECT_EQ(l1->m_planner.m_agenda.size(), 0U);
+	EXPECT_EQ(sim2->getPopulation()->m_visitors.getAgenda().size(), 0U);
+	EXPECT_EQ(l2->getPlanner().getAgenda().size(), 0U);
+	EXPECT_EQ(sim->getPopulation()->m_visitors.getAgenda().size(), 0U);
+	EXPECT_EQ(l1->getPlanner().getAgenda().size(), 0U);
 
 	// Test clusters of sim2, they must contain the same people as before
-	for (uint i = 0; i < sim2->m_work_clusters.size(); ++i) {
-		auto& cluster = sim2->m_work_clusters.at(i);
+	for (uint i = 0; i < sim2->getClusters(ClusterType::Work).size(); ++i) {
+		auto& cluster = sim2->getClusters(ClusterType::Work).at(i);
 		EXPECT_TRUE(sameCluster(cluster, work_clusters.at(i)));
 	}
 
-	for (uint i = 0; i < sim2->m_primary_community.size(); ++i) {
-		auto& cluster = sim2->m_primary_community.at(i);
+	for (uint i = 0; i < sim2->getClusters(ClusterType::PrimaryCommunity).size(); ++i) {
+		auto& cluster = sim2->getClusters(ClusterType::PrimaryCommunity).at(i);
 		EXPECT_TRUE(sameCluster(cluster, primary_community.at(i)));
 	}
 
-	for (uint i = 0; i < sim2->m_secondary_community.size(); ++i) {
-		auto& cluster = sim2->m_secondary_community.at(i);
+	for (uint i = 0; i < sim2->getClusters(ClusterType::SecondaryCommunity).size(); ++i) {
+		auto& cluster = sim2->getClusters(ClusterType::SecondaryCommunity).at(i);
 		EXPECT_TRUE(sameCluster(cluster, secondary_community.at(i)));
 	}
 
 	// Test if the people are back in the home simulator
 	for (auto id: id_s) {
-		EXPECT_FALSE(sim->m_population->m_original.at(id).isOnVacation());
+		EXPECT_FALSE(sim->getPopulation()->m_original.at(id).isOnVacation());
 	}
 
 	// Test the traveller data for correctness in the host simulator
@@ -336,8 +338,8 @@ TEST(LocalSimulatorAdapterTest, ForceReturn_default) {
 	EXPECT_EQ(traveller_data.size(), id_s.size());
 	for (auto data: traveller_data) {
 
-		auto find_person = [&] (const uint& id) {return sim->m_population->m_original.at(id).getAge() == data.m_home_age
-															&& sim->m_population->m_original.at(id).getId() == data.m_home_id;};
+		auto find_person = [&] (const uint& id) {return sim->getPopulation()->m_original.at(id).getAge() == data.m_home_age
+															&& sim->getPopulation()->m_original.at(id).getId() == data.m_home_id;};
 		auto it = find_if(id_s.begin(), id_s.end(), find_person);
 
 		EXPECT_NE(it, id_s.end());
@@ -385,9 +387,9 @@ TEST(LocalSimulatorAdapterTest, ForceHost_default) {
 	EXPECT_EQ(id_s.size(), 1U);
 
 	// Get the data of the traveller
-	EXPECT_EQ(sim2->m_population->m_visitors.getDay(10)->size(), 1U);
+	EXPECT_EQ(sim2->getPopulation()->m_visitors.getDay(10)->size(), 1U);
 	vector<Simulator::PersonType> migrated_people_data;
-	for (auto& person: *(sim2->m_population->m_visitors.getDay(10))) {
+	for (auto& person: *(sim2->getPopulation()->m_visitors.getDay(10))) {
 		migrated_people_data.push_back(*person);
 	}
 
@@ -399,8 +401,8 @@ TEST(LocalSimulatorAdapterTest, ForceHost_default) {
 	l1->forceSend(traveller_data.at(0), l2.get());
 
 	// // Test if the person arrived in the destination simulator
-	// for (unsigned int i = 0; i < sim2->m_population->m_visitors.m_agenda.size(); ++i) {
-	// 	auto it = sim2->m_population->m_visitors.m_agenda.begin();
+	// for (unsigned int i = 0; i < sim2->getPopulation()->m_visitors.getAgenda().size(); ++i) {
+	// 	auto it = sim2->getPopulation()->m_visitors.getAgenda().begin();
 	// 	auto block = (*(next(it, i))).get();
 	// 	if (i == 10) {
 	// 		ASSERT_EQ(block->size(), 1U);
@@ -414,32 +416,32 @@ TEST(LocalSimulatorAdapterTest, ForceHost_default) {
 	// }
 
 	// // Test if the person is absent in the home simulator
-	// EXPECT_TRUE(sim->m_population->m_original.at(id_s.at(0)).isOnVacation());
+	// EXPECT_TRUE(sim->getPopulation()->m_original.at(id_s.at(0)).isOnVacation());
 		
 	// // Test clusters of the target simulator, the travellers must be in the clusters
-	// for (unsigned int i = 0; i < sim2->m_population->m_visitors.m_agenda.back()->size(); ++i) {
-	// 	auto& person = sim2->m_population->m_visitors.m_agenda.back()->at(i);
+	// for (unsigned int i = 0; i < sim2->getPopulation()->m_visitors.getAgenda().back()->size(); ++i) {
+	// 	auto& person = sim2->getPopulation()->m_visitors.getAgenda().back()->at(i);
 
 	// 	unsigned int work_index = person->m_work_id;
-	// 	unsigned int prim_comm_index = person->m_primary_community_id;
-	// 	unsigned int sec_comm_index = person->m_secondary_community_id;
+	// 	unsigned int prim_comm_index = person->getClusters(ClusterType::PrimaryCommunity)_id;
+	// 	unsigned int sec_comm_index = person->getClusters(ClusterType::SecondaryCommunity)_id;
 
 	// 	// Test whether the clusters exist
-	// 	ASSERT_NO_THROW(sim2->m_work_clusters.at(work_index));
-	// 	ASSERT_NO_THROW(sim2->m_primary_community.at(prim_comm_index));
-	// 	ASSERT_NO_THROW(sim2->m_secondary_community.at(sec_comm_index));
+	// 	ASSERT_NO_THROW(sim2->getClusters(ClusterType::Work).at(work_index));
+	// 	ASSERT_NO_THROW(sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index));
+	// 	ASSERT_NO_THROW(sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index));
 
 	// 	// Test every cluster on the presence of this person
 	// 	auto search_person = [&] (const pair<Simulator::PersonType*, bool> person_presence_pair) {return person.get() == person_presence_pair.first;};
 
-	// 	auto it = find_if(sim2->m_work_clusters.at(work_index).m_members.begin(), sim2->m_work_clusters.at(work_index).m_members.end(), search_person);
-	// 	EXPECT_NE(it, sim2->m_work_clusters.at(work_index).m_members.end());
+	// 	auto it = find_if(sim2->getClusters(ClusterType::Work).at(work_index).getMembers().begin(), sim2->getClusters(ClusterType::Work).at(work_index).getMembers().end(), search_person);
+	// 	EXPECT_NE(it, sim2->getClusters(ClusterType::Work).at(work_index).getMembers().end());
 
-	// 	it = find_if(sim2->m_primary_community.at(prim_comm_index).m_members.begin(), sim2->m_primary_community.at(prim_comm_index).m_members.end(), search_person);
-	// 	EXPECT_NE(it, sim2->m_primary_community.at(prim_comm_index).m_members.end());
+	// 	it = find_if(sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().begin(), sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().end(), search_person);
+	// 	EXPECT_NE(it, sim2->getClusters(ClusterType::PrimaryCommunity).at(prim_comm_index).getMembers().end());
 
-	// 	it = find_if(sim2->m_secondary_community.at(sec_comm_index).m_members.begin(), sim2->m_secondary_community.at(sec_comm_index).m_members.end(), search_person);
-	// 	EXPECT_NE(it, sim2->m_secondary_community.at(sec_comm_index).m_members.end());
+	// 	it = find_if(sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().begin(), sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end(), search_person);
+	// 	EXPECT_NE(it, sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end());
 	// }
 }
 
@@ -484,9 +486,9 @@ TEST(LocalSimulatorAdapterTest, getTravellerData_default) {
 	EXPECT_EQ(id_s.size(), 1U);
 
 	// Get the data of the traveller
-	EXPECT_EQ(sim2->m_population->m_visitors.getDay(10)->size(), 1U);
+	EXPECT_EQ(sim2->getPopulation()->m_visitors.getDay(10)->size(), 1U);
 	vector<Simulator::PersonType> migrated_people_data;
-	for (auto& person: *(sim2->m_population->m_visitors.getDay(10))) {
+	for (auto& person: *(sim2->getPopulation()->m_visitors.getDay(10))) {
 		migrated_people_data.push_back(*person);
 	}
 

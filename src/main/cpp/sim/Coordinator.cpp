@@ -28,10 +28,10 @@ void Coordinator::timeStep() {
 	// TODO fix the thing with this dynamic cast
 	
 	auto some_sim = dynamic_cast<LocalSimulatorAdapter*>(m_sims.at(0));
-	uint current_day = some_sim->m_sim->m_calendar->getDayOfTheWeek();
+	uint current_day = some_sim->m_sim->getCalendar().getDayOfTheWeek();
 
 	for (uint i = 0; i < m_traveller_schedule[current_day].size(); ++i) {
-		// TODO multithreaded, remove hardcoded district, check sim index ou of range
+		// TODO multithreaded, check sim index out of range
 		Flight& new_flight = m_traveller_schedule[current_day].at(i);
 
 		// For now, just skip those out-of-bounds simulators
