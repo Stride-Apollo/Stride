@@ -1,4 +1,5 @@
 
+#include "util/async.h"
 #include "util/InstallDirs.h"
 #include "checkpointing/Saver.h"
 #include "checkpointing/Loader.h"
@@ -102,18 +103,21 @@ TEST_P(HDF5ScenarioTests, StartFromCheckpoints) {
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
 	auto classInstance = std::make_shared<Saver>
 		(Saver(h5filename.c_str(), pt_config, 1, false));
-	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	sim->registerObserver(classInstance, fnCaller);
+	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	local_sim->registerObserver(classInstance, fnCaller);
 
-	sim->notify(*sim);
+	local_sim->notify(*local_sim);
 	vector<unsigned int> cases_original;
 	cases_original.push_back(sim->getPopulation()->getInfectedCount());
 
 
 	for (unsigned int i = 0; i < NUM_DAYS; i++) {
-		sim->timeStep();
+		vector<future<bool>> fut_results;
+		fut_results.push_back(local_sim->timeStep());
+		future_pool(fut_results);
 		cases_original.push_back(sim->getPopulation()->getInfectedCount());
 	}
 

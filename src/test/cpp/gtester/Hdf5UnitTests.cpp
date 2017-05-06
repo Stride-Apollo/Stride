@@ -4,6 +4,7 @@
 #include "pop/Population.h"
 #include "checkpointing/customDataTypes/ConfDataType.h"
 #include "util/InstallDirs.h"
+#include "util/async.h"
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
@@ -99,14 +100,18 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
 	auto classInstance = std::make_shared<Saver>
 		(Saver(h5filename.c_str(), pt_config, 1, false));
-	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	sim->registerObserver(classInstance, fnCaller);
-	sim->notify(*sim);
+	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	local_sim->registerObserver(classInstance, fnCaller);
+
+	local_sim->notify(*local_sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
-		sim->timeStep();
+		vector<future<bool>> fut_results;
+		fut_results.push_back(local_sim->timeStep());
+		future_pool(fut_results);
 	}
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
@@ -134,14 +139,19 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
+
 	auto classInstance = std::make_shared<Saver>
 		(Saver(h5filename.c_str(), pt_config, 2, false));
-	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	sim->registerObserver(classInstance, fnCaller);
-	sim->notify(*sim);
+	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	local_sim->registerObserver(classInstance, fnCaller);
+
+	local_sim->notify(*local_sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
-		sim->timeStep();
+		vector<future<bool>> fut_results;
+		fut_results.push_back(local_sim->timeStep());
+		future_pool(fut_results);
 	}
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
@@ -170,16 +180,20 @@ TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
+
 	auto classInstance = std::make_shared<Saver>
 		(Saver(h5filename.c_str(), pt_config, 0, false));
-	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	sim->registerObserver(classInstance, fnCaller);
-	classInstance->forceSave(*sim);
+	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	local_sim->registerObserver(classInstance, fnCaller);
+	classInstance->forceSave(*local_sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
-		sim->timeStep();
+		vector<future<bool>> fut_results;
+		fut_results.push_back(local_sim->timeStep());
+		future_pool(fut_results);
 	}
-	classInstance->forceSave(*sim, num_days);
+	classInstance->forceSave(*local_sim, num_days);
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 	DataSet dataset = h5file.openDataSet("amt_timesteps");
@@ -233,7 +247,7 @@ TEST_F(HDF5UnitTests, CheckConfigTree) {
 	ASSERT_EQ(g_generate_person_file, pt_config_hdf5.get<unsigned int>("run.generate_person_file"));
 	ASSERT_EQ(g_checkpointing_file, pt_config_hdf5.get<string>("run.checkpointing_file"));
 	ASSERT_EQ(g_checkpointing_frequency, pt_config_hdf5.get<int>("run.checkpointing_frequency"));
-	
+
 	// Cleanup
 	dataset.close();
 	h5file.close();
@@ -260,13 +274,16 @@ TEST_F(HDF5UnitTests, CheckAmtPersons) {
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
+	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
 	auto classInstance = std::make_shared<Saver>
 		(Saver(h5filename.c_str(), pt_config, 1, false));
-	std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	sim->registerObserver(classInstance, fnCaller);
-	sim->notify(*sim);
+	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
+	local_sim->registerObserver(classInstance, fnCaller);
+	local_sim->notify(*local_sim);
 
-	sim->timeStep();
+	vector<future<bool>> fut_results;
+	fut_results.push_back(local_sim->timeStep());
+	future_pool(fut_results);
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 
 	DataSet* dataset = new DataSet(h5file.openDataSet("personsTI"));

@@ -148,7 +148,6 @@ void Simulator::timeStep() {
 	}
 
 	m_calendar->advanceDay();
-	notify(*this);
 }
 
 const vector<Cluster>& Simulator::getClusters(ClusterType cluster_type) const {

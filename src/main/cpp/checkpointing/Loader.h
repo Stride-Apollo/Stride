@@ -61,7 +61,6 @@ private:
 	ptree m_pt_disease;
 	ptree m_pt_contact;
 
-	static bool byId(const Simulator::PersonType& lhs, const Simulator::PersonType& rhs);
 };
 
 }

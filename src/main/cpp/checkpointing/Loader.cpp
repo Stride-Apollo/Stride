@@ -300,7 +300,9 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 		dataspace.close();
 	}
 
-	std::sort(sim.get()->m_population.get()->begin(), sim.get()->m_population.get()->end(), this->byId);
+
+	auto sortByID = [](const Simulator::PersonType& lhs, const Simulator::PersonType& rhs) { return lhs.getId() < rhs.getId(); };
+	std::sort(sim.get()->m_population.get()->m_original.begin(), sim.get()->m_population.get()->m_original.end(), sortByID);
 
 	//   Household clusters
 	this->loadClusters(file, ss.str() + "/household_clusters", sim->m_households, sim.get()->m_population);
@@ -318,7 +320,6 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 	file.close();
 }
 
-bool Loader::byId(const Simulator::PersonType& lhs, const Simulator::PersonType& rhs) { return lhs.getId() < rhs.getId(); };
 
 int Loader::getLastSavedTimestep() const {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
@@ -367,7 +368,7 @@ void Loader::loadClusters(H5File& file, std::string dataset_name, std::vector<Cl
 	for(unsigned int i = 0; i < cluster.size(); i++) {
 		for(unsigned int j = 0; j < cluster.at(i).getSize(); j++) {
 			unsigned int id = cluster_data[index++];
-			Simulator::PersonType* person = &pop.get()->at(id);
+			Simulator::PersonType* person = &pop.get()->m_original.at(id);
 			cluster.at(i).m_members.at(j).first = person;
 		}
 	}

@@ -8,6 +8,7 @@
 #include "H5Cpp.h"
 #include "util/Observer.h"
 #include "sim/Simulator.h"
+#include "sim/LocalSimulatorAdapter.h"
 #include "core/Cluster.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <string>
@@ -22,15 +23,15 @@ using namespace boost::property_tree;
  * Saver class to save to hdf5
  */
 
-class Saver : public util::Observer<Simulator> {
+class Saver : public util::Observer<LocalSimulatorAdapter> {
 public:
 	Saver(std::string filename, ptree pt_config,
 		  int frequency, bool track_index_case,
 		  std::string simulator_run_mode = "initial",
 		  int start_timestep = 0);
 
-	virtual void update(const Simulator& sim);
-	void forceSave(const Simulator& sim, int timestep = -1);
+	virtual void update(const LocalSimulatorAdapter& local_sim);
+	void forceSave(const LocalSimulatorAdapter& local_sim, int timestep = -1);
 
 private:
 	void saveTimestep(const Simulator& sim);
