@@ -160,9 +160,9 @@ void run_stride2(bool track_index_case, const string& config_file_name) {
 		coord.timeStep();
 		cout << "     Done, infected counts: ";
 
-		cout << setw(10) << simulator_adapters_raw.at(0)->m_sim->getPopulation()->getInfectedCount();
+		cout << setw(10) << simulator_adapters_raw.at(0)->getSimulator().getPopulation()->getInfectedCount();
 		for (uint i = 1; i < simulator_adapters_raw.size(); ++i) {
-			cout << setw(10) << simulator_adapters_raw.at(i)->m_sim->getPopulation()->getInfectedCount();
+			cout << setw(10) << simulator_adapters_raw.at(i)->getSimulator().getPopulation()->getInfectedCount();
 		}
 		cout << endl;
 	}

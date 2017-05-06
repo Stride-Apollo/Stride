@@ -65,7 +65,12 @@ public:
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
 
-	void host(const std::vector<Simulator::TravellerType>& travellers);
+	/// Return the calendar of this simulator
+	const Calendar& getCalendar() const {return *m_calendar;}
+
+	/// Get the clusters of this simulator based on the cluster type
+	/// This is rather for testing purposes
+	const std::vector<Cluster>& getClusters(ClusterType cluster_type) const;
 
 private:
 	// Information about travellers
@@ -87,13 +92,13 @@ private:
 private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 
-public:	// TODO set private again
+private:
 	unsigned int m_num_threads; 			///< The number of (OpenMP) threads.
 	std::vector<RngHandler> m_rng_handler;  ///< Pointer to the RngHandlers.
 	LogMode m_log_level;            		///< Specifies logging mode.
 	std::shared_ptr<Calendar> m_calendar;	///< Management of calendar.
 
-public:	// TODO set private again
+private:
 	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
 
 	std::vector<Cluster> m_households;           ///< Container with household Clusters.
