@@ -1,6 +1,7 @@
 #pragma once
+#include <string>
 
 struct RNGDataType {
 	unsigned long seed;
-	const char* rng_state;
+	std::string rng_state;
 };

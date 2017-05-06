@@ -3,7 +3,10 @@
 #include "checkpointing/Saver.h"
 #include "checkpointing/Loader.h"
 #include "pop/Population.h"
+#include "pop/Person.h"
+#include "core/Health.h"
 #include "sim/SimulatorBuilder.h"
+#include "core/Cluster.h"
 #include "sim/Simulator.h"
 
 #include <boost/property_tree/ptree.hpp>
@@ -12,6 +15,8 @@
 #include <iostream>
 #include <gtest/gtest.h>
 #include <fstream>
+#include <vector>
+
 
 using namespace std;
 using namespace stride;
@@ -88,17 +93,13 @@ const unsigned int NUM_DAYS = 50;
 
 
 
-TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
-	unsigned int num_threads = 1;
-	#ifdef _OPENMP
-		num_threads = omp_get_num_threads();
-	#endif
+TEST_P(HDF5ScenarioTests, StartFromCheckpoints) {
+	unsigned int num_threads = GetParam();
 	omp_set_num_threads(num_threads);
 	omp_set_schedule(omp_sched_static,1);
 
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
-
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto classInstance = std::make_shared<Saver>
@@ -116,7 +117,7 @@ TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
 		cases_original.push_back(sim->getPopulation()->getInfectedCount());
 	}
 
-	int num_cases_original = cases_original.at(NUM_DAYS);
+	const unsigned int num_cases_original = cases_original.at(NUM_DAYS);
 
 	for (unsigned int i = 1; i < NUM_DAYS; i++) {
 		Loader loader(h5filename.c_str(), num_threads);
@@ -124,18 +125,38 @@ TEST_F(HDF5ScenarioTests, StartFromCheckpoints) {
 		loader.loadFromTimestep(i, sim_checkpointed);
 
 		ASSERT_EQ(cases_original.at(i), sim_checkpointed->getPopulation()->getInfectedCount());
-		// cout << "Infected count after loading from last timestep: " << sim_checkpointed->getPopulation()->getInfectedCount() << endl;
-
 
 		for (unsigned int j = 0; j < NUM_DAYS - i; j++) {
 			sim_checkpointed->timeStep();
 		}
 		const unsigned int num_cases_checkpointed = sim_checkpointed->getPopulation()->getInfectedCount();
+		// cout << "Infected original:\t\t" << num_cases_original << endl;
+		// cout << "Infected checkpnt:\t\t" << num_cases_checkpointed << endl << endl;
 
-		// cout << "Original: " << num_cases_original << ", checkpointed: " << num_cases_checkpointed << endl;
-		ASSERT_NEAR(num_cases_original, num_cases_checkpointed, 10000);
-		
+		if (num_threads == 1) {
+			ASSERT_EQ(num_cases_original, num_cases_checkpointed);
+		} else {
+			ASSERT_NEAR(num_cases_original, num_cases_checkpointed, 10000);
+		}
 	}
 }
+
+
+
+
+// auto days = [](unsigned int amt_days){
+// 	vector<unsigned int> days;
+// 	for (unsigned int i = 1; i < amt_days; i++) days.push_back(i);
+// 	return days;
+// };
+
+#ifdef _OPENMP
+	unsigned int threads_hdf5scenarios[] { 1U, 4U }; // 8 threads maybe unnecessary?
+#else
+	unsigned int threads_hdf5scenarios[] { 1U };
+#endif
+
+INSTANTIATE_TEST_CASE_P(HDF5ScenarioTestsSFC, HDF5ScenarioTests, ::testing::ValuesIn(threads_hdf5scenarios));
+//SFC stands for Start From Checkpoints
 
 }

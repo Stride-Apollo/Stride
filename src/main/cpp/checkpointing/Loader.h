@@ -43,6 +43,8 @@ public:
 
 	void extendSimulation(std::shared_ptr<Simulator> sim);
 
+	void loadClusters(H5::H5File& file, std::string dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Population> pop);
+
 	void setupPopulation(std::shared_ptr<Simulator> sim);
 
 	bool getTrackIndexCase() {
@@ -58,6 +60,8 @@ private:
 	ptree m_pt_config;
 	ptree m_pt_disease;
 	ptree m_pt_contact;
+
+	static bool byId(const Simulator::PersonType& lhs, const Simulator::PersonType& rhs);
 };
 
 }

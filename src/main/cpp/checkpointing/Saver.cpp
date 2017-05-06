@@ -11,6 +11,7 @@
 #include "util/InstallDirs.h"
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
+#include "core/Cluster.h"
 #include "checkpointing/customDataTypes/CalendarDataType.h"
 #include "checkpointing/customDataTypes/ConfDataType.h"
 #include "checkpointing/customDataTypes/PersonTDDataType.h"
@@ -26,18 +27,18 @@ using namespace boost::filesystem;
 
 namespace stride {
 
-Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_index_case, std::string simulator_run_mode, int start_timestep)
-	: m_filename(filename), m_frequency(frequency), 
-	  m_pt_config(pt_config), m_current_step(start_timestep - 1), 
+Saver::Saver(std::string filename, ptree pt_config, int frequency, bool track_index_case, std::string simulator_run_mode, int start_timestep)
+	: m_filename(filename), m_frequency(frequency),
+	  m_pt_config(pt_config), m_current_step(start_timestep - 1),
 	  m_timestep(start_timestep), m_save_count(0) {
-	
+
 	// Check if the simulator is run in extend mode and not from timestep 0
 	if (start_timestep != 0 && simulator_run_mode == "extend") {
 		// If the hdf5 file already exists, append the data, otherwise still run the whole constructor
 		if (exists(system_complete(std::string(filename)))) {
 
 			// Adjust the amount of saved timesteps
-			H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
+			H5File file(m_filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 			DataSet* dataset = new DataSet(file.openDataSet("amt_timesteps"));
 			unsigned int data[1];
 			dataset->read(data, PredType::NATIVE_UINT);
@@ -50,7 +51,7 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 	}
 	try {
 		Exception::dontPrint();
-		H5File file(m_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+		H5File file(m_filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
 		hsize_t dims[1];
 		dims[0] = 1;
@@ -125,15 +126,15 @@ Saver::Saver(const char* filename, ptree pt_config, int frequency, bool track_in
 		delete dataspace;
 		delete dataset;
 
-		hsize_t dims2[2];
 		// TODO amt_ages
+		/*hsize_t dims2[2];
 		dims2[0] = 5;
 		dims2[1] = 5;
 		dataspace = new DataSpace(2, dims2);
 		dataset = new DataSet(group.createDataSet("agecontact", PredType::NATIVE_DOUBLE, *dataspace));
 
 		delete dataspace;
-		delete dataset;
+		delete dataset;*/
 
 		dataspace = new DataSpace(1, dims);
 		unsigned int amt_time[1] = {0};
@@ -171,7 +172,7 @@ void Saver::update(const Simulator& sim) {
 }
 
 void Saver::forceSave(const Simulator& sim, int timestep) {
-	m_current_step++;
+	// m_current_step++;
 
 	if (timestep != -1) {
 		m_timestep = timestep;
@@ -184,7 +185,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 	try {
 		m_save_count++;
 
-		H5File file(m_filename, H5F_ACC_RDWR);
+		H5File file(m_filename.c_str(), H5F_ACC_RDWR);
 
 		if (m_current_step == 0) {
 			// Save Person Time Independent
@@ -278,27 +279,34 @@ void Saver::saveTimestep(const Simulator& sim) {
 
 
 		// Save Random Number Generator
-		hsize_t dims[1];
-		dims[0] = sim.m_num_threads;
+		hsize_t dims[1] = {sim.m_num_threads};
+		// dims[0] = sim.m_num_threads;
 
 		DataSpace* dataspace = new DataSpace(1, dims);
 		CompType typeRng(sizeof(RNGDataType));
 		typeRng.insertMember(H5std_string("seed"), HOFFSET(RNGDataType, seed), PredType::NATIVE_ULONG);
 		StrType tid1(0, H5T_VARIABLE);
-		typeRng.insertMember(H5std_string("state"), HOFFSET(RNGDataType, rng_state), tid1);
+		typeRng.insertMember(H5std_string("rng_state"), HOFFSET(RNGDataType, rng_state), tid1);
 		DataSet* dataset = new DataSet(group.createDataSet("randomgen", typeRng, *dataspace));
 
-		RNGDataType rngs[sim.m_num_threads];
+		RNGDataType* rngs = new RNGDataType[dims[0]];
 		std::vector<std::string> rng_states = sim.getRngStates();
+		// std::cout << std::endl;
 		for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
-			rngs[i].seed = sim.m_rng_handler.at(i).getSeed();
+			(rngs + i)->seed = sim.m_rng_handler.at(i).getSeed();
 			std::string str = rng_states[i];
-			rngs[i].rng_state = str.c_str();
+			// std::cout << "Saving: " << str.c_str() << std::endl;
+			(rngs + i)->rng_state = str.c_str();
 		}
+		// std::cout << std::endl;
+		// for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
+		// 	std::cout << "Saved: " << rngs[i].rng_state << std::endl;
+		// }
 		dataset->write(rngs, typeRng);
 
 		delete dataspace;
 		delete dataset;
+		delete[] rngs;
 
 
 		// Save Calendar
@@ -327,6 +335,20 @@ void Saver::saveTimestep(const Simulator& sim) {
 		// dims[0] = sim.getPopulation().get()->m_visitors.size();
 		// CompType typeTravellerData(sizeof(TravellerDataType));
 
+		// =============
+		// Save clusters
+		// =============
+
+		//   Household clusters
+		this->saveClusters(group, "household_clusters", sim.m_households);
+		//   School clusters
+		this->saveClusters(group, "school_clusters", sim.m_school_clusters);
+		//   Work clusters
+		this->saveClusters(group, "work_clusters", sim.m_work_clusters);
+		//   Primary Community clusters
+		this->saveClusters(group, "primary_community_clusters", sim.m_primary_community);
+		//   Secondary Community clusters
+		this->saveClusters(group, "secondary_community_clusters", sim.m_secondary_community);
 
 		// Save Person Time Dependent
 		dims[0] = sim.getPopulation().get()->m_original.size();
@@ -411,6 +433,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 		error.printError();
 		return;
 	} catch (DataSpaceIException error) {
+		std::cout << "Error while interacting with a dataspace." << std::endl;
 		error.printError();
 		return;
 	} catch (Exception error) {
@@ -418,6 +441,33 @@ void Saver::saveTimestep(const Simulator& sim) {
 		error.printError();
 	}
 	return;
+}
+
+void Saver::saveClusters(Group& group, std::string dataset_name, const vector<Cluster>& clusters) {
+	auto getAmtIds = [&]() {
+		unsigned int amt = 0;
+		for (unsigned int i = 0; i < clusters.size(); i++) amt += clusters.at(i).getSize();
+		return amt;
+	};
+	unsigned int amtIds = getAmtIds();
+
+	const unsigned int ndims_clusters = 1;
+	hsize_t dims_clusters[ndims_clusters] = {amtIds};
+	DataSpace* dataspace_clusters = new DataSpace(ndims_clusters, dims_clusters);
+	DataSet* dataset_clusters = new DataSet(group.createDataSet(H5std_string(dataset_name), PredType::NATIVE_UINT, *dataspace_clusters));
+
+	unsigned int cluster_data[amtIds];
+	unsigned int index = 0;
+	for (unsigned int i = 0; i < clusters.size(); i++) {
+		for (unsigned int j = 0; j < clusters.at(i).getSize(); j++) {
+			cluster_data[index++] = clusters.at(i).m_members.at(j).first->m_id;
+		}
+	}
+	dataset_clusters->write(cluster_data, PredType::NATIVE_UINT);
+	dataspace_clusters->close();
+	dataset_clusters->close();
+	delete dataspace_clusters;
+	delete dataset_clusters;
 }
 
 

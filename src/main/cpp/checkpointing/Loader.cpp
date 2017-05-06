@@ -18,6 +18,7 @@
 #include "pop/PopulationBuilder.h"
 #include "core/Cluster.h"
 
+#include <algorithm>
 #include <vector>
 #include <string>
 
@@ -224,7 +225,6 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 
 	delete dataset;
 
-
 	// Set up rng states
 	dataset = new DataSet(file.openDataSet(ss.str() + "/randomgen"));
 
@@ -234,34 +234,26 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 	dataspace_rng.getSimpleExtentDims(dims_rng, NULL);
 	dataspace_rng.close();
 
+	const unsigned int amt_rng = dims_rng[0];
+
+
 	CompType typeRng(sizeof(RNGDataType));
 	typeRng.insertMember(H5std_string("seed"), HOFFSET(RNGDataType, seed), PredType::NATIVE_ULONG);
-	typeRng.insertMember(H5std_string("state"), HOFFSET(RNGDataType, rng_state), tid1);
+	StrType tid2(0, H5T_VARIABLE);
+	typeRng.insertMember(H5std_string("rng_state"), HOFFSET(RNGDataType, rng_state), tid2);
 
 	vector<string> states;
-	for (unsigned int i = 0; i < dims_rng[0]; i++) {
-		RNGDataType rng_state[1];
-		hsize_t dim_sub[1] = {1};
-		DataSpace memspace(1, dim_sub, NULL);
+	RNGDataType* rng = new RNGDataType[amt_rng];
+	dataset->read(rng, typeRng);
 
-		hsize_t offset[1] = {i};
-		hsize_t count[1] = {1};
-		hsize_t stride[1] = {1};
-		hsize_t block[1] = {1};
-
-		DataSpace dataspace = dataset->getSpace();
-		dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
-		dataset->read(rng_state, typeRng, memspace, dataspace);
-
-		string state = rng_state[0].rng_state;
-		states.push_back(state);
-
-		memspace.close();
-		dataspace.close();
+	for (unsigned int i = 0; i < amt_rng; i++) {
+		const char* c = (rng + i)->rng_state.c_str();
+		string s = c;
+		states.push_back(s);
 	}
 	sim->setRngStates(states);
 	delete dataset;
-
+	delete[] rng;
 
 	dataset = new DataSet(file.openDataSet(ss.str() + "/PersonTD"));
 	unsigned long dims[1] = {sim->m_population.get()->m_original.size()};
@@ -307,11 +299,26 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 		memspace.close();
 		dataspace.close();
 	}
-	this->updateClusterImmuneIndices(sim);
 
+	std::sort(sim.get()->m_population.get()->begin(), sim.get()->m_population.get()->end(), this->byId);
+
+	//   Household clusters
+	this->loadClusters(file, ss.str() + "/household_clusters", sim->m_households, sim.get()->m_population);
+	//   School clusters
+	this->loadClusters(file, ss.str() + "/school_clusters", sim->m_school_clusters, sim.get()->m_population);
+	//   Work clusters
+	this->loadClusters(file, ss.str() + "/work_clusters", sim->m_work_clusters, sim.get()->m_population);
+	//   Primary Community clusters
+	this->loadClusters(file, ss.str() + "/primary_community_clusters", sim->m_primary_community, sim.get()->m_population);
+	//   Secondary Community clusters
+	this->loadClusters(file, ss.str() + "/secondary_community_clusters", sim->m_secondary_community, sim.get()->m_population);
+
+	this->updateClusterImmuneIndices(sim);
 	dataset->close();
 	file.close();
 }
+
+bool Loader::byId(const Simulator::PersonType& lhs, const Simulator::PersonType& rhs) { return lhs.getId() < rhs.getId(); };
 
 int Loader::getLastSavedTimestep() const {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
@@ -341,6 +348,32 @@ void Loader::updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const {
 	}
 }
 
+void Loader::loadClusters(H5File& file, std::string dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Population> pop) {
+	DataSet* dataset = new DataSet(file.openDataSet(dataset_name));
+	DataSpace dataspace = dataset->getSpace();
+	hsize_t dims_clusters[1];
+	dataspace.getSimpleExtentDims(dims_clusters, NULL);
+	const unsigned int amtIds = dims_clusters[0];
+	dataspace.close();
 
+	// std::cout << "Loading: " << dataset_name << std::endl;
+
+	unsigned int cluster_data[amtIds];
+	unsigned int index = 0;
+
+	// std::cout << "Reading cluster data for " << amtIds << " ids\n";
+	dataset->read(cluster_data, PredType::NATIVE_UINT);
+
+	for(unsigned int i = 0; i < cluster.size(); i++) {
+		for(unsigned int j = 0; j < cluster.at(i).getSize(); j++) {
+			unsigned int id = cluster_data[index++];
+			Simulator::PersonType* person = &pop.get()->at(id);
+			cluster.at(i).m_members.at(j).first = person;
+		}
+	}
+
+	delete dataset;
 }
 
+
+}
