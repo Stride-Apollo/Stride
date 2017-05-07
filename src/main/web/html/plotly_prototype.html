@@ -1,0 +1,110 @@
+<head>
+	<script src="../js/plotly-latest.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+</head>
+<body>
+	<div id="tester"></div>
+
+	<label>Select File</label>
+	<input id="input-1" type="file" class="file">
+</body>
+
+<script>
+	var inputElement = document.getElementById("input-1");
+	inputElement.onchange = function(event) {
+		var fileList = inputElement.files;
+		var reader = new FileReader();
+
+		var text = "";
+
+		reader.onload = function(e) {
+			text = reader.result;
+			cluster_data = JSON.parse(text);
+			makeClusters(cluster_data);
+		}
+
+		reader.readAsText(fileList[0]);	
+	}
+
+
+	function getClusterData(filename) {
+		$.ajax({
+			url: filename,
+			type:'GET',
+				success: function(data) {
+					makeClusters(JSON.parse(data));
+				},
+				error: function(context) {
+					alert("The given value is not valid.");
+			}
+		});
+	}
+
+	function makeClusters(cluster_data) {
+		var myPlot = document.getElementById("tester");
+		Plotly.purge(myPlot);
+
+		var data = [{
+			type:'scattergeo',
+			lon: cluster_data.data[0].long_s,
+			lat: cluster_data.data[0].lat_s,
+			hoverinfor: cluster_data.data[0].id_s,
+
+			mode: 'markers',
+			marker: {
+				size: 10,	// TODO size based on population fraction
+				opacity: 0.8,
+				reversescale: false,
+				autocolorscale: false,
+				symbol: 'circle',
+				line: {
+					width: 0
+				},
+
+				colorscale: [
+				['0.0', 'rgb(0,255,0)'],	// TODO make customizable
+				['1.0', 'rgb(255,0,0)']
+			],
+
+				color: cluster_data.data[0].infected_s,
+				cmin: 0,
+				colorbar: {
+					title: 'Infected counts'
+				}
+			}
+		}];
+
+
+		var layout = {
+			title: 'Infected counts',
+			colorbar: true,
+			geo: {
+				scope: 'world',
+				resolution: 100,
+				projection: {
+					type: 'robinson'
+				},
+				showland: true,
+				landcolor: 'rgb(250,250,250)',
+				subunitcolor: 'rgb(217,217,217)',
+				countrycolor: 'rgb(217,217,217)',
+				countrywidth: 0.5,
+				subunitwidth: 0.5
+			},
+			width: 0.65 * window.innerWidth,
+			height: 0.65 * window.innerHeight
+		};
+
+		Plotly.plot("tester", data, layout, {showCountries: true});
+
+		// How to handle click events
+		myPlot.on('plotly_click', function(data){
+			// For some reason, the example had a for loop
+			for(var i=0; i < data.points.length; i++){
+				console.log(data.points[i].lat);
+				console.log(data.points[i].lon);
+			};
+		});
+	}
+
+</script>
