@@ -26,7 +26,6 @@
 #include "behavior/behavior_policies/NoBehavior.h"
 #include "pop/Person.h"
 #include "pop/Traveller.h"
-#include "util/Subject.h"
 
 #include "behavior/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
@@ -44,7 +43,7 @@ class Cluster;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator : public util::Subject<Simulator> {
+class Simulator {
 public:
 	using PersonType = Person<NoBehavior, NoBelief>;
 	using TravellerType = Traveller<PersonType>;
@@ -83,7 +82,7 @@ private:
 	LogMode m_log_level;            		///< Specifies logging mode.
 	std::shared_ptr<Calendar> m_calendar;	///< Management of calendar.
 
-private:
+public:	// TODO write getters or set friend class for ClusterSaver
 	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
 
 	std::vector<Cluster> m_households;           ///< Container with household Clusters.

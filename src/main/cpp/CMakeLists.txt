@@ -1,8 +1,8 @@
 #############################################################################
-#  This file is part of the Stride software. 
+#  This file is part of the Stride software.
 #  It is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by 
-#  the Free Software Foundation, either version 3 of the License, or any 
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or any
 #  later version.
 #  The software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,11 +33,11 @@ set(LIB_SRC
 	output/CasesFile.cpp
 	output/PersonFile.cpp
 	output/SummaryFile.cpp
-#---    
+#---
 	pop/Person.cpp
 	pop/PopulationBuilder.cpp
 #---
-	sim/run_stride2.cpp
+	sim/run_stride.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
@@ -55,6 +55,8 @@ set(LIB_SRC
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
+ #--
+ 	vis/ClusterSaver.cpp
 )
 
 set(POPGEN_SRC

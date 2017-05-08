@@ -25,10 +25,13 @@
 #include "output/SummaryFile.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
+#include "sim/LocalSimulatorAdapter.h"
+#include "util/async.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
+#include "vis/ClusterSaver.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 #include <omp.h>
@@ -135,12 +138,15 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	// Add observers to the simulator.
 	// -----------------------------------------------------------------------------------------
 
+	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
+
 	cout << "Adding observers to the simulator." << endl;
 	/// example on how to use:
-		// auto classInstance = std::make_shared<Class>();
-		// std::function<void(const Simulator&)> fnCaller = std::bind(&Class::update, classInstance, std::placeholders::_1); 
-		// sim->registerObserver(classInstance, fnCaller); 
+	auto classInstance = std::make_shared<ClusterSaver>("cluster_output");
+	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&ClusterSaver::update, classInstance, std::placeholders::_1);
+	local_sim->registerObserver(classInstance, fnCaller);
 	cout << "Done adding the observers." << endl << endl;
+
 
 	// -----------------------------------------------------------------------------------------
 	// Run the simulation.
@@ -151,7 +157,11 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	for (unsigned int i = 0; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
 		run_clock.start();
-		sim->timeStep();
+
+		vector<future<bool>> fut_results;
+		fut_results.push_back(local_sim->timeStep());
+		future_pool(fut_results);
+
 		run_clock.stop();
 		cout << "     Done, infected count: ";
 		cases[i] = sim->getPopulation()->getInfectedCount();

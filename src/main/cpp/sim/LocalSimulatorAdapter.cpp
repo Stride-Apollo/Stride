@@ -7,7 +7,7 @@ LocalSimulatorAdapter::LocalSimulatorAdapter(Simulator* sim)
 	: m_sim(sim) {}
 
 future<bool> LocalSimulatorAdapter::timeStep() {
-	return async([&](){m_sim->timeStep(); return true;});
+	return async([&](){m_sim->timeStep(); this->notify(*this); return true;});
 }
 
 void LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travellers) {

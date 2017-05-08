@@ -126,7 +126,6 @@ void Simulator::timeStep() {
 		}
 	}
 
-	notify(*this);
 	m_calendar->advanceDay();
 }
 

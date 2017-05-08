@@ -4,12 +4,13 @@
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
+#include "util/Subject.h"
 
 namespace stride {
 
 using namespace std;
 
-class LocalSimulatorAdapter : public AsyncSimulator {
+class LocalSimulatorAdapter : public AsyncSimulator, public util::Subject<LocalSimulatorAdapter> {
 public:
 	LocalSimulatorAdapter(Simulator* sim);
 
@@ -17,7 +18,7 @@ public:
 
 	virtual void host(const vector<Simulator::TravellerType>& travellers) override;
 
-private:
+public:
 	Simulator* m_sim;
 };
 
