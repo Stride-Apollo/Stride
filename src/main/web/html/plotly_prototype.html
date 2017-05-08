@@ -82,6 +82,27 @@
 			}
 		});
 	}
+	
+	function getSize(cluster_data) {
+	    var MIN_SIZE = 5;
+	    var MAX_SIZE = 120;
+	    var min_value = Number.MAX_VALUE;
+	    var max_value = Number.MIN_VALUE;
+    	for (var i in cluster_data.data.size_s) {
+		    if (cluster_data.data.size_s[i] > max_value) {
+		        max_value = cluster_data.data.size_s[i];
+		    }   
+		    if (cluster_data.data.size_s[i] < min_value) {
+		        min_value = cluster_data.data.size_s[i];
+		    }
+		};
+        var result = [];
+        
+        for (var i in cluster_data.data.size_s) {
+            result.push((cluster_data.data.size_s[i] - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE);
+        };
+        return result;
+	};
 
 	function makeClusters(cluster_data) {
 		var myPlot = document.getElementById("tester");
@@ -92,7 +113,19 @@
 		for (var i in cluster_data.data.infected_s) {
 			colorValues.push(cluster_data.data.infected_s[i] / cluster_data.data.size_s[i]);
 		}
-
+		
+		var sizeValues = [];
+		var maxSize = 0;
+		
+		for (var i in cluster_data.data.size_s) {
+		    if (cluster_data.data.size_s[i] > maxSize) {
+		        maxSize = cluster_data.data.size_s[i];
+		    }   
+		};
+		
+		for (var i in cluster_data.data.size_s) {
+		    sizeValues.push(cluster_data.data.size_s[i]); 
+		};
 		var data = [{
 			type:'scattergeo',
 			lon: cluster_data.data.long_s,
@@ -101,7 +134,8 @@
 
 			mode: 'markers',
 			marker: {
-				size: 10,	// TODO size based on population fraction
+				size: getSize(cluster_data),	// TODO size based on population fraction
+//				sizeref: maxSize/70,
 				opacity: 0.8,
 				reversescale: false,
 				autocolorscale: false,
