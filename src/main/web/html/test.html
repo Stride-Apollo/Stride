@@ -34,7 +34,7 @@
 
     function getClusterData(filename) {
         $.ajax({
-            url: "cluster_positions.json",
+            url: "http://localhost:8080/data/cluster_positions.json",
             type:'GET',
                 success: function(data) {
                     makeMarkers(JSON.parse(data));

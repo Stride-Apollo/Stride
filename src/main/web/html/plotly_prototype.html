@@ -5,14 +5,35 @@
 <body>
 	<div id="tester"></div>
 
-	<label>Select File</label>
-	<input id="input-1" type="file" class="file">
+	<label id="input-1_label">Select File</label>
+	<input id="input-1" type="file" class="file" webkitdirectory directory>
 </body>
 
 <script>
+	var id_coord_map = {
+		keys: [],
+		values: [],
+		getId: function(key) {
+
+			function myIndexOf(o, arr) {
+				for (var i = 0; i < arr.length; i++) {
+					if (arr[i].lat == o.lat && arr[i].long == o.long) {
+						return i;
+					}
+				}
+				return -1;
+			}
+
+			return this.values[myIndexOf(key, this.keys)];
+		}
+	};
+
+	var files = [];
+
 	var inputElement = document.getElementById("input-1");
+
 	inputElement.onchange = function(event) {
-		var fileList = inputElement.files;
+		files = inputElement.files;
 		var reader = new FileReader();
 
 		var text = "";
@@ -21,9 +42,31 @@
 			text = reader.result;
 			cluster_data = JSON.parse(text);
 			makeClusters(cluster_data);
+			document.getElementById("input-1_label").remove();
+			document.getElementById("input-1").remove();
 		}
 
-		reader.readAsText(fileList[0]);	
+		function getFileNumber(filename) {
+			var tmp = filename.split("_");
+			return parseInt(tmp[0]);
+		}
+
+		function searchFirstFile() {
+			var smallestNumber = getFileNumber(files[0].name);
+			var smallestNumberIndex = 0;
+
+			for (var i = 1; i < files.length; i++) {
+				var candidateNumber = getFileNumber(files[i].name);
+				if (smallestNumber > candidateNumber) {
+					smallestNumber = candidateNumber;
+					smallestNumberIndex = i;
+				}
+			}
+
+			return smallestNumberIndex;
+		}
+
+		reader.readAsText(files[searchFirstFile()]);	
 	}
 
 
@@ -44,11 +87,17 @@
 		var myPlot = document.getElementById("tester");
 		Plotly.purge(myPlot);
 
+		var colorValues = [];
+
+		for (var i in cluster_data.data.infected_s) {
+			colorValues.push(cluster_data.data.infected_s[i] / cluster_data.data.size_s[i]);
+		}
+
 		var data = [{
 			type:'scattergeo',
-			lon: cluster_data.data[0].long_s,
-			lat: cluster_data.data[0].lat_s,
-			hoverinfor: cluster_data.data[0].id_s,
+			lon: cluster_data.data.long_s,
+			lat: cluster_data.data.lat_s,
+			hovertext: cluster_data.data.id_s,
 
 			mode: 'markers',
 			marker: {
@@ -63,10 +112,11 @@
 
 				colorscale: [
 				['0.0', 'rgb(0,255,0)'],	// TODO make customizable
+				[Number.MIN_VALUE, 'rgb(255,255,0)'],
 				['1.0', 'rgb(255,0,0)']
-			],
+				],
 
-				color: cluster_data.data[0].infected_s,
+				color: colorValues,
 				cmin: 0,
 				colorbar: {
 					title: 'Infected counts'
@@ -98,13 +148,30 @@
 		Plotly.plot("tester", data, layout, {showCountries: true});
 
 		// How to handle click events
-		myPlot.on('plotly_click', function(data){
+		myPlot.on('plotly_click', function(click_data){
 			// For some reason, the example had a for loop
-			for(var i=0; i < data.points.length; i++){
-				console.log(data.points[i].lat);
-				console.log(data.points[i].lon);
+			for(var i=0; i < click_data.points.length; i++){
+				console.log("Clicked cluster with ID ",id_coord_map.getId({
+																			lat: click_data.points[i].lon,	// IMPORTANT, for some reason these values were swapped, i can't figure out why
+																			long: click_data.points[i].lat
+																		}));
+				console.log("CLICKED ", click_data.points[i].lat, " ", click_data.points[i].lon);
+
 			};
 		});
+		makeIDMap(cluster_data);
+	}
+
+	function makeIDMap(cluster_data) {
+		for (var i = 0; i < cluster_data.data.id_s.length; i++) {
+			console.log("ADDED ", cluster_data.data.lat_s[i], " ", cluster_data.data.long_s[i]);
+			var coord = {
+							lat: cluster_data.data.lat_s[i],
+							long: cluster_data.data.long_s[i]
+						}
+			id_coord_map.values.push(cluster_data.data.id_s[i]);
+			id_coord_map.keys.push(coord);
+		}
 	}
 
 </script>
