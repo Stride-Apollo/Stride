@@ -1,0 +1,121 @@
+<head>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
+</head>
+<body>
+	<div id="map" style="width: 100%; height: 100%"></div>
+
+	<label id="input-1_label">Select File</label>
+	<input id="input-1" type="file" class="file" webkitdirectory directory>
+	<button onclick="previousDay()">Previous day</button>
+	<button onclick="nextDay()">Next day</button>
+</body>
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v9'
+    });
+
+    var files = {
+		keys: [],
+		values: []
+	};	// file-text_of_file pairs
+
+	var inputElement = document.getElementById("input-1");
+
+	function getFileNumber(filename) {
+		var tmp = filename.split("_");
+		return parseInt(tmp[0]);
+	}
+
+	inputElement.onchange = function(event) {
+		var all_files = inputElement.files;
+
+		function searchFirstFile() {
+			var smallestNumber = getFileNumber(all_files[0].name);
+			var smallestNumberIndex = 0;
+
+			for (var i = 1; i < all_files.length; i++) {
+				var candidateNumber = getFileNumber(all_files[i].name);
+				if (smallestNumber > candidateNumber) {
+					smallestNumber = candidateNumber;
+					smallestNumberIndex = i;
+				}
+			}
+			currentDay = smallestNumber;
+			return smallestNumberIndex;
+		}
+
+		function readFile(fileNumber) {
+			if (fileNumber >= all_files.length) {
+				makeClusters(JSON.parse(files.values[searchFirstFile()]));
+				return;
+			}
+
+			(function(file) {
+				var reader = new FileReader();
+				reader.onloadend = function (evt) {
+					if (evt.target.readyState == FileReader.DONE) {
+						files.keys.push(file);
+						files.values.push(reader.result);
+					}
+					readFile(fileNumber + 1);
+				};
+				reader.readAsText(file);
+			}) (all_files[fileNumber]);
+		}
+
+		readFile(0);
+	}
+	
+    function makeClusters(cluster_data) {            
+        console.log(cluster_data)
+        map.addSource("source_circle_500", {
+            "type": "geojson",
+            "data": cluster_data
+        });
+        
+        map.addLayer({
+            "id": "circle500",
+            "type": "circle",
+            "source": "source_circle_500",
+            "paint": {
+                // TODO Legit sizing (with zoom and stuff)
+                'circle-radius': {
+                    property: "size",
+                    stops: getSize(cluster_data)
+                },                
+                "circle-color": {
+                    property: "infected_procent",
+                    stops: [[-1, 'rgb(0, 250,0)'],[0, 'rgb(250, 250,0)'],[1, 'rgb(250,0,0)']]  
+                },
+                "circle-opacity": 0.85
+            }
+        });
+    }
+    
+    
+    function getSize(cluster_data) {
+        var result = [[0, 0]];
+	    var MIN_SIZE = 10;
+	    var MAX_SIZE = 120;
+	    var min_value = Number.MAX_VALUE;
+	    var max_value = Number.MIN_VALUE;
+	    console.log(cluster_data.features);
+    	for (var i in cluster_data.features) {
+		    if (cluster_data.features[i].properties.size > max_value) {
+		        max_value = cluster_data.features[i].properties.size;
+		    }   
+		    if (cluster_data.features[i].properties.size < min_value) {
+		        min_value = cluster_data.features[i].properties.size;
+		    }
+		};
+        
+        // TODO Incorporate zoom
+        for (var i in cluster_data.features) {
+            result.push([cluster_data.features[i].properties.size, (cluster_data.features[i].properties.size - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE]);
+        };
+        return result.sort(function(a,b) {return a[0] - b[0]});
+	};
+</script>
