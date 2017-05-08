@@ -7,6 +7,7 @@
 
 	<label id="input-1_label">Select File</label>
 	<input id="input-1" type="file" class="file" webkitdirectory directory>
+	<button onclick="previousDay()">Previous day</button>
 	<button onclick="nextDay()">Next day</button>
 </body>
 
@@ -233,9 +234,16 @@
 		return -1;
 	}
 
-
 	function nextDay() {
 		currentDay++;
+		var index = searchFileIndex(currentDay, files.keys); // TODO check for -1
+		console.log("INDEX ", index);
+		console.log("FOUND ", files.values[index]);
+		makeClusters(JSON.parse(files.values[index]));
+	}
+
+	function previousDay() {
+		currentDay--;
 		var index = searchFileIndex(currentDay, files.keys); // TODO check for -1
 		console.log("INDEX ", index);
 		console.log("FOUND ", files.values[index]);
