@@ -7,9 +7,11 @@
 
 	<label id="input-1_label">Select File</label>
 	<input id="input-1" type="file" class="file" webkitdirectory directory>
+	<button onclick="nextDay()">Next day</button>
 </body>
 
 <script>
+	var currentDay = 0;
 	var id_coord_map = {
 		keys: [],
 		values: [],
@@ -28,45 +30,56 @@
 		}
 	};
 
-	var files = [];
+	var files = {
+		keys: [],
+		values: []
+	};	// file-text_of_file pairs
 
 	var inputElement = document.getElementById("input-1");
 
+	function getFileNumber(filename) {
+		var tmp = filename.split("_");
+		return parseInt(tmp[0]);
+	}
+
 	inputElement.onchange = function(event) {
-		files = inputElement.files;
-		var reader = new FileReader();
-
-		var text = "";
-
-		reader.onload = function(e) {
-			text = reader.result;
-			cluster_data = JSON.parse(text);
-			makeClusters(cluster_data);
-			document.getElementById("input-1_label").remove();
-			document.getElementById("input-1").remove();
-		}
-
-		function getFileNumber(filename) {
-			var tmp = filename.split("_");
-			return parseInt(tmp[0]);
-		}
+		var all_files = inputElement.files;
 
 		function searchFirstFile() {
-			var smallestNumber = getFileNumber(files[0].name);
+			var smallestNumber = getFileNumber(all_files[0].name);
 			var smallestNumberIndex = 0;
 
-			for (var i = 1; i < files.length; i++) {
-				var candidateNumber = getFileNumber(files[i].name);
+			for (var i = 1; i < all_files.length; i++) {
+				var candidateNumber = getFileNumber(all_files[i].name);
 				if (smallestNumber > candidateNumber) {
 					smallestNumber = candidateNumber;
 					smallestNumberIndex = i;
 				}
 			}
-
+			currentDay = smallestNumber;
 			return smallestNumberIndex;
 		}
 
-		reader.readAsText(files[searchFirstFile()]);	
+		function readFile(fileNumber) {
+			if (fileNumber >= all_files.length) {
+				makeClusters(JSON.parse(files.values[searchFirstFile()]));
+				return;
+			}
+
+			(function(file) {
+				var reader = new FileReader();
+				reader.onloadend = function (evt) {
+					if (evt.target.readyState == FileReader.DONE) {
+						files.keys.push(file);
+						files.values.push(reader.result);
+					}
+					readFile(fileNumber + 1);
+				};
+				reader.readAsText(file);
+			}) (all_files[fileNumber]);
+		}
+
+		readFile(0);
 	}
 
 
@@ -84,6 +97,8 @@
 	}
 
 	function makeClusters(cluster_data) {
+		console.log("GOT ", JSON.stringify(cluster_data));
+
 		var myPlot = document.getElementById("tester");
 		Plotly.purge(myPlot);
 
@@ -172,6 +187,25 @@
 			id_coord_map.values.push(cluster_data.data.id_s[i]);
 			id_coord_map.keys.push(coord);
 		}
+	}
+
+	function searchFileIndex(number, arr) {
+		for (var i = 0; i < arr.length; i++) {
+			var candidateNumber = getFileNumber(arr[i].name);
+			if (number == candidateNumber) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+
+	function nextDay() {
+		currentDay++;
+		var index = searchFileIndex(currentDay, files.keys); // TODO check for -1
+		console.log("INDEX ", index);
+		console.log("FOUND ", files.values[index]);
+		makeClusters(JSON.parse(files.values[index]));
 	}
 
 </script>
