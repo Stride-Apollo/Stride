@@ -71,15 +71,15 @@
 	
     function makeClusters(cluster_data) {            
         console.log(cluster_data)
-        map.addSource("source_circle_500", {
+        map.addSource("cluster_data", {
             "type": "geojson",
             "data": cluster_data
         });
         
         map.addLayer({
-            "id": "circle500",
+            "id": "clusters",
             "type": "circle",
-            "source": "source_circle_500",
+            "source": "cluster_data",
             "paint": {
                 // TODO Legit sizing (with zoom and stuff)
                 'circle-radius': {
@@ -93,8 +93,32 @@
                 "circle-opacity": 0.85
             }
         });
-    }
-    
+        // Create a popup, but don't add it to the map yet.
+        var popup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false
+        });
+
+        map.on('mouseenter', 'clusters', function(e) {
+            // Change the cursor style as a UI indicator.
+            map.getCanvas().style.cursor = 'pointer';
+
+            var htmlText = "Cluster " + e.features[0].properties.id.toString()
+            + "<br>Size: " + e.features[0].properties.size.toString()
+            + "<br>Infected: " + e.features[0].properties.infected.toString()            
+
+            // Populate the popup and set its coordinates
+            // based on the feature found.
+            popup.setLngLat(e.features[0].geometry.coordinates)
+                .setHTML(htmlText)
+                .addTo(map);
+        });
+
+        map.on('mouseleave', 'clusters', function() {
+            map.getCanvas().style.cursor = '';
+            popup.remove();
+        });
+    }    
     
     function getSize(cluster_data) {
         var result = [[0, 0]];
