@@ -67,15 +67,49 @@
 		}
 
 		readFile(0);
+	}	
+
+	function searchFileIndex(number, arr) {
+		for (var i = 0; i < arr.length; i++) {
+			var candidateNumber = getFileNumber(arr[i].name);
+			if (number == candidateNumber) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	function nextDay() {
+		currentDay++;
+		var index = searchFileIndex(currentDay, files.keys); // TODO check for -1
+		console.log("INDEX ", index);
+		console.log("FOUND ", files.values[index]);
+		makeClusters(JSON.parse(files.values[index]));
+	}
+
+	function previousDay() {
+		currentDay--;
+		var index = searchFileIndex(currentDay, files.keys); // TODO check for -1
+		console.log("INDEX ", index);
+		console.log("FOUND ", files.values[index]);
+		makeClusters(JSON.parse(files.values[index]));
 	}
 	
     function makeClusters(cluster_data) {            
         console.log(cluster_data)
+        if (map.getLayer("clusters")) {
+            map.removeLayer("clusters");
+        }
+        
+        if (map.getSource("cluster_data")) {
+            map.removeSource("cluster_data");
+        }
+        
         map.addSource("cluster_data", {
             "type": "geojson",
             "data": cluster_data
         });
-        
+                
         map.addLayer({
             "id": "clusters",
             "type": "circle",
