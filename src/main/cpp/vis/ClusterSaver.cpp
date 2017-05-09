@@ -6,6 +6,8 @@
 #include <string>
 #include <utility>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 #include "vis/ClusterSaver.h"
 #include "util/InstallDirs.h"
@@ -13,6 +15,9 @@
 using boost::property_tree::ptree;
 using boost::property_tree::write_json;
 using std::string;
+using std::stringstream;
+using std::setw;
+using std::setfill;
 
 
 namespace stride {
@@ -49,7 +54,9 @@ void ClusterSaver::saveClustersJSON(const LocalSimulatorAdapter& local_sim) cons
 	// 	}
 	// 	clusters.add_child("Secondary_communities", clusters_secondaries);
 	// }
-	write_json(util::InstallDirs::getOutputDir().string() + "/" + m_file_name + std::to_string(m_sim_day) + ".json", clusters);
+	stringstream ss;
+	ss << setfill('0') << setw(5) << m_sim_day;
+	write_json(util::InstallDirs::getOutputDir().string() + "/" + m_file_name + "_" + ss.str() + ".json", clusters);
 }
 
 pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster) const {
