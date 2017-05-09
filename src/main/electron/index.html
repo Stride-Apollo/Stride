@@ -61,6 +61,11 @@
 	}
 
 	function makeClusters(cluster_data) {
+		for (var i in cluster_data.features) {
+			console.log(cluster_data.features[i].properties.infected_percent);
+			cluster_data.features[i].properties.infected_percent = parseFloat(cluster_data.features[i].properties.infected_percent);
+			console.log(cluster_data.features[i].properties.infected_percent);
+		}
 		console.log(cluster_data)
 		if (map.getLayer("clusters")) {
 			map.removeLayer("clusters");
@@ -87,7 +92,7 @@
 					stops: getSize(cluster_data)
 				},
 				"circle-color": {
-					property: "infected_procent",
+					property: "infected_percent",
 					stops: [[-1, 'rgb(0, 250,0)'],[0, 'rgb(250, 250,0)'],[1, 'rgb(250,0,0)']]
 				},
 				"circle-opacity": 0.85
@@ -109,7 +114,7 @@
 
 			// Populate the popup and set its coordinates
 			// based on the feature found.
-			popup.setLngLat(e.features[0].geometry.coordinates)
+			popup.setLngLat([parseFloat((e.features[0].geometry.coordinates[0])), parseFloat((e.features[0].geometry.coordinates[1]))])
 				.setHTML(htmlText)
 				.addTo(map);
 		});
@@ -138,8 +143,8 @@
 	function fitView(map, cluster_data) {
 		var coords = [];
 		for (var i in cluster_data.features) {
-			console.log(cluster_data.features[i].geometry.coordinates);
-			coords.push(cluster_data.features[i].geometry.coordinates);
+			console.log([parseFloat((cluster_data.features[i].geometry.coordinates[0])), parseFloat((cluster_data.features[i].geometry.coordinates[1]))]);
+			coords.push([parseFloat((cluster_data.features[i].geometry.coordinates[0])), parseFloat((cluster_data.features[i].geometry.coordinates[1]))]);
 		};
 
 		var min_lat = Number.MAX_VALUE;
@@ -172,18 +177,19 @@
 		var max_value = Number.MIN_VALUE;
 		console.log(cluster_data.features);
 		for (var i in cluster_data.features) {
-			if (cluster_data.features[i].properties.size > max_value) {
-				max_value = cluster_data.features[i].properties.size;
+			var size = parseFloat(cluster_data.features[i].properties.size);
+			if (size > max_value) {
+				max_value = size;
 			}
-			if (cluster_data.features[i].properties.size < min_value) {
-				min_value = cluster_data.features[i].properties.size;
+			if (size < min_value) {
+				min_value = size;
 			}
 		};
 
 		var zoom = [[1,1], [4,1], [7,2], [13, 4], [15, 7], [18, 10]];
 		var sizes = [];
 		for (var i in cluster_data.features) {
-			sizes.push(cluster_data.features[i].properties.size);
+			sizes.push(parseFloat(cluster_data.features[i].properties.size));
 		};
 
 		sizes.sort();
