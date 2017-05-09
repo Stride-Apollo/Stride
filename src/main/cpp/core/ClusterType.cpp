@@ -64,7 +64,7 @@ bool isClusterType(const string& s) {
 ClusterType toClusterType(const string& s) {
 	std::string t {s};
 	to_upper(t);
-	return (g_name_cluster_type.count(s) == 1) ? g_name_cluster_type[s] : ClusterType::Null;
+	return (g_name_cluster_type.count(t) == 1) ? g_name_cluster_type[t] : ClusterType::Null;
 }
 
 }

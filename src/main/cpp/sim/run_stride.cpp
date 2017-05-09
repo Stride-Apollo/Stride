@@ -79,7 +79,7 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 							+ ">Config file " + file_path.string() + " not present. Aborting.");
 	}
 	read_xml(file_path.string(), pt_config);
-	cout << "Configuration file:  " << file_path.string() << endl;
+	cout << "Configuration file:  " << file_path.string() << endl ;
 
 	// -----------------------------------------------------------------------------------------
 	// OpenMP.
@@ -103,7 +103,7 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	}
 	cout << "Project output tag:  " << output_prefix << endl << endl;
 
-	// -----------------------------------------------------------------------------------------
+	// ----------------------------------------------------------federicoquin -------------------------------
 	// Additional run configurations.
 	// -----------------------------------------------------------------------------------------
 	if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
@@ -127,7 +127,7 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
 	// -----------------------------------------------------------------------------------------
-	// Create simulator.
+	// Create simulator.federicoquin 
 	// -----------------------------------------------------------------------------------------
 	Stopwatch<> total_clock("total_clock", true);
 	cout << "Building the simulator. " << endl;
@@ -175,18 +175,19 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	CasesFile cases_file(output_prefix);
 	cases_file.print(cases);
 
+	// No
 	// Summary
-	SummaryFile summary_file(output_prefix);
-	summary_file.print(pt_config,
-					   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
-					   duration_cast<milliseconds>(run_clock.get()).count(),
-					   duration_cast<milliseconds>(total_clock.get()).count());
+	// SummaryFile summary_file(output_prefix);
+	// summary_file.print(pt_config,
+	// 				   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
+	// 				   duration_cast<milliseconds>(run_clock.get()).count(),
+	// 				   duration_cast<milliseconds>(total_clock.get()).count());
 
-	// Persons
-	if (pt_config.get<double>("run.generate_person_file") == 1) {
-		PersonFile person_file(output_prefix);
-		person_file.print(sim->getPopulation());
-	}
+	// // Persons
+	// if (pt_config.get<double>("run.generate_person_file") == 1) {
+	// 	PersonFile person_file(output_prefix);
+	// 	person_file.print(sim->getPopulation());
+	// }
 
 	// -----------------------------------------------------------------------------------------
 	// print final message to command line.

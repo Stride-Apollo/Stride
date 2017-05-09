@@ -1,6 +1,6 @@
 #include "util/GeoCoordinate.h"
 #include "util/GeoCoordCalculator.h"
-#include "popgen/utils.h"
+#include "util/RNGPicker.h"
 
 using namespace stride;
 using namespace util;

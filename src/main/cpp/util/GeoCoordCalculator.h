@@ -2,13 +2,13 @@
 
 #include <iostream>
 
-#include "popgen/utils.h"
+#include "util/RNGPicker.h"
+#include "util/GeoCoordinate.h"
 
 namespace stride {
 namespace util {
 
 using namespace std;
-using namespace popgen;
 
 class GeoCoordCalculator {
 	/// Singleton pattern
@@ -24,7 +24,6 @@ public:
 	/// radius is in kilometres
 	/// TODO make the distribution fair
 
-/// TODO why is this public?
 private:
 	GeoCoordCalculator(){}
 

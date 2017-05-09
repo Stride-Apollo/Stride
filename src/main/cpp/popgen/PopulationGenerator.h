@@ -9,12 +9,15 @@
 #include <exception>
 #include <limits>
 #include <list>
+#include <utility>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
 #include "util/AliasDistribution.h"
 #include "util/GeoCoordCalculator.h"
+#include "util/RNGPicker.h"
 #include "popgen/utils.h"
+#include "core/ClusterType.h"
 
 namespace stride {
 namespace popgen {
@@ -34,7 +37,7 @@ public:
 
 	/// Generates a population, writes the result to the files found in the data directory
 	/// Output files are respectively formatted according to the following template files: belgium_population.csv, pop_miami.csv, pop_miami_geo.csv
-	void generate(const string& target_cities, const string& target_pop, const string& target_households);
+	void generate(const string& target_cities, const string& target_pop, const string& target_households, const string& target_clusters);
 
 private:
 	/// Writes the cities to the file, see PopulationGenerator::generate, recently, the villages have been added to this
@@ -45,6 +48,9 @@ private:
 
 	/// Writes the households to the file, see PopulationGenerator::generate
 	void writeHouseholds(const string& target_households) const;
+
+	/// Writes the clusters to the file (tŷpe, ID and coordinates), see PopulationGenerator::generate
+	void writeClusters(const string& target_clusters) const;
 
 	/// Checks the xml on correctness, this includes only semantic errors, no syntax errors
 	void chechForValidXML() const;
@@ -80,7 +86,7 @@ private:
 	/// size: the size of each cluster
 	/// min_age and max_age: the category of people that belongs to these clusters (e.g. schools an work have a minimum/maximum age)
 	template<typename C>
-	void placeClusters(uint size, uint min_age, uint max_age, double fraction, C& clusters, string cluster_name) {
+	void placeClusters(uint size, uint min_age, uint max_age, double fraction, C& clusters, string cluster_name, ClusterType cluster_type) {
 		uint people = 0;
 
 		if (min_age == 0 && max_age == 0) {
@@ -120,6 +126,8 @@ private:
 				new_cluster.m_id = m_next_id;
 				m_next_id++;
 				clusters.push_back(new_cluster);
+
+				m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
 			} else {
 				/// Add to a village
 				SimpleCluster new_cluster;
@@ -128,6 +136,8 @@ private:
 				new_cluster.m_id = m_next_id;
 				m_next_id++;
 				clusters.push_back(new_cluster);
+
+				m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
 			}
 		}
 		cerr << "\rPlacing " << cluster_name << " [100%]...\n";
@@ -195,7 +205,7 @@ private:
 	vector<SimpleCluster> m_villages;								/// > The villages
 	list<SimpleCluster> m_workplaces;								/// > The workplaces
 	vector<SimpleCluster> m_primary_communities;					/// > The primary communities
-	vector<SimpleCluster> m_secondary_communities;					/// > The primary communities
+	vector<SimpleCluster> m_secondary_communities;					/// > The secondary communities
 	vector<SimpleCluster> m_mandatory_schools;						/// > Mandatory schools (Not divided in clusters!!!)
 	vector<vector<SimpleCluster> > m_optional_schools;				/// > The universities: One univ is a vector of clusters, ordering is the same as the cities they belong to (using modulo of course)
 	bool m_output;
@@ -210,6 +220,8 @@ private:
 	map<uint, uint> m_age_distribution;								/// > The age distribution (histogram)
 	map<uint, uint> m_household_size;								/// > The household size (histogram)
 	map<uint, uint> m_work_size;									/// > The size of workplaces (histogram)
+
+	map<pair<ClusterType, uint>, GeoCoordinate> m_locations;		/// > The locations of clusters (a cluster is identified by a type and an ID that is unique within this type)
 };
 
 }
