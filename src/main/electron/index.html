@@ -207,12 +207,7 @@
             };
         };
         console.log("(" + min_lon + ", " + min_lat + ")" + "(" + max_lon + ", " + max_lat + ")");
-        map.fitBounds([[min_lon, min_lat], [max_lon, max_lat]]);
-        map.on('idle', function() {
-            map.setZoom(map.getZoom()-1);
-		})
-        console.log(map.getZoom());
-        console.log(map.getZoom());
+        map.fitBounds([[min_lon-2, min_lat-2], [max_lon+2, max_lat+2]]);
     }
     
     function getSize(cluster_data) {
