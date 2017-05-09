@@ -11,6 +11,11 @@
 	<button onclick="nextDay()">Next day</button>
 </body>
 <script>
+    mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v9'
+    });
     var files = {
         keys: [],
         values: []
@@ -33,18 +38,13 @@
 				files.values.push(data);
 				//console.log(data);
 			});
-			console.log(files.values[0]);
-			makeClusters(JSON.parse(files.values[0]));
-			console.log(files);
+            map.on('load', function() {
+                makeClusters(JSON.parse(files.values[0]));
+            });
 		});
 
     });
 
-    mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
-    var map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v9'
-    });
 
 	var inputElement = document.getElementById("input-1");
 
@@ -208,7 +208,11 @@
         };
         console.log("(" + min_lon + ", " + min_lat + ")" + "(" + max_lon + ", " + max_lat + ")");
         map.fitBounds([[min_lon, min_lat], [max_lon, max_lat]]);
-        //map.setZoom(map.getZoom() - 1);
+        map.on('idle', function() {
+            map.setZoom(map.getZoom()-1);
+		})
+        console.log(map.getZoom());
+        console.log(map.getZoom());
     }
     
     function getSize(cluster_data) {
