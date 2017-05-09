@@ -61,10 +61,13 @@
 	}
 
 	function makeClusters(cluster_data) {
+		// preparsing
+
 		for (var i in cluster_data.features) {
-			console.log(cluster_data.features[i].properties.infected_percent);
 			cluster_data.features[i].properties.infected_percent = parseFloat(cluster_data.features[i].properties.infected_percent);
-			console.log(cluster_data.features[i].properties.infected_percent);
+			cluster_data.features[i].properties.infected = parseFloat(cluster_data.features[i].properties.infected);
+			cluster_data.features[i].properties.size = parseFloat(cluster_data.features[i].properties.size);
+			cluster_data.features[i].geometry.coordinates = [parseFloat(cluster_data.features[i].geometry.coordinates[0]), parseFloat(cluster_data.features[i].geometry.coordinates[1])];
 		}
 		console.log(cluster_data)
 		if (map.getLayer("clusters")) {
@@ -107,7 +110,7 @@
 		map.on('mouseenter', 'clusters', function(e) {
 			// Change the cursor style as a UI indicator.
 
-			var coords = [parseFloat((e.features[0].geometry.coordinates[0])), parseFloat((e.features[0].geometry.coordinates[1]))];
+			var coords = e.features[0].geometry.coordinates;
 			map.getCanvas().style.cursor = 'pointer';
 
 			var htmlText = "Cluster " + e.features[0].properties.id.toString()
@@ -146,8 +149,7 @@
 	function fitView(map, cluster_data) {
 		var coords = [];
 		for (var i in cluster_data.features) {
-			console.log([parseFloat((cluster_data.features[i].geometry.coordinates[0])), parseFloat((cluster_data.features[i].geometry.coordinates[1]))]);
-			coords.push([parseFloat((cluster_data.features[i].geometry.coordinates[0])), parseFloat((cluster_data.features[i].geometry.coordinates[1]))]);
+			coords.push(cluster_data.features[i].geometry.coordinates);
 		};
 
 		var min_lat = Number.MAX_VALUE;
@@ -174,13 +176,14 @@
 
 	function getSize(cluster_data) {
 		var result = [[{zoom: 0, value:0}, 0]];
-		var orig_MIN_SIZE = 2;
-		var orig_MAX_SIZE = 10;
+		//var result = [[0, 0]];
+		var orig_MIN_SIZE = 1;
+		var orig_MAX_SIZE = 3;
 		var min_value = Number.MAX_VALUE;
 		var max_value = Number.MIN_VALUE;
-		console.log(cluster_data.features);
+
 		for (var i in cluster_data.features) {
-			var size = parseFloat(cluster_data.features[i].properties.size);
+			var size = cluster_data.features[i].properties.size;
 			if (size > max_value) {
 				max_value = size;
 			}
@@ -192,10 +195,16 @@
 		var zoom = [[1,1], [4,1], [7,2], [13, 4], [15, 7], [18, 10]];
 		var sizes = [];
 		for (var i in cluster_data.features) {
-			sizes.push(parseFloat(cluster_data.features[i].properties.size));
+			sizes.push(cluster_data.features[i].properties.size);
 		};
 
 		sizes.sort();
+
+		/*for (var i in sizes) {
+			result.push([sizes[i], ((sizes[i] - min_value)*(orig_MAX_SIZE - orig_MIN_SIZE)/(max_value - min_value) + orig_MIN_SIZE)]);
+		}
+		console.log(result);
+		return result;*/
 
 		var tempresult = {};
 		for (var i in zoom) {
