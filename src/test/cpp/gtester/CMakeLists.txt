@@ -30,6 +30,11 @@ set( EXEC       gtester     )
 set( SRC
 		main.cpp
 		BatchRuns.cpp
+		UtilTests.cpp
+		PopulationTests.cpp
+		LocalSimulatorAdapterTests.cpp
+		TravelSchedulerTest.cpp
+		TransportFacilityTest.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp
@@ -45,17 +50,18 @@ install(TARGETS ${EXEC}  DESTINATION   ${BIN_INSTALL_LOCATION})
 #============================================================================
 # Define tests.
 #============================================================================
-add_test( NAME  ${EXEC}_default
-		WORKING_DIRECTORY  ${TESTS_DIR}
-		COMMAND   ${CMAKE_INSTALL_PREFIX}/${BIN_INSTALL_LOCATION}/${EXEC}
-			--gtest_filter=*default*  --gtest_output=xml:gtester_default.xml
-)
 
 add_test( NAME  ${EXEC}_all
-        WORKING_DIRECTORY  ${TESTS_DIR}
-		COMMAND   ${CMAKE_INSTALL_PREFIX}/${BIN_INSTALL_LOCATION}/${EXEC}
-		         --gtest_output=xml:gtester_all.xml
-)
+	WORKING_DIRECTORY  ${TESTS_DIR}
+	COMMAND   ${CMAKE_INSTALL_PREFIX}/${BIN_INSTALL_LOCATION}/${EXEC}
+	--gtest_output=xml:gtester_all.xml
+	)
+
+add_test( NAME  ${EXEC}_default
+	WORKING_DIRECTORY  ${TESTS_DIR}
+	COMMAND   ${CMAKE_INSTALL_PREFIX}/${BIN_INSTALL_LOCATION}/${EXEC}
+	--gtest_filter=*default*  --gtest_output=xml:gtester_default.xml
+	)
 
 #============================================================================
 # Clean up.

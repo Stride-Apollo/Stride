@@ -18,7 +18,7 @@
  * Main program: command line handling.
  */
 
-#include "run_stride.h"
+#include "run_stride2.h"
 
 #include <tclap/CmdLine.h>
 
@@ -36,13 +36,13 @@ int main(int argc, char** argv) {
 		CmdLine cmd("stride", ' ', "1.0", false);
 		SwitchArg index_case_Arg("r", "r0", "R0 only", cmd, false);
 		ValueArg<string> config_file_Arg("c", "config", "Config File", false,
-										 "./config/run_default.xml", "CONFIGURATION FILE", cmd);
+										 "./config/run_flanders.xml", "CONFIGURATION FILE", cmd);
 		cmd.parse(argc, argv);
 
 		// -----------------------------------------------------------------------------------------
 		// Run the Stride simulator.
 		// -----------------------------------------------------------------------------------------
-		run_stride(index_case_Arg.getValue(), config_file_Arg.getValue());
+		run_stride2(index_case_Arg.getValue(), config_file_Arg.getValue());
 
 	}
 	catch (exception& e) {

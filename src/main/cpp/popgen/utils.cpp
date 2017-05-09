@@ -1,14 +1,13 @@
 #include "popgen/utils.h"
 
-#include <cassert>
 #include <iostream>
-#include <stdexcept>
 #include <cmath>
+#include <cassert>
 
 using namespace stride;
 using namespace popgen;
 
-trng::uniform01_dist<double> popgen::real01;
+uniform_real_distribution<double> real01;
 
 std::ostream& operator<<(std::ostream& os, const SimplePerson& p) {
 	assert(p.m_household_id != 0);  // everyone is part of a family!

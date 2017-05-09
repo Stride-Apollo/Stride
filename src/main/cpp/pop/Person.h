@@ -30,6 +30,8 @@
 namespace stride {
 
 class Calendar;
+class LocalSimulatorAdapter;
+template<class PersonType> class Traveller;
 
 enum class ClusterType;
 
@@ -43,7 +45,8 @@ public:
 	Person(unsigned int id, double age, unsigned int household_id, unsigned int school_id,
 		   unsigned int work_id, unsigned int primary_community_id, unsigned int secondary_community_id,
 		   unsigned int start_infectiousness,
-		   unsigned int start_symptomatic, unsigned int time_infectious, unsigned int time_symptomatic)
+		   unsigned int start_symptomatic, unsigned int time_infectious, unsigned int time_symptomatic,
+	       bool is_on_vacation = false)
 			: m_id(id), m_age(age), m_gender('M'),
 			  m_household_id(household_id), m_school_id(school_id),
 			  m_work_id(work_id), m_primary_community_id(primary_community_id),
@@ -51,7 +54,7 @@ public:
 			  m_at_household(true), m_at_school(true), m_at_work(true), m_at_primary_community(true),
 			  m_at_secondary_community(true),
 			  m_health(start_infectiousness, start_symptomatic, time_infectious, time_symptomatic),
-			  m_is_participant(false) {}
+			  m_is_participant(false), m_is_on_vacation(is_on_vacation) {}
 
 	/// Is this person not equal to the given person?
 	bool operator!=(const Person& p) const { return p.m_id != m_id; }
@@ -86,7 +89,13 @@ public:
 	/// Update the health status and presence in clusters.
 	void update(bool is_work_off, bool is_school_off);
 
-private:
+	bool isOnVacation() const { return m_is_on_vacation; }
+	void setOnVacation(bool is_on_vacation) { m_is_on_vacation = is_on_vacation; }
+
+	friend class LocalSimulatorAdapter;
+	template<class PersonType> friend class Traveller;
+
+public:	// TODO make private again
 	unsigned int m_id;  ///< The id.
 	double m_age;       ///< The age.
 	char m_gender;      ///< The gender.
@@ -107,6 +116,8 @@ private:
 	typename BeliefPolicy::Data m_belief_data; ///< Info w.r.t. this Person's health beliefs
 
 	bool m_is_participant;  ///< Is participating in the social contact study
+	bool m_is_on_vacation;  ///< Is currently on a vacation and should be included in calculations
+	                        ///< Note: Population already filters these people out when iterating
 };
 
 /// Explicit instantiations in .cpp file

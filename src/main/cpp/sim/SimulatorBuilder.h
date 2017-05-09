@@ -20,10 +20,14 @@
  */
 
 #include "Simulator.h"
+#include "core/ClusterType.h"
+#include "util/GeoCoordinate.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
+#include <map>
+#include <utility>
 
 namespace stride {
 
@@ -58,7 +62,25 @@ public:
 
 private:
 	/// Initialize the clusters.
-	static void initializeClusters(std::shared_ptr<Simulator> sim);
+	static void initializeClusters(
+			std::shared_ptr<Simulator> sim,
+			const boost::property_tree::ptree& pt_config);
+
+	/// Initialize the districts, duplicate city names are ignored (only the first occurrence is counted)
+	static void initializeDistricts(
+			std::shared_ptr<Simulator> sim,
+			const boost::property_tree::ptree& pt_config);
+
+	/// Initialize the locations (read the from the given file) and return them
+	/// If the filename is "", it will assume that you use an older version of stride which has no locations, all locations will be in the origin (0,0)
+	/// Unreadable input will result in zeroes/ClusterType::Null
+	static std::map<std::pair<ClusterType, uint>, util::GeoCoordinate> initializeLocations(std::string filename);
+
+	/// Initialize the facilities, duplicate facility names are ignored (only the first occurrence is counted)
+	/// Unknown districts are ignored
+	static void initializeFacilities(
+			std::shared_ptr<Simulator> sim,
+			const boost::property_tree::ptree& pt_config);
 };
 
 }

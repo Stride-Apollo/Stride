@@ -58,7 +58,7 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, bool output)
 }
 
 template <class U>
-void PopulationGenerator<U>::generate(const string& target_cities, const string& target_pop, const string& target_households) {
+void PopulationGenerator<U>::generate(const string& target_cities, const string& target_pop, const string& target_households, const string& target_clusters) {
 	if (!m_output) {
 		cerr.setstate(ios_base::failbit);
 	}
@@ -82,6 +82,7 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 		// writeCities(target_cities);
 		writePop(target_pop);
 		writeHouseholds(target_households);
+		writeClusters(target_clusters);
 		cerr.clear();
 	} catch(...) {
 		cerr.clear();
@@ -180,6 +181,39 @@ void PopulationGenerator<U>::writeHouseholds(const string& target_households) co
 				<< m_people.at(household.m_indices.at(0)).m_coord.m_longitude << ","
 				<< household.m_indices.size()
 				<< endl;
+		}
+
+		my_file.close();
+	} else {
+		throw invalid_argument("In PopulationGenerator: Invalid file.");
+	}
+}
+
+template <class U>
+void PopulationGenerator<U>::writeClusters(const string& target_clusters) const {
+	ofstream my_file {(InstallDirs::getDataDir() /= target_clusters).string()};
+	if (my_file.is_open()) {
+		my_file << "\"cluster_id\",\"cluster_type\",\"latitude\",\"longitude\"\n";
+
+		vector<ClusterType> types {ClusterType::Household,
+									ClusterType::School,
+									ClusterType::Work,
+									ClusterType::PrimaryCommunity,
+									ClusterType::SecondaryCommunity,
+									ClusterType::Null};
+
+		for (auto& cluster_type: types) {
+			uint current_id = 1;
+			while (m_locations.find(make_pair(cluster_type, current_id)) != m_locations.end()) {
+				my_file.precision(std::numeric_limits<double>::max_digits10);
+				my_file << current_id << ","
+					<< toString(cluster_type) << ","
+					<< m_locations.at(make_pair(cluster_type, current_id)).m_latitude << ","
+					<< m_locations.at(make_pair(cluster_type, current_id)).m_longitude
+					<< endl;
+
+				++current_id;
+			}
 		}
 
 		my_file.close();
@@ -417,6 +451,7 @@ void PopulationGenerator<U>::makeRNG() {
 
 template <class U>
 void PopulationGenerator<U>::makeHouseholds() {
+	m_next_id = 1;
 	string file_name = m_props.get<string>("POPULATION.FAMILY.<xmlattr>.file");
 
 	FamilyParser parser;
@@ -460,6 +495,7 @@ void PopulationGenerator<U>::makeHouseholds() {
 template <class U>
 void PopulationGenerator<U>::makeCities() {
 	ptree cities_config = m_props.get_child("POPULATION.CITIES");
+	m_next_id = 1;
 	uint size_check = 0;
 
 	uint generated = 0;
@@ -549,6 +585,7 @@ double PopulationGenerator<U>::getVillagePopulation() const {
 
 template <class U>
 void PopulationGenerator<U>::makeVillages() {
+	// Do NOT reset the id counter (cities and villages will be treated as one)
 	ptree village_config = m_props.get_child("POPULATION.VILLAGES");
 	double village_radius_factor = village_config.get<double>("<xmlattr>.radius");
 	GeoCoordinate middle = getCityMiddle();
@@ -634,6 +671,7 @@ void PopulationGenerator<U>::placeHouseholds() {
 			for (uint& person_index: household.m_indices) {
 				m_people.at(person_index).m_coord = city.m_coord;
 			}
+			m_locations[make_pair(ClusterType::Household, household.m_id)] = city.m_coord;
 
 		} else {
 			/// A village has been chosen
@@ -642,6 +680,7 @@ void PopulationGenerator<U>::placeHouseholds() {
 			for (uint& person_index: household.m_indices) {
 				m_people.at(person_index).m_coord = village.m_coord;
 			}
+			m_locations[make_pair(ClusterType::Household, household.m_id)] = village.m_coord;
 		}
 		i++;
 	}
@@ -651,17 +690,19 @@ void PopulationGenerator<U>::placeHouseholds() {
 template <class U>
 void PopulationGenerator<U>::makeSchools() {
 	/// Note: schools are "assigned" to villages and cities
+	m_next_id = 1;
 	ptree education_config = m_props.get_child("POPULATION.EDUCATION");
 	ptree school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
 	uint school_size = education_config.get<uint>("MANDATORY.<xmlattr>.total_size");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 
-	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools, "schools");
+	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools, "schools", ClusterType::School);
 }
 
 template <class U>
 void PopulationGenerator<U>::makeUniversities() {
+	m_next_id = 1;
 	ptree school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.EMPLOYABLE.YOUNG_EMPLOYEE");
 	ptree university_config = m_props.get_child("POPULATION.EDUCATION.OPTIONAL");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
@@ -697,6 +738,8 @@ void PopulationGenerator<U>::makeUniversities() {
 			univ_cluster.m_coord = m_cities.at(placed_universities % m_cities.size()).m_coord;
 			m_next_id++;
 			univ.push_back(univ_cluster);
+
+			m_locations[make_pair(ClusterType::School, univ_cluster.m_id)] = univ_cluster.m_coord;
 		}
 
 		if (left_over_cluster_size > 0) {
@@ -707,6 +750,8 @@ void PopulationGenerator<U>::makeUniversities() {
 			univ_cluster.m_coord = m_cities.at(placed_universities % m_cities.size()).m_coord;
 			m_next_id++;
 			univ.push_back(univ_cluster);
+
+			m_locations[make_pair(ClusterType::School, univ_cluster.m_id)] = univ_cluster.m_coord;
 		}
 
 		m_optional_schools.push_back(univ);
@@ -740,6 +785,7 @@ void PopulationGenerator<U>::sortWorkplaces() {
 
 template <class U>
 void PopulationGenerator<U>::makeWork() {
+	m_next_id = 1;
 	ptree school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.EMPLOYABLE");
 	ptree work_config = m_props.get_child("POPULATION.WORK");
 
@@ -771,7 +817,7 @@ void PopulationGenerator<U>::makeWork() {
 	// Calculate the actual fraction of people between young_min_age and max_age who are working
 	double actual_fraction = double(total_working) / total_of_age;
 
-	placeClusters(size, young_min_age, max_age, actual_fraction, m_workplaces, "workplaces");
+	placeClusters(size, young_min_age, max_age, actual_fraction, m_workplaces, "workplaces", ClusterType::Work);
 
 	/// Make sure the work clusters are sorted from big city to smaller city
 	sortWorkplaces();
@@ -780,16 +826,19 @@ void PopulationGenerator<U>::makeWork() {
 template <class U>
 void PopulationGenerator<U>::makeCommunities() {
 	/// TODO? Currently not doing the thing with the average communities per person, right now, everyone gets two communities
+	m_next_id = 1;
 	ptree community_config = m_props.get_child("POPULATION.COMMUNITY");
 	uint size = community_config.get<uint>("<xmlattr>.size");
 
-	placeClusters(size, 0, 0, 1.0, m_primary_communities, "primary communities");
-	placeClusters(size, 0, 0, 1.0, m_secondary_communities, "secondary communities");
+	placeClusters(size, 0, 0, 1.0, m_primary_communities, "primary communities", ClusterType::PrimaryCommunity);
+	m_next_id = 1;
+	placeClusters(size, 0, 0, 1.0, m_secondary_communities, "secondary communities", ClusterType::SecondaryCommunity);
 }
 
 template <class U>
 void PopulationGenerator<U>::assignToSchools() {
 	/// TODO add factor to xml?
+	m_next_id = 1;
 	ptree education_config = m_props.get_child("POPULATION.EDUCATION.MANDATORY");
 	ptree school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");

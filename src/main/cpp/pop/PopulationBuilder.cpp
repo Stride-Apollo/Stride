@@ -53,8 +53,9 @@ shared_ptr<Population> PopulationBuilder::build(
 	//------------------------------------------------
 	// Setup.
 	//------------------------------------------------
+	// TODO first determine how many people are needed (by scanning the file twice)
 	const auto pop = make_shared<Population>();
-	Population& population = *pop;
+	Population::VectorType& population = pop->m_original;
 	const double seeding_rate = pt_config.get<double>("run.seeding_rate");
 	const double immunity_rate = pt_config.get<double>("run.immunity_rate");
 	const string disease_config_file = pt_config.get<string>("run.disease_config_file");

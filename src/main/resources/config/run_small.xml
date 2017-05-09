@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<run>
+    <rng_seed>1</rng_seed>
+    <r0>11</r0>
+    <seeding_rate>0.002</seeding_rate>
+    <immunity_rate>0.8</immunity_rate>
+    <population_file>data/pop_oklahoma.csv</population_file>
+    <num_days>50</num_days>
+    <output_prefix></output_prefix>
+    <disease_config_file>data/disease_measles.xml</disease_config_file>
+    <generate_person_file>1</generate_person_file>
+    <num_participants_survey>10</num_participants_survey>
+    <start_date>2017-01-01</start_date>
+    <holidays_file>data/holidays_none.json</holidays_file>
+    <age_contact_matrix_file>data/contact_matrix_average.xml</age_contact_matrix_file>
+    <log_level>Transmissions</log_level>
+</run>

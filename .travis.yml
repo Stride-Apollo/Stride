@@ -1,6 +1,6 @@
 # TODO specify exact versions on which it has to work
 language: none
-script: make test
+script: make test_all
 os:
   - linux
   #- osx
@@ -44,7 +44,7 @@ matrix:
 notifications:
   slack: 
     rooms:
-      - apollo-stride:u6J7UHJdtlvVNtnUjyRndtgh#code
+      - apollo-stride:u6J7UHJdtlvVNtnUjyRndtgh#repo
     on_failure: always
     on_success: change
   email: false

@@ -2,23 +2,17 @@
 
 #include <string>
 #include "util/GeoCoordinate.h"
-
-// Distribution and random generator from the TRNG library
-#include <trng/uniform01_dist.hpp>
-#include <trng/lcg64.hpp>
-#include <trng/lcg64_shift.hpp>
-#include <trng/mt19937.hpp>
-#include <trng/mt19937_64.hpp>
+#include <random>
 
 namespace stride {
 namespace popgen {
 
-// using namespace std;
-// using namespace util;
+using namespace std;
+using namespace util;
 
 #define PI 3.14159265
 
-extern trng::uniform01_dist<double> real01;
+extern uniform_real_distribution<double> real01;
 
 using uint = unsigned int;
 

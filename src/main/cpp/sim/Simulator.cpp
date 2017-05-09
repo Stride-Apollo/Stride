@@ -129,4 +129,9 @@ void Simulator::timeStep() {
 	notify(*this);
 	m_calendar->advanceDay();
 }
+
+void Simulator::host(const std::vector<Simulator::TravellerType>& travellers) {
+	// TODO
+}
+
 }

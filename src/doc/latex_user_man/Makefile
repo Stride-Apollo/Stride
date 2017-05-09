@@ -1,8 +1,8 @@
 #############################################################################
-#  This file is part of the Stride software. 
+#  This file is part of the Stride software.
 #  It is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by 
-#  the Free Software Foundation, either version 3 of the License, or any 
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or any
 #  later version.
 #  The software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +26,7 @@ CLEANDIR = \
 	rm -f *-eps-converted-to.pdf *.synctex.gz *.tps *.out
 
 DISTCLEANDIR = \
-	echo distcleaning `pwd`; $(CLEANDIR) && rm -f UserManual.pdf 
+	echo distcleaning `pwd`; $(CLEANDIR) && rm -f UserManual.pdf
 
 PDFLATEX = pdflatex -interaction=batchmode --enable-write18
 BIBTEX   = bibtex -terse
@@ -44,10 +44,10 @@ clean:
 distclean:
 	@ $(DISTCLEANDIR)
 
-all:  
+all:
 	$(PDFLATEX) UserManual.tex
 	$(BIBTEX) UserManual
 	$(PDFLATEX) UserManual.tex
 	$(PDFLATEX) UserManual.tex
-	
+
 #############################################################################

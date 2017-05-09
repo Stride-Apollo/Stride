@@ -36,15 +36,21 @@ set(LIB_SRC
 #---    
 	pop/Person.cpp
 	pop/PopulationBuilder.cpp
+	pop/Population.cpp
+
 #---
-	sim/run_stride.cpp
+	sim/run_stride2.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
+	sim/LocalSimulatorAdapter.cpp
+	sim/Coordinator.cpp
 #---
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
+	util/TravellerScheduleReader.cpp
+	util/TransportFacilityReader.cpp
 #---
 	patterns/Publisher.cpp
 #---
@@ -61,6 +67,8 @@ set(POPGEN_SRC
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
+#---
+	core/ClusterType.cpp
 #---
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp

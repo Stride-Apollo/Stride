@@ -109,7 +109,7 @@ void checkHappyDayCities(const vector<vector<string> >& csv) {
 
 	set<string> unique_column;
 	vector<GeoCoordinate> unique_coord;
-	/// Go over every column (except the latitude-longitude one cause they belong to each other)
+	// Go over every column (except the latitude-longitude one cause they belong to each other)
 	for (uint i = 0; i < 7; i++) {
 		unique_coord.clear();
 		unique_column.clear();
@@ -216,7 +216,8 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 		EXPECT_NE(find (family_config.begin(), family_config.end(), household), family_config.end());
 	}
 
-	map<uint, uint> community;
+	map<uint, uint> prim_community;
+	map<uint, uint> sec_community;
 	// Test for communities within each household
 	for (uint i = id.min; i <= id.max; i++) {
 		uint primary_community = 0;
@@ -229,14 +230,15 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 		for (SimplePerson& person: people[i]) {
 			EXPECT_EQ(person.m_primary_community, primary_community);
 			EXPECT_EQ(person.m_secondary_community, secondary_community);
-			community[person.m_primary_community]++;
-			community[person.m_secondary_community]++;
-			EXPECT_LT(community[person.m_primary_community], 2000U + biggest_family);
-			EXPECT_LT(community[person.m_secondary_community], 2000U + biggest_family);
+			prim_community[person.m_primary_community]++;
+			sec_community[person.m_secondary_community]++;
+			EXPECT_LT(prim_community[person.m_primary_community], 2000U + biggest_family);
+			EXPECT_LT(sec_community[person.m_secondary_community], 2000U + biggest_family);
 		}
 	}
 
-	EXPECT_EQ(community[0], 0U);
+	EXPECT_EQ(prim_community[0], 0U);
+	EXPECT_EQ(sec_community[0], 0U);
 
 	// Check work ID consistency
 	map<uint, uint> work;
@@ -306,16 +308,17 @@ TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 	// -----------------------------------------------------------------------------------------
 	// Actual tests
 	// -----------------------------------------------------------------------------------------
-	// TODO make test work
-	// PopulationGenerator<mt19937> gen {g_happy_day_file, false};
-	// gen.generate("cities.csv", "pop.csv", "hh.csv");
-	//
-	// vector<vector<string> > csv = readCSV("cities.csv");
-	// checkHappyDayCities(csv);
-	//
-	// checkHappyDayPop("pop.csv", "households_flanders.txt");
-	//
-	// checkHappyDayHouseHolds("hh.csv", "pop.csv");
+	PopulationGenerator<mt19937> gen {g_happy_day_file, false};
+
+	// TODO check cluster file
+	gen.generate("cities.csv", "pop.csv", "hh.csv", "clusters.csv");
+
+	vector<vector<string> > csv = readCSV("cities.csv");
+	checkHappyDayCities(csv);
+
+	checkHappyDayPop("pop.csv", "households_flanders.txt");
+
+	checkHappyDayHouseHolds("hh.csv", "pop.csv");
 
 }
 
