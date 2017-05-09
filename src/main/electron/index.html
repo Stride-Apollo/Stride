@@ -44,10 +44,6 @@
 	    if (++currentDay >= files.length) {
 	        currentDay--;
         } else {
-	    	var data = JSON.parse(files[currentDay-1]);
-	    	if (data.next_day_travel != undefined) {
-
-		    }
             makeClusters(JSON.parse(files[currentDay]));
         }
     }
@@ -61,21 +57,20 @@
 	}
 
 	function makeClusters(cluster_data) {
-		// preparsing
-
-		for (var i in cluster_data.features) {
-			cluster_data.features[i].properties.infected_percent = parseFloat(cluster_data.features[i].properties.infected_percent);
-			cluster_data.features[i].properties.infected = parseFloat(cluster_data.features[i].properties.infected);
-			cluster_data.features[i].properties.size = parseFloat(cluster_data.features[i].properties.size);
-			cluster_data.features[i].geometry.coordinates = [parseFloat(cluster_data.features[i].geometry.coordinates[0]), parseFloat(cluster_data.features[i].geometry.coordinates[1])];
-		}
-		console.log(cluster_data)
 		if (map.getLayer("clusters")) {
 			map.removeLayer("clusters");
 		}
 
 		if (map.getSource("cluster_data")) {
+			map.getSource("cluster_data").setData(null);
 			map.removeSource("cluster_data");
+		}
+		// preparsing
+		for (var i in cluster_data.features) {
+			cluster_data.features[i].properties.infected_percent = parseFloat(cluster_data.features[i].properties.infected_percent);
+			cluster_data.features[i].properties.infected = parseFloat(cluster_data.features[i].properties.infected);
+			cluster_data.features[i].properties.size = parseFloat(cluster_data.features[i].properties.size);
+			cluster_data.features[i].geometry.coordinates = [parseFloat(cluster_data.features[i].geometry.coordinates[0]), parseFloat(cluster_data.features[i].geometry.coordinates[1])];
 		}
 
 		map.addSource("cluster_data", {
@@ -83,12 +78,13 @@
 			"data": cluster_data
 		});
 
+		//console.log(map.getSource("cluster_data").getData().length)
+
 		map.addLayer({
 			"id": "clusters",
 			"type": "circle",
 			"source": "cluster_data",
 			"paint": {
-				// TODO Legit sizing (with zoom and stuff)
 				'circle-radius': {
 					property: "size",
 					type: "interval",
@@ -130,17 +126,37 @@
 			popup.remove();
 		});
 
+		var windows = []
 		map.on('click', 'clusters', function(e) {
 			console.log(e.features[0].properties.id);
 			const electron = require('electron').remote;
 			const BrowserWindow = electron.BrowserWindow;
 
-			var win = new BrowserWindow({ width: 800, height: 600 });
-			win.webContents.on('did-finish-load', ()=>{
-				win.show();
-			win.focus();
-			});
-			win.loadURL("https://www.google.be/search?q=how+to+code&oq=how+to+code&aqs=chrome.0.69i59j0l5.3375j0j7&sourceid=chrome&ie=UTF-8");
+			if (!containsWin(windows, e.features[0].properties.id)) {
+				var win = new BrowserWindow({ width: 800, height: 600 });
+
+				windows.push({id:e.features[0].properties.id, win: win });
+				win.webContents.on('did-finish-load', ()=>{
+					win.show();
+					win.focus();
+				});
+
+				win.on('closed', function () {
+					for (var i in windows) {
+						if (windows[i].id == e.features[0].properties.id) {
+
+							windows.splice(i, 1);
+						}
+					}
+				})
+				win.loadURL("https://www.google.be/search?q=how+to+code&oq=how+to+code&aqs=chrome.0.69i59j0l5.3375j0j7&sourceid=chrome&ie=UTF-8");
+			} else {
+				for (var i in windows) {
+					if (windows[i].id == e.features[0].properties.id) {
+						windows[i].win.focus();
+					}
+				}
+			}
 		});
 
 		fitView(map, cluster_data);
@@ -232,5 +248,15 @@
 		console.log(result);
 		return result;
 	};
+
+	function containsWin(array, obj) {
+		var i = array.length;
+		while (i--) {
+			if (array[i].id === obj) {
+				return true;
+			}
+		}
+		return false;
+	}
 </script>
 </body>
