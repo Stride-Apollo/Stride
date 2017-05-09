@@ -11,6 +11,8 @@
 	<button onclick="nextDay()">Next day</button>
 </body>
 <script>
+    
+
     mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
     var map = new mapboxgl.Map({
         container: 'map',
@@ -18,10 +20,9 @@
     });
 
     var files = {
-		keys: [],
-		values: []
-	};	// file-text_of_file pairs
-
+        keys: [],
+        values: []
+    };	// file-text_of_file pairs
 	var inputElement = document.getElementById("input-1");
 
 	function getFileNumber(filename) {
@@ -118,6 +119,7 @@
                 // TODO Legit sizing (with zoom and stuff)
                 'circle-radius': {
                     property: "size",
+                    type: "interval",
                     stops: getSize(cluster_data)
                 },                
                 "circle-color": {
@@ -155,9 +157,9 @@
     }    
     
     function getSize(cluster_data) {
-        var result = [[0, 0]];
-	    var MIN_SIZE = 10;
-	    var MAX_SIZE = 120;
+        var result = [[{zoom: 0, value:0}, 0]];
+	    var orig_MIN_SIZE = 2;
+	    var orig_MAX_SIZE = 10;
 	    var min_value = Number.MAX_VALUE;
 	    var max_value = Number.MIN_VALUE;
 	    console.log(cluster_data.features);
@@ -169,11 +171,39 @@
 		        min_value = cluster_data.features[i].properties.size;
 		    }
 		};
-        
-        // TODO Incorporate zoom
+
+        var zoom = [[1,1], [4,1], [7,2], [13, 4], [15, 7], [18, 10]];
+        var sizes = [];
         for (var i in cluster_data.features) {
-            result.push([cluster_data.features[i].properties.size, (cluster_data.features[i].properties.size - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE]);
+            sizes.push(cluster_data.features[i].properties.size);
         };
-        return result.sort(function(a,b) {return a[0] - b[0]});
+
+        sizes.sort();
+
+        var tempresult = {};
+        for (var i in zoom) {
+            tempresult[i] = [];
+            for (var j in sizes) {
+                var size = {};
+                size.zoom = zoom[i][0];
+                size.value = sizes[j];
+                var MAX_SIZE = orig_MAX_SIZE * zoom[i][1];
+                var MIN_SIZE = orig_MIN_SIZE * zoom[i][1];
+                console.log(size);
+                console.log(((sizes[j] - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE));
+                tempresult[i].push([size.value, ((sizes[j] - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE)]);
+            }
+        };
+        for (var i in tempresult) {
+            tempresult[i].sort(function(a,b) {return a[1] - b[1]});
+            for (var j in tempresult[i]) {
+                var leftStop = {};
+                leftStop.zoom = parseInt(i);
+                leftStop.value = tempresult[i][j][0];
+                result.push([leftStop, tempresult[i][j][1]]);
+            }
+        }
+        console.log(result);
+        return result;
 	};
 </script>
