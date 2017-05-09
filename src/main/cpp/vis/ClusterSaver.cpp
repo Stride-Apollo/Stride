@@ -70,6 +70,9 @@ pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster, const un
 	size_t size = cluster.getSize();
 	size_t infected_count = cluster.getInfectedCount();
 	double ratio = (size == 0 ? 0 : (double) infected_count / size);
+	if (infected_count == 0) {
+		ratio = -1;
+	}
 
 	cluster_properties.put("id", id);
 	cluster_properties.put("size", size);
