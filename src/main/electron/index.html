@@ -132,15 +132,15 @@
 
 		map.on('click', 'clusters', function(e) {
 			console.log(e.features[0].properties.id);
-			var electron = require('electron');
+			const electron = require('electron').remote;
 			const BrowserWindow = electron.BrowserWindow;
 
 			var win = new BrowserWindow({ width: 800, height: 600 });
 			win.webContents.on('did-finish-load', ()=>{
 				win.show();
 			win.focus();
-		});
-			win.loadURL(myURL);
+			});
+			win.loadURL("https://www.google.be/search?q=how+to+code&oq=how+to+code&aqs=chrome.0.69i59j0l5.3375j0j7&sourceid=chrome&ie=UTF-8");
 		});
 
 		fitView(map, cluster_data);
