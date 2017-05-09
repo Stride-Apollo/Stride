@@ -106,15 +106,18 @@
 
 		map.on('mouseenter', 'clusters', function(e) {
 			// Change the cursor style as a UI indicator.
+
+			var coords = [parseFloat((e.features[0].geometry.coordinates[0])), parseFloat((e.features[0].geometry.coordinates[1]))];
 			map.getCanvas().style.cursor = 'pointer';
 
 			var htmlText = "Cluster " + e.features[0].properties.id.toString()
 			+ "<br>Size: " + e.features[0].properties.size.toString()
 			+ "<br>Infected: " + e.features[0].properties.infected.toString()
+			+ "<br>Coordinates: (" + coords[0] + ", " + coords[1] + ")";
 
 			// Populate the popup and set its coordinates
 			// based on the feature found.
-			popup.setLngLat([parseFloat((e.features[0].geometry.coordinates[0])), parseFloat((e.features[0].geometry.coordinates[1]))])
+			popup.setLngLat(coords)
 				.setHTML(htmlText)
 				.addTo(map);
 		});
