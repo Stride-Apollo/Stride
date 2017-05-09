@@ -49,7 +49,7 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, bool output)
 		if (!m_output) {
 			cerr.setstate(ios_base::failbit);
 		}
-		chechForValidXML();
+		checkForValidXML();
 		cerr.clear();
 	} catch (...) {
 		cerr.clear();
@@ -79,7 +79,7 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 		assignToCommunities();
 		cerr << "Generated " << m_people.size() << " people\n";
 
-		// writeCities(target_cities);
+		writeCities(target_cities);
 		writePop(target_pop);
 		writeHouseholds(target_households);
 		writeClusters(target_clusters);
@@ -92,7 +92,7 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 }
 
 template <class U>
-void PopulationGenerator<U>::writeCities(const string& target_cities) const {
+void PopulationGenerator<U>::writeCities(const string& target_cities){
 	ofstream my_file {(InstallDirs::getDataDir() /= target_cities).string()};
 	double total_pop = 0.0;
 
@@ -223,7 +223,7 @@ void PopulationGenerator<U>::writeClusters(const string& target_clusters) const 
 }
 
 template <class U>
-void PopulationGenerator<U>::chechForValidXML() const {
+void PopulationGenerator<U>::checkForValidXML() const {
 	try {
 		ptree pop_config = m_props.get_child("POPULATION");
 

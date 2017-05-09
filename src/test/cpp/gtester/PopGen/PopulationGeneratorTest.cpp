@@ -3,8 +3,6 @@
  * Implementation of tests for the Population Generator.
  */
 
-#include "popgen/PopulationGenerator.h"
-// TODO find another way to avoid linking errors but for now include the cpp file
 #include "popgen/PopulationGenerator.cpp"
 #include "popgen/FamilyParser.h"
 #include "util/StringUtils.h"
@@ -314,6 +312,7 @@ TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 	gen.generate("cities.csv", "pop.csv", "hh.csv", "clusters.csv");
 
 	vector<vector<string> > csv = readCSV("cities.csv");
+
 	checkHappyDayCities(csv);
 
 	checkHappyDayPop("pop.csv", "households_flanders.txt");

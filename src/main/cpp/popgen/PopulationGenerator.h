@@ -34,14 +34,14 @@ class PopulationGenerator {
 public:
 	/// Constructor: Check if the xml is valid and set up the basic things like a random generator
 	PopulationGenerator(const string& filename, bool output = true);
-	
+
 	/// Generates a population, writes the result to the files found in the data directory
 	/// Output files are respectively formatted according to the following template files: belgium_population.csv, pop_miami.csv, pop_miami_geo.csv
 	void generate(const string& target_cities, const string& target_pop, const string& target_households, const string& target_clusters);
 
 private:
 	/// Writes the cities to the file, see PopulationGenerator::generate, recently, the villages have been added to this
-	void writeCities(const string& target_cities) const;
+	void writeCities(const string& target_cities);
 
 	/// Writes the population to the file, see PopulationGenerator::generate
 	void writePop(const string& target_pop) const;
@@ -53,7 +53,7 @@ private:
 	void writeClusters(const string& target_clusters) const;
 
 	/// Checks the xml on correctness, this includes only semantic errors, no syntax errors
-	void chechForValidXML() const;
+	void checkForValidXML() const;
 
 	/// Sets up the random generator, of course the one specified in the xml
 	void makeRNG();
