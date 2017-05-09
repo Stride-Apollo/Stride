@@ -16,7 +16,7 @@
 
 /**
  * @file
- * Header for the ContactHandler class.
+ * Header for the RngHandler class.
  */
 
 #include "util/Random.h"
@@ -34,6 +34,8 @@ public:
 			: m_rng(seed) {
 		m_rng.split(stream_count, id);
 	}
+
+	RngHandler() = default;
 
 	/// Convert rate into probability
 	double rateToProbability(double rate) {

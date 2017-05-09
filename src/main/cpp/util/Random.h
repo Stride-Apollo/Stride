@@ -19,6 +19,8 @@
  * Header for the Random Number Generator class.
  */
 
+#include <limits>
+
 #include <trng/mrg2.hpp>
 #include <trng/uniform01_dist.hpp>
 #include <trng/uniform_int_dist.hpp>
@@ -32,7 +34,7 @@ namespace util {
 class Random {
 public:
 	/// Constructor: initialize the random number engine and distribution.
-	Random(const unsigned long seed) {
+	Random(const unsigned long seed = 0) {
 		m_engine.seed(seed);
 		m_uniform_dist = trng::uniform01_dist<double>();
 	}
@@ -44,7 +46,7 @@ public:
 	}
 
 	/// Get random unsigned int from [0, max[.
-	unsigned int operator()(unsigned int max) {
+	unsigned int operator()(unsigned int max = std::numeric_limits<unsigned int>::max()) {
 		trng::uniform_int_dist dis(0, max);
 		return dis(m_engine);
 	}

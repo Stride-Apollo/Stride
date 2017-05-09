@@ -24,7 +24,6 @@
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
-#include <omp.h>
 #include <spdlog/spdlog.h>
 
 #include <cmath>
@@ -116,8 +115,9 @@ TEST_P( BatchDemos, Run )
 	tuple<string, unsigned int> t(GetParam());
 	const string test_tag = get<0>(t);
 	const unsigned int num_threads = get<1>(t);
-	omp_set_num_threads(num_threads);
-	omp_set_schedule(omp_sched_static,1);
+	// TODO_UNIPAR
+	//omp_set_num_threads(num_threads);
+	//omp_set_schedule(omp_sched_static,1);
 
 	// -----------------------------------------------------------------------------------------
 	// Setup configuration.

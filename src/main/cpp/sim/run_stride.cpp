@@ -25,14 +25,18 @@
 #include "output/SummaryFile.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
+#include "sim/AsyncSimulator.h"
+#include "sim/LocalSimulatorAdapter.h"
+#include "sim/Coordinator.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
 
 #include <boost/property_tree/xml_parser.hpp>
-#include <omp.h>
 #include <spdlog/spdlog.h>
+#include <memory>
+#include <cassert>
 
 namespace stride {
 
@@ -45,30 +49,9 @@ using namespace std::chrono;
 
 /// Run the stride simulator.
 void run_stride(bool track_index_case, const string& config_file_name) {
-	// -----------------------------------------------------------------------------------------
-	// print output to command line.
-	// -----------------------------------------------------------------------------------------
-	cout << "\n*************************************************************" << endl;
-	cout << "Starting up at:      " << TimeStamp().toString() << endl;
-	cout << "Executing:           " << InstallDirs::getExecPath().string() << endl;
-	cout << "Current directory:   " << InstallDirs::getCurrentDir().string() << endl;
-	cout << "Install directory:   " << InstallDirs::getRootDir().string() << endl;
-	cout << "Data    directory:   " << InstallDirs::getDataDir().string() << endl;
+	// C++ example of how a Python main loop would look
 
-
-	// -----------------------------------------------------------------------------------------
-	// check execution environment.
-	// -----------------------------------------------------------------------------------------
-	if (InstallDirs::getCurrentDir().compare(InstallDirs::getRootDir()) != 0) {
-		throw runtime_error(string(__func__) + "> Current directory is not install root! Aborting.");
-	}
-	if (InstallDirs::getDataDir().empty()) {
-		throw runtime_error(string(__func__) + "> Data directory not present! Aborting.");
-	}
-
-	// -----------------------------------------------------------------------------------------
-	// Configuration.
-	// -----------------------------------------------------------------------------------------
+	// Configuration
 	ptree pt_config;
 	const auto file_path = canonical(system_complete(config_file_name));
 	if (!is_regular_file(file_path)) {
@@ -78,89 +61,65 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	read_xml(file_path.string(), pt_config);
 	cout << "Configuration file:  " << file_path.string() << endl;
 
-	// -----------------------------------------------------------------------------------------
-	// OpenMP.
-	// -----------------------------------------------------------------------------------------
-	unsigned int num_threads;
-	#pragma omp parallel
-	{
-		num_threads = omp_get_num_threads();
-	}
+	// OpenMP
+	unsigned int num_threads = 8; // TODO
 	if (ConfigInfo::haveOpenMP()) {
 		cout << "Using OpenMP threads:  " << num_threads << endl;
 	} else {
 		cout << "Not using OpenMP threads." << endl;
 	}
-	// -----------------------------------------------------------------------------------------
-	// Set output path prefix.
-	// -----------------------------------------------------------------------------------------
-	auto output_prefix = pt_config.get<string>("run.output_prefix", "");
-	if (output_prefix.length() == 0) {
-		output_prefix = TimeStamp().toTag();
-	}
-	cout << "Project output tag:  " << output_prefix << endl << endl;
 
-	// -----------------------------------------------------------------------------------------
+	// Set output path prefix.
+	string output_prefix = "";
+
 	// Additional run configurations.
-	// -----------------------------------------------------------------------------------------
 	if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
 		pt_config.put("run.num_participants_survey", 1);
 	}
 
-	// -----------------------------------------------------------------------------------------
 	// Track index case setting.
-	// -----------------------------------------------------------------------------------------
 	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
 
-	// -----------------------------------------------------------------------------------------
 	// Create logger
 	// Transmissions:     [TRANSMISSION] <infecterID> <infectedID> <clusterID> <day>
 	// General contacts:  [CNT] <person1ID> <person1AGE> <person2AGE>  <at_home> <at_work> <at_school> <at_other>
-	// -----------------------------------------------------------------------------------------
+	// Note, the logger here is kinda like a global variable, but checked at runtime :(
+	// This is somewhat common practice in loggers, but I'd still prefer an alternative approach
 	spdlog::set_async_mode(1048576);
 	auto file_logger = spdlog::rotating_logger_mt("contact_logger", output_prefix + "_logfile",
 												  std::numeric_limits<size_t>::max(),
 												  std::numeric_limits<size_t>::max());
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
-	// -----------------------------------------------------------------------------------------
 	// Create simulator.
-	// -----------------------------------------------------------------------------------------
 	Stopwatch<> total_clock("total_clock", true);
 	cout << "Building the simulator. " << endl;
 	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	cout << "Done building the simulator. " << endl << endl;
 
-	// -----------------------------------------------------------------------------------------
-	// Add observers to the simulator.
-	// -----------------------------------------------------------------------------------------
+	// No observers (yet) in C++. Logger was never intended as an observer per timestep.
 
-	cout << "Adding observers to the simulator." << endl;
-	/// example on how to use:
-		// auto classInstance = std::make_shared<Class>();
-		// std::function<void(const Simulator&)> fnCaller = std::bind(&Class::update, classInstance, std::placeholders::_1); 
-		// sim->registerObserver(classInstance, fnCaller); 
-	cout << "Done adding the observers." << endl << endl;
+	// MR test
+	auto sim2 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+	auto sim3 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+	auto l1 = make_unique<LocalSimulatorAdapter>(sim.get());
+	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
+	auto l3 = make_unique<LocalSimulatorAdapter>(sim3.get());
+	Coordinator coord({l1.get(), l2.get(), l3.get()});
 
-	// -----------------------------------------------------------------------------------------
 	// Run the simulation.
-	// -----------------------------------------------------------------------------------------
-	Stopwatch<> run_clock("run_clock");
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
 	vector<unsigned int> cases(num_days);
 	for (unsigned int i = 0; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
-		run_clock.start();
-		sim->timeStep();
-		run_clock.stop();
+		//sim->timeStep();
+		coord.timeStep();
 		cout << "     Done, infected count: ";
 		cases[i] = sim->getPopulation()->getInfectedCount();
 		cout << setw(10) << cases[i] << endl;
 	}
 
-	// -----------------------------------------------------------------------------------------
 	// Generate output files
-	// -----------------------------------------------------------------------------------------
 	// Cases
 	CasesFile cases_file(output_prefix);
 	cases_file.print(cases);
@@ -169,22 +128,18 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	SummaryFile summary_file(output_prefix);
 	summary_file.print(pt_config,
 					   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
-					   duration_cast<milliseconds>(run_clock.get()).count(),
+					   duration_cast<milliseconds>(total_clock.get()).count(),
 					   duration_cast<milliseconds>(total_clock.get()).count());
 
-	// Persons
+	// Persons ???
 	if (pt_config.get<double>("run.generate_person_file") == 1) {
 		PersonFile person_file(output_prefix);
 		person_file.print(sim->getPopulation());
 	}
 
-	// -----------------------------------------------------------------------------------------
 	// print final message to command line.
-	// -----------------------------------------------------------------------------------------
 	cout << endl << endl;
-	cout << "  run_time: " << run_clock.toString()
-		 << "  -- total time: " << total_clock.toString() << endl << endl;
-	cout << "Exiting at:         " << TimeStamp().toString() << endl << endl;
+	cout << "  total time: " << total_clock.toString() << endl << endl;
 }
 
 }

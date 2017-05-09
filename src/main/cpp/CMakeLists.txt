@@ -37,7 +37,7 @@ set(LIB_SRC
 	pop/Person.cpp
 	pop/PopulationBuilder.cpp
 #---
-	sim/run_stride2.cpp
+	sim/run_stride.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
