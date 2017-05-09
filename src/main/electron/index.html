@@ -11,43 +11,34 @@
 	<button onclick="nextDay()">Next day</button>
 </body>
 <script>
-    /*function readTextFile(file, callback) {
-        var rawFile = new XMLHttpRequest();
-        rawFile.overrideMimeType("application/json");
-        rawFile.open("GET", file, true);
-        rawFile.onreadystatechange = function() {
-            if (rawFile.readyState === 4 && rawFile.status == "200") {
-                callback(rawFile.responseText);
-            }
-        }
-        rawFile.send(null);
-    }
+    var files = {
+        keys: [],
+        values: []
+    };	// file-text_of_file pairs
 
-    function httpGetAsync(theUrl, callback)
-    {
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-                callback(xmlHttp.responseText);
-        }
-        xmlHttp.overrideMimeType("application/json");
-        xmlHttp.open("GET", theUrl, true); // true for asynchronous
-        xmlHttp.send(null);
-    }
+    var fs = require('fs');
+    fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
+     	if (err) return console.log(err);
+     	var config = JSON.parse(data);
 
-    var configFile;
+		fs.readdir(__dirname + "/" + config.directory, function(err, content){
+			if (err) {
+				return console.error(err);
+			}
 
-    //usage:
-    httpGetAsync("http://localhost:8080/data/config.json", function(text){
-        configFile = JSON.parse(text);
-        console.log(configFile);
-        httpGetAsync("http://localhost:8080/" + configFile.directory+"/", function(response) {
-            console.log(response);
-        });
-    });*/
+			content.forEach( function (file){
+				//console.log( file );
+				var data = fs.readFileSync(__dirname + "/" + config.directory + "/" + file, 'utf8');
+				files.keys.push(file);
+				files.values.push(data);
+				//console.log(data);
+			});
+			console.log(files.values[0]);
+			makeClusters(JSON.parse(files.values[0]));
+			console.log(files);
+		});
 
-    var configFile = JSON.parse("../web/data/config.json");
-    console.log(configFile);
+    });
 
     mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
     var map = new mapboxgl.Map({
@@ -55,10 +46,6 @@
         style: 'mapbox://styles/mapbox/streets-v9'
     });
 
-    var files = {
-        keys: [],
-        values: []
-    };	// file-text_of_file pairs
 	var inputElement = document.getElementById("input-1");
 
 	function getFileNumber(filename) {
