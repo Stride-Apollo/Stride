@@ -1,7 +1,7 @@
 <head>
     <script src='https://api.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
-	
+
 </head>
 <body>
 	<div id="map" style="width: 100%; height: 100%"></div>
@@ -43,15 +43,17 @@
 	function nextDay() {
 	    if (++currentDay >= files.length) {
 	        currentDay--;
-		}
-		makeClusters(JSON.parse(files[currentDay]));
-	}
+        } else {
+            makeClusters(JSON.parse(files[currentDay]));
+        }
+    }
 
 	function previousDay() {
-		if (--currentDay <= 0) {
+		if (--currentDay < 0) {
 		    currentDay = 0;
-		}
-		makeClusters(JSON.parse(files[currentDay]));
+		} else {
+            makeClusters(JSON.parse(files[currentDay]));
+        }
 	}
 	
     function makeClusters(cluster_data) {            
