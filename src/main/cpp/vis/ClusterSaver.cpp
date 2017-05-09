@@ -63,8 +63,8 @@ pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster, const un
 	ptree lon;
 	lat.put("", coords.m_latitude);
 	lon.put("", coords.m_longitude);
-	coordinates.push_back(std::make_pair("", lat));
 	coordinates.push_back(std::make_pair("", lon));
+	coordinates.push_back(std::make_pair("", lat));
 	cluster_geometry.add_child("coordinates", coordinates);
 
 	size_t size = cluster.getSize();
