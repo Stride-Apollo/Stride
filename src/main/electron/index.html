@@ -1,12 +1,11 @@
 <head>
     <script src='https://api.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
+	
 </head>
 <body>
 	<div id="map" style="width: 100%; height: 100%"></div>
 
-	<label id="input-1_label">Select File</label>
-	<input id="input-1" type="file" class="file" webkitdirectory directory>
 	<button onclick="previousDay()">Previous day</button>
 	<button onclick="nextDay()">Next day</button>
 </body>
@@ -16,10 +15,9 @@
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v9'
     });
-    var files = {
-        keys: [],
-        values: []
-    };	// file-text_of_file pairs
+    var files = [];	// file-text_of_file pairs
+
+	var currentDay = 0;
 
     var fs = require('fs');
     fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
@@ -32,91 +30,28 @@
 			}
 
 			content.forEach( function (file){
-				//console.log( file );
 				var data = fs.readFileSync(__dirname + "/" + config.directory + "/" + file, 'utf8');
-				files.keys.push(file);
-				files.values.push(data);
-				//console.log(data);
+				files.push(data);
 			});
             map.on('load', function() {
-                makeClusters(JSON.parse(files.values[0]));
+                makeClusters(JSON.parse(files[currentDay]));
             });
 		});
 
     });
 
-
-	var inputElement = document.getElementById("input-1");
-
-	function getFileNumber(filename) {
-		var tmp = filename.split("_");
-		return parseInt(tmp[0]);
-	}
-
-	inputElement.onchange = function(event) {
-		var all_files = inputElement.files;
-
-		function searchFirstFile() {
-			var smallestNumber = getFileNumber(all_files[0].name);
-			var smallestNumberIndex = 0;
-
-			for (var i = 1; i < all_files.length; i++) {
-				var candidateNumber = getFileNumber(all_files[i].name);
-				if (smallestNumber > candidateNumber) {
-					smallestNumber = candidateNumber;
-					smallestNumberIndex = i;
-				}
-			}
-			currentDay = smallestNumber;
-			return smallestNumberIndex;
-		}
-
-		function readFile(fileNumber) {
-			if (fileNumber >= all_files.length) {
-				makeClusters(JSON.parse(files.values[searchFirstFile()]));
-				return;
-			}
-
-			(function(file) {
-				var reader = new FileReader();
-				reader.onloadend = function (evt) {
-					if (evt.target.readyState == FileReader.DONE) {
-						files.keys.push(file);
-						files.values.push(reader.result);
-					}
-					readFile(fileNumber + 1);
-				};
-				reader.readAsText(file);
-			}) (all_files[fileNumber]);
-		}
-
-		readFile(0);
-	}	
-
-	function searchFileIndex(number, arr) {
-		for (var i = 0; i < arr.length; i++) {
-			var candidateNumber = getFileNumber(arr[i].name);
-			if (number == candidateNumber) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
 	function nextDay() {
-		currentDay++;
-		var index = searchFileIndex(currentDay, files.keys); // TODO check for -1
-		console.log("INDEX ", index);
-		console.log("FOUND ", files.values[index]);
-		makeClusters(JSON.parse(files.values[index]));
+	    if (++currentDay >= files.length) {
+	        currentDay--;
+		}
+		makeClusters(JSON.parse(files[currentDay]));
 	}
 
 	function previousDay() {
-		currentDay--;
-		var index = searchFileIndex(currentDay, files.keys); // TODO check for -1
-		console.log("INDEX ", index);
-		console.log("FOUND ", files.values[index]);
-		makeClusters(JSON.parse(files.values[index]));
+		if (--currentDay <= 0) {
+		    currentDay = 0;
+		}
+		makeClusters(JSON.parse(files[currentDay]));
 	}
 	
     function makeClusters(cluster_data) {            
