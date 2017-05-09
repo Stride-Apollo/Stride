@@ -24,8 +24,9 @@ void ClusterSaver::saveClustersJSON(const LocalSimulatorAdapter& local_sim) cons
 	clusters.put("type", "FeatureCollection");
 	{
 		ptree clusters_primaries;
-		for (unsigned int i = 0; i < local_sim.m_sim->m_primary_community.size(); i++) {
-			pair<ptree, ptree> cluster_pair = this->getClusterJSON(local_sim.m_sim->m_primary_community.at(i), i);
+		// First cluster is always empty
+		for (unsigned int i = 1; i < local_sim.m_sim->m_primary_community.size(); i++) {
+			pair<ptree, ptree> cluster_pair = this->getClusterJSON(local_sim.m_sim->m_primary_community.at(i));
 			ptree cluster_primary;
 			cluster_primary.put("type", "Feature");
 			cluster_primary.push_back(std::make_pair("geometry", cluster_pair.first));
@@ -51,7 +52,8 @@ void ClusterSaver::saveClustersJSON(const LocalSimulatorAdapter& local_sim) cons
 	write_json(util::InstallDirs::getOutputDir().string() + "/" + m_file_name + std::to_string(m_sim_day) + ".json", clusters);
 }
 
-pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster, const unsigned int id) const {
+pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster) const {
+
 	ptree cluster_geometry;
 	ptree cluster_properties;
 
@@ -67,6 +69,7 @@ pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster, const un
 	coordinates.push_back(std::make_pair("", lat));
 	cluster_geometry.add_child("coordinates", coordinates);
 
+	size_t id = cluster.getId();
 	size_t size = cluster.getSize();
 	size_t infected_count = cluster.getInfectedCount();
 	double ratio = (size == 0 ? 0 : (double) infected_count / size);

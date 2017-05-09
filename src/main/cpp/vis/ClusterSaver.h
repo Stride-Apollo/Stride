@@ -26,7 +26,7 @@ public:
 
 private:
 	void saveClustersJSON(const LocalSimulatorAdapter& local_sim) const;
-	pair<ptree, ptree> getClusterJSON(const Cluster& cluster, const unsigned int id) const;
+	pair<ptree, ptree> getClusterJSON(const Cluster& cluster) const;
 
 	unsigned int m_sim_day = 0;
 	string m_file_name;
