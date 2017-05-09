@@ -8,8 +8,8 @@
 
 	<button onclick="previousDay()">Previous day</button>
 	<button onclick="nextDay()">Next day</button>
-</body>
-<script>
+	<script src='https://npmcdn.com/@turf/turf/turf.min.js' charset='utf-8'></script>
+	<script>
 	mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
 	var map = new mapboxgl.Map({
 		container: 'map',
@@ -44,6 +44,10 @@
 	    if (++currentDay >= files.length) {
 	        currentDay--;
         } else {
+	    	var data = JSON.parse(files[currentDay-1]);
+	    	if (data.next_day_travel != undefined) {
+
+		    }
             makeClusters(JSON.parse(files[currentDay]));
         }
     }
@@ -55,22 +59,22 @@
             makeClusters(JSON.parse(files[currentDay]));
         }
 	}
-	
+
 	function makeClusters(cluster_data) {
 		console.log(cluster_data)
 		if (map.getLayer("clusters")) {
 			map.removeLayer("clusters");
 		}
-		
+
 		if (map.getSource("cluster_data")) {
 			map.removeSource("cluster_data");
 		}
-		
+
 		map.addSource("cluster_data", {
 			"type": "geojson",
 			"data": cluster_data
 		});
-				
+
 		map.addLayer({
 			"id": "clusters",
 			"type": "circle",
@@ -81,10 +85,10 @@
 					property: "size",
 					type: "interval",
 					stops: getSize(cluster_data)
-				},                
+				},
 				"circle-color": {
 					property: "infected_procent",
-					stops: [[-1, 'rgb(0, 250,0)'],[0, 'rgb(250, 250,0)'],[1, 'rgb(250,0,0)']]  
+					stops: [[-1, 'rgb(0, 250,0)'],[0, 'rgb(250, 250,0)'],[1, 'rgb(250,0,0)']]
 				},
 				"circle-opacity": 0.85
 			}
@@ -101,7 +105,7 @@
 
 			var htmlText = "Cluster " + e.features[0].properties.id.toString()
 			+ "<br>Size: " + e.features[0].properties.size.toString()
-			+ "<br>Infected: " + e.features[0].properties.infected.toString()            
+			+ "<br>Infected: " + e.features[0].properties.infected.toString()
 
 			// Populate the popup and set its coordinates
 			// based on the feature found.
@@ -113,6 +117,19 @@
 		map.on('mouseleave', 'clusters', function() {
 			map.getCanvas().style.cursor = '';
 			popup.remove();
+		});
+
+		map.on('click', 'clusters', function(e) {
+			console.log(e.features[0].properties.id);
+			var electron = require('electron');
+			const BrowserWindow = electron.BrowserWindow;
+
+			var win = new BrowserWindow({ width: 800, height: 600 });
+			win.webContents.on('did-finish-load', ()=>{
+				win.show();
+			win.focus();
+		});
+			win.loadURL(myURL);
 		});
 
 		fitView(map, cluster_data);
@@ -146,7 +163,7 @@
 		console.log("(" + min_lon + ", " + min_lat + ")" + "(" + max_lon + ", " + max_lat + ")");
 		map.fitBounds([[min_lon-2, min_lat-2], [max_lon+2, max_lat+2]]);
 	}
-	
+
 	function getSize(cluster_data) {
 		var result = [[{zoom: 0, value:0}, 0]];
 		var orig_MIN_SIZE = 2;
@@ -157,7 +174,7 @@
 		for (var i in cluster_data.features) {
 			if (cluster_data.features[i].properties.size > max_value) {
 				max_value = cluster_data.features[i].properties.size;
-			}   
+			}
 			if (cluster_data.features[i].properties.size < min_value) {
 				min_value = cluster_data.features[i].properties.size;
 			}
@@ -198,3 +215,4 @@
 		return result;
 	};
 </script>
+</body>

@@ -51,5 +51,6 @@
             "infected_procent": -1,
             "type": "household"
         }
-    }]  
+    }],
+    "next_day_travel": "travel1.json"
 }
