@@ -132,11 +132,8 @@ install_test: install_main
 distclean clean:
 	$(CMAKE) -E remove_directory $(BUILD_DIR)
 
-test installcheck: install_test
+test: install install_test
 	$(MAKE) -C $(BUILD_DIR)/test --no-print-directory run_default_ctest
-
-test_all installcheck: install_test
-	$(MAKE) -C $(BUILD_DIR)/test --no-print-directory run_all_ctest
 
 clean_all: distclean
 	git clean -df

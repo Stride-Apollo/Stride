@@ -21,6 +21,7 @@
 #include "pop/Population.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
+#include "util/etc.h"
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
@@ -37,26 +38,8 @@ using namespace ::testing;
 
 namespace Tests {
 
-class BatchDemos: public ::testing::TestWithParam<tuple<string, unsigned int>>
-{
-public:
-	/// TestCase set up.
-	static void SetUpTestCase() {}
-
-	/// Tearing down TestCase
-	static void TearDownTestCase() {}
-
+class BatchDemos: public ::testing::TestWithParam<tuple<string, unsigned int>> {
 protected:
-	/// Destructor has to be virtual.
-	virtual ~BatchDemos() {}
-
-	/// Set up for the test fixture
-	virtual void SetUp() {}
-
-	/// Tearing down the test fixture
-	virtual void TearDown() {}
-
-	// Data members of the test fixture
 	static const string            g_population_file;
 	static const double            g_r0;
 	static const unsigned int      g_num_days;
@@ -107,11 +90,8 @@ const map<string, unsigned int> BatchDemos::g_results {
 	make_pair("maximum",700000)
 };
 
-TEST_P( BatchDemos, Run )
-{
-	// -----------------------------------------------------------------------------------------
+TEST_P( BatchDemos, Run ) {
 	// Prepare test configuration.
-	// -----------------------------------------------------------------------------------------
 	tuple<string, unsigned int> t(GetParam());
 	const string test_tag = get<0>(t);
 	const unsigned int num_threads = get<1>(t);
@@ -119,9 +99,7 @@ TEST_P( BatchDemos, Run )
 	//omp_set_num_threads(num_threads);
 	//omp_set_schedule(omp_sched_static,1);
 
-	// -----------------------------------------------------------------------------------------
 	// Setup configuration.
-	// -----------------------------------------------------------------------------------------
 	boost::property_tree::ptree pt_config;
 	pt_config.put("run.rng_seed", g_rng_seed);
 	pt_config.put("run.r0", g_r0);
@@ -138,60 +116,48 @@ TEST_P( BatchDemos, Run )
 	pt_config.put("run.log_level","None");
 	bool track_index_case = false;
 
-	// -----------------------------------------------------------------------------------------
 	// Override scenario settings.
-	// -----------------------------------------------------------------------------------------
-	if (test_tag == "default"){
+	if (test_tag == "default") {
 		// do nothing
-	}
-	if (test_tag == "seeding_rate"){
+	} else if (test_tag == "seeding_rate") {
 		pt_config.put("run.seeding_rate", g_seeding_rate_adapted);
-	}
-	if (test_tag == "immunity_rate"){
+	} else if (test_tag == "immunity_rate") {
 		pt_config.put("run.seeding_rate", 1-g_immunity_rate_adapted);
 		pt_config.put("run.immunity_rate", g_immunity_rate_adapted);
-	}
-	if (test_tag == "measles"){
+	} else if (test_tag == "measles") {
 		pt_config.put("run.disease_config_file", g_disease_config_file_adapted);
 		pt_config.put("run.r0", g_transmission_rate_measles);
-	}
-	if (test_tag == "maximum"){
+	} else if (test_tag == "maximum") {
 		pt_config.put("run.r0", g_transmission_rate_maximum);
+	} else {
+		FAIL() << "test_tag has an unexpected value: " << test_tag;
 	}
 
-	// -----------------------------------------------------------------------------------------
 	// initialize the logger.
-	// -----------------------------------------------------------------------------------------
 	spdlog::set_async_mode(1048576);
 	auto file_logger = spdlog::rotating_logger_mt("contact_logger", g_output_prefix + "_logfile",
 			std::numeric_limits<size_t>::max(),  std::numeric_limits<size_t>::max());
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
-	// -----------------------------------------------------------------------------------------
-	// initialize the simulation.
-	// -----------------------------------------------------------------------------------------
-	cout << "Building the simulator. "<< endl;
-	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	cout << "Done building the simulator. "<< endl <<endl;
+	// Release and close logger afterwards
+	// We bind this the current scope through 'defer', otherwise all subsequent tests
+	// will fail if one test case throws an exception and doesn't do this.
+	defer(spdlog::drop_all());
 
-	// -----------------------------------------------------------------------------------------
+	// initialize the simulation.
+	cout << "Building the simulator. " << endl;
+	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+	cout << "Done building the simulator. " << endl << endl;
+
 	// Run the simulation.
-	// -----------------------------------------------------------------------------------------
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
 	for (unsigned int i = 0; i < num_days; i++) {
 		sim->timeStep();
 	}
 
-	// -----------------------------------------------------------------------------------------
-	// Release and close logger.
-	// -----------------------------------------------------------------------------------------
-        spdlog::drop_all();
-
-	// -----------------------------------------------------------------------------------------
 	// Round up.
-	// -----------------------------------------------------------------------------------------
 	const unsigned int num_cases = sim->getPopulation()->getInfectedCount();
-	ASSERT_NEAR(num_cases, g_results.at(test_tag),10000) << "!! CHANGED !!";
+	ASSERT_NEAR(num_cases, g_results.at(test_tag), 10000) << "!! CHANGED !!";
 }
 
 namespace {
@@ -226,6 +192,4 @@ INSTANTIATE_TEST_CASE_P(Run_measles, BatchDemos,
 INSTANTIATE_TEST_CASE_P(Run_maximum, BatchDemos,
         ::testing::Combine(::testing::Values(string("maximum")), ::testing::ValuesIn(threads)));
 
-} //end-of-namespace-Tests
-
-
+}
