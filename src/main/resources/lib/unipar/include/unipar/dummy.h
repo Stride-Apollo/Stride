@@ -12,7 +12,7 @@ struct DummyResourceManager;
 
 template <typename Impl, typename TF, typename... Rest>
 struct DummyResourceManager<Impl, TF, Rest...> : public ResourceManager<Impl, TF, Rest...> {
-	typename TF::Type *value = nullptr;
+	typename TF::Type* value = nullptr;
 	
 	using ResourceManager<Impl, TF, Rest...>::ResourceManager;
 	

@@ -3,7 +3,13 @@
 namespace stride {
 
 #include "unipar/pick_choices.h"
-#define UNIPAR_IMPL UNIPAR_OPENMP
+
+#ifndef UNIPAR_IMPL
+#define UNIPAR_IMPL UNIPAR_DUMMY
+#endif
+
+// We should have already picked one
+//#define UNIPAR_IMPL UNIPAR_OPENMP
 #include "unipar/pick.h"
 
 }

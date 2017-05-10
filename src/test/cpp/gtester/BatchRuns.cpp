@@ -161,20 +161,11 @@ TEST_P( BatchDemos, Run ) {
 }
 
 namespace {
-	string scenarios[] {
-		"default",
-		"seeding_rate",
-		"immunity_rate",
-		"measles",
-		"maximum"
-	};
-
 #ifdef _OPENMP
-	unsigned int threads[] { 1U , 4U, 8U};
+	unsigned int threads[] {1U, 4U, 8U};
 #else
 	unsigned int threads[] { 1U };
 #endif
-
 }
 
 INSTANTIATE_TEST_CASE_P(Run_default, BatchDemos,

@@ -28,21 +28,20 @@
 namespace stride {
 namespace util {
 
-/**
- * The random number generator.
- */
+inline double rateToProbability(double rate) {
+	return 1 - exp(-rate);
+}
+
+/// The random number generator.
 class Random {
 public:
-	/// Constructor: initialize the random number engine and distribution.
 	Random(const unsigned long seed = 0) {
 		m_engine.seed(seed);
 		m_uniform_dist = trng::uniform01_dist<double>();
 	}
 
-	/// Get random double.
 	double nextDouble() {
 		return m_uniform_dist(m_engine);
-
 	}
 
 	/// Get random unsigned int from [0, max[.
@@ -51,20 +50,21 @@ public:
 		return dis(m_engine);
 	}
 
-	/**
-	 * Split random engines
-	 * E. g. stream 0 1 2 3 4 5...
-	 * => stream A: 0 2 4...
-	 * => stream B: 1 3 5...
-	 */
-	void split(unsigned int total, unsigned int id) {
-		m_engine.split(total, id);
+	/// Check if two individuals have contact.
+	bool hasContact(double contact_rate) {
+		return nextDouble() < rateToProbability(contact_rate);
+	}
+
+	/// Check if two individuals have transmission.
+	bool hasTransmission(double contact_rate, double transmission_rate) {
+		return nextDouble() < rateToProbability(transmission_rate * contact_rate);
 	}
 
 private:
 	trng::mrg2 m_engine;         ///< The random number engine.
 	trng::uniform01_dist<double> m_uniform_dist;   ///< The random distribution.
 };
+
 
 }
 }

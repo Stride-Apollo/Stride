@@ -33,7 +33,6 @@
 
 namespace stride {
 
-class RngHandler;
 class Calendar;
 
 /**

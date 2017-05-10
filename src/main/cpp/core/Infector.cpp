@@ -24,9 +24,9 @@
 #include "core/Infector.h"
 #include "core/LogMode.h"
 #include "pop/Person.h"
+#include "util/Random.h"
 
 #include <spdlog/spdlog.h>
-#include "RngHandler.h"
 #include <cstddef>
 #include <memory>
 #include <utility>
@@ -35,7 +35,7 @@
 namespace stride {
 
 using namespace std;
-
+using namespace util;
 
 /**
  * Primary R0_POLICY: do nothing i.e. track all cases.
@@ -107,7 +107,7 @@ public:
 template<LogMode log_level, bool track_index_case>
 void Infector<log_level, track_index_case>::execute(
 		Cluster& cluster, DiseaseProfile disease_profile,
-		RngHandler& contact_handler, shared_ptr<const Calendar> calendar) {
+		Random& contact_handler, shared_ptr<const Calendar> calendar) {
 	// check if the cluster has infected members and sort
 	bool infectious_cases;
 	size_t num_cases;
@@ -155,7 +155,7 @@ void Infector<log_level, track_index_case>::execute(
 template<bool track_index_case>
 void Infector<LogMode::Contacts, track_index_case>::execute(
 		Cluster& cluster, DiseaseProfile disease_profile,
-		RngHandler& contact_handler, shared_ptr<const Calendar> calendar) {
+		Random& contact_handler, shared_ptr<const Calendar> calendar) {
 	cluster.updateMemberPresence();
 
 	// set up some stuff

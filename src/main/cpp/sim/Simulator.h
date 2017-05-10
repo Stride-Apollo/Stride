@@ -22,7 +22,6 @@
 //#include "core/Cluster.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
-#include "core/RngHandler.h"
 #include "behavior/behavior_policies/NoBehavior.h"
 #include "pop/Person.h"
 #include "pop/Traveller.h"
@@ -80,15 +79,16 @@ private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 
 private:
-
 	unsigned int m_num_threads; 			///< The number of threads (as a hint)
-	decltype(Parallel().withFunc<RngHandler>()) m_parallel;
-	unsigned int m_seed;
-	std::shared_ptr<util::Random> m_seed_rng;
 
-	// Maintaining the RNG is only possible in single-threaded mode
-	// TODO_UNIPAR
-	//std::unique_ptr<RngHandler> m_rng_handler;  ///< Pointer to the RngHandler
+	#if UNIPAR_IMPL == UNIPAR_DUMMY
+		using RandomRef = util::Random*;
+	#else
+		using RandomRef = std::unique_ptr<util::Random>;
+	#endif
+	decltype(Parallel().withFunc<RandomRef>()) m_parallel;
+
+	std::shared_ptr<util::Random> m_rng;
 
 	LogMode m_log_level;            		///< Specifies logging mode.
 	std::shared_ptr<Calendar> m_calendar;	///< Management of calendar.

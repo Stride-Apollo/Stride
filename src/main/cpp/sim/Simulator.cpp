@@ -40,9 +40,10 @@ Simulator::Simulator()
 		  m_disease_profile(), m_track_index_case(false) {
 	m_parallel.getResourceManager().setFunc([&](){
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
-		// TODO_UNIPAR ...?
+			return m_rng.get();
 		#else
-		return RngHandler(m_seed_rng->operator()(), 1, 0);
+			// Use the rng to initialize a seed
+			return make_unique<Random>(m_rng->operator()());
 		#endif
 	});
 }
@@ -62,9 +63,9 @@ void Simulator::updateClusters() {
 	// but saves us a lot of typing without resorting to macro's.
 	for (auto clusters: {&m_households, &m_school_clusters, &m_work_clusters,
 						 &m_primary_community, &m_secondary_community}) {
-		m_parallel.for_(0, clusters->size(), [&](RngHandler& rng, size_t i) {
+		m_parallel.for_(0, clusters->size(), [&](RandomRef rng, size_t i) {
 			Infector<log_level, track_index_case>::execute(
-					(*clusters)[i], m_disease_profile, rng, m_calendar);
+					(*clusters)[i], m_disease_profile, *rng, m_calendar);
 		});
 	}
 }
