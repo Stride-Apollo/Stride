@@ -17,7 +17,7 @@ function getDecoratedData(data) {
 				if (this.parsed_data.features[i].properties.type == cluster_type.household) {
 					pop_count += this.parsed_data.features[i].properties.size;
 				}
-				
+
 			}
 			// TODO add the things below
 			// pop_count += travellers_amount;
@@ -70,20 +70,14 @@ function getDecoratedData(data) {
 	};
 }
 
-function getClusterInfectedCourse(data, type, id) {
+function getClusterInfectedCourse(data, id) {
 	/// data is iterable
 	/// type is the type of cluster you want to inspect
 	/// id is the id of the cluster you want to inspect
 	var timeline = [];
 
 	for (var i = 0; i < data.length; i++) {
-		var current_data = getDecoratedData(data[i]);
-		var current_cluster = current_data.getCluster(id, type);
-
-		timeline.push({
-			size: current_cluster.properties.size,
-			infected: current_cluster.properties.infected
-		});
+		timeline.push(getClusterInfectedData(data[i], id));
 	}
 
 	return timeline;

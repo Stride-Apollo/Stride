@@ -33,3 +33,25 @@ function parseCSVFile(file_text) {
 	return cluster_data;
 }
 
+
+function getClusterInfectedData(file_text, id) {
+	var lines = file_text.split("\n")
+
+	var format = lines[0].split(",");
+	function getPropertyIndex(prop) {
+		return format.indexOf(prop);
+	}
+	lines = lines.slice(1, lines.length-1);
+
+	for (var i in lines) {
+		var data_cluster = lines[i].split(",");
+		if (id == parseInt(data_cluster[getPropertyIndex("id")])) {
+			cluster_data = {
+				size: parseInt(data_cluster[getPropertyIndex("size")]),
+				infected: parseInt(data_cluster[getPropertyIndex("infected")])
+			}
+			return cluster_data;
+		}
+	}
+	return undefined;
+}

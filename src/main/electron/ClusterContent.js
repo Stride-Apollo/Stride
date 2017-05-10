@@ -36,7 +36,7 @@ app.controller('ClusterController', ['$scope', '$location', function($scope, $lo
 		filenames.push(file);
 	});
 
-	clusterEvolution = getClusterInfectedCourse(files, "primary_community", $scope.ID);
+	clusterEvolution = getClusterInfectedCourse(files, $scope.ID);
 
 	var myPlot = document.getElementById("graph");
 	Plotly.purge(myPlot);
