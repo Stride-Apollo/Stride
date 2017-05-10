@@ -45,7 +45,7 @@
 	    if (++currentDay >= files.length) {
 	        currentDay--;
         } else {
-	    	map.getSource("cluster_data").setData(parseData(JSON.parse(files[currentDay])))
+	    	updateMap(parseData(JSON.parse(files[currentDay])))
         }
     }
 
@@ -53,8 +53,13 @@
 		if (--currentDay < 0) {
 		    currentDay = 0;
 		} else {
-            map.getSource("cluster_data").setData(parseData(JSON.parse(files[currentDay])))
+            updateMap(parseData(JSON.parse(files[currentDay])))
         }
+	}
+
+	function updateMap(data) {
+		map.getSource("cluster_data").setData(data);
+		fitView(data);
 	}
 
 	function parseData(cluster_data) {
@@ -155,10 +160,10 @@
 			}
 		});
 
-		fitView(map, cluster_data);
+		fitView(cluster_data);
 	}
 
-	function fitView(map, cluster_data) {
+	function fitView(cluster_data) {
 		var coords = [];
 		for (var i in cluster_data.features) {
 			coords.push(cluster_data.features[i].geometry.coordinates);
