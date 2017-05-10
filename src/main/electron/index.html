@@ -8,6 +8,8 @@
 
 	<button onclick="previousDay()">Previous day</button>
 	<button onclick="nextDay()">Next day</button>
+	<button onclick="runSimulation()">Simulate</button>
+	<label id="simulateDay">Simulating day 0</label>
 	<script src='https://npmcdn.com/@turf/turf/turf.min.js' charset='utf-8'></script>
 	<script>
 	mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
@@ -41,9 +43,18 @@
 
 	});
 
+	var simulation_run;
+	function runSimulation() {
+		if (currentDay < files.length - 1) {
+			nextDay();
+		}
+		simulation_run = setInterval(nextDay, config.animation_step);
+	}
+
 	function nextDay() {
 	    if (++currentDay >= files.length) {
 	        currentDay--;
+	        clearInterval(simulation_run);
         } else {
 	    	updateMap(parseData(JSON.parse(files[currentDay])))
         }
@@ -60,6 +71,7 @@
 	function updateMap(data) {
 		map.getSource("cluster_data").setData(data);
 		fitView(data);
+		document.getElementById("simulateDay").innerHTML = "Simulating day " + currentDay;
 	}
 
 	function parseData(cluster_data) {
