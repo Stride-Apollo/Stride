@@ -169,7 +169,9 @@
 				})
 				var url = "file://" + __dirname + '/ClusterContent.html?data='
 					+ __dirname + "/" + config.directory + "/" + filenames[currentDay]
-					+ "&cluster=" + e.features[0].properties.id;
+					+ "&cluster=" + e.features[0].properties.id
+					+ "&directory=" + __dirname + "/" + config.directory
+					+ "&currentDay=" + currentDay;
 				win.loadURL(url);
 			} else {
 				for (var i in windows) {

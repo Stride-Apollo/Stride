@@ -28,6 +28,7 @@ function parseCSVFile(file_text) {
 		cluster_data.features[i].properties.size = parseInt(data_cluster[getPropertyIndex("size")]);
 		cluster_data.features[i].properties.infected = parseInt(data_cluster[getPropertyIndex("infected")]);
 		cluster_data.features[i].properties.infected_percent = parseFloat(data_cluster[getPropertyIndex("infected_percent")]);
+		cluster_data.features[i].properties.type = data_cluster[getPropertyIndex("type")];
 	}
 	return cluster_data;
 }
