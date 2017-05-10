@@ -1,3 +1,4 @@
+<html>
 <head>
 	<script src='https://api.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
 	<script src='ProcessData.js'></script>
@@ -18,7 +19,7 @@
 		style: 'mapbox://styles/mapbox/streets-v9'
 	});
 	var files = [];	// file-text_of_file pairs
-
+	var filenames = [];
 	var currentDay = 0;
 
 	var config;
@@ -35,6 +36,7 @@
 			content.forEach( function (file){
 				var data = fs.readFileSync(__dirname + "/" + config.directory + "/" + file, 'utf8');
 				files.push(data);
+				filenames.push(file);
 			});
 			map.on('load', function() {
 				makeClusters(JSON.parse(files[currentDay]));
@@ -151,6 +153,7 @@
 				windows.push({id:e.features[0].properties.id, win: win });
 				win.webContents.on('did-finish-load', ()=>{
 					win.show();
+					//win.webContents.openDevTools();
 					win.focus();
 				});
 
@@ -162,7 +165,10 @@
 						}
 					}
 				})
-				win.loadURL("https://www.google.be/search?q=how+to+code&oq=how+to+code&aqs=chrome.0.69i59j0l5.3375j0j7&sourceid=chrome&ie=UTF-8");
+				var url = "file://" + __dirname + '/ClusterContent.html?data='
+					+ __dirname + "/" + config.directory + "/" + filenames[currentDay]
+					+ "&cluster=" + e.features[0].properties.id;
+				win.loadURL(url);
 			} else {
 				for (var i in windows) {
 					if (windows[i].id == e.features[0].properties.id) {
@@ -273,3 +279,4 @@
 	}
 </script>
 </body>
+</html>
