@@ -62,7 +62,10 @@ function getDecoratedData(data) {
 					wanted_clusters.push(this.parsed_data.features[i]);
 				}
 			}
-			return wanted_clusters;
+			return 	{
+						type: "FeatureCollection",
+						features: wanted_clusters
+					};
 		}
 	};
 }
