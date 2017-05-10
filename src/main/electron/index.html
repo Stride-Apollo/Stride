@@ -90,7 +90,7 @@
 					property: "infected_percent",
 					stops: [[-1, config.color_no_infected],[0, config.color_min_infected],[1, config.color_max_infected]]
 				},
-				"circle-opacity": 0.9
+				"circle-opacity": config.circle_opacity
 			}
 		});
 		// Create a popup, but don't add it to the map yet.
@@ -189,8 +189,8 @@
 	function getSize(cluster_data) {
 		var result = [[{zoom: 0, value:0}, 0]];
 		//var result = [[0, 0]];
-		var orig_MIN_SIZE = 1;
-		var orig_MAX_SIZE = 3;
+		var orig_MIN_SIZE = config.unzoomed_min_size;
+		var orig_MAX_SIZE = config.unzoomed_max_size;
 		var min_value = Number.MAX_VALUE;
 		var max_value = Number.MIN_VALUE;
 
