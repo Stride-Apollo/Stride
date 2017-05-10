@@ -19,10 +19,11 @@
 
 	var currentDay = 0;
 
+	var config;
 	var fs = require('fs');
 	fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
 		if (err) return console.log(err);
-		var config = JSON.parse(data);
+		config = JSON.parse(data);
 
 		fs.readdir(__dirname + "/" + config.directory, function(err, content){
 			if (err) {
@@ -87,7 +88,7 @@
 				},
 				"circle-color": {
 					property: "infected_percent",
-					stops: [[-1, 'hsl(120, 100%, 50%)'],[0, 'hsl(60, 100%, 50%)'],[1, 'hsl(0, 100%, 50%)']]
+					stops: [[-1, config.color_no_infected],[0, config.color_min_infected],[1, config.color_max_infected]]
 				},
 				"circle-opacity": 0.9
 			}

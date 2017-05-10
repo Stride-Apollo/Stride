@@ -1,3 +1,6 @@
 {
-	"directory": "data/output"
+	"directory": "data/output",
+	"color_no_infected": "hsl(120, 100%, 50%)",
+	"color_min_infected": "hsl(60, 100%, 50%)",
+	"color_max_infected": "hsl(0, 100%, 50%)"
 }
