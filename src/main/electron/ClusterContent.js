@@ -18,6 +18,9 @@ app.controller('ClusterController', ['$scope', '$location', function($scope, $lo
 			$scope.size = parseFloat(content.features[i].properties.size);
 			$scope.infected = parseFloat(content.features[i].properties.infected);
 			$scope.infected_percent = parseFloat(content.features[i].properties.infected_percent);
+			$scope.cluster_type = content.features[i].properties.type;
+			$scope.lat = parseFloat(content.features[i].geometry.coordinates[1]);
+			$scope.lon = parseFloat(content.features[i].geometry.coordinates[0]);
 			if ($scope.infected_percent == -1) {
 				$scope.infected_percent = 0;
 			}
