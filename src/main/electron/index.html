@@ -44,7 +44,7 @@
 	    if (++currentDay >= files.length) {
 	        currentDay--;
         } else {
-            makeClusters(JSON.parse(files[currentDay]));
+	    	map.getSource("cluster_data").setData(parseData(JSON.parse(files[currentDay])))
         }
     }
 
@@ -52,33 +52,28 @@
 		if (--currentDay < 0) {
 		    currentDay = 0;
 		} else {
-            makeClusters(JSON.parse(files[currentDay]));
+            map.getSource("cluster_data").setData(parseData(JSON.parse(files[currentDay])))
         }
 	}
 
-	function makeClusters(cluster_data) {
-		if (map.getLayer("clusters")) {
-			map.removeLayer("clusters");
-		}
-
-		if (map.getSource("cluster_data")) {
-			map.getSource("cluster_data").setData(null);
-			map.removeSource("cluster_data");
-		}
-		// preparsing
+	function parseData(cluster_data) {
 		for (var i in cluster_data.features) {
 			cluster_data.features[i].properties.infected_percent = parseFloat(cluster_data.features[i].properties.infected_percent);
 			cluster_data.features[i].properties.infected = parseFloat(cluster_data.features[i].properties.infected);
 			cluster_data.features[i].properties.size = parseFloat(cluster_data.features[i].properties.size);
 			cluster_data.features[i].geometry.coordinates = [parseFloat(cluster_data.features[i].geometry.coordinates[0]), parseFloat(cluster_data.features[i].geometry.coordinates[1])];
 		}
+		return cluster_data;
+	}
+
+	function makeClusters(cluster_data) {
+		// preparsing
+		cluster_data = parseData(cluster_data);
 
 		map.addSource("cluster_data", {
 			"type": "geojson",
 			"data": cluster_data
 		});
-
-		//console.log(map.getSource("cluster_data").getData().length)
 
 		map.addLayer({
 			"id": "clusters",
@@ -94,7 +89,7 @@
 					property: "infected_percent",
 					stops: [[-1, 'rgb(0, 250,0)'],[0, 'rgb(250, 250,0)'],[1, 'rgb(250,0,0)']]
 				},
-				"circle-opacity": 0.85
+				"circle-opacity": 0.9
 			}
 		});
 		// Create a popup, but don't add it to the map yet.
