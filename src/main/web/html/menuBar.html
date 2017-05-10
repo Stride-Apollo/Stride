@@ -123,17 +123,8 @@ function openMenu() {
 	}
 }
 
-function setCorrectSlider() {
-	if (parseFloat(document.getElementById("opacityInput").value) > 1.0) {
-		document.getElementById("opacityInput").value = 1.0;
-	} else if (parseFloat(document.getElementById("opacityInput").value) < 0.0) {
-		document.getElementById("opacityInput").value = 0.0;
-	}
-	document.getElementById("opacitySlider").value = document.getElementById("opacityInput").value;
-}
-
-function setCorrectValue() {
-	document.getElementById("opacityInput").value = document.getElementById("opacitySlider").value;
+function setLabel() {
+	document.getElementById("opacityLabel").innerHTML = document.getElementById("opacitySlider").value;
 }
 
 </script>
@@ -166,16 +157,10 @@ function setCorrectValue() {
 			
 			<tr>
 				<td>
-					<form action="#">
-						<div class="mdl-textfield mdl-js-textfield">
-							<input id="opacityInput" class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" onblur="setCorrectSlider()">
-							<label class="mdl-textfield__label" for="opacityInput">Circle opacity...</label>
-							<span class="mdl-textfield__error">Input is not a number!</span>
-						</div>
-					</form>
+					<label id="opacityLabel">0</label>
 				</td>
 				<td>
-					<input class="mdl-slider mdl-js-slider" id="opacitySlider" type="range" min="0.00" max="1.00" value="0" step="0.01" class="rhs" onchange="setCorrectValue()">
+					<input class="mdl-slider mdl-js-slider" id="opacitySlider" type="range" min="0.00" max="1.00" value="0" step="0.01" class="rhs" onclick="setLabel()" onmouseup="setLabel()">
 				</td>
 			</tr>
 		</tbody>
