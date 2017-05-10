@@ -83,11 +83,13 @@ pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster) const {
 	if (infected_count == 0) {
 		ratio = -1;
 	}
+	string cluster_type = toString(cluster.getClusterType());
 
 	cluster_properties.put("id", id);
 	cluster_properties.put("size", size);
 	cluster_properties.put("infected", infected_count);
 	cluster_properties.put("infected_percent", ratio);
+	cluster_properties.put("type", cluster_type);
 
 	return std::make_pair(cluster_geometry, cluster_properties);
 }
