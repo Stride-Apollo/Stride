@@ -104,6 +104,10 @@ table {
 	max-width: 90%;
 }
 
+.center {
+	text-align: center;
+}
+
 </style>
 
 <script>
@@ -112,44 +116,44 @@ function openMenu() {
 	var drawer = document.getElementById("conf_drawer");
 	var btn = document.getElementById("conf_button");
 
-	if (document.getElementById("conf_button").getAttribute("class") == "") {
-		btn.setAttribute("class", "is_clicked");
+	if (document.getElementById("conf_button").getAttribute("class") == "material-icons") {
+		btn.setAttribute("class", "material-icons is_clicked");
 		drawer.setAttribute("class", "expanded");
-		btn.innerHTML = ">";
+		btn.innerHTML = "navigate_next";
 	} else {
-		btn.setAttribute("class", "");
+		btn.setAttribute("class", "material-icons");
 		drawer.setAttribute("class", "");
-		btn.innerHTML = "<";
+		btn.innerHTML = "navigate_before";
 	}
 }
 
-function setLabel() {
-	document.getElementById("opacityLabel").innerHTML = document.getElementById("opacitySlider").value;
+function setLabel(sliderId, labelId, prefix) {
+	document.getElementById(labelId).innerHTML = prefix + document.getElementById(sliderId).value;
 }
 
 </script>
 
 <body>
 
-<div id="conf_button" class="" onclick="openMenu()">&lt;</div>
+<div id="conf_button" class="material-icons" onclick="openMenu()">navigate_before</div>
 <div id="conf_drawer" class="">
 	<div class="settingTitle">Colors</div>
 	<table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
 		<tbody>
 			<tr>
-				<td>SomeColor:</td>
+				<td>No infected color:</td>
 				<td class="colorPicker">
 					<input class="jscolor" value="ab2567">
 				</td>
 			</tr>
 			<tr>
-				<td>SomeColor2:</td>
+				<td>Minimum infected color:</td>
 				<td class="colorPicker">
 					<input class="jscolor" value="ab2567">
 				</td>
 			</tr>
 			<tr>
-				<td>SomeColor3:</td>
+				<td>All infected color:</td>
 				<td class="colorPicker">
 					<input class="jscolor" value="ab2567">
 				</td>
@@ -157,15 +161,59 @@ function setLabel() {
 			
 			<tr>
 				<td>
-					<label id="opacityLabel">0</label>
+					<label id="opacityLabel">Opacity: 0</label>
 				</td>
 				<td>
-					<input class="mdl-slider mdl-js-slider" id="opacitySlider" type="range" min="0.00" max="1.00" value="0" step="0.01" class="rhs" oninput="setLabel()">
+					<input class="mdl-slider mdl-js-slider" id="opacitySlider" type="range" min="0.00" max="1.00" value="0" step="0.01" class="rhs"
+						oninput="setLabel('opacitySlider', 'opacityLabel', 'Opacity: ')">
 				</td>
 			</tr>
 		</tbody>
 	</table>
-
+	<div class="settingTitle">Sizes, speed and other numbers</div>
+	<table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+		<tbody>
+			<tr>
+				<td>
+					<label id="zoomedMinLabel">Unzoomed minimum: 1</label>
+				</td>
+				<td>
+					<input class="mdl-slider mdl-js-slider" id="zoomedMinSlider" type="range" min="1.00" max="100" value="0" step="1" class="rhs"
+						oninput="setLabel('zoomedMinSlider', 'zoomedMinLabel', 'Zoomed minimum: ')">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<label id="zoomedMaxLabel">Unzoomed maximum: 2</label>
+				</td>
+				<td>
+					<input class="mdl-slider mdl-js-slider" id="zoomedMaxSlider" type="range" min="2" max="100" value="0" step="1" class="rhs"
+						oninput="setLabel('zoomedMaxSlider', 'zoomedMaxLabel', 'Zoomed maximum: ')">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<label id="speedLabel">Animation speed (ms): 100</label>
+				</td>
+				<td>
+					<input class="mdl-slider mdl-js-slider" id="speedSlider" type="range" min="100" max="5000" value="0" step="1" class="rhs"
+						oninput="setLabel('speedSlider', 'speedLabel', 'Animation speed (ms): ')">
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="center">
+		<div class="settingTitle">Simulation</div>
+		<button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab">
+			<i class="material-icons">navigate_before</i>
+		</button>
+		<button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab">
+			<i class="material-icons">navigate_next</i>
+		</button>
+		<button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab">
+			<i class="material-icons">play_arrow</i>
+		</button>
+	</div>
 </div>
 
 </body>
