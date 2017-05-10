@@ -3,6 +3,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <string>
 #include <utility>
+#include <fstream>
 
 #include "sim/LocalSimulatorAdapter.h"
 #include "core/Cluster.h"
@@ -11,6 +12,7 @@
 using boost::property_tree::ptree;
 using std::string;
 using std::pair;
+using std::ofstream;
 
 
 namespace stride {
@@ -20,11 +22,15 @@ public:
 	ClusterSaver(string file_name);
 
 	virtual void update(const LocalSimulatorAdapter& sim) {
-		saveClustersJSON(sim);
+		saveClustersCSV(sim);
+		// saveClustersJSON(sim);
 		m_sim_day++;
 	}
 
 private:
+	void saveClustersCSV(const LocalSimulatorAdapter& local_sim) const;
+	inline void saveClusterCSV(const Cluster& cluster, ofstream& csv_file) const;
+
 	void saveClustersJSON(const LocalSimulatorAdapter& local_sim) const;
 	pair<ptree, ptree> getClusterJSON(const Cluster& cluster) const;
 

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <fstream>
 
 #include "vis/ClusterSaver.h"
 #include "util/InstallDirs.h"
@@ -18,11 +19,49 @@ using std::string;
 using std::stringstream;
 using std::setw;
 using std::setfill;
+using std::ofstream;
 
 
 namespace stride {
 
 ClusterSaver::ClusterSaver(string file_name) : m_sim_day(0), m_file_name(file_name) {}
+
+
+
+void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const {
+	ofstream csv_file;
+	stringstream ss;
+	ss << setfill('0') << setw(5) << m_sim_day;
+	string file_name = util::InstallDirs::getOutputDir().string() + "/" + m_file_name + "_" + ss.str() + ".csv";
+	csv_file.open(file_name.c_str());
+
+	// Format of the csv file
+	csv_file << "id,size,infected,infected_percent,lat,lon,type" << endl;
+
+	for (const auto& cluster : local_sim.m_sim->m_primary_community) {
+		this->saveClusterCSV(cluster, csv_file);
+	}
+}
+
+inline void ClusterSaver::saveClusterCSV(const Cluster& cluster, ofstream& csv_file) const {
+	size_t size = cluster.getSize();
+	if (size == 0) {
+		return;
+	}
+	size_t infected_count = cluster.getInfectedCount();
+	double ratio = (infected_count == 0 ? -1 : (double) infected_count / size);
+	GeoCoordinate coords = cluster.getLocation();
+
+	csv_file << cluster.getId() << ',' <<
+		size << ',' <<
+		infected_count << ',' <<
+		ratio << ',' <<
+		coords.m_latitude << ',' <<
+		coords.m_longitude << ',' <<
+		toString(cluster.getClusterType()) << "\n";
+}
+
+
 
 void ClusterSaver::saveClustersJSON(const LocalSimulatorAdapter& local_sim) const {
 	ptree clusters;
