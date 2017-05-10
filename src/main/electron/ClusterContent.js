@@ -1,3 +1,6 @@
+
+
+
 var app = angular.module('ClusterApp', []);
 
 app.config(['$locationProvider', function($locationProvider) {
@@ -11,7 +14,8 @@ app.controller('ClusterController', ['$scope', '$location', function($scope, $lo
 	var fs = require('fs');
 	var content;
 	fs.readFile($location.search().data, 'utf8', function (err, data) {
-		content = JSON.parse(data);
+		content = parseCSVFile(data);
+		console.log(content);
 		for (var i in content.features) {
 			if (content.features[i].properties.id == $location.search().cluster) {
 				$scope.ID = content.features[i].properties.id;
