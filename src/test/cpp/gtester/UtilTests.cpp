@@ -21,23 +21,23 @@ TEST(Utils, SimplePlanner) {
 	planner.add(1, 10);
 	planner.add(1, 11);
 	planner.add(5, 50);
-	planner.getModifiableDay(5)->push_back(51);
+	planner.getModifiableDay(5)->emplace_back(new int(51));
 
 	planner.nextDay();
-	EXPECT_EQ(planner.today()->at(0), 10);
-	EXPECT_EQ(planner.today()->at(1), 11);
+	EXPECT_EQ(*(planner.today()->at(0)), 10);
+	EXPECT_EQ(*(planner.today()->at(1)), 11);
 
 	EXPECT_EQ(planner.getDay(6)->size(), 0);
 
-	EXPECT_EQ(planner.getDay(4)->at(0), 50);
-	EXPECT_EQ(planner.getDay(4)->at(1), 51);
+	EXPECT_EQ(*(planner.getDay(4)->at(0)), 50);
+	EXPECT_EQ(*(planner.getDay(4)->at(1)), 51);
 
 	planner.nextDay();
 	planner.nextDay();
 	planner.nextDay();
 
-	EXPECT_EQ(planner.getDay(1)->at(0), 50);
-	EXPECT_EQ(planner.getDay(1)->at(1), 51);
+	EXPECT_EQ(*(planner.getDay(1)->at(0)), 50);
+	EXPECT_EQ(*(planner.getDay(1)->at(1)), 51);
 
 	planner.nextDay();
 	planner.nextDay();

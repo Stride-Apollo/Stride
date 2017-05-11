@@ -33,6 +33,9 @@
 
 namespace stride {
 
+using namespace util;
+
+class RngHandler;
 class Calendar;
 
 /**
@@ -41,7 +44,7 @@ class Calendar;
 class Cluster {
 public:
 	/// Constructor
-	Cluster(std::size_t cluster_id, ClusterType cluster_type);
+	Cluster(std::size_t cluster_id, ClusterType cluster_type, GeoCoordinate coordinate = GeoCoordinate(0, 0));
 
 	/// Constructor
 	//Cluster(const Cluster& rhs);
@@ -49,16 +52,29 @@ public:
 	/// Add the given Person to the Cluster.
 	void addPerson(Simulator::PersonType* p);
 
+	/// Remove the given Person from the Cluster.
+	void removePerson(unsigned int id);
+
 	/// Return number of persons in this cluster.
 	std::size_t getSize() const { return m_members.size(); }
 
 	/// Return the type of this cluster.
 	ClusterType getClusterType() const { return m_cluster_type; }
 
+	/// Return the geo coordinates (latitude-longitude) of the cluster
+	GeoCoordinate getLocation() const {return m_coordinate;}
+
 	/// Get basic contact rate in this cluster.
 	double getContactRate(const Simulator::PersonType* p) const {
 		return g_profiles.at(toSizeType(m_cluster_type))[effectiveAge(p->getAge())] / m_members.size();;
 	}
+
+	/// Get the ID of this cluster
+	std::size_t getId() const {return m_cluster_id;}
+
+	/// Get the members of this vector
+	/// Rather for testing purposes
+	const std::vector<std::pair<Simulator::PersonType*, bool>>& getMembers() const {return m_members;}
 
 public:
 	/// Add contact profile.
@@ -81,6 +97,7 @@ private:
 	std::size_t m_index_immune;   ///< Index of the first immune member in the Cluster.
 	std::vector<std::pair<Simulator::PersonType*, bool>> m_members;  ///< Container with pointers to Cluster members.
 	const ContactProfile& m_profile;
+	const GeoCoordinate m_coordinate;	///< The location of the cluster
 private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
 };

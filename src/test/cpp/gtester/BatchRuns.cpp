@@ -25,6 +25,7 @@
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
+#include <omp.h>
 #include <spdlog/spdlog.h>
 
 #include <cmath>
@@ -58,6 +59,8 @@ protected:
 	static const string            g_disease_config_file_adapted;
 	static const double            g_transmission_rate_measles;
 	static const double            g_transmission_rate_maximum;
+	static const string            g_population_file_flanders;
+	static const string            g_cluster_file_flanders;
 
 	static const map<string, unsigned int>   g_results;
 };
@@ -81,13 +84,16 @@ const double         BatchDemos::g_immunity_rate_adapted       = 0.999991;
 const string         BatchDemos::g_disease_config_file_adapted = "disease_measles.xml";
 const double         BatchDemos::g_transmission_rate_measles   = 16U;
 const double         BatchDemos::g_transmission_rate_maximum   = 100U;
+const string         BatchDemos::g_population_file_flanders    = "pop_flanders.csv";
+const string         BatchDemos::g_cluster_file_flanders       = "clusters_flanders.csv";
 
 const map<string, unsigned int> BatchDemos::g_results {
 	make_pair("default", 70000),
 	make_pair("seeding_rate",0),
 	make_pair("immunity_rate",6),
 	make_pair("measles",135000),
-	make_pair("maximum",700000)
+	make_pair("maximum",700000),
+	make_pair("flanders",10000)	// TODO reliable estimation (currently I based myself on pop_oklahoma.csv and assumed a linear correlation between population size and infected count)
 };
 
 TEST_P( BatchDemos, Run ) {
@@ -182,5 +188,8 @@ INSTANTIATE_TEST_CASE_P(Run_measles, BatchDemos,
 
 INSTANTIATE_TEST_CASE_P(Run_maximum, BatchDemos,
         ::testing::Combine(::testing::Values(string("maximum")), ::testing::ValuesIn(threads)));
+
+INSTANTIATE_TEST_CASE_P(Run_flanders, BatchDemos,
+        ::testing::Combine(::testing::Values(string("flanders")), ::testing::ValuesIn(threads)));
 
 }

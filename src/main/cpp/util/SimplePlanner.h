@@ -1,3 +1,4 @@
+#pragma once
 
 #include <list>
 #include <vector>
@@ -20,11 +21,10 @@ using namespace std;
  */
 template <typename T>
 class SimplePlanner {
-private:
-	using Block = vector<T>;
+public:
+	using Block = vector<unique_ptr<T>>;
 	using Agenda = list<unique_ptr<Block>>;
 
-public:
 	Block* getModifiableDay(unsigned int days) {
 		Block* block;
 		if (days >= m_agenda.size()) {
@@ -55,11 +55,34 @@ public:
 
 	void add(unsigned int days, T thing) {
 		Block* block = getModifiableDay(days);
-		block->push_back(thing);
+		T* new_thing = new T(thing);
+		block->emplace_back(new_thing);
 	}
 
 	void nextDay() {
 		if (not m_agenda.empty()) m_agenda.pop_front();
+	}
+
+	unsigned int days() const {
+		return m_agenda.size();
+	}
+
+	Agenda& getAgenda() {
+		return m_agenda;
+	}
+
+	const Agenda& getAgenda() const {
+		return m_agenda;
+	}
+
+	unsigned int size() const {
+		unsigned int size = 0;
+
+		for (auto& block: m_agenda) {
+			size += block->size();
+		}
+
+		return size;
 	}
 
 private:

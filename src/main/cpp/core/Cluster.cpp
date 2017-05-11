@@ -31,9 +31,10 @@ using namespace std;
 
 std::array<ContactProfile, numOfClusterTypes()> Cluster::g_profiles;
 
-Cluster::Cluster(std::size_t cluster_id, ClusterType cluster_type)
+Cluster::Cluster(std::size_t cluster_id, ClusterType cluster_type, GeoCoordinate coordinate)
 		: m_cluster_id(cluster_id), m_cluster_type(cluster_type),
-		  m_index_immune(0), m_profile(g_profiles.at(toSizeType(m_cluster_type))) {
+		  m_index_immune(0), m_profile(g_profiles.at(toSizeType(m_cluster_type))),
+		  m_coordinate(coordinate) {
 }
 
 void Cluster::addContactProfile(ClusterType cluster_type, const ContactProfile& profile) {
@@ -44,6 +45,16 @@ void Cluster::addContactProfile(ClusterType cluster_type, const ContactProfile& 
 void Cluster::addPerson(Simulator::PersonType* p) {
 	m_members.emplace_back(std::make_pair(p, true));
 	m_index_immune++;
+}
+
+void Cluster::removePerson(unsigned int id) {
+	for (unsigned int i_member = 0; i_member < m_members.size(); ++i_member) {
+		if (m_members.at(i_member).first->getId() == id) {
+			m_members.erase(m_members.begin() + i_member);
+			m_index_immune = m_members.size() > 0 ? m_members.size() - 1 : 0;
+			return;
+		}
+	}
 }
 
 tuple<bool, size_t> Cluster::sortMembers() {
@@ -77,7 +88,6 @@ tuple<bool, size_t> Cluster::sortMembers() {
 			num_cases++;
 		}
 	}
-
 	return make_tuple(infectious_cases, num_cases);
 }
 

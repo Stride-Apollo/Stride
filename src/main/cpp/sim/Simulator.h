@@ -22,14 +22,16 @@
 //#include "core/Cluster.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
+#include "core/District.h"
+#include "core/ClusterType.h"
 #include "behavior/behavior_policies/NoBehavior.h"
 #include "pop/Person.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
 #include "util/Random.h"
 #include "util/unipar.h"
-
 #include "behavior/belief_policies/NoBelief.h"
+
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
@@ -41,6 +43,7 @@ namespace stride {
 class Population;
 class Calendar;
 class Cluster;
+class LocalSimulatorAdapter;
 
 /**
  * Main class that contains and direct the virtual world.
@@ -62,7 +65,12 @@ public:
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
 
-	void host(const std::vector<Simulator::TravellerType>& travellers);
+	/// Return the calendar of this simulator
+	const Calendar& getCalendar() const {return *m_calendar;}
+
+	/// Get the clusters of this simulator based on the cluster type
+	/// This is rather for testing purposes
+	const std::vector<Cluster>& getClusters(ClusterType cluster_type) const;
 
 private:
 	// Information about travellers
@@ -100,14 +108,16 @@ private:
 	std::vector<Cluster> m_school_clusters;      ///< Container with school Clusters.
 	std::vector<Cluster> m_work_clusters;        ///< Container with work Clusters.
 	std::vector<Cluster> m_primary_community;    ///< Container with primary community Clusters.
-	std::vector<Cluster> m_secondary_community;  ///< Container with secondary community  Clusters.
+	std::vector<Cluster> m_secondary_community;  ///< Container with secondary community Clusters.
+
+	std::vector<District> m_districts;    ///< Container with districts (villages and cities).
 
 	DiseaseProfile m_disease_profile;      ///< Profile of disease.
 
 	bool m_track_index_case;     ///< General simulation or tracking index case.
 
-private:
 	friend class SimulatorBuilder;
+	friend class LocalSimulatorAdapter;
 };
 
 
