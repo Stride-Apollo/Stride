@@ -1,7 +1,7 @@
 #!/bin/bash
 cd build/installed
 
-./bin/gtester --gtest_output=xml --gtest_color=yes --gtest_filter=-HDF5Scenario* > gtest_output.txt 2>&1
+./bin/gtester --gtest_output=xml --gtest_color=yes --gtest_filter="$GTEST_FILTER" > gtest_output.txt 2>&1
 EXIT_CODE=$?
 
 echo "

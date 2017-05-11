@@ -13,7 +13,7 @@ elif [ "$compiler" = "clang" ]; then
 	export CXX=clang++-3.8
 	export CC=clang-3.8
 else
-	echo "unrecognized option: $compiler"
+	echo "unrecognized compiler option: $compiler"
 	exit 2
 fi
 
@@ -26,7 +26,7 @@ elif [ "$unipar" = "OpenMP" ]; then
 elif [ "$unipar" = "dummy" ]; then
 	export STRIDE_UNIPAR=DUMMY
 else
-	echo "unrecognized option: $unipar"
+	echo "unrecognized unipar option: $unipar"
 	exit 2
 fi
 

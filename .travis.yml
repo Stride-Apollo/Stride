@@ -43,12 +43,37 @@ matrix:
       env: 
         - compiler='gcc'
         - test='unit'
+        - unipar='dummy'
       
     - addons: *clang_addons
       env: 
         - compiler='clang'
         - test='unit'
+        - unipar='dummy'
     
+    - addons: *gcc_addons
+      env: 
+        - compiler='gcc'
+        - test='unit'
+        - unipar='TBB'
+      
+    - addons: *clang_addons
+      env: 
+        - compiler='clang'
+        - test='unit'
+        - unipar='TBB'
+    
+    - addons: *gcc_addons
+      env: 
+        - compiler='gcc'
+        - test='unit'
+        - unipar='OpenMP'
+      
+    - addons: *clang_addons
+      env: 
+        - compiler='clang'
+        - test='unit'
+        - unipar='OpenMP'
     
     # Scenario tests ..................
     
@@ -56,11 +81,37 @@ matrix:
       env: 
         - compiler='gcc'
         - test='scenarios'
+        - unipar='dummy'
       
     - addons: *clang_addons
       env: 
         - compiler='clang'
         - test='scenarios'
+        - unipar='dummy'
+    
+    - addons: *gcc_addons
+      env: 
+        - compiler='gcc'
+        - test='scenarios'
+        - unipar='TBB'
+      
+    - addons: *clang_addons
+      env: 
+        - compiler='clang'
+        - test='scenarios'
+        - unipar='TBB'
+    
+    - addons: *gcc_addons
+      env: 
+        - compiler='gcc'
+        - test='scenarios'
+        - unipar='OpenMP'
+      
+    - addons: *clang_addons
+      env: 
+        - compiler='clang'
+        - test='scenarios'
+        - unipar='OpenMP'
 
 
 before_install:
