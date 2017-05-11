@@ -44,19 +44,7 @@ include( CMakeBuildConfig.txt )
 #============================================================================
 include( CMakeCPPConfig.txt    )
   	
-#============================================================================
-# Configuration for Git.
-#============================================================================
-find_package( Git QUIET)
-
-if( GIT_FOUND )
-	GIT_WC_INFO(${CMAKE_SOURCE_DIR}/.. STRIDE)
-else()
-    # This is done to eliminate blank output of undefined CMake variables.
-    set( GIT_FOUND FALSE ) 
-	set( STRIDE_WC_REVISION_HASH    "0000-0000-000" )	
-	set( STRIDE_WC_LAST_CHANGED_DATE   "0000 0000 0000" )
-endif()
+# Config for git was removed, it couldn't handle remotes other than 'origin'
 
 #============================================================================
 # Configuration for DOC: DOXYGEN AND LATEX

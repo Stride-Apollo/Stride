@@ -2,7 +2,6 @@
 #include "pop/Population.h"
 #include "pop/Traveller.h"
 #include "core/Cluster.h"
-#include "util/RNGPicker.h"
 #include "util/GeoCoordinate.h"
 #include <memory>
 #include <random>
@@ -52,18 +51,6 @@ future<bool> LocalSimulatorAdapter::timeStep() {
 }
 
 bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) {
-	// Planning:
-		// Step 1: No notion of cities / airports, no return of people
-			// set family id to 0
-			// set random work id
-			// set random community id's
-		// Step 2:
-			// Return the travellers back home (except for United Airlines' passengers, they don't get to travel anymore)
-		// >>>>> Step 3: Notion of cities / airports
-			// set non-random work id
-			// set non-random community id's
-		// Step 4:
-			// add sphere of influence for airports
 	GeoCoordinate facility_location;
 	bool found_airport = false;
 
@@ -134,11 +121,6 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 		++m_next_hh_id;
 	}
 
-	return true;
-}
-
-bool LocalSimulatorAdapter::returnHome(const vector<Simulator::TravellerType>& travellers) {
-	// TODO remove?
 	return true;
 }
 

@@ -112,11 +112,11 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 			string(__func__) + "> Invalid input for LogMode.");
 
 	// Rng's.
-	const auto seed = pt_config.get<double>("run.rng_seed");
-	Random rng(seed);
+	int seed = pt_config.get<double>("run.rng_seed");
+	sim->m_rng = make_shared<util::Random>(seed);
 
 	// Build population.
-	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, rng);
+	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, *sim->m_rng);
 
 	// initialize districts.
 	initializeDistricts(sim, pt_config);
@@ -129,12 +129,6 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 
 	// initialize disease profile.
 	sim->m_disease_profile.initialize(pt_config, pt_disease);
-
-	// initialize Rng handlers
-	unsigned int new_seed = rng(numeric_limits<unsigned int>::max());
-	for (size_t i = 0; i < sim->m_num_threads; i++) {
-		sim->m_rng_handler.emplace_back(RngHandler(new_seed, sim->m_num_threads, i));
-	}
 
 	// initialize contact profiles.
 	Cluster::addContactProfile(ClusterType::Household, ContactProfile(ClusterType::Household, pt_contact));

@@ -3,7 +3,7 @@
  * Implementation of tests for the Population Generator.
  */
 
-#include "popgen/PopulationGenerator.h"
+#include "popgen/PopulationGenerator.cpp"
 #include "popgen/FamilyParser.h"
 #include "util/StringUtils.h"
 #include "util/InstallDirs.h"
@@ -20,7 +20,7 @@
 #include <iterator>
 #include <map>
 #include <limits>
-#include <algorithm>
+#include <random>
 
 using namespace std;
 using namespace stride;
@@ -30,45 +30,6 @@ using namespace boost;
 using namespace util;
 
 namespace Tests {
-
-class PopulationGeneratorDemos: public ::testing::Test {
-public:
-	/// TestCase set up.
-	static void SetUpTestCase() {}
-
-	/// Tearing down TestCase
-	static void TearDownTestCase() {}
-
-protected:
-	/// Destructor has to be virtual.
-	virtual ~PopulationGeneratorDemos() {}
-
-	/// Set up for the test fixture
-	virtual void SetUp() {}
-
-	/// Tearing down the test fixture
-	virtual void TearDown() {}
-
-	// Data members of the test fixture
-	static const string              g_happy_day_file;
-	static const string              g_no_cities_file;
-	static const string              g_no_villages_file;
-	static const string              g_invalid_syntax_file;
-	static const string              g_input_violation_file;
-	static const string              g_contradiction_file;
-	static const string              g_non_existent_file;
-	static const string              g_output_prefix;
-};
-
-// Default values
-const string            PopulationGeneratorDemos::g_happy_day_file            = "happy_day.xml";
-const string            PopulationGeneratorDemos::g_no_cities_file            = "no_cities.xml";
-const string            PopulationGeneratorDemos::g_no_villages_file          = "no_villages.xml";
-const string            PopulationGeneratorDemos::g_invalid_syntax_file       = "invalid_syntax.xml";
-const string            PopulationGeneratorDemos::g_input_violation_file      = "input_violation.xml";
-const string            PopulationGeneratorDemos::g_contradiction_file        = "contradiction.xml";
-const string            PopulationGeneratorDemos::g_non_existent_file         = "non_existent.xml";
-const string            PopulationGeneratorDemos::g_output_prefix             = "PopulationGenerator";
 
 // TODO:
 	// sizes of cities/villages
@@ -102,12 +63,15 @@ vector<vector<string> > readCSV(string file) {
 void checkHappyDayCities(const vector<vector<string> >& csv) {
 	// Note: this function is specifically for a certain file
 	// The headers must be equal
+	// Check whether the cities of the happy day file are correct
+
 	vector<string> header {"city_id", "city_name", "province", "population", "x_coord", "y_coord", "latitude", "longitude"};
 	EXPECT_EQ(csv.at(0), header);
 
 	set<string> unique_column;
 	vector<GeoCoordinate> unique_coord;
-	// Go over every column (except the latitude-longitude one cause they belong to each other)
+
+	// Go over every column (except the latitude-longitude one cause they belong to each other, they must be unique together)
 	for (uint i = 0; i < 7; i++) {
 		unique_coord.clear();
 		unique_column.clear();
@@ -118,7 +82,7 @@ void checkHappyDayCities(const vector<vector<string> >& csv) {
 			} else if (i >= 3 && i <= 5) {
 				break;
 			} else if (i == 6) {
-				/// Test for unique coordinates
+				// Test for unique coordinates
 				double lat = stod(row.at(i));
 				double lon = stod(row.at(i + 1));
 
@@ -126,7 +90,7 @@ void checkHappyDayCities(const vector<vector<string> >& csv) {
 
 				unique_coord.push_back(GeoCoordinate(lat, lon));
 			} else {
-				/// When here, we're talking about city id or name, 
+				// When here, we're talking about city id or name,
 				uint previous_size = unique_column.size();
 				unique_column.insert(row.at(i));
 				EXPECT_EQ(previous_size, unique_column.size() - 1);
@@ -144,6 +108,8 @@ void checkHappyDayCities(const vector<vector<string> >& csv) {
 }
 
 void checkHappyDayPop (const string& file, const string& household_file) {
+	// Check whether the population of the happy day file is correct
+
 	vector<vector<string> > csv = readCSV(file);
 
 	uint work_max_size = 20;
@@ -176,20 +142,20 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 			id.min = person.m_household_id;
 		}
 
-		/// Test on the ages: e.g. a 50 year old can't go to mandatory schools
+		// Test on the ages: e.g. a 50 year old can't go to mandatory schools
 		if (person.m_age >= 26) {
 			EXPECT_EQ(person.m_school_id, 0U);
 		} else if (person.m_age <= 25 && person.m_age >= 18) {
-			/// The person could either work or go to school, but not both
+			// The person could either work or go to school, but not both
 			EXPECT_TRUE((
 				person.m_school_id != 0U && person.m_work_id == 0U) ||
 				(person.m_school_id == 0U && person.m_work_id != 0U) ||
 				(person.m_school_id == 0U && person.m_work_id == 0U));
 		} else if (person.m_age <= 17 && person.m_age >= 3) {
-			/// Little children have to go to school
+			// Little children have to go to school
 			EXPECT_NE(person.m_school_id, 0U);
 		} else {
-			/// Babies / those little people that run around the house
+			// Babies / those little people that run around the house
 			EXPECT_EQ(person.m_school_id, 0U);
 		}
 	}
@@ -252,10 +218,12 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 }
 
 void checkHappyDayHouseHolds(const string& household_file, const string& pop_file) {
+	// Check whether the generated households are correct, they must be present in the family configuration file
+
 	// Load the households in a map (id, size)
 	vector<vector<string> > csv = readCSV(household_file);
 
-	// The headers must be equal
+	// The headers must be correct
 	vector<string> header {"hh_id","latitude","longitude","size"};
 	EXPECT_EQ(csv.at(0), header);
 
@@ -265,8 +233,6 @@ void checkHappyDayHouseHolds(const string& household_file, const string& pop_fil
 		uint size = StringUtils::fromString<unsigned int>(csv.at(i)[3]);
 		household_id_size[id] = size;
 	}
-
-
 
 	// Load the people in a map (key = household_id)
 	csv = readCSV(pop_file);
@@ -300,18 +266,16 @@ void checkHappyDayHouseHolds(const string& household_file, const string& pop_fil
 }
 
 
-TEST_F(PopulationGeneratorDemos, HappyDay_default) {
+TEST(PopulationGeneratorTest, HappyDay_default) {
 	// Tests which reflect the regular use
 
-	// -----------------------------------------------------------------------------------------
-	// Actual tests
-	// -----------------------------------------------------------------------------------------
-	PopulationGenerator gen {g_happy_day_file, false};
+	PopulationGenerator<mt19937> gen {"happy_day.xml", false};
 
 	// TODO check cluster file
 	gen.generate("cities.csv", "pop.csv", "hh.csv", "clusters.csv");
 
 	vector<vector<string> > csv = readCSV("cities.csv");
+
 	checkHappyDayCities(csv);
 
 	checkHappyDayPop("pop.csv", "households_flanders.txt");
@@ -320,14 +284,14 @@ TEST_F(PopulationGeneratorDemos, HappyDay_default) {
 
 }
 
-TEST_F(PopulationGeneratorDemos, UnhappyDay_default) {
-	EXPECT_THROW(PopulationGenerator(g_no_cities_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_no_villages_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_invalid_syntax_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_input_violation_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_contradiction_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_non_existent_file, false), invalid_argument);
-	EXPECT_THROW(PopulationGenerator(g_output_prefix, false), invalid_argument);
+TEST(PopulationGeneratorTest, UnhappyDay_default) {
+	// Test invalid files, files with syntax errors, files with semantic errors,...
+	EXPECT_THROW(PopulationGenerator<std::mt19937>("no_cities.xml", false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>("no_villages.xml", false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>("invalid_syntax.xml", false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>("input_violation.xml", false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>("contradiction.xml", false), invalid_argument);
+	EXPECT_THROW(PopulationGenerator<std::mt19937>("non_existent.xml", false), invalid_argument);
 }
 
 } //end-of-namespace-Tests

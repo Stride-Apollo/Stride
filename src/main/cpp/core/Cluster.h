@@ -25,7 +25,6 @@
 #include "pop/Person.h"
 #include "pop/PopulationBuilder.h"
 #include "sim/Simulator.h"
-#include "util/GeoCoordinate.h"
 
 #include <array>
 #include <cstddef>
@@ -78,7 +77,7 @@ public:
 
 	/// Get the members of this vector
 	/// Rather for testing purposes
-	const std::vector<std::pair<Simulator::PersonType*, bool> >& getMembers() const {return m_members;}
+	const std::vector<std::pair<Simulator::PersonType*, bool>>& getMembers() const {return m_members;}
 
 public:
 	/// Add contact profile.

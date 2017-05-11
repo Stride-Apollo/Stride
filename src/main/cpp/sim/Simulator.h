@@ -22,13 +22,16 @@
 //#include "core/Cluster.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
-#include "core/RngHandler.h"
 #include "core/District.h"
+#include "core/ClusterType.h"
 #include "behavior/behavior_policies/NoBehavior.h"
 #include "pop/Person.h"
 #include "pop/Traveller.h"
-
+#include "util/Subject.h"
+#include "util/Random.h"
+#include "util/unipar.h"
 #include "behavior/belief_policies/NoBelief.h"
+
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
@@ -41,6 +44,7 @@ class Population;
 class Calendar;
 class Cluster;
 class LocalSimulatorAdapter;
+
 /**
  * Main class that contains and direct the virtual world.
  */
@@ -83,8 +87,17 @@ private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 
 private:
-	unsigned int m_num_threads; 			///< The number of (OpenMP) threads.
-	std::vector<RngHandler> m_rng_handler;  ///< Pointer to the RngHandlers.
+	unsigned int m_num_threads; 			///< The number of threads (as a hint)
+
+	#if UNIPAR_IMPL == UNIPAR_DUMMY
+		using RandomRef = util::Random*;
+	#else
+		using RandomRef = std::unique_ptr<util::Random>;
+	#endif
+	decltype(Parallel().withFunc<RandomRef>()) m_parallel;
+
+	std::shared_ptr<util::Random> m_rng;
+
 	LogMode m_log_level;            		///< Specifies logging mode.
 	std::shared_ptr<Calendar> m_calendar;	///< Management of calendar.
 
