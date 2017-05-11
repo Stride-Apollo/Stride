@@ -75,6 +75,8 @@ def build_tree(el):
         tree = recursive_dict()
         for child in el:
             name = child.attrib['name']
+            # Fix for weird gtest naming convention
+            name = '__'.join(reversed(name.split('/')))
             pieces = name.split('__')
             result_holder = tree
             for p in pieces[:-1]:

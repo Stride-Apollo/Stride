@@ -160,7 +160,7 @@ namespace {
 INSTANTIATE_TEST_CASE_P(Run_default, Scenarios__BatchDemos,
         ::testing::Combine(::testing::Values(string("default")), ::testing::ValuesIn(threads)));
 
-INSTANTIATE_TEST_CASE_P(Run_seedinm_rate, Scenarios__BatchDemos,
+INSTANTIATE_TEST_CASE_P(Run_seeding_rate, Scenarios__BatchDemos,
         ::testing::Combine(::testing::Values(string("seeding_rate")), ::testing::ValuesIn(threads)));
 
 INSTANTIATE_TEST_CASE_P(Run_immunity_rate, Scenarios__BatchDemos,
