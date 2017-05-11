@@ -15,41 +15,64 @@ addons:
     packages: &deps
       - libboost-all-dev
       - libhdf5-serial-dev
-  
-matrix:
-  include:
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
+
+gcc_addons: &gcc_addons
+    apt:
+        sources:
             - *sources
-          packages:
+        packages:
             - *deps
             - gcc-5
             - g++-5
-      env: 
-        - CC='gcc-5'
-        - CXX='g++-5'
-        - OMP_NUM_THREADS=4
-      
-    - compiler: clang
-      addons:
-        apt:
-          sources:
+
+clang_addons: &clang_addons
+    apt:
+        sources:
             - *sources
-          packages:
+        packages:
             - *deps
             - clang-3.8
+        
+
+matrix:
+  include:
+  
+    # Unit tests ......................
+    
+    - compiler: gcc
+      addons: *gcc_addons
       env: 
-        - CC='clang-3.8'
-        - CXX='clang++-3.8'
-        - OMP_NUM_THREADS=4
+        - compiler='gcc'
+        - test='unit'
+      
+    - compiler: clang
+      addons: *clang_addons
+      env: 
+        - compiler='clang'
+        - test='unit'
+    
+    
+    # Scenario tests ..................
+    
+        - compiler: gcc
+      addons: *gcc_addons
+      env: 
+        - compiler='gcc'
+        - test='scenarios'
+      
+    - compiler: clang
+      addons: *clang_addons
+      env: 
+        - compiler='clang'
+        - test='scenarios'
+
 
 before_install:
+  - ./travis/before_install
   - PARALLEL_MAKE=2 make install
 
 script:
-  - ./travis.sh
+  - ./travis/script.sh
 
 notifications:
   slack: 
