@@ -15,7 +15,7 @@ using namespace boost::property_tree;
 using namespace xml_parser;
 
 template <class U>
-PopulationGenerator<U>::PopulationGenerator(const string& filename, bool output) {
+PopulationGenerator<U>::PopulationGenerator(const string& filename, const int& seed, bool output) {
 	// check data environment.
 	if (InstallDirs::getDataDir().empty()) {
 		throw runtime_error(string(__func__) + "> Data directory not present! Aborting.");
@@ -43,7 +43,7 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, bool output)
 
 	m_next_id = 1;
 	m_output = output;
-	makeRNG();
+	m_rng = U(seed);
 
 	try {
 		if (!m_output) {
@@ -420,31 +420,6 @@ void PopulationGenerator<U>::checkForValidXML() const {
 	} catch(exception& e) {
 		/// Boost exceptions due to missing tags, wrong tags,...
 		cerr << "\n";
-		throw invalid_argument("In PopulationGenerator: Missing/incorrect tags/attributes in XML.");
-	}
-}
-
-template <class U>
-void PopulationGenerator<U>::makeRNG() {
-	ptree rng_config;
-	long int seed = 0;
-	string generator_type;
-
-	try {
-		rng_config = m_props.get_child("POPULATION.RANDOM");
-		seed = rng_config.get<long int>("<xmlattr>.seed");
-
-		if (seed < 0) {
-			throw invalid_argument("In PopulationGenerator: Missing/incorrect tags/attributes in XML.");
-		}
-
-		generator_type = rng_config.get<string>("<xmlattr>.generator");
-
-		/// This might throw an exception, but we'll just rethrow it
-		m_rng = U(seed);
-	} catch(invalid_argument& e) {
-		throw e;
-	} catch(exception& e) {
 		throw invalid_argument("In PopulationGenerator: Missing/incorrect tags/attributes in XML.");
 	}
 }
