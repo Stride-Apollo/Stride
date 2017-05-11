@@ -18,26 +18,27 @@
  * Actually run the simulator.
  */
 
-#include "run_stride.h"
+# include "run_stride2.h"
 
 #include "output/CasesFile.h"
 #include "output/PersonFile.h"
 #include "output/SummaryFile.h"
 #include "sim/Simulator.h"
-#include "sim/LocalSimulatorAdapter.h"
 #include "sim/SimulatorBuilder.h"
-#include "sim/SimulatorSetup.h"
-#include "util/async.h"
+#include "sim/AsyncSimulator.h"
+#include "sim/LocalSimulatorAdapter.h"
+#include "sim/Coordinator.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
-#include "checkpointing/Saver.h"
-#include "checkpointing/Loader.h"
+#include "util/stdlib.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 #include <omp.h>
 #include <spdlog/spdlog.h>
+#include <memory>
+#include <cassert>
 
 namespace stride {
 
@@ -56,47 +57,41 @@ void run_stride(bool track_index_case,
 				const string& simulator_run_mode,
 				const int checkpointing_frequency,
 				const unsigned int timestamp_replay) {
-	// -----------------------------------------------------------------------------------------
-	// print output to command line.
-	// -----------------------------------------------------------------------------------------
-	cout << "\n*************************************************************" << endl;
-	cout << "Starting up at:      " << TimeStamp().toString() << endl;
-	cout << "Executing:           " << InstallDirs::getExecPath().string() << endl;
-	cout << "Current directory:   " << InstallDirs::getCurrentDir().string() << endl;
-	cout << "Install directory:   " << InstallDirs::getRootDir().string() << endl;
-	cout << "Data    directory:   " << InstallDirs::getDataDir().string() << endl;
-
-
-	// -----------------------------------------------------------------------------------------
-	// check execution environment.
-	// -----------------------------------------------------------------------------------------
-	if (InstallDirs::getCurrentDir().compare(InstallDirs::getRootDir()) != 0) {
-		throw runtime_error(string(__func__) + "> Current directory is not install root! Aborting.");
+	// Configuration
+	ptree pt_config;
+	const auto file_path = canonical(system_complete(config_file_name));
+	if (!is_regular_file(file_path)) {
+		throw runtime_error(string(__func__)
+							+ ">Config file " + file_path.string() + " not present. Aborting.");
 	}
-	if (InstallDirs::getDataDir().empty()) {
-		throw runtime_error(string(__func__) + "> Data directory not present! Aborting.");
+	read_xml(file_path.string(), pt_config);
+	cout << "Configuration file:  " << file_path.string() << endl;
+
+	// TODO Unipar
+
+	// Set output path prefix.
+	string output_prefix = "";
+
+	// Additional run configurations.
+	if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
+		pt_config.put("run.num_participants_survey", 1);
 	}
 
-	// -----------------------------------------------------------------------------------------
-	// OpenMP.
-	// -----------------------------------------------------------------------------------------
-	unsigned int num_threads;
-	#pragma omp parallel
-	{
-		num_threads = omp_get_num_threads();
-	}
-	cout << endl;
-	if (ConfigInfo::haveOpenMP()) {
-		cout << "Using OpenMP threads:  " << num_threads << endl;
-	} else {
-		cout << "Not using OpenMP threads." << endl;
-	}
-	cout << endl;
+	// Track index case setting.
+	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
 
-	// -----------------------------------------------------------------------------------------
-	// Configuration.
-	// -----------------------------------------------------------------------------------------
+	// Create logger
+	// Transmissions:     [TRANSMISSION] <infecterID> <infectedID> <clusterID> <day>
+	// General contacts:  [CNT] <person1ID> <person1AGE> <person2AGE>  <at_home> <at_work> <at_school> <at_other>
+	// Note, the logger here is kinda like a global variable, but checked at runtime :(
+	// This is somewhat common practice in loggers, but I'd still prefer an alternative approach
+	spdlog::set_async_mode(1048576);
+	auto file_logger = spdlog::rotating_logger_mt("contact_logger", output_prefix + "_logfile",
+												  std::numeric_limits<size_t>::max(),
+												  std::numeric_limits<size_t>::max());
+	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
+	// Create simulator.
 	Stopwatch<> total_clock("total_clock", true);
 
 	// Special case for extract mode -> don't run the simulator, just extract the config file.
@@ -124,44 +119,9 @@ void run_stride(bool track_index_case,
 	unsigned int start_day = setup.getStartDay();
 	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
 
-	cout << "Done building the simulator." << endl;
+	cout << "Done building the simulator. " << endl << endl;
 
-	// -----------------------------------------------------------------------------------------
-	// Set output path prefix.
-	// -----------------------------------------------------------------------------------------
-	auto output_prefix = pt_config.get<string>("run.output_prefix", "");
-	if (output_prefix.length() == 0) {
-		output_prefix = TimeStamp().toTag();
-	}
-	cout << "Project output tag:  " << output_prefix << endl << endl;
-
-	// -----------------------------------------------------------------------------------------
-	// Additional run configurations.
-	// -----------------------------------------------------------------------------------------
-	if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
-		pt_config.put("run.num_participants_survey", 1);
-	}
-
-	// -----------------------------------------------------------------------------------------
-	// Track index case setting.
-	// -----------------------------------------------------------------------------------------
-	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl << endl;
-
-	// -----------------------------------------------------------------------------------------
-	// Create logger
-	// Transmissions:     [TRANSMISSION] <infecterID> <infectedID> <clusterID> <day>
-	// General contacts:  [CNT] <person1ID> <person1AGE> <person2AGE>  <at_home> <at_work> <at_school> <at_other>
-	// -----------------------------------------------------------------------------------------
-	spdlog::set_async_mode(1048576);
-	auto file_logger = spdlog::rotating_logger_mt("contact_logger", output_prefix + "_logfile",
-												  std::numeric_limits<size_t>::max(),
-												  std::numeric_limits<size_t>::max());
-	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
-
-
-	// -----------------------------------------------------------------------------------------
-	// Add observers to the simulator.
-	// -----------------------------------------------------------------------------------------
+	Coordinator coord({l1.get()});
 
 	cout << "Adding observers to the simulator." << endl;
 
@@ -171,44 +131,22 @@ void run_stride(bool track_index_case,
 
 	if (hdf5_file_name != "" || hdf5_output_file_name != "" || config_hdf5_file != "") {
 		int frequency = checkpointing_frequency == -1 ?
-							pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
+						pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
 		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
 		saver = std::make_shared<Saver>
-			(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
+				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
 		local_sim->registerObserver(saver, fnCaller);
 	}
 	cout << "Done adding the observers." << endl << endl;
 
-	// -----------------------------------------------------------------------------------------
 	// Run the simulation.
-	// -----------------------------------------------------------------------------------------
-	Stopwatch<> run_clock("run_clock");
-
-	// The initial save
-	if (saver != 0 && !(simulator_run_mode == "extend" && start_day != 0)) {
-		saver->forceSave(*local_sim);
-	}
-
-	unsigned int num_days;
-	if (simulator_run_mode == "extend") {
-		// Extend the amount of days that should be run according to the config param or cmd argument
-		num_days = start_day + (timestamp_replay == 0 ? pt_config.get<unsigned int>("run.num_days") : timestamp_replay);
-	} else {
-		num_days = pt_config.get<unsigned int>("run.num_days");
-	}
-
+	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
 	vector<unsigned int> cases(num_days);
-
-	for (unsigned int i = start_day; i < num_days; i++) {
+	for (unsigned int i = 0; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
-		run_clock.start();
-
-		vector<future<bool>> fut_results;
-		fut_results.push_back(local_sim->timeStep());
-		future_pool(fut_results);
-
-		run_clock.stop();
+		//sim->timeStep();
+		coord.timeStep();
 		cout << "     Done, infected count: ";
 		cases[i] = sim->getPopulation()->getInfectedCount();
 		cout << setw(10) << cases[i] << endl;
@@ -219,9 +157,7 @@ void run_stride(bool track_index_case,
 		saver->forceSave(*local_sim, num_days);
 	}
 
-	// -----------------------------------------------------------------------------------------
 	// Generate output files
-	// -----------------------------------------------------------------------------------------
 	// Cases
 	CasesFile cases_file(output_prefix);
 	cases_file.print(cases);
@@ -229,23 +165,19 @@ void run_stride(bool track_index_case,
 	// Summary
 	SummaryFile summary_file(output_prefix);
 	summary_file.print(pt_config,
-					   sim->getPopulation()->m_original.size(), sim->getPopulation()->getInfectedCount(),
-					   duration_cast<milliseconds>(run_clock.get()).count(),
+					   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
+					   duration_cast<milliseconds>(total_clock.get()).count(),
 					   duration_cast<milliseconds>(total_clock.get()).count());
 
-	// Persons
+	// Persons ???
 	if (pt_config.get<double>("run.generate_person_file") == 1) {
 		PersonFile person_file(output_prefix);
 		person_file.print(sim->getPopulation());
 	}
 
-	// -----------------------------------------------------------------------------------------
 	// print final message to command line.
-	// -----------------------------------------------------------------------------------------
 	cout << endl << endl;
-	cout << "  run_time: " << run_clock.toString()
-		 << "  -- total time: " << total_clock.toString() << endl << endl;
-	cout << "Exiting at:         " << TimeStamp().toString() << endl << endl;
+	cout << "  total time: " << total_clock.toString() << endl << endl;
 }
 
 }

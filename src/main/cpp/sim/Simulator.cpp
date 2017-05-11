@@ -25,10 +25,9 @@
 #include "core/Infector.h"
 #include "pop/Population.h"
 #include "core/Cluster.h"
+#include "util/unipar.h"
 
-#include <omp.h>
-#include <sstream>
-#include <iostream>
+#include <random>
 
 namespace stride {
 
@@ -39,6 +38,22 @@ using namespace stride::util;
 Simulator::Simulator()
 		: m_config_pt(), m_num_threads(1U), m_log_level(LogMode::Null), m_population(nullptr),
 		  m_disease_profile(), m_track_index_case(false) {
+	m_parallel = Parallel().withFunc<RandomRef>(std::function<RandomRef()>([&](){
+		#if UNIPAR_IMPL == UNIPAR_DUMMY
+			//std::cout << "Dummy rng?\n";
+			return m_rng.get();
+		#else
+			// Use the rng to initialize a seed
+			return make_unique<Random>(m_rng->operator()());
+			//if (p.get() == nullptr) {
+			//	std::cout << "We're passing on null rng?\n";
+			//} else {
+			//	std::cout << "ONE MORE RNG!\n";
+			//}
+			//return p;
+		#endif
+	}));
+	//m_parallel.getResourceManager().setFunc();
 }
 
 const shared_ptr<const Population> Simulator::getPopulation() const {
@@ -51,56 +66,22 @@ void Simulator::setTrackIndexCase(bool track_index_case) {
 
 template<LogMode log_level, bool track_index_case>
 void Simulator::updateClusters() {
-	#pragma omp parallel num_threads(m_num_threads)
-	{
-		const unsigned int thread = omp_get_thread_num();
-
-		#pragma omp for schedule(runtime)
-		for (size_t i = 0; i < m_households.size(); i++) {
-			Infector<log_level, track_index_case>::execute(
-					m_households[i], m_disease_profile, m_rng_handler[thread], m_calendar);
-		}
-		#pragma omp for schedule(runtime)
-		for (size_t i = 0; i < m_school_clusters.size(); i++) {
-			Infector<log_level, track_index_case>::execute(
-					m_school_clusters[i], m_disease_profile, m_rng_handler[thread], m_calendar);
-		}
-		#pragma omp for schedule(runtime)
-		for (size_t i = 0; i < m_work_clusters.size(); i++) {
-			Infector<log_level, track_index_case>::execute(
-					m_work_clusters[i], m_disease_profile, m_rng_handler[thread], m_calendar);
-		}
-		#pragma omp for schedule(runtime)
-		for (size_t i = 0; i < m_primary_community.size(); i++) {
-			Infector<log_level, track_index_case>::execute(
-					m_primary_community[i], m_disease_profile, m_rng_handler[thread], m_calendar);
-		}
-		#pragma omp for schedule(runtime)
-		for (size_t i = 0; i < m_secondary_community.size(); i++) {
-			Infector<log_level, track_index_case>::execute(
-					m_secondary_community[i], m_disease_profile, m_rng_handler[thread], m_calendar);
-		}
+	// Slight hack (thanks to http://stackoverflow.com/q/31724863/2678118#comment51385875_31724863)
+	// but saves us a lot of typing without resorting to macro's.
+	for (auto clusters: {&m_households, &m_school_clusters, &m_work_clusters,
+						 &m_primary_community, &m_secondary_community}) {
+		m_parallel.for_(0, clusters->size(), [&](RandomRef& rng, size_t i) {
+			if (rng) {
+				Infector<log_level, track_index_case>::execute(
+						(*clusters)[i], m_disease_profile, *rng, m_calendar);
+				//std::cout << "rng is not null" << endl;
+			} else {
+				std::cout << "rng is null" << endl;
+				_exit(1);
+			}
+		});
 	}
 }
-
-vector<string> Simulator::getRngStates() const {
-	vector<string> states;
-
-	for (auto rng_handler : m_rng_handler) {
-		stringstream ss;
-		ss << rng_handler;
-		states.push_back(ss.str());
-	}
-	return states;
-}
-
-void Simulator::setRngStates(vector<string> states) {
-	int i = 0;
-	for (auto state : states) {
-		m_rng_handler.at(i++).setState(state);
-	}
-}
-
 
 void Simulator::timeStep() {
 	shared_ptr<DaysOffInterface> days_off {nullptr};
@@ -147,6 +128,7 @@ void Simulator::timeStep() {
 		}
 	}
 
+	notify(*this);
 	m_calendar->advanceDay();
 }
 
@@ -165,6 +147,19 @@ const vector<Cluster>& Simulator::getClusters(ClusterType cluster_type) const {
 		default:
 			throw runtime_error(string(__func__) + "> Should not reach default.");
 	}
+}
+
+
+vector<string> Simulator::getRngStates() const {
+	vector<string> states;
+	stringstream ss;
+	ss << m_rng;
+	states.push_back(ss.str());
+	return states;
+}
+
+void Simulator::setRngStates(vector<string> states) {
+	m_rng.setState(states.at(0));
 }
 
 }

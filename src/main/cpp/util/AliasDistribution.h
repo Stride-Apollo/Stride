@@ -27,7 +27,7 @@ public:
 	 */
 	AliasDistribution(const vector<double>& probs);
 
-	AliasDistribution() = default;
+	AliasDistribution() = delete;
 
 	/**
 	 * @param gen		A random generator conforming the standard operator() usage

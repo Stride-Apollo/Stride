@@ -5,9 +5,9 @@
 #include <string>
 #include <cstdlib>
 #include <iostream>
+#include <random>
 
 #include "sim/Simulator.h"
-#include "util/RNGPicker.h"
 #include "util/GeoCoordinate.h"
 #include "core/Cluster.h"
 #include "pop/TravellerData.h"
@@ -29,9 +29,6 @@ public:
 
 	/// Receive travelers
 	virtual bool host(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) = 0;
-
-	/// Return these travellers back home (in this simulator instance)
-	virtual bool returnHome(const vector<Simulator::TravellerType>& travellers) = 0;
 
 	/// Send travellers to the destination region
 	/// Returns a vector of indices (in the Population of the simulator), these indices are from the people that were sent (debugging purposes)
@@ -78,10 +75,10 @@ public:
 
 	virtual ~AsyncSimulator() {};
 
-	AsyncSimulator(string rng_name = "MT19937", uint seed = rand()) {m_rng.set(rng_name, seed);}
+	AsyncSimulator(uint seed = rand()) { std::mt19937 m_rng (seed);}
 
 protected:
-	RNGPicker m_rng;
+	std::mt19937 m_rng;
 	uint m_id = 0;
 };
 

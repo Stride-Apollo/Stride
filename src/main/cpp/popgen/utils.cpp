@@ -7,9 +7,9 @@
 using namespace stride;
 using namespace popgen;
 
-uniform_real_distribution<double> popgen::real01 = uniform_real_distribution<double>(0, 1);
+uniform_real_distribution<double> real01;
 
-std::ostream& popgen::operator<<(std::ostream& os, const SimplePerson& p) {
+std::ostream& operator<<(std::ostream& os, const SimplePerson& p) {
 	assert(p.m_household_id != 0);  // everyone is part of a family!
 
 	// "age","household_id","school_id","work_id","primary_community","secondary_community"

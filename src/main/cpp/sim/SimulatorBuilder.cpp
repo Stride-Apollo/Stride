@@ -112,11 +112,11 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 			string(__func__) + "> Invalid input for LogMode.");
 
 	// Rng's.
-	const auto seed = pt_config.get<double>("run.rng_seed");
-	Random rng(seed);
+	int seed = pt_config.get<double>("run.rng_seed");
+	sim->m_rng = make_shared<util::Random>(seed);
 
 	// Build population.
-	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, rng);
+	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, *sim->m_rng);
 
 	// initialize districts.
 	initializeDistricts(sim, pt_config);
@@ -129,12 +129,6 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 
 	// initialize disease profile.
 	sim->m_disease_profile.initialize(pt_config, pt_disease);
-
-	// initialize Rng handlers
-	unsigned int new_seed = rng(numeric_limits<unsigned int>::max());
-	for (size_t i = 0; i < sim->m_num_threads; i++) {
-		sim->m_rng_handler.emplace_back(RngHandler(new_seed, sim->m_num_threads, i));
-	}
 
 	// initialize contact profiles.
 	Cluster::addContactProfile(ClusterType::Household, ContactProfile(ClusterType::Household, pt_contact));
@@ -182,23 +176,23 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim, const boost
 	map<pair<ClusterType, uint>, GeoCoordinate> locations = initializeLocations(cluster_filename);
 
 	for (size_t i = 0; i <= max_id_households; i++) {
-		sim->m_households.emplace_back(Cluster(cluster_id, ClusterType::Household, locations[make_pair(ClusterType::Household, i + 1)]));
+		sim->m_households.emplace_back(Cluster(cluster_id, ClusterType::Household, locations[make_pair(ClusterType::Household, i)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_school_clusters; i++) {
-		sim->m_school_clusters.emplace_back(Cluster(cluster_id, ClusterType::School, locations[make_pair(ClusterType::School, i + 1)]));
+		sim->m_school_clusters.emplace_back(Cluster(cluster_id, ClusterType::School, locations[make_pair(ClusterType::School, i)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_work_clusters; i++) {
-		sim->m_work_clusters.emplace_back(Cluster(cluster_id, ClusterType::Work, locations[make_pair(ClusterType::Work, i + 1)]));
+		sim->m_work_clusters.emplace_back(Cluster(cluster_id, ClusterType::Work, locations[make_pair(ClusterType::Work, i)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_primary_community; i++) {
-		sim->m_primary_community.emplace_back(Cluster(cluster_id, ClusterType::PrimaryCommunity, locations[make_pair(ClusterType::PrimaryCommunity, i + 1)]));
+		sim->m_primary_community.emplace_back(Cluster(cluster_id, ClusterType::PrimaryCommunity, locations[make_pair(ClusterType::PrimaryCommunity, i)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_secondary_community; i++) {
-		sim->m_secondary_community.emplace_back(Cluster(cluster_id, ClusterType::SecondaryCommunity, locations[make_pair(ClusterType::SecondaryCommunity, i + 1)]));
+		sim->m_secondary_community.emplace_back(Cluster(cluster_id, ClusterType::SecondaryCommunity, locations[make_pair(ClusterType::SecondaryCommunity, i)]));
 		cluster_id++;
 	}
 

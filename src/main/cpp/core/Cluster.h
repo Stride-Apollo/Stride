@@ -76,7 +76,7 @@ public:
 
 	/// Get the members of this vector
 	/// Rather for testing purposes
-	const std::vector<std::pair<Simulator::PersonType*, bool> >& getMembers() const {return m_members;}
+	const std::vector<std::pair<Simulator::PersonType*, bool>>& getMembers() const {return m_members;}
 
 public:
 	/// Add contact profile.

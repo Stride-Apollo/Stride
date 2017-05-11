@@ -26,6 +26,7 @@ public:
 		: m_sims(sims.begin(), sims.end()) {initializeSimulators();}
 
 	void initializeSimulators() {
+		// TODO: also give the simulators a name
 		uint id = 0;
 		for (auto sim: m_sims) {
 			sim->setId(id);

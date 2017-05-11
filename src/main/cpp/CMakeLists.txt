@@ -50,7 +50,6 @@ set(LIB_SRC
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
-	util/RNGPicker.cpp
 	util/TravellerScheduleReader.cpp
 	util/TransportFacilityReader.cpp
 #---
@@ -70,7 +69,6 @@ set(POPGEN_SRC
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
-	util/RNGPicker.cpp
 #---
 	core/ClusterType.cpp
 #---
@@ -128,7 +126,7 @@ else()
 endif()
 
 #============================================================================
-# Build & install the (OpenMP enabled if OpenMP available) executable.
+# Build & install the executable.
 #============================================================================
 add_library(libstride ${LIB_SRC})
 #target_compile_options(libstride PUBLIC "-flto")

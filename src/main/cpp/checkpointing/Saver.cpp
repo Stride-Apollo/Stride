@@ -419,24 +419,24 @@ void Saver::saveTimestep(const Simulator& sim) {
 		delete plist;
 		m_timestep += m_frequency;
 		file.close();
-	} catch (GroupIException error) {
+	} catch (GroupIException& error) {
 		error.printError();
 		return;
-	} catch (AttributeIException error) {
+	} catch (AttributeIException& error) {
 		error.printError();
 		return;
-	} catch (FileIException error) {
+	} catch (FileIException& error) {
 		std::cout << "Trying to open file: " << m_filename << " but failed." << std::endl;
 		error.printError();
 		return;
-	} catch (DataSetIException error) {
+	} catch (DataSetIException& error) {
 		error.printError();
 		return;
-	} catch (DataSpaceIException error) {
+	} catch (DataSpaceIException& error) {
 		std::cout << "Error while interacting with a dataspace." << std::endl;
 		error.printError();
 		return;
-	} catch (Exception error) {
+	} catch (Exception& error) {
 		std::cout << "Unknown exception?" << std::endl;
 		error.printError();
 	}
