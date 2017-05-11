@@ -1,6 +1,6 @@
 var app = angular.module('VisualizationApp', []);
 
-app.controller('Controller', ['$scope', function($scope) {
+app.controller('Controller', ['$scope', '$interval', function($scope, $interval) {
 	mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
 	var map = new mapboxgl.Map({
 		container: 'map',
@@ -71,9 +71,9 @@ app.controller('Controller', ['$scope', function($scope) {
 			$scope.nextDay();
 		}
 		if ($scope.simulation_run == undefined) {
-			$scope.simulation_run = setInterval($scope.nextDay, $scope.animation_speed);
+			$scope.simulation_run = $interval($scope.nextDay, $scope.animation_speed);
 		} else {
-			clearInterval($scope.simulation_run);
+			$interval.cancel($scope.simulation_run);
 			$scope.simulation_run = undefined;
 		}
 	}
