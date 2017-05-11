@@ -8,7 +8,6 @@
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
-#include <omp.h>
 
 #include <string>
 #include <iostream>
@@ -91,13 +90,10 @@ const int			HDF5UnitTests::g_checkpointing_frequency		= 1;
  */
 TEST_P(HDF5UnitTests, AmtCheckpoints1) {
 	unsigned int num_threads = GetParam();
-	omp_set_num_threads(num_threads);
-	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 10;
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
-
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
@@ -130,8 +126,6 @@ TEST_P(HDF5UnitTests, AmtCheckpoints1) {
  */
 TEST_P(HDF5UnitTests, AmtCheckPoints2) {
 	unsigned int num_threads = GetParam();
-	omp_set_num_threads(num_threads);
-	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 10;
 	const string h5filename = "testOutput.h5";
@@ -171,8 +165,6 @@ TEST_P(HDF5UnitTests, AmtCheckPoints2) {
  */
 TEST_P(HDF5UnitTests, AmtCheckPoints3) {
 	unsigned int num_threads = GetParam();
-	omp_set_num_threads(num_threads);
-	omp_set_schedule(omp_sched_static,1);
 
 	unsigned int num_days = 10;
 	const string h5filename = "testOutput.h5";
@@ -213,7 +205,6 @@ TEST_F(HDF5UnitTests, CheckConfigTree) {
 	auto pt_config = getConfigTree();
 
 	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
-
 
 	// Retrieve the configuration settings from the Hdf5 file.
 	StrType h5_str (0, H5T_VARIABLE);

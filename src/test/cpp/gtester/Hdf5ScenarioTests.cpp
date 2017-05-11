@@ -11,7 +11,6 @@
 #include "sim/Simulator.h"
 
 #include <boost/property_tree/ptree.hpp>
-#include <omp.h>
 #include <string>
 #include <iostream>
 #include <gtest/gtest.h>
@@ -29,8 +28,6 @@ namespace Tests {
 
 class HDF5ScenarioTests : public ::testing::TestWithParam<unsigned int> {
 public:
-	virtual void setUp() {}
-	virtual void TearDown() {}
 	const boost::property_tree::ptree getConfigTree() const {
 		boost::property_tree::ptree config_tree;
 		config_tree.put("run.rng_seed", g_rng_seed);
@@ -96,8 +93,6 @@ const unsigned int NUM_DAYS = 50;
 
 TEST_P(HDF5ScenarioTests, StartFromCheckpoints) {
 	unsigned int num_threads = GetParam();
-	omp_set_num_threads(num_threads);
-	omp_set_schedule(omp_sched_static,1);
 
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();

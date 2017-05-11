@@ -18,13 +18,14 @@
  * Actually run the simulator.
  */
 
-# include "run_stride2.h"
+#include "run_stride.h"
 
 #include "output/CasesFile.h"
 #include "output/PersonFile.h"
 #include "output/SummaryFile.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
+#include "sim/SimulatorSetup.h"
 #include "sim/AsyncSimulator.h"
 #include "sim/LocalSimulatorAdapter.h"
 #include "sim/Coordinator.h"
@@ -32,10 +33,8 @@
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
-#include "util/stdlib.h"
 
 #include <boost/property_tree/xml_parser.hpp>
-#include <omp.h>
 #include <spdlog/spdlog.h>
 #include <memory>
 #include <cassert>
@@ -51,31 +50,20 @@ using namespace std::chrono;
 
 /// Run the stride simulator.
 void run_stride(bool track_index_case,
+				unsigned int num_threads,
 				const string& config_file_name,
 				const string& hdf5_file_name,
 				const string& hdf5_output_file_name,
 				const string& simulator_run_mode,
 				const int checkpointing_frequency,
 				const unsigned int timestamp_replay) {
-	// Configuration
-	ptree pt_config;
-	const auto file_path = canonical(system_complete(config_file_name));
-	if (!is_regular_file(file_path)) {
-		throw runtime_error(string(__func__)
-							+ ">Config file " + file_path.string() + " not present. Aborting.");
-	}
-	read_xml(file_path.string(), pt_config);
-	cout << "Configuration file:  " << file_path.string() << endl;
 
-	// TODO Unipar
+	cout << "Loading configuration" << endl;
+	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case, timestamp_replay);
+	ptree pt_config = setup.getConfigTree();
 
 	// Set output path prefix.
 	string output_prefix = "";
-
-	// Additional run configurations.
-	if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
-		pt_config.put("run.num_participants_survey", 1);
-	}
 
 	// Track index case setting.
 	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
@@ -111,17 +99,15 @@ void run_stride(bool track_index_case,
 		return;
 	}
 
-	cout << "Constructing configuration tree and building the simulator." << endl << endl;
+	cout << "Building the simulator." << endl << endl;
 
-	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case, timestamp_replay);
-	ptree pt_config = setup.getConfigTree();
 	shared_ptr<Simulator> sim = setup.getSimulator();
 	unsigned int start_day = setup.getStartDay();
 	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
 
 	cout << "Done building the simulator. " << endl << endl;
 
-	Coordinator coord({l1.get()});
+	Coordinator coord({local_sim.get()});
 
 	cout << "Adding observers to the simulator." << endl;
 

@@ -149,17 +149,16 @@ const vector<Cluster>& Simulator::getClusters(ClusterType cluster_type) const {
 	}
 }
 
-
 vector<string> Simulator::getRngStates() const {
 	vector<string> states;
 	stringstream ss;
-	ss << m_rng;
+	ss << *m_rng;
 	states.push_back(ss.str());
 	return states;
 }
 
 void Simulator::setRngStates(vector<string> states) {
-	m_rng.setState(states.at(0));
+	m_rng->setState(states.at(0));
 }
 
 }

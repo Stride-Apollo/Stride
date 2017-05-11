@@ -25,7 +25,6 @@
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
-#include <omp.h>
 #include <spdlog/spdlog.h>
 
 #include <cmath>
@@ -136,6 +135,9 @@ TEST_P( BatchDemos, Run ) {
 		pt_config.put("run.r0", g_transmission_rate_measles);
 	} else if (test_tag == "maximum") {
 		pt_config.put("run.r0", g_transmission_rate_maximum);
+	} else if (test_tag == "flanders") {
+		pt_config.put("run.population_file", g_population_file_flanders);
+		pt_config.put("run.cluster_location_file", g_cluster_file_flanders);
 	} else {
 		FAIL() << "test_tag has an unexpected value: " << test_tag;
 	}

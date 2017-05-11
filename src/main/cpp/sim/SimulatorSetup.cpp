@@ -12,7 +12,7 @@ using namespace std;
 
 namespace stride {
 
-SimulatorSetup::SimulatorSetup(string simulator_mode, string conf_file, 
+SimulatorSetup::SimulatorSetup(string simulator_mode, string conf_file,
 							   string hdf5_file, int num_threads, bool track_index_case, const unsigned int timestamp_replay)
 	: m_simulator_mode(simulator_mode), m_conf_file(conf_file), m_hdf5_file(hdf5_file), m_num_threads(num_threads), 
 	  m_timestamp_replay(timestamp_replay), m_track_index_case(track_index_case) {
@@ -101,6 +101,11 @@ void SimulatorSetup::constructConfigTreeInitial() {
 		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
 		m_pt_config = loader.getConfig();	
 		m_track_index_case = loader.getTrackIndexCase();
+	}
+
+	// Additional run configurations.
+	if (m_pt_config.get_optional<bool>("run.num_participants_survey") == false) {
+		m_pt_config.put("run.num_participants_survey", 1);
 	}
 }
 

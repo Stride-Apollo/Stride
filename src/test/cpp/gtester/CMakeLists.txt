@@ -15,18 +15,6 @@
 #############################################################################
 
 #============================================================================
-# Find HDF5 package on system, if not installed, install localy
-#============================================================================
-
-#============================================================================
-# Add subdirectories:
-#============================================================================
-add_subdirectory( PopGen )
-
-#############################################################################
-
-
-#============================================================================
 # Build & install the (OpenMP enabled if OpenMP available) executable.
 #============================================================================
 set( EXEC       gtester     )
@@ -42,7 +30,6 @@ set( SRC
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp
 		PopGen/AliasDistributionTest.cpp
-		PopGen/RNGPickerTest.cpp
 		Hdf5UnitTests.cpp
         Hdf5ScenarioTests.cpp
 )

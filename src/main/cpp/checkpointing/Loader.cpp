@@ -137,9 +137,6 @@ Loader::Loader(const char *filename, unsigned int num_threads): m_filename(filen
 		dataspace.getSimpleExtentDims(dims, NULL);
 		dataspace.close();
 
-		// const auto seed = m_pt_config.get<double>("run.rng_seed");
-		// Random rng(seed);
-
 		dataset->close();
 		file.close();
 	} catch(FileIException error) {
@@ -238,7 +235,6 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 
 
 	CompType typeRng(sizeof(RNGDataType));
-	typeRng.insertMember(H5std_string("seed"), HOFFSET(RNGDataType, seed), PredType::NATIVE_ULONG);
 	StrType tid2(0, H5T_VARIABLE);
 	typeRng.insertMember(H5std_string("rng_state"), HOFFSET(RNGDataType, rng_state), tid2);
 

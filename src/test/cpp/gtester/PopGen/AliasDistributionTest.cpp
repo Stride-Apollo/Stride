@@ -102,11 +102,4 @@ TEST(AliasDistribution, Boundaries__NearZero) {
 
 }
 
-#ifdef NDEBUG
-TEST(AliasDistribution, Boundaries__None) {
-	// Empty vector is not allowed, assert should catch this
-	EXPECT_DEATH(AliasDistribution(vector<double>()), ".*");
-}
-#endif
-
 }

@@ -284,7 +284,6 @@ void Saver::saveTimestep(const Simulator& sim) {
 
 		DataSpace* dataspace = new DataSpace(1, dims);
 		CompType typeRng(sizeof(RNGDataType));
-		typeRng.insertMember(H5std_string("seed"), HOFFSET(RNGDataType, seed), PredType::NATIVE_ULONG);
 		StrType tid1(0, H5T_VARIABLE);
 		typeRng.insertMember(H5std_string("rng_state"), HOFFSET(RNGDataType, rng_state), tid1);
 		DataSet* dataset = new DataSet(group.createDataSet("randomgen", typeRng, *dataspace));
@@ -292,10 +291,8 @@ void Saver::saveTimestep(const Simulator& sim) {
 		RNGDataType* rngs = new RNGDataType[dims[0]];
 		std::vector<std::string> rng_states = sim.getRngStates();
 		// std::cout << std::endl;
-		for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
-			(rngs + i)->seed = sim.m_rng_handler.at(i).getSeed();
+		for (unsigned int i = 0; i < rng_states.size(); i++) {
 			std::string str = rng_states[i];
-			// std::cout << "Saving: " << str.c_str() << std::endl;
 			(rngs + i)->rng_state = str.c_str();
 		}
 		// std::cout << std::endl;
