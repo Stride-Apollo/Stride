@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<coordinator>
+    <sim>run_flanders.xml</sim>
+    <sim>run_flanders2.xml</sim>
+    <sim>run_flanders.xml</sim>
+    <sim>run_flanders.xml</sim>
+    <sim>run_flanders.xml</sim>
+    <sim>run_flanders.xml</sim>
+    <sim>run_flanders.xml</sim>
+    <num_days>50</num_days>
+    <traveller_file>traveller_schedule.json</traveller_file>
+</coordinator>

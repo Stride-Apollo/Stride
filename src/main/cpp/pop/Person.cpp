@@ -54,15 +54,15 @@ template<class BehaviorPolicy, class BeliefPolicy>
 bool Person<BehaviorPolicy, BeliefPolicy>::isInCluster(ClusterType c) const {
 	switch (c) {
 		case ClusterType::Household:
-			return m_at_household;
+			return m_at_household && !m_is_on_vacation;
 		case ClusterType::School:
-			return m_at_school;
+			return m_at_school && !m_is_on_vacation;
 		case ClusterType::Work:
-			return m_at_work;
+			return m_at_work && !m_is_on_vacation;
 		case ClusterType::PrimaryCommunity:
-			return m_at_primary_community;
+			return m_at_primary_community && !m_is_on_vacation;
 		case ClusterType::SecondaryCommunity:
-			return m_at_secondary_community;
+			return m_at_secondary_community && !m_is_on_vacation;
 		default:
 			throw runtime_error(string(__func__) + "> Should not reach default.");
 	}
