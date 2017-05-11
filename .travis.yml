@@ -39,14 +39,12 @@ matrix:
   
     # Unit tests ......................
     
-    - compiler: gcc
-      addons: *gcc_addons
+    - addons: *gcc_addons
       env: 
         - compiler='gcc'
         - test='unit'
       
-    - compiler: clang
-      addons: *clang_addons
+    - addons: *clang_addons
       env: 
         - compiler='clang'
         - test='unit'
@@ -54,21 +52,19 @@ matrix:
     
     # Scenario tests ..................
     
-        - compiler: gcc
-      addons: *gcc_addons
+    - addons: *gcc_addons
       env: 
         - compiler='gcc'
         - test='scenarios'
       
-    - compiler: clang
-      addons: *clang_addons
+    - addons: *clang_addons
       env: 
         - compiler='clang'
         - test='scenarios'
 
 
 before_install:
-  - ./travis/before_install
+  - ./travis/before_install.sh
   - PARALLEL_MAKE=2 make install
 
 script:
