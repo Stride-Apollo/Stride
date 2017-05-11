@@ -8,7 +8,7 @@ app.controller('Controller', ['$scope', function($scope) {
 	});
 	var files = [];	// file-text_of_file pairs
 	var filenames = [];
-	var currentDay = 0;
+	$scope.currentDay = 0;
 
 	var config;
 	var fs = require('fs');
@@ -26,8 +26,8 @@ app.controller('Controller', ['$scope', function($scope) {
 				filenames.push(file);
 			});
 			map.on('load', function() {
-				makeClusters(parseCSVFile(files[currentDay]));
-				// makeClusters(JSON.parse(files[currentDay]));
+				makeClusters(parseCSVFile(files[$scope.currentDay]));
+				// makeClusters(JSON.parse(files[$scope.currentDay]));
 			});
 		});
 
@@ -65,30 +65,37 @@ app.controller('Controller', ['$scope', function($scope) {
 		document.getElementById(id).parentNode.lastChild.lastChild.style.flexBasis = "0%";
 	}
 
-	var simulation_run;
+	$scope.simulation_run;
 	$scope.runSimulation = function() {
-		if (currentDay < files.length - 1) {
+		if ($scope.currentDay < files.length - 1) {
 			$scope.nextDay();
 		}
-		simulation_run = setInterval($scope.nextDay, config.animation_step);
+		if ($scope.simulation_run == undefined) {
+			$scope.simulation_run = setInterval($scope.nextDay, $scope.animation_speed);
+		} else {
+			clearInterval($scope.simulation_run);
+			$scope.simulation_run = undefined;
+		}
 	}
 
 	$scope.nextDay = function() {
-		if (++currentDay >= files.length) {
-			currentDay--;
-			clearInterval(simulation_run);
+		if (++$scope.currentDay >= files.length) {
+			$scope.currentDay--;
+			clearInterval($scope.simulation_run);
+			$scope.simulation_run = undefined;
 		} else {
 			updatePaint();
-			updateMap(parseCSVFile(files[currentDay]))
+			updateMap(parseCSVFile(files[$scope.currentDay]))
 		}
+		console.log($scope.currentDay);
 	}
 
 	$scope.previousDay = function() {
-		if (--currentDay < 0) {
-			currentDay = 0;
+		if (--$scope.currentDay < 0) {
+			$scope.currentDay = 0;
 		} else {
 			updatePaint();
-			updateMap(parseCSVFile(files[currentDay]))
+			updateMap(parseCSVFile(files[$scope.currentDay]))
 		}
 	}
 
@@ -247,10 +254,10 @@ app.controller('Controller', ['$scope', function($scope) {
 					}
 				})
 				var url = "file://" + __dirname + '/ClusterContent.html?data='
-					+ __dirname + "/" + config.directory + "/" + filenames[currentDay]
+					+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
 					+ "&cluster=" + e.features[0].properties.id
 					+ "&directory=" + __dirname + "/" + config.directory
-					+ "&currentDay=" + currentDay;
+					+ "&$scope.currentDay=" + $scope.currentDay;
 				win.loadURL(url);
 			} else {
 				for (var i in windows) {

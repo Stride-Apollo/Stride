@@ -110,8 +110,10 @@
 			<i class="material-icons">navigate_next</i>
 		</button>
 		<button id="btnPlay" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="runSimulation()">
-			<i class="material-icons">play_arrow</i>
+			<i class="material-icons" ng-show="simulation_run == undefined">play_arrow</i>
+			<i class="material-icons" ng-hide="simulation_run == undefined">pause_arrow</i>
 		</button>
+		<h3>{{currentDay}}</h3>
 	</div>
 </div>
 
