@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "pop/Population.h"
+#include "sim/Simulator.h"
 
 using namespace std;
 using namespace stride;
@@ -14,7 +15,7 @@ namespace Tests {
 
 // I'll only care about id and on_vacation here
 Simulator::PersonType P(unsigned int id, bool on_vacation = false) {
-	return Simulator::PersonType(id, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, on_vacation);
+	return Simulator::PersonType(id, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, on_vacation);
 }
 
 class PopulationTest : public ::testing::Test {
@@ -25,7 +26,7 @@ public:
 };
 
 #define VARIOUS_POPULATION_TESTS(fixture, max) \
-TEST_F(fixture, fixture ## Simple) { \
+TEST_F(fixture, fixture ## __Simple) { \
 	auto it = pop.begin(); \
 	for (int i=0; i<max; i++) { \
 		EXPECT_EQ(i, (*it).getId()); \
@@ -33,7 +34,7 @@ TEST_F(fixture, fixture ## Simple) { \
 	} \
 } \
 \
-TEST_F(fixture, fixture ## SimpleAuto) { \
+TEST_F(fixture, fixture ## __SimpleAuto) { \
 	int i = 0; \
 	for (auto& it: pop) { \
 		EXPECT_EQ(i, it.getId()); \
@@ -42,7 +43,7 @@ TEST_F(fixture, fixture ## SimpleAuto) { \
 	EXPECT_EQ(i, max); \
 } \
 \
-TEST_F(fixture, fixture ## ConstAuto) { \
+TEST_F(fixture, fixture ## __ConstAuto) { \
 	int i = 0; \
 	for (const auto& it: pop) { \
 		EXPECT_EQ(i, it.getId()); \
