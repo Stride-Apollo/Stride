@@ -8,7 +8,7 @@ echo "
 ╔════════════════════════════════════╗
 ║              Overview              ║
 ╚════════════════════════════════════╝"
-../../src/test/print-gtest.py test_detail.xml
+../../travis/print-gtest.py test_detail.xml
 
 
 echo "

@@ -33,6 +33,7 @@ clang_addons: &clang_addons
             - *deps
             - clang-3.8
             - libc++-dev
+            - libiomp-dev
 
 
 matrix:
@@ -42,37 +43,37 @@ matrix:
     
     - addons: *gcc_addons
       env: 
-        - test='unit'
+        - test=unit
         - unipar=dummy
         - compiler=gcc
       
     - addons: *clang_addons
       env: 
-        - test='unit'
+        - test=unit
         - unipar=dummy
         - compiler=clang
     
     #- addons: *gcc_addons
       #env: 
-        #- test='unit'
+        #- test=unit
         #- unipar=TBB
         #- compiler=gcc
       
     #- addons: *clang_addons
       #env: 
-        #- test='unit'
+        #- test=unit
         #- unipar=TBB
         #- compiler=clang
     
     #- addons: *gcc_addons
       #env: 
-        #- test='unit'
+        #- test=unit
         #- unipar=OpenMP
         #- compiler=gcc
       
     #- addons: *clang_addons
       #env: 
-        #- test='unit'
+        #- test=unit
         #- unipar=OpenMP
         #- compiler=clang
     
