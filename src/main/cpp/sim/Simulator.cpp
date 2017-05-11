@@ -64,7 +64,6 @@ void Simulator::setTrackIndexCase(bool track_index_case) {
 	m_track_index_case = track_index_case;
 }
 
-
 template<LogMode log_level, bool track_index_case>
 void Simulator::updateClusters() {
 	// Slight hack (thanks to http://stackoverflow.com/q/31724863/2678118#comment51385875_31724863)
@@ -147,6 +146,18 @@ const vector<Cluster>& Simulator::getClusters(ClusterType cluster_type) const {
 		default:
 			throw runtime_error(string(__func__) + "> Should not reach default.");
 	}
+}
+
+vector<string> Simulator::getRngStates() const {
+	vector<string> states;
+	stringstream ss;
+	ss << *m_rng;
+	states.push_back(ss.str());
+	return states;
+}
+
+void Simulator::setRngStates(vector<string> states) {
+	m_rng->setState(states.at(0));
 }
 
 }

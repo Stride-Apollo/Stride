@@ -15,7 +15,6 @@
 #include "core/Cluster.h"
 
 #include <boost/property_tree/xml_parser.hpp>
-#include <omp.h>
 #include <memory>
 #include <cassert>
 #include <string>
@@ -64,12 +63,8 @@ protected:
 		}
 		read_xml(file_path.string(), pt_config);
 
-		// OpenMP
-		unsigned int num_threads;
-		#pragma omp parallel
-		{
-			num_threads = omp_get_num_threads();
-		}
+		// TODO Unipar
+		unsigned int num_threads = 1;
 
 		// Set output path prefix.
 		string output_prefix = "";

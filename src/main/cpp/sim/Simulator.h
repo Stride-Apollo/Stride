@@ -31,7 +31,6 @@
 #include "util/Random.h"
 #include "util/unipar.h"
 #include "behavior/belief_policies/NoBelief.h"
-
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
@@ -53,7 +52,7 @@ public:
 	using PersonType = Person<NoBehavior, NoBelief>;
 	using TravellerType = Traveller<PersonType>;
 
-	// Default constructor for empty Simulator.
+	/// Default constructor for empty Simulator.
 	Simulator();
 
 	/// Get the population.
@@ -71,6 +70,12 @@ public:
 	/// Get the clusters of this simulator based on the cluster type
 	/// This is rather for testing purposes
 	const std::vector<Cluster>& getClusters(ClusterType cluster_type) const;
+
+	/// Retrieve the states of the rng's
+	std::vector<std::string> getRngStates() const;
+
+	/// Set the states of the rng's
+	void setRngStates(std::vector<std::string> states);
 
 private:
 	// Information about travellers
@@ -118,6 +123,8 @@ public:	// TODO write getters or set friend class for ClusterSaver
 
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;
+	friend class Saver;
+	friend class Loader;
 };
 
 

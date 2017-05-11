@@ -8,6 +8,9 @@
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 #include "pop/TravellerData.h"
+#include "util/Subject.h"
+#include "checkpointing/Saver.h"
+#include "checkpointing/Loader.h"
 
 namespace stride {
 
@@ -17,7 +20,8 @@ class ClusterSaver;
 using namespace std;
 using namespace util;
 
-class LocalSimulatorAdapter : public AsyncSimulator, public util::Subject<LocalSimulatorAdapter> {
+class LocalSimulatorAdapter : public AsyncSimulator, public Subject<LocalSimulatorAdapter> {
+
 public:
 	/// The constructor, this adapter will control one simulator
 	LocalSimulatorAdapter(Simulator* sim);
@@ -63,6 +67,8 @@ private:
 
 	friend class Coordinator;
 	friend class ClusterSaver;
+	friend class Saver;
+	friend class Loader;
 };
 
 }

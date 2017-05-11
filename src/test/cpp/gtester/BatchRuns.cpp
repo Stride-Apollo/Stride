@@ -1,5 +1,5 @@
 /*
-\ *  This is free software: you can redistribute it and/or modify it
+ *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  any later version.
@@ -25,7 +25,6 @@
 
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
-#include <omp.h>
 #include <spdlog/spdlog.h>
 
 #include <cmath>
@@ -89,15 +88,16 @@ const string         BatchDemos::g_cluster_file_flanders       = "clusters_fland
 
 const map<string, unsigned int> BatchDemos::g_results {
 	make_pair("default", 70000),
-	make_pair("seeding_rate",0),
-	make_pair("immunity_rate",6),
-	make_pair("measles",135000),
-	make_pair("maximum",700000),
-	make_pair("flanders",10000)	// TODO reliable estimation (currently I based myself on pop_oklahoma.csv and assumed a linear correlation between population size and infected count)
+	make_pair("seeding_rate", 0),
+	make_pair("immunity_rate", 6),
+	make_pair("measles", 135000),
+	make_pair("maximum", 700000),
+	make_pair("flanders", 10000)	// TODO reliable estimation (currently I based myself on pop_oklahoma.csv and assumed a linear correlation between population size and infected count)
 };
 
 TEST_P( BatchDemos, Run ) {
 	// Prepare test configuration.
+	// -----------------------------------------------------------------------------------------
 	tuple<string, unsigned int> t(GetParam());
 	const string test_tag = get<0>(t);
 	const unsigned int num_threads = get<1>(t);
@@ -135,6 +135,9 @@ TEST_P( BatchDemos, Run ) {
 		pt_config.put("run.r0", g_transmission_rate_measles);
 	} else if (test_tag == "maximum") {
 		pt_config.put("run.r0", g_transmission_rate_maximum);
+	} else if (test_tag == "flanders") {
+		pt_config.put("run.population_file", g_population_file_flanders);
+		pt_config.put("run.cluster_location_file", g_cluster_file_flanders);
 	} else {
 		FAIL() << "test_tag has an unexpected value: " << test_tag;
 	}
@@ -146,7 +149,7 @@ TEST_P( BatchDemos, Run ) {
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
 	// Release and close logger afterwards
-	// We bind this the current scope through 'defer', otherwise all subsequent tests
+	// We bind this to the current scope through 'defer', otherwise all subsequent tests
 	// will fail if one test case throws an exception and doesn't do this.
 	defer(spdlog::drop_all());
 
@@ -172,6 +175,7 @@ namespace {
 #else
 	unsigned int threads[] { 1U };
 #endif
+
 }
 
 INSTANTIATE_TEST_CASE_P(Run_default, BatchDemos,

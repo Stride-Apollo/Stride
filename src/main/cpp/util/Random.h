@@ -24,6 +24,9 @@
 #include <trng/mrg2.hpp>
 #include <trng/uniform01_dist.hpp>
 #include <trng/uniform_int_dist.hpp>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 namespace stride {
 namespace util {
@@ -58,6 +61,17 @@ public:
 	/// Check if two individuals have transmission.
 	bool hasTransmission(double contact_rate, double transmission_rate) {
 		return nextDouble() < rateToProbability(transmission_rate * contact_rate);
+	}
+
+	void setState(std::string state) {
+		std::stringstream ss;
+		ss.str(state);
+		ss >> m_engine;
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const Random& random) {
+		os << random.m_engine;
+		return os;
 	}
 
 private:

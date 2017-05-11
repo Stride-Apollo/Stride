@@ -46,8 +46,12 @@ future<bool> LocalSimulatorAdapter::timeStep() {
 
 	m_planner.nextDay();
 	m_sim->m_population->m_visitors.nextDay();
-
-	return async([&](){m_sim->timeStep(); notify(*this); return true;});
+	
+	return async([&](){
+		m_sim->timeStep();
+		this->notify(*this);
+		return true;
+	});
 }
 
 bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) {
@@ -96,7 +100,6 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 																	traveller.getOldPerson()->getHealth().getEndInfectiousness() - start_infectiousness,
 																	traveller.getOldPerson()->getHealth().getEndSymptomatic() - start_symptomatic);
 		new_person.getHealth() = traveller.getOldPerson()->getHealth();
-
 
 		// Add the person to the planner and set him on "vacation mode" in his home region
 		m_sim->m_population->m_visitors.add(days, new_person);
@@ -183,7 +186,6 @@ bool LocalSimulatorAdapter::forceHost(const Simulator::TravellerType& traveller,
 																traveller.getOldPerson()->getHealth().getEndInfectiousness() - start_infectiousness,
 																traveller.getOldPerson()->getHealth().getEndSymptomatic() - start_symptomatic);
 	new_person.getHealth() = traveller.getOldPerson()->getHealth();
-
 
 	// Add the person to the planner and set him on "vacation mode" in his home region
 	m_sim->m_population->m_visitors.add(days, new_person);

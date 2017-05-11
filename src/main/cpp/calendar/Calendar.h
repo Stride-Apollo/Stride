@@ -34,6 +34,7 @@ namespace stride {
  * E.g. what day it is, holidays, quarantines, ...
  */
 class Calendar {
+friend class Loader;
 public:
 	/// Constructor
 	Calendar(const boost::property_tree::ptree& pt_config);
