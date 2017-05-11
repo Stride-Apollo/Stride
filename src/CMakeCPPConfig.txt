@@ -41,12 +41,12 @@ set( CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0"   )
 #----------------------------------------------------------------------------
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_HOST_APPLE )
 	add_definitions( -D__APPLE__ )
-	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++")
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_HOST_APPLE )
-	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++11" )
+	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++14" )
 	add_definitions( -D__extern_always_inline=inline )
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-	set( CMAKE_CXX_FLAGS 	       "${CMAKE_CXX_FLAGS} -fPIC -std=c++11" )
+	set( CMAKE_CXX_FLAGS 	       "${CMAKE_CXX_FLAGS} -fPIC -std=c++14" )
 	set( CMAKE_C_FLAGS             "${CMAKE_C_FLAGS} -fPIC" )
 endif()
 #
@@ -82,41 +82,50 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS} )
 set( LIBS   ${LIBS} ${Boost_LIBRARIES} )
 
 #----------------------------------------------------------------------------
-# OpenMP
+# Unified Parallelization
 #----------------------------------------------------------------------------
-if( NOT STRIDE_FORCE_NO_OPENMP )
-	if ( NOT DEFINED HAVE_CHECKED_OpenMP )
-	    set( HAVE_CHECKED_OpenMP  TRUE  CACHE  BOOL  "Have checked for OpenMP?" FORCE )
+include_directories( SYSTEM ${CMAKE_HOME_DIRECTORY}/main/resources/lib/unipar/include )
+
+if( STRIDE_UNIPAR STREQUAL "OPENMP" )
+    if ( NOT DEFINED HAVE_CHECKED_OpenMP )
+        set( HAVE_CHECKED_OpenMP  TRUE  CACHE  BOOL  "Have checked for OpenMP?" FORCE )
         find_package( OpenMP )
         if( OPENMP_FOUND )
             set( HAVE_FOUND_OpenMP  TRUE  CACHE  BOOL  "Have found OpenMP?" FORCE )
         else()
             set( HAVE_FOUND_OpenMP  FALSE  CACHE  BOOL  "Have found OpenMP?" FORCE )
-	    endif()
+        endif()
     endif()
     if ( HAVE_FOUND_OpenMP )
-    	set( OPENMP_FOUND TRUE )
+        set( OPENMP_FOUND TRUE )
         set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
         set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
         message( "OpenMP CXX Flags ${OpenMP_CXX_FLAGS}" )
-    else()
-    	# This is done to eliminate blank output of undefined CMake variables.
-    	set( OPENMP_FOUND FALSE )
     endif()
+    if( NOT OPENMP_FOUND )
+        message( FATAL_ERROR "OpenMP wasn't found. Consider using another Unipar implementation." )
+    endif()
+    add_definitions( -DUNIPAR_IMPL_OPENMP )
+elseif( STRIDE_UNIPAR STREQUAL "TBB" )
+    # FindTBB used from here: https://github.com/justusc/FindTBB
+	find_package( TBB )
+	if( NOT TBB_FOUND )
+		message( FATAL_ERROR "TBB wasn't found. Consider using another Unipar implementation." )
+	endif()
+	add_definitions( ${TBB_DEFINITIONS} )
+	include_directories( ${TBB_INCLUDE_DIRS} )
+	add_definitions( -DUNIPAR_IMPL_TBB )
+    set( LIBS ${LIBS} ${TBB_LIBRARIES})
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread" )
 else()
-    # This is done to eliminate blank output of undefined CMake variables.
-    set( OPENMP_FOUND FALSE )
-    set( HAVE_CHECKED_OpenMP FALSE )
-    set( HAVE_FOUND_OpenMP FALSE )
-    
-    # Otherwise, STRIDE_FORCE_NO_OPENMP fails
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread" )
+    if( STRIDE_UNIPAR STREQUAL "DUMMY" )
+        message( "Using DUMMY Unipar implementation (no parallelization)." )
+    else()
+        message( "No proper Unipar implementation was specified, using DUMMY (no parallelization)." )
+    endif()
+    add_definitions( -DUNIPAR_IMPL_DUMMY )
 endif()
-# If not found, use the dummy omp.
-if( NOT OPENMP_FOUND )
-    include_directories( ${CMAKE_HOME_DIRECTORY}/main/resources/lib/domp/include )
-endif()
- 
+
 #----------------------------------------------------------------------------
 # HDF5 Library
 # Try to find the C variant of libhdf5, if found, USE_HDF5 is defined

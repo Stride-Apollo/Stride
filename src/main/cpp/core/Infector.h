@@ -27,10 +27,8 @@
 namespace stride {
 
 class Cluster;
-
-class RngHandler;
-
 class Calendar;
+namespace util { class Random; }
 
 /**
  * Actual contacts and transmission in cluster (primary template).
@@ -38,9 +36,8 @@ class Calendar;
 template<LogMode log_level, bool track_index_case>
 class Infector {
 public:
-	///
 	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
-						RngHandler& contact_handler, std::shared_ptr<const Calendar> sim_state);
+						util::Random& contact_handler, std::shared_ptr<const Calendar> sim_state);
 };
 
 /**
@@ -49,9 +46,8 @@ public:
 template<bool track_index_case>
 class Infector<LogMode::Contacts, track_index_case> {
 public:
-	///
 	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
-						RngHandler& contact_handler, std::shared_ptr<const Calendar> calendar);
+						util::Random& contact_handler, std::shared_ptr<const Calendar> calendar);
 };
 
 /// Explicit instantiation in cpp file.

@@ -39,7 +39,7 @@ set(LIB_SRC
 	pop/Population.cpp
 
 #---
-	sim/run_stride2.cpp
+	sim/run_stride.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
@@ -124,7 +124,7 @@ else()
 endif()
 
 #============================================================================
-# Build & install the (OpenMP enabled if OpenMP available) executable.
+# Build & install the executable.
 #============================================================================
 add_library(libstride ${LIB_SRC})
 #target_compile_options(libstride PUBLIC "-flto")

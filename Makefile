@@ -81,6 +81,9 @@ endif
 ifneq ($(STRIDE_VERBOSE_TESTING),)
 	CMAKE_ARGS += -DSTRIDE_VERBOSE_TESTING:BOOL=$(STRIDE_VERBOSE_TESTING)
 endif
+ifneq ($(STRIDE_UNIPAR),)
+	CMAKE_ARGS += -DSTRIDE_UNIPAR:BOOL=$(STRIDE_UNIPAR)
+endif
 ifeq ($(BUILD_DIR),)
 	BUILD_DIR = ./build
 endif
@@ -100,7 +103,7 @@ help:
 	@ $(CMAKE) -E echo " default for any macro that has not been set):"
 	@ $(CMAKE) -E echo "   STRIDE_BOOST_ROOT          : " $(STRIDE_BOOST_ROOT)
 	@ $(CMAKE) -E echo "   STRIDE_INCLUDE_DOC         : " $(STRIDE_INCLUDE_DOC)
-	@ $(CMAKE) -E echo "   STRIDE_FORCE_NO_OPENMP     : " $(STRIDE_FORCE_NO_OPENMP)
+	@ $(CMAKE) -E echo "   STRIDE_UNIPAR              : " $(STRIDE_UNIPAR)
 	@ $(CMAKE) -E echo "   STRIDE_FORCE_NO_HDF5       : " $(STRIDE_FORCE_NO_HDF5)
 	@ $(CMAKE) -E echo "   STRIDE_VERBOSE_TESTING     : " $(STRIDE_VERBOSE_TESTING)
 	@ $(CMAKE) -E echo "   BUILD_DIR                  : " $(BUILD_DIR)
@@ -132,11 +135,8 @@ install_test: install_main
 distclean clean:
 	$(CMAKE) -E remove_directory $(BUILD_DIR)
 
-test installcheck: install_test
+test: install install_test
 	$(MAKE) -C $(BUILD_DIR)/test --no-print-directory run_default_ctest
-
-test_all installcheck: install_test
-	$(MAKE) -C $(BUILD_DIR)/test --no-print-directory run_all_ctest
 
 clean_all: distclean
 	git clean -df

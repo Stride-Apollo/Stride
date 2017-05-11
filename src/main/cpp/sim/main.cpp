@@ -18,7 +18,7 @@
  * Main program: command line handling.
  */
 
-#include "run_stride2.h"
+#include "run_stride.h"
 
 #include <tclap/CmdLine.h>
 
@@ -29,7 +29,7 @@ using namespace TCLAP;
 /// Main program of the stride simulator.
 int main(int argc, char** argv) {
 	int exit_status = EXIT_SUCCESS;
-	try {
+//	try {
 		// -----------------------------------------------------------------------------------------
 		// Parse command line.
 		// -----------------------------------------------------------------------------------------
@@ -42,16 +42,16 @@ int main(int argc, char** argv) {
 		// -----------------------------------------------------------------------------------------
 		// Run the Stride simulator.
 		// -----------------------------------------------------------------------------------------
-		run_stride2(index_case_Arg.getValue(), config_file_Arg.getValue());
+		run_stride(index_case_Arg.getValue(), config_file_Arg.getValue());
 
-	}
-	catch (exception& e) {
-		exit_status = EXIT_FAILURE;
-		cerr << "\nEXCEPION THROWN: " << e.what() << endl;
-	}
-	catch (...) {
-		exit_status = EXIT_FAILURE;
-		cerr << "\nEXCEPION THROWN: " << "Unknown exception." << endl;
-	}
+//	}
+//	catch (exception& e) {
+//		exit_status = EXIT_FAILURE;
+//		cerr << "\nEXCEPTION THROWN: " << e.what() << endl;
+//	}
+//	catch (...) {
+//		exit_status = EXIT_FAILURE;
+//		cerr << "\nEXCEPTION THROWN: Unknown exception." << endl;
+//	}
 	return exit_status;
 }

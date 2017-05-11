@@ -20,9 +20,6 @@
 
 #include "SummaryFile.h"
 
-#include <omp.h>
-
-
 namespace stride {
 namespace output {
 
@@ -49,10 +46,7 @@ void SummaryFile::print(
 		unsigned int total_time) {
 	unsigned int num_threads = 0;
 
-	#pragma omp parallel
-	{
-		num_threads = omp_get_num_threads();
-	}
+	// TODO_UNIPAR get num_threads
 
 	m_fstream
 			<< pt_config.get<string>("run.population_file") << ","

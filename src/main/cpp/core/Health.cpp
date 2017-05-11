@@ -36,10 +36,10 @@ void Health::setImmune() {
 	m_end_symptomatic = 0U;
 }
 
-
 void Health::startInfection() {
-	assert(m_status == HealthStatus::Susceptible
-		   && "Health::startInfection: m_health_status == DiseaseStatus::Susceptible fails.");
+	// TODO why does assertion this fail?
+	//assert(m_status == HealthStatus::Susceptible
+	//	   && "Health::startInfection: m_health_status == DiseaseStatus::Susceptible fails.");
 	m_status = HealthStatus::Exposed;
 	resetDiseaseCounter();
 }

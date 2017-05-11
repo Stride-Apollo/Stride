@@ -142,6 +142,10 @@ public:
 		return getInfectedCount() / (this->m_original.size() + this->m_visitors.size());
 	}
 
+	size_t size() const {
+		return m_original.size() + m_visitors.size();
+	}
+
 	PopulationIterator begin();
 	PopulationIterator end();
 
