@@ -3,9 +3,10 @@
 import sys
 import os
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 
 #from termcolor import colored
-# Copy-paste:
+# Copy-paste: ---------------------------------------------
 ATTRIBUTES = dict(list(zip(
     ['bold', 'dark', '','underline', 'blink', '', 'reverse', 'concealed'],
     list(range(1, 9)))))
@@ -37,7 +38,7 @@ def colored(text, color=None, on_color=None, attrs=None):
         text += RESET
     return text
 
-# End of termcolor.colored
+# End of termcolor.colored --------------------------------
 
 
 index_to_status = {i: status for i, status in 
@@ -64,37 +65,55 @@ colored_symbols = {k: colored(sym, colors[k], attrs=['bold'])
 # Slight modifications for text
 colors['notrun'] = None
 
-def status_index(el):
+def recursive_dict():
+    return defaultdict(recursive_dict)
+
+def build_tree(el):
     if el.tag.lower() == 'testcase':
+        return el
+    else:
+        tree = recursive_dict()
+        for child in el:
+            name = child.attrib['name']
+            pieces = name.split('__')
+            result_holder = tree
+            for p in pieces[:-1]:
+                result_holder = tree[p]
+            result_holder[pieces[-1]] = build_tree(child)
+        return tree
+
+def status_index(el):
+    if isinstance(el, defaultdict):
+        return max(status_index(v) for v in el.values())
+    else:
         failure = status_to_index['failure'] if any(c.tag.lower() == 'failure' for c in el) else 0
         return max(failure, status_to_index[el.attrib['status']])
-    else:
-        return max(status_index(i) for i in el)
 
 
-def print_el(el, depth=0, maxdepth=4):
-    name = el.attrib['name']
+def print_tree(name, tree, depth=0, maxdepth=3):
+    stat = index_to_status[status_index(tree)]
     indent = '  ' + depth*'  '
-    stat = index_to_status[status_index(el)]
-    if el.tag.lower() == 'testcase':
-        print(indent + colored_symbols[stat] + ' ' + colored(name, colors[stat]))
-    else:
+    if isinstance(tree, defaultdict):
         s = indent + colored_symbols[stat] + ' ' + colored(name, colors[stat])
         if depth+1 >= maxdepth:
-            s += ' [' + ' '.join(colored_symbols[index_to_status[status_index(c)]]
-                    for c in el) + ']'
+            s += ' [' + ' '.join(colored_symbols[index_to_status[status_index(v)]]
+                    for v in tree.values()) + ']'
             print(s)
+            for name, child in tree.items():
+                if status_index(child) > status_to_index['run']:
+                    print_tree(name, child, depth=depth+1, maxdepth=maxdepth)
         else:
             print(s)
-            for child in el:
-                print_el(child, depth=depth+1, maxdepth=maxdepth)
+            for name, child in tree.items():
+                print_tree(name, child, depth=depth+1, maxdepth=maxdepth)
+    else:
+        print(indent + colored_symbols[stat] + ' ' + colored(name, colors[stat]))
 
 
 if len(sys.argv) <= 1:
     print("Not enough arguments. Usage: print.py <filename>")
     sys.exit(1)
 
-tree = ET.parse(sys.argv[1])
-print_el(tree.getroot())
-
+tree = build_tree(ET.parse(sys.argv[1]).getroot())
+print_tree("All tests", tree)
 
