@@ -67,12 +67,16 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 	}
 
 	function updateSlider(id, grow) {
-		document.getElementById(id).parentNode.lastChild.firstChild.style.flexShrink = "1";
-		document.getElementById(id).parentNode.lastChild.firstChild.style.flexGrow = grow.toString();
-		document.getElementById(id).parentNode.lastChild.firstChild.style.flexBasis = "0%";
-		document.getElementById(id).parentNode.lastChild.lastChild.style.flexShrink = "1";
-		document.getElementById(id).parentNode.lastChild.lastChild.style.flexGrow = (1-grow).toString();
-		document.getElementById(id).parentNode.lastChild.lastChild.style.flexBasis = "0%";
+		if (document.getElementById(id).parentNode.lastChild.firstChild) {
+			document.getElementById(id).parentNode.lastChild.firstChild.style.flexShrink = "1";
+			document.getElementById(id).parentNode.lastChild.firstChild.style.flexGrow = grow.toString();
+			document.getElementById(id).parentNode.lastChild.firstChild.style.flexBasis = "0%";
+		}
+		if (document.getElementById(id).parentNode.lastChild.lastChild) {
+			document.getElementById(id).parentNode.lastChild.lastChild.style.flexShrink = "1";
+			document.getElementById(id).parentNode.lastChild.lastChild.style.flexGrow = (1-grow).toString();
+			document.getElementById(id).parentNode.lastChild.lastChild.style.flexBasis = "0%";
+		}
 	}
 
 	$scope.simulation_run;
