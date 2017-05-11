@@ -41,81 +41,81 @@ matrix:
     
     - addons: *gcc_addons
       env: 
-        - compiler='gcc'
         - test='unit'
-        - unipar='dummy'
+        - unipar=dummy
+        - compiler=gcc
       
     - addons: *clang_addons
       env: 
-        - compiler='clang'
         - test='unit'
-        - unipar='dummy'
+        - unipar=dummy
+        - compiler=clang
     
     - addons: *gcc_addons
       env: 
-        - compiler='gcc'
         - test='unit'
-        - unipar='TBB'
+        - unipar=TBB
+        - compiler=gcc
       
     - addons: *clang_addons
       env: 
-        - compiler='clang'
         - test='unit'
-        - unipar='TBB'
+        - unipar=TBB
+        - compiler=clang
     
     - addons: *gcc_addons
       env: 
-        - compiler='gcc'
         - test='unit'
-        - unipar='OpenMP'
+        - unipar=OpenMP
+        - compiler=gcc
       
     - addons: *clang_addons
       env: 
-        - compiler='clang'
         - test='unit'
-        - unipar='OpenMP'
+        - unipar=OpenMP
+        - compiler=clang
     
     # Scenario tests ..................
     
     - addons: *gcc_addons
       env: 
-        - compiler='gcc'
-        - test='scenarios'
-        - unipar='dummy'
+        - test=scenarios
+        - unipar=dummy
+        - compiler=gcc
       
     - addons: *clang_addons
       env: 
-        - compiler='clang'
-        - test='scenarios'
-        - unipar='dummy'
+        - test=scenarios
+        - unipar=dummy
+        - compiler=clang
     
     - addons: *gcc_addons
       env: 
-        - compiler='gcc'
-        - test='scenarios'
-        - unipar='TBB'
+        - test=scenarios
+        - unipar=TBB
+        - compiler=gcc
       
     - addons: *clang_addons
       env: 
-        - compiler='clang'
-        - test='scenarios'
-        - unipar='TBB'
+        - test=scenarios
+        - unipar=TBB
+        - compiler=clang
     
     - addons: *gcc_addons
       env: 
-        - compiler='gcc'
-        - test='scenarios'
-        - unipar='OpenMP'
+        - test=scenarios
+        - unipar=OpenMP
+        - compiler=gcc
       
     - addons: *clang_addons
       env: 
-        - compiler='clang'
-        - test='scenarios'
-        - unipar='OpenMP'
+        - test=scenarios
+        - unipar=OpenMP
+        - compiler=clang
 
 
 before_install:
-  - ./travis/before_install.sh
+  - . ./travis/before_install.sh
   - PARALLEL_MAKE=2 make install
 
 script:

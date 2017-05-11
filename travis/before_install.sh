@@ -2,9 +2,6 @@
 
 # Expand all environment shorthands
 
-echo travis_fold:start:expand_environment
-echo Expanding Environment variables
-
 # compiler
 if [ "$compiler" = "gcc" ]; then
 	export CXX=g++-5
@@ -39,5 +36,3 @@ else
 	echo "Running all tests"
 	export GTEST_FILTER="*"
 fi
-
-echo travis_fold:end:expand_environment
