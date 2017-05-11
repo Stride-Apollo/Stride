@@ -22,7 +22,7 @@ struct TbbResourceManager<Impl, TF, Rest...> : public ResourceManager<Impl, TF, 
 
 	// Watch out, tls has to be set!
 	TbbResourceManager() {
-		std::cout << this << " Tbb Resource Manager with empty tls init...\n";
+		//std::cout << this << " Tbb Resource Manager with empty tls init...\n";
 	}
 
 	TbbResourceManager(TF _tf, Rest&&... rest_tf)

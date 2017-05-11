@@ -40,17 +40,17 @@ Simulator::Simulator()
 		  m_disease_profile(), m_track_index_case(false) {
 	m_parallel = Parallel().withFunc<RandomRef>(std::function<RandomRef()>([&](){
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
-			std::cout << "Dummy rng?\n";
+			//std::cout << "Dummy rng?\n";
 			return m_rng.get();
 		#else
 			// Use the rng to initialize a seed
-			auto p = make_unique<Random>(m_rng->operator()());
-			if (p.get() == nullptr) {
-				std::cout << "We're passing on null rng?\n";
-			} else {
-				std::cout << "ONE MORE RNG!\n";
-			}
-			return p;
+			return make_unique<Random>(m_rng->operator()());
+			//if (p.get() == nullptr) {
+			//	std::cout << "We're passing on null rng?\n";
+			//} else {
+			//	std::cout << "ONE MORE RNG!\n";
+			//}
+			//return p;
 		#endif
 	}));
 	//m_parallel.getResourceManager().setFunc();
