@@ -30,15 +30,13 @@
 namespace stride {
 
 class Calendar;
-class LocalSimulatorAdapter;
 template<class PersonType> class Traveller;
-
 enum class ClusterType;
 
 /**
  * Store and handle person data.
  */
-template<class BeliefPolicy, class BehaviorPolicy>
+template <class BehaviorPolicy, class BeliefPolicy>
 class Person {
 public:
 	/// Constructor: set the person data.
@@ -92,10 +90,9 @@ public:
 	bool isOnVacation() const { return m_is_on_vacation; }
 	void setOnVacation(bool is_on_vacation) { m_is_on_vacation = is_on_vacation; }
 
-	friend class LocalSimulatorAdapter;
 	template<class PersonType> friend class Traveller;
 
-public:	// TODO make private again
+private:
 	unsigned int m_id;  ///< The id.
 	double m_age;       ///< The age.
 	char m_gender;      ///< The gender.
@@ -121,8 +118,7 @@ public:	// TODO make private again
 };
 
 /// Explicit instantiations in .cpp file
-extern template
-class Person<NoBelief, NoBehavior>;
+extern template class Person<NoBehavior, NoBelief>;
 
 }
 

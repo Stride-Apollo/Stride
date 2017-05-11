@@ -51,16 +51,13 @@ using namespace std::chrono;
 
 /// Run the stride simulator.
 void run_stride2(bool track_index_case, const string& config_file_name) {
-	// C++ example of how a Python main loop would look
 
 	// Configuration
-	// with open(config_file_name) as f:
-	//     config = json.load(f)
 	ptree pt_config;
 	const auto file_path = canonical(system_complete(config_file_name));
 	if (!is_regular_file(file_path)) {
 		throw runtime_error(string(__func__)
-							+ ">Config file " + file_path.string() + " not present. Aborting.");
+							+ ">Coordinator config file " + file_path.string() + " not present. Aborting.");
 	}
 	read_xml(file_path.string(), pt_config);
 	cout << "Configuration file:  " << file_path.string() << endl;
@@ -80,10 +77,7 @@ void run_stride2(bool track_index_case, const string& config_file_name) {
 	// Set output path prefix.
 	string output_prefix = "";
 
-	// Additional run configurations.
-	if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
-		pt_config.put("run.num_participants_survey", 1);
-	}
+	// TODO: num_participants_survey
 
 	// Track index case setting.
 	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
@@ -102,77 +96,80 @@ void run_stride2(bool track_index_case, const string& config_file_name) {
 	// Create simulator.
 	Stopwatch<> total_clock("total_clock", true);
 	cout << "Building the simulators." << endl;
-	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 
-	// No observers in C++. Logger was never intended as an observer per timestep.
+	// Count the amount of simulators
+	unsigned int simulator_amount = 0;
+	auto sim_config = pt_config.get_child("coordinator");
 
-	// MR test
-	auto sim2 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	auto sim3 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	auto sim4 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	auto sim5 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	auto sim6 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	auto sim7 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	auto sim8 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+	for (auto it = sim_config.begin(); it != sim_config.end(); ++it) {
+		if (it->first == "sim") {
+			++simulator_amount;
+		}
+	}
+
+	vector<shared_ptr<Simulator>> simulators;
+	vector<shared_ptr<LocalSimulatorAdapter> > simulator_adapters;
+	vector<LocalSimulatorAdapter*> simulator_adapters_raw;
+
+	simulators.reserve(simulator_amount);
+	simulator_adapters.reserve(simulator_amount);
+	simulator_adapters_raw.reserve(simulator_amount);
+
+	// Calculate the amount of threads per simulator
+	cout << "Total simulators: " << simulator_amount << endl;
+	cout << "Total threads: " << (num_threads > simulator_amount ? num_threads : simulator_amount) << endl;
+	unsigned int threads_per_sim = floor(num_threads / simulator_amount) > 0 ? floor(num_threads / simulator_amount) : 1;
+	int leftover_threads = num_threads - threads_per_sim * simulator_amount;
+
+	// Build the simulators
+	for (auto it = sim_config.begin(); it != sim_config.end(); ++it) {
+		if (it->first == "sim") {
+			string filename = "./config/" + it->second.data();
+
+			auto sim = SimulatorBuilder::build(filename, threads_per_sim + (leftover_threads > 0), track_index_case);
+			simulators.push_back(sim);
+
+			auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
+			simulator_adapters.push_back(local_sim);
+
+			simulator_adapters_raw.push_back(local_sim.get());
+
+			cout << "Built simulator using " << threads_per_sim + (leftover_threads > 0) << " thread(s).\n";
+			--leftover_threads;
+		}else {
+			// TODO exception
+		}
+	}
 	cout << "Done building the simulators." << endl << endl;
-	auto l1 = make_unique<LocalSimulatorAdapter>(sim.get());
-	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
-	auto l3 = make_unique<LocalSimulatorAdapter>(sim3.get());
-	auto l4 = make_unique<LocalSimulatorAdapter>(sim4.get());
-	auto l5 = make_unique<LocalSimulatorAdapter>(sim5.get());
-	auto l6 = make_unique<LocalSimulatorAdapter>(sim6.get());
-	auto l7 = make_unique<LocalSimulatorAdapter>(sim7.get());
-	auto l8 = make_unique<LocalSimulatorAdapter>(sim8.get());
 
 	// Build the coordinator
 	if (InstallDirs::getDataDir().empty()) {
 		throw runtime_error(string(__func__) + "> Data directory not present! Aborting.");
 	}
 
-	// Check if the node exists, allow XML's without the flight schedule
 	string traveller_file = "";
-	if(pt_config.get_child_optional("run.traveller_file")) {
-		traveller_file = pt_config.get<string>("run.traveller_file");
-		traveller_file = (InstallDirs::getDataDir() /= traveller_file).string();
-	}
+	traveller_file = pt_config.get<string>("coordinator.traveller_file");
+	traveller_file = (InstallDirs::getDataDir() /= traveller_file).string();
 
-	vector<LocalSimulatorAdapter*> sim_vector = {l1.get(), l2.get(), l3.get(), l4.get(), l5.get(), l6.get(), l7.get(), l8.get()};
-	Coordinator coord(sim_vector, traveller_file);
+	Coordinator coord(simulator_adapters_raw, traveller_file);
 
 	// Run the simulation.
-	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
-	vector<unsigned int> cases(num_days);
+	const unsigned int num_days = pt_config.get<unsigned int>("coordinator.num_days");
 	for (unsigned int i = 0; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
-		//sim->timeStep();
 		coord.timeStep();
 		cout << "     Done, infected counts: ";
-		cases[i] = sim->getPopulation()->getInfectedCount();
 
-		cout << setw(10) << cases[i];
-		for (uint i = 1; i < sim_vector.size(); ++i) {
-			cout << setw(10) << sim_vector.at(i)->m_sim->getPopulation()->getInfectedCount();
+		cout << setw(10) << simulator_adapters_raw.at(0)->getSimulator().getPopulation()->getInfectedCount();
+		for (uint i = 1; i < simulator_adapters_raw.size(); ++i) {
+			cout << setw(10) << simulator_adapters_raw.at(i)->getSimulator().getPopulation()->getInfectedCount();
 		}
 		cout << endl;
 	}
 
-	// Generate output files
-	// Cases
-	CasesFile cases_file(output_prefix);
-	cases_file.print(cases);
-
-	// Summary
-	SummaryFile summary_file(output_prefix);
-	summary_file.print(pt_config,
-					   sim->getPopulation()->m_original.size(), sim->getPopulation()->getInfectedCount(),
-					   duration_cast<milliseconds>(total_clock.get()).count(),
-					   duration_cast<milliseconds>(total_clock.get()).count());
-
-	// Persons ???
-	if (pt_config.get<double>("run.generate_person_file") == 1) {
-		PersonFile person_file(output_prefix);
-		person_file.print(sim->getPopulation());
-	}
+	// TODO Generate output files
+	// TODO Summary
+	// TODO Persons
 
 	// print final message to command line.
 	cout << endl << endl;

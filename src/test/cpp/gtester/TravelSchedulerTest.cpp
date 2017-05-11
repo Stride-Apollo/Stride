@@ -1,12 +1,13 @@
-
 #include <iostream>
 #include <string>
 #include <vector>
 #include <array>
+#include <fstream>
 
 #include <gtest/gtest.h>
 #include <boost/filesystem/operations.hpp>
 
+#include "util/InstallDirs.h"
 #include "util/TravellerScheduleReader.h"
 
 using namespace std;
@@ -15,11 +16,16 @@ using namespace util;
 using namespace boost::filesystem;
 
 TEST(TravelSchedulerTest, happy_day_default) {
-	const auto file_path = canonical(system_complete("../data/traveller_schedule.json"));
-	if (!is_regular_file(file_path)) {
+	const auto file_path = InstallDirs::getDataDir() /= string("traveller_schedule.json");
+
+	std::ifstream my_file;
+	my_file.open(file_path.string());
+
+	if (my_file.bad()) {
 		throw runtime_error(string(__func__)
-							+ ">Schedule file " + file_path.string() + " not present. Aborting.");
+							+ ">Config file " + file_path.string() + " not present. Aborting.");
 	}
+	my_file.close();
 
 	TravellerScheduleReader reader;
 	Schedule schedule = reader.readSchedule(file_path.string());
@@ -31,9 +37,9 @@ TEST(TravelSchedulerTest, happy_day_default) {
 
 		// Check the amount of scheduled flights
 		if (i != 0) {
-			EXPECT_EQ(schedule[i].size(), 1);
+			EXPECT_EQ(schedule[i].size(), 1U);
 		} else {
-			EXPECT_EQ(schedule[i].size(), 2);
+			EXPECT_EQ(schedule[i].size(), 2U);
 		}
 	}
 

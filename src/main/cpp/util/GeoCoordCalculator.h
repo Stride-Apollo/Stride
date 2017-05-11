@@ -53,7 +53,6 @@ public:
 	/// radius is in kilometres
 	/// TODO make the distribution fair
 
-/// TODO why is this public?
 private:
 	GeoCoordCalculator(){}
 
