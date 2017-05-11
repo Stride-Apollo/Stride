@@ -36,6 +36,9 @@ namespace stride {
 class Calendar;
 enum class ClusterType;
 
+template <typename T>
+class Traveller;
+
 /**
  * Store and handle person data.
  */
@@ -129,6 +132,8 @@ private:
 
 	friend class Saver;
 	friend class Loader;
+
+	friend class Traveller<Person<BehaviourPolicy, BeliefPolicy>>;
 };
 
 /// Explicit instantiations in .cpp file

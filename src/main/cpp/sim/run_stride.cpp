@@ -135,7 +135,7 @@ void run_stride(bool track_index_case,
 		coord.timeStep();
 		cout << "     Done, infected count: ";
 		cases[i] = sim->getPopulation()->getInfectedCount();
-		unsigned int adopters = sim->GetPopulation()->GetAdoptedCount<Simulator::BeliefPolicy>();
+		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
 		cout << setw(7) << cases[i] << "     Adopters count: " << setw(7) << adopters << endl;
 	}
 

@@ -73,7 +73,7 @@ void Simulator::updateClusters() {
 						 &m_primary_community, &m_secondary_community}) {
 		m_parallel.for_(0, clusters->size(), [&](RandomRef& rng, size_t i) {
 			if (rng) {
-				Infector<log_level, track_index_case¸ information_policy>::execute(
+				Infector<log_level, track_index_case, information_policy>::execute(
 						(*clusters)[i], m_disease_profile, *rng, m_calendar);
 				//std::cout << "rng is not null" << endl;
 			} else {
@@ -95,7 +95,7 @@ void Simulator::timeStep() {
 	const bool is_work_off {days_off->isWorkOff()};
 	const bool is_school_off {days_off->isSchoolOff()};
 
-	double fraction_infected = m_population->GetFractionInfected();
+	double fraction_infected = m_population->getFractionInfected();
 
 	for (auto& p : *m_population) {
 			p.update(is_work_off, is_school_off, fraction_infected);

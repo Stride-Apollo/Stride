@@ -16,7 +16,7 @@
 
 namespace stride {
 
-class NoBehavior {
+class NoBehaviour {
 public:
 	static bool practicesBehavior(bool believes_in) {
 		return false;

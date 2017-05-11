@@ -1,5 +1,4 @@
-#ifndef SIMULATOR_H_INCLUDED
-#define SIMULATOR_H_INCLUDED
+#pragma once
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -26,13 +25,13 @@
 #include "core/LogMode.h"
 #include "core/District.h"
 #include "core/ClusterType.h"
-#include "behavior/behavior_policies/NoBehavior.h"
+#include "behaviour/behaviour_policies/NoBehaviour.h"
 #include "pop/Person.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
 #include "util/Random.h"
 #include "util/unipar.h"
-#include "behavior/belief_policies/NoBelief.h"
+#include "behaviour/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>

@@ -102,7 +102,7 @@ shared_ptr<Population> PopulationBuilder::build(
 		const auto values = StringUtils::split(line, ",");
 		auto risk_averseness = 0.0;
 		if (values.size() > 6) {
-			risk_averseness = StringUtils::FromString<double>(values[6]);
+			risk_averseness = StringUtils::fromString<double>(values[6]);
 		}
 		population.emplace_back(Simulator::PersonType(person_id,
 			StringUtils::fromString<unsigned int>(values[0]),

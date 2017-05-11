@@ -27,16 +27,16 @@ class HBM {
 public:
 	using Data = HBMData;
 
-	static void Update(Data& belief_data, Health& health_data) {
+	static void update(Data& belief_data, Health& health_data) {
 
 	}
 
 	template<typename BehaviourPolicy>
-	static void Update(Data& belief_data, const Person<BehaviourPolicy, HBM>* p) {
+	static void update(Data& belief_data, const Person<BehaviourPolicy, HBM>* p) {
 
 	}
 
-	static bool HasAdopted(const Data& belief_data) {
+	static bool hasAdopted(const Data& belief_data) {
 		int perceived_severity = belief_data.GetPerceivedSeverity();
 		int perceived_susceptibility = belief_data.GetPerceivedSusceptibility();
 		int perceived_benefit = belief_data.GetPerceivedBenefit();
