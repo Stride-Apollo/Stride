@@ -86,27 +86,45 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 		}
 		if ($scope.simulation_run == undefined) {
 			$scope.simulation_run = $interval($scope.nextDay, $scope.animation_speed);
+			$interval.cancel($scope.simulation_rewind);
+			$scope.simulation_rewind = undefined;
 		} else {
 			$interval.cancel($scope.simulation_run);
 			$scope.simulation_run = undefined;
 		}
 	}
 
+	$scope.simulation_rewind;
+	$scope.rewindSimulation = function() {
+		if ($scope.currentDay > 0) {
+			$scope.previousDay();
+		}
+		if ($scope.simulation_rewind == undefined) {
+			$scope.simulation_rewind = $interval($scope.previousDay, $scope.animation_speed);
+			$interval.cancel($scope.simulation_run);
+			$scope.simulation_run = undefined;
+		} else {
+			$interval.cancel($scope.simulation_rewind);
+			$scope.simulation_rewind = undefined;
+		}
+	}
+
 	$scope.nextDay = function() {
 		if (++$scope.currentDay >= files.length) {
 			$scope.currentDay--;
-			clearInterval($scope.simulation_run);
+			$interval.cancel($scope.simulation_run);
 			$scope.simulation_run = undefined;
 		} else {
 			updatePaint();
 			updateMap(parseCSVFile(files[$scope.currentDay]))
 		}
-		console.log($scope.currentDay);
 	}
 
 	$scope.previousDay = function() {
-		if (--$scope.currentDay < 0) {
+		if (--$scope.currentDay <= 0) {
 			$scope.currentDay = 0;
+			$interval.cancel($scope.simulation_rewind);
+			$scope.simulation_rewind = undefined
 		} else {
 			updatePaint();
 			updateMap(parseCSVFile(files[$scope.currentDay]))
@@ -137,6 +155,7 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 	};
 
 	function updatePaint() {
+		console.log("updating visuals!");
 		if (map.loaded()) {
 			var no_infected_color = getHexColor($scope.no_infected_color);
 			var min_infected_color = getHexColor($scope.min_infected_color);

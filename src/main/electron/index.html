@@ -103,6 +103,10 @@
 	</table>
 	<div class="center">
 		<div class="settingTitle">Simulation</div>
+		<button id="btnRewind" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="rewindSimulation()">
+			<i class="material-icons" ng-show="simulation_rewind == undefined">fast_rewind</i>
+			<i class="material-icons" ng-hide="simulation_rewind == undefined">pause_arrow</i>
+		</button>
 		<button id="btnPrevious" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="previousDay()">
 			<i class="material-icons">navigate_before</i>
 		</button>
@@ -110,7 +114,7 @@
 			<i class="material-icons">navigate_next</i>
 		</button>
 		<button id="btnPlay" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="runSimulation()">
-			<i class="material-icons" ng-show="simulation_run == undefined">play_arrow</i>
+			<i class="material-icons" ng-show="simulation_run == undefined">fast_forward</i>
 			<i class="material-icons" ng-hide="simulation_run == undefined">pause_arrow</i>
 		</button>
 		<h3>Day<br>{{currentDay}}</h3>
