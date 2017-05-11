@@ -47,8 +47,22 @@ app.controller('Controller', ['$scope', function($scope) {
 		removeClass(document.getElementById("opacitySlider"), "ng-untouched");
 		addClass(document.getElementById("opacitySlider"), "ng-touched");
 		addClass(document.getElementById("opacitySlider"), "is-upgraded");
+
+		updateSlider("opacitySlider", $scope.opacity);
+		updateSlider("zoomedMinSlider", $scope.unzoomed_min/10);
+		updateSlider("zoomedMaxSlider", $scope.unzoomed_max/10);
+		updateSlider("speedSlider", $scope.animation_speed/5000);
 		componentHandler.upgradeDom();
 		return config;
+	}
+
+	function updateSlider(id, grow) {
+		document.getElementById(id).parentNode.lastChild.firstChild.style.flexShrink = "1";
+		document.getElementById(id).parentNode.lastChild.firstChild.style.flexGrow = grow.toString();
+		document.getElementById(id).parentNode.lastChild.firstChild.style.flexBasis = "0%";
+		document.getElementById(id).parentNode.lastChild.lastChild.style.flexShrink = "1";
+		document.getElementById(id).parentNode.lastChild.lastChild.style.flexGrow = (1-grow).toString();
+		document.getElementById(id).parentNode.lastChild.lastChild.style.flexBasis = "0%";
 	}
 
 	var simulation_run;
@@ -64,6 +78,7 @@ app.controller('Controller', ['$scope', function($scope) {
 			currentDay--;
 			clearInterval(simulation_run);
 		} else {
+			updatePaint();
 			updateMap(parseCSVFile(files[currentDay]))
 		}
 	}
@@ -72,6 +87,7 @@ app.controller('Controller', ['$scope', function($scope) {
 		if (--currentDay < 0) {
 			currentDay = 0;
 		} else {
+			updatePaint();
 			updateMap(parseCSVFile(files[currentDay]))
 		}
 	}
@@ -143,6 +159,15 @@ app.controller('Controller', ['$scope', function($scope) {
 	}
 
 	$scope.$watch('[no_infected_color, min_infected_color, max_infected_color, opacity, unzoomed_min, unzoomed_max]', updatePaint, true);
+
+	// TODO Make this better!
+	$scope.$watch('[unzoomed_min, unzoomed_max]', function() {
+		if ($scope.unzoomed_max <= $scope.unzoomed_min) {
+			$scope.unzoomed_max = $scope.unzoomed_min+1;
+			updateSlider("zoomedMinSlider", $scope.unzoomed_min/10);
+			updateSlider("zoomedMaxSlider", $scope.unzoomed_max/10);
+		}
+	}, true);
 
 	function makeClusters(cluster_data) {
 		$scope.cluster_data = cluster_data;
