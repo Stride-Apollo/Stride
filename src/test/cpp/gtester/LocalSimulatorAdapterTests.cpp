@@ -99,6 +99,7 @@ std::unique_ptr<LocalSimulatorAdapter>		LocalSimulatorAdapterTest::m_l1;
 std::unique_ptr<LocalSimulatorAdapter>		LocalSimulatorAdapterTest::m_l2;
 
 bool sameCluster(const Cluster& cluster1, const Cluster& cluster2) {
+	// Test if 2 clusters are equal
 	if (cluster1.getId() != cluster2.getId()) {
 		return false;
 	}
