@@ -10,6 +10,17 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 	var filenames = [];
 	$scope.currentDay = 0;
 
+	$scope.save = function() {
+		var saveString = "{\"directory\": \"" + config.directory.toString() + "\",\"color_no_infected\": \""
+			+ getHexColor($scope.no_infected_color).toString() + "\",\"color_min_infected\": \""
+			+ getHexColor($scope.min_infected_color).toString() + "\",\"color_max_infected\": \""
+			+ getHexColor($scope.max_infected_color).toString() + "\",\"circle_opacity\": "
+			+ $scope.opacity + ",\"unzoomed_min_size\": " + $scope.unzoomed_min
+			+ ",\"unzoomed_max_size\":  " + $scope.unzoomed_max
+			+ ",\"animation_step\": " + $scope.animation_speed + "}";
+		fs.writeFileSync(__dirname + "/data/config.json", saveString);
+	}
+
 	var config;
 	var fs = require('fs');
 	fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
@@ -27,7 +38,6 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 			});
 			map.on('load', function() {
 				makeClusters(parseCSVFile(files[$scope.currentDay]));
-				// makeClusters(JSON.parse(files[$scope.currentDay]));
 			});
 		});
 
@@ -114,27 +124,20 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 	// 	return cluster_data;
 	// }
 
+	function getHexColor(color) {
+		if (color[0] == "#") {
+			return color;
+		} else {
+			return "#" + color;
+		}
+	};
+
 	function updatePaint() {
 		if (map.loaded()) {
-			var no_infected_color;
-			var min_infected_color;
-			var max_infected_color;
+			var no_infected_color = getHexColor($scope.no_infected_color);
+			var min_infected_color = getHexColor($scope.min_infected_color);
+			var max_infected_color = getHexColor($scope.max_infected_color);
 			map.removeLayer("clusters");
-			if ($scope.no_infected_color[0] == "#") {
-				no_infected_color = $scope.no_infected_color;
-			} else {
-				no_infected_color = "#" + $scope.no_infected_color;
-			}
-			if ($scope.min_infected_color[0] == "#") {
-				min_infected_color = $scope.min_infected_color;
-			} else {
-				min_infected_color = "#" + $scope.min_infected_color;
-			}
-			if ($scope.max_infected_color[0] == "#") {
-				max_infected_color = $scope.max_infected_color;
-			} else {
-				max_infected_color = "#" + $scope.max_infected_color;
-			}
 
 			map.addLayer({
 				"id": "clusters",

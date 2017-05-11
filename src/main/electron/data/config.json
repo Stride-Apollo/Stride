@@ -1,10 +1,1 @@
-{
-	"directory": "data/output",
-	"color_no_infected": "#00FF00",
-	"color_min_infected": "#FFFF00",
-	"color_max_infected": "#FF0000",
-	"circle_opacity": 0.9,
-	"unzoomed_min_size": 1,
-	"unzoomed_max_size": 3,
-	"animation_step": 450
-}
+{"directory": "data/output","color_no_infected": "#00FF00","color_min_infected": "#EBC400","color_max_infected": "#FF0000","circle_opacity": 0.9,"unzoomed_min_size": 1,"unzoomed_max_size":  3,"animation_step": 100}
