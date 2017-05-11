@@ -51,55 +51,55 @@ matrix:
         - unipar=dummy
         - compiler=clang
     
-    - addons: *gcc_addons
-      env: 
-        - test='unit'
-        - unipar=TBB
-        - compiler=gcc
+    #- addons: *gcc_addons
+      #env: 
+        #- test='unit'
+        #- unipar=TBB
+        #- compiler=gcc
       
-    - addons: *clang_addons
-      env: 
-        - test='unit'
-        - unipar=TBB
-        - compiler=clang
+    #- addons: *clang_addons
+      #env: 
+        #- test='unit'
+        #- unipar=TBB
+        #- compiler=clang
     
-    - addons: *gcc_addons
-      env: 
-        - test='unit'
-        - unipar=OpenMP
-        - compiler=gcc
+    #- addons: *gcc_addons
+      #env: 
+        #- test='unit'
+        #- unipar=OpenMP
+        #- compiler=gcc
       
-    - addons: *clang_addons
-      env: 
-        - test='unit'
-        - unipar=OpenMP
-        - compiler=clang
+    #- addons: *clang_addons
+      #env: 
+        #- test='unit'
+        #- unipar=OpenMP
+        #- compiler=clang
     
-    # Scenario tests ..................
+    ## Scenario tests ..................
     
-    - addons: *gcc_addons
-      env: 
-        - test=scenarios
-        - unipar=dummy
-        - compiler=gcc
+    #- addons: *gcc_addons
+      #env: 
+        #- test=scenarios
+        #- unipar=dummy
+        #- compiler=gcc
       
-    - addons: *clang_addons
-      env: 
-        - test=scenarios
-        - unipar=dummy
-        - compiler=clang
+    #- addons: *clang_addons
+      #env: 
+        #- test=scenarios
+        #- unipar=dummy
+        #- compiler=clang
     
-    - addons: *gcc_addons
-      env: 
-        - test=scenarios
-        - unipar=TBB
-        - compiler=gcc
+    #- addons: *gcc_addons
+      #env: 
+        #- test=scenarios
+        #- unipar=TBB
+        #- compiler=gcc
       
-    - addons: *clang_addons
-      env: 
-        - test=scenarios
-        - unipar=TBB
-        - compiler=clang
+    #- addons: *clang_addons
+      #env: 
+        #- test=scenarios
+        #- unipar=TBB
+        #- compiler=clang
     
     - addons: *gcc_addons
       env: 
@@ -115,7 +115,7 @@ matrix:
 
 
 before_install:
-  - . ./travis/before_install.sh
+  - . ./travis/before_install.sh  # thanks https://github.com/travis-ci/travis-ci/issues/1313
   - PARALLEL_MAKE=2 make install
 
 script:
