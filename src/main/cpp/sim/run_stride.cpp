@@ -135,7 +135,8 @@ void run_stride(bool track_index_case,
 		coord.timeStep();
 		cout << "     Done, infected count: ";
 		cases[i] = sim->getPopulation()->getInfectedCount();
-		cout << setw(10) << cases[i] << endl;
+		unsigned int adopters = sim->GetPopulation()->GetAdoptedCount<Simulator::BeliefPolicy>();
+		cout << setw(7) << cases[i] << "     Adopters count: " << setw(7) << adopters << endl;
 	}
 
 	if (saver != 0 && checkpointing_frequency == 0) {

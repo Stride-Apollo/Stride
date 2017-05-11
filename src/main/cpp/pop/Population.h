@@ -146,6 +146,19 @@ public:
 		return m_original.size() + m_visitors.size();
 	}
 
+	template<typename BeliefPolicy>
+	unsigned int getAdoptedCount() const {
+		unsigned int total {0U};
+		for (const auto& p: *this) {
+			auto belief_data = p.GetBeliefData();
+			bool adopted = BeliefPolicy::HasAdopted(belief_data);
+			if (adopted) {
+				total++;
+			}
+		}
+		return total;
+	}
+
 	PopulationIterator begin();
 	PopulationIterator end();
 

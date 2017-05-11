@@ -96,18 +96,22 @@ shared_ptr<Population> PopulationBuilder::build(
 	while (getline(pop_file, line)) {
 		// Make use of stochastic disease characteristics.
 		const auto start_infectiousness = sample(rng, distrib_start_infectiousness);
-		const auto start_symptomatic = sample(rng, distrib_start_symptomatic);
-		const auto time_infectious = sample(rng, distrib_time_infectious);
-		const auto time_symptomatic = sample(rng, distrib_time_symptomatic);
+		const auto start_symptomatic    = sample(rng, distrib_start_symptomatic);
+		const auto time_infectious      = sample(rng, distrib_time_infectious);
+		const auto time_symptomatic     = sample(rng, distrib_time_symptomatic);
 		const auto values = StringUtils::split(line, ",");
+		auto risk_averseness = 0.0;
+		if (values.size() > 6) {
+			risk_averseness = StringUtils::FromString<double>(values[6]);
+		}
 		population.emplace_back(Simulator::PersonType(person_id,
-									   StringUtils::fromString<unsigned int>(values[0]),
-									   StringUtils::fromString<unsigned int>(values[1]),
-									   StringUtils::fromString<unsigned int>(values[2]),
-									   StringUtils::fromString<unsigned int>(values[3]),
-									   StringUtils::fromString<unsigned int>(values[4]),
-									   StringUtils::fromString<unsigned int>(values[5]),
-									   start_infectiousness, start_symptomatic, time_infectious, time_symptomatic));
+			StringUtils::fromString<unsigned int>(values[0]),
+			StringUtils::fromString<unsigned int>(values[1]),
+			StringUtils::fromString<unsigned int>(values[2]),
+			StringUtils::fromString<unsigned int>(values[3]),
+			StringUtils::fromString<unsigned int>(values[4]),
+			StringUtils::fromString<unsigned int>(values[5]),
+			start_infectiousness, start_symptomatic, time_infectious, time_symptomatic, risk_averseness));
 		++person_id;
 	}
 
@@ -166,9 +170,6 @@ shared_ptr<Population> PopulationBuilder::build(
 		}
 	}
 
-	//------------------------------------------------
-	// Done
-	//------------------------------------------------
 	return pop;
 }
 

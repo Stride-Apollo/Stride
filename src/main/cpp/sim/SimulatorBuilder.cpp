@@ -111,6 +111,11 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	sim->m_log_level = isLogMode(l) ? toLogMode(l) : throw runtime_error(
 			string(__func__) + "> Invalid input for LogMode.");
 
+	// Get information policy.
+	const string p = pt_config.get<string>("run.information_policy", "Global");
+	sim->m_information_policy = IsInformationPolicy(p) ? ToInformationPolicy(p) :
+			throw runtime_error(string(__func__) + "> Invalid input for Information Policy.");
+
 	// Rng's.
 	int seed = pt_config.get<double>("run.rng_seed");
 	sim->m_rng = make_shared<util::Random>(seed);
@@ -159,7 +164,6 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim, const boost
 		max_id_primary_community = std::max(max_id_primary_community, p.getClusterId(ClusterType::PrimaryCommunity));
 		max_id_secondary_community = std::max(max_id_secondary_community,
 											  p.getClusterId(ClusterType::SecondaryCommunity));
-
 	}
 
 	// Keep separate id counter to provide a unique id for every cluster.
@@ -309,7 +313,7 @@ void SimulatorBuilder::initializeFacilities(shared_ptr<Simulator> sim, const boo
 
 		// Check for the correctness of the file
 		const auto file_path = InstallDirs::getDataDir() /= facility_filename;
-		
+
 		TransportFacilityReader reader;
 		auto facilities = reader.readFacilities(file_path.string());
 

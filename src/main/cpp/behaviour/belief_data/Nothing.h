@@ -1,0 +1,10 @@
+#ifndef SRC_MAIN_CPP_BEHAVIOUR_BELIEF_DATA_NOTHING_H_
+#define SRC_MAIN_CPP_BEHAVIOUR_BELIEF_DATA_NOTHING_H_
+
+namespace stride {
+
+class Nothing {};
+
+}
+
+#endif /* SRC_MAIN_CPP_BEHAVIOUR_BELIEF_DATA_NOTHING_H_ */

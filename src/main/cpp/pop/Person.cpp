@@ -13,10 +13,6 @@
  *  Copyright 2017, Willem L, Kuylen E, Stijven S & Broeckhove J
  */
 
-/**
- * @file
- * Header file for the Person class.
- */
 
 #include "Age.h"
 #include "Person.h"
@@ -32,8 +28,8 @@ namespace stride {
 using namespace std;
 
 
-template<class BehaviorPolicy, class BeliefPolicy>
-unsigned int Person<BehaviorPolicy, BeliefPolicy>::getClusterId(ClusterType cluster_type) const {
+template<class BehaviourPolicy, class BeliefPolicy>
+unsigned int Person<BehaviourPolicy, BeliefPolicy>::getClusterId(ClusterType cluster_type) const {
 	switch (cluster_type) {
 		case ClusterType::Household:
 			return m_household_id;
@@ -50,8 +46,8 @@ unsigned int Person<BehaviorPolicy, BeliefPolicy>::getClusterId(ClusterType clus
 	}
 }
 
-template<class BehaviorPolicy, class BeliefPolicy>
-bool Person<BehaviorPolicy, BeliefPolicy>::isInCluster(ClusterType c) const {
+template<class BehaviourPolicy, class BeliefPolicy>
+bool Person<BehaviourPolicy, BeliefPolicy>::isInCluster(ClusterType c) const {
 	switch (c) {
 		case ClusterType::Household:
 			return m_at_household && !m_is_on_vacation;
@@ -68,8 +64,8 @@ bool Person<BehaviorPolicy, BeliefPolicy>::isInCluster(ClusterType c) const {
 	}
 }
 
-template<class BehaviorPolicy, class BeliefPolicy>
-void Person<BehaviorPolicy, BeliefPolicy>::update(bool is_work_off, bool is_school_off) {
+template<class BehaviourPolicy, class BeliefPolicy>
+void Person<BehaviourPolicy, BeliefPolicy>::update(bool is_work_off, bool is_school_off, double fraction_infected) {
 	m_health.update();
 
 	// update presence in clusters.
@@ -84,11 +80,23 @@ void Person<BehaviorPolicy, BeliefPolicy>::update(bool is_work_off, bool is_scho
 		m_at_secondary_community = true;
 		m_at_primary_community = false;
 	}
+
+	BeliefPolicy::Update(m_belief_data, m_health);
+}
+
+template<class BehaviourPolicy, class BeliefPolicy>
+void Person<BehaviourPolicy, BeliefPolicy>::Update(const Person* p) {
+	//BeliefPolicy::Update(m_belief_data, p->GetBeliefData(), p->GetHealth());
+	BeliefPolicy::Update(m_belief_data, p);
 }
 
 //--------------------------------------------------------------------------
 // All explicit instantiations.
 //--------------------------------------------------------------------------
-template class Person<NoBehavior, NoBelief>;
+template class Person<NoBehaviour, NoBelief>;
+
+template class Person<AlwaysFollowBeliefs, Threshold<true, false>>;
+template class Person<AlwaysFollowBeliefs, Threshold<false, true>>;
+template class Person<AlwaysFollowBeliefs, Threshold<true, true>>;
 
 }

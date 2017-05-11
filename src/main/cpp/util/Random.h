@@ -63,6 +63,11 @@ public:
 		return nextDouble() < rateToProbability(transmission_rate * contact_rate);
 	}
 
+	/// TODO double code?
+	bool hasContactAndTransmission(double contact_rate, double transmission_rate) {
+		return nextDouble() < rateToProbability(transmission_rate * contact_rate);
+	}
+
 	void setState(std::string state) {
 		std::stringstream ss;
 		ss.str(state);
