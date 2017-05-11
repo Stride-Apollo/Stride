@@ -26,20 +26,7 @@ function sliderToPrefix(sliderId) {
 	}
 }
 
-function openMenu() {
-	var drawer = document.getElementById("conf_drawer");
-	var btn = document.getElementById("conf_button");
 
-	if (document.getElementById("conf_button").getAttribute("class") == "material-icons") {
-		btn.setAttribute("class", "material-icons is_clicked");
-		drawer.setAttribute("class", "expanded");
-		btn.innerHTML = "navigate_next";
-	} else {
-		btn.setAttribute("class", "material-icons");
-		drawer.setAttribute("class", "");
-		btn.innerHTML = "navigate_before";
-	}
-}
 
 function setLabel(sliderId) {
 	var prefix = sliderToPrefix(sliderId);
@@ -65,3 +52,5 @@ function adjustSlider(id) {
 	console.log("Slided slider with ID: " + id + " value: " + slider.value.toString() + " (there will probably be a lot of these logs stijn)");
 	console.log("Please check menuBar.js");
 }
+
+

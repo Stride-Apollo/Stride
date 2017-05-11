@@ -1,5 +1,7 @@
 <html>
 <head>
+	<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
 	<script src='https://api.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
 	<script src='ProcessData.js'></script>
 	<script src='jscolor.min.js'></script>
@@ -8,293 +10,20 @@
 	<link href='https://api.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-	<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 </head>
-<body>
+<body ng-app="VisualizationApp" ng-controller="Controller">
 	<div id="map" style="width: 100%; height: 100%"></div>
 
-	<button onclick="previousDay()">Previous day</button>
-	<button onclick="nextDay()">Next day</button>
-	<button onclick="runSimulation()">Simulate</button>
-	<label id="simulateDay">Simulating day 0</label>
 	<script src='https://npmcdn.com/@turf/turf/turf.min.js' charset='utf-8'></script>
 	<script src='util.js'></script>
-	<script>
-	mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
-	var map = new mapboxgl.Map({
-		container: 'map',
-		style: 'mapbox://styles/mapbox/streets-v9'
-	});
-	var files = [];	// file-text_of_file pairs
-	var filenames = [];
-	var currentDay = 0;
-
-	var config;
-	var fs = require('fs');
-	fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
-		if (err) return console.log(err);
-		config = JSON.parse(data);
-
-		fs.readdir(__dirname + "/" + config.directory, function(err, content){
-			if (err) {
-				return console.error(err);
-			}
-
-			content.forEach( function (file){
-				var data = fs.readFileSync(__dirname + "/" + config.directory + "/" + file, 'utf8');
-				files.push(data);
-				filenames.push(file);
-			});
-			map.on('load', function() {
-				makeClusters(parseCSVFile(files[currentDay]));
-				// makeClusters(JSON.parse(files[currentDay]));
-			});
-		});
-
-	});
-
-	var simulation_run;
-	function runSimulation() {
-		if (currentDay < files.length - 1) {
-			nextDay();
-		}
-		simulation_run = setInterval(nextDay, config.animation_step);
-	}
-
-	function nextDay() {
-	    if (++currentDay >= files.length) {
-	        currentDay--;
-	        clearInterval(simulation_run);
-        } else {
-	    	updateMap(parseCSVFile(files[currentDay]))
-        }
-    }
-
-	function previousDay() {
-		if (--currentDay < 0) {
-		    currentDay = 0;
-		} else {
-            updateMap(parseCSVFile(files[currentDay]))
-        }
-	}
-
-	function updateMap(data) {
-		map.getSource("cluster_data").setData(data);
-		fitView(data);
-		document.getElementById("simulateDay").innerHTML = "Simulating day " + currentDay;
-	}
-
-	// function parseData(cluster_data) {
-	// 	for (var i in cluster_data.features) {
-	// 		cluster_data.features[i].properties.infected_percent = parseFloat(cluster_data.features[i].properties.infected_percent);
-	// 		cluster_data.features[i].properties.infected = parseFloat(cluster_data.features[i].properties.infected);
-	// 		cluster_data.features[i].properties.size = parseFloat(cluster_data.features[i].properties.size);
-	// 		cluster_data.features[i].geometry.coordinates = [parseFloat(cluster_data.features[i].geometry.coordinates[0]), parseFloat(cluster_data.features[i].geometry.coordinates[1])];
-	// 	}
-	// 	return cluster_data;
-	// }
-
-
-
-	function makeClusters(cluster_data) {
-
-		map.addSource("cluster_data", {
-			"type": "geojson",
-			"data": cluster_data
-		});
-
-		map.addLayer({
-			"id": "clusters",
-			"type": "circle",
-			"source": "cluster_data",
-			"paint": {
-				'circle-radius': {
-					property: "size",
-					type: "interval",
-					stops: getSize(cluster_data)
-				},
-				"circle-color": {
-					property: "infected_percent",
-					stops: [[-1, config.color_no_infected],[0, config.color_min_infected],[1, config.color_max_infected]]
-				},
-				"circle-opacity": config.circle_opacity
-			}
-		});
-		// Create a popup, but don't add it to the map yet.
-		var popup = new mapboxgl.Popup({
-			closeButton: false,
-			closeOnClick: false
-		});
-
-		map.on('mouseenter', 'clusters', function(e) {
-			// Change the cursor style as a UI indicator.
-
-			var coords = e.features[0].geometry.coordinates;
-			map.getCanvas().style.cursor = 'pointer';
-
-			var htmlText = "Cluster " + e.features[0].properties.id.toString()
-			+ "<br>Size: " + e.features[0].properties.size.toString()
-			+ "<br>Infected: " + e.features[0].properties.infected.toString()
-			+ "<br>Coordinates: (" + coords[0] + ", " + coords[1] + ")";
-
-			// Populate the popup and set its coordinates
-			// based on the feature found.
-			popup.setLngLat(coords)
-				.setHTML(htmlText)
-				.addTo(map);
-		});
-
-		map.on('mouseleave', 'clusters', function() {
-			map.getCanvas().style.cursor = '';
-			popup.remove();
-		});
-
-		var windows = []
-		map.on('click', 'clusters', function(e) {
-			// console.log(e.features[0].properties.id);
-			const electron = require('electron').remote;
-			const BrowserWindow = electron.BrowserWindow;
-
-			if (!containsWin(windows, e.features[0].properties.id)) {
-				var win = new BrowserWindow({ width: 800, height: 600 });
-
-				windows.push({id:e.features[0].properties.id, win: win });
-				win.webContents.on('did-finish-load', ()=>{
-					win.show();
-					//win.webContents.openDevTools();
-					win.focus();
-				});
-
-				win.on('closed', function () {
-					for (var i in windows) {
-						if (windows[i].id == e.features[0].properties.id) {
-
-							windows.splice(i, 1);
-						}
-					}
-				})
-				var url = "file://" + __dirname + '/ClusterContent.html?data='
-					+ __dirname + "/" + config.directory + "/" + filenames[currentDay]
-					+ "&cluster=" + e.features[0].properties.id
-					+ "&directory=" + __dirname + "/" + config.directory
-					+ "&currentDay=" + currentDay;
-				win.loadURL(url);
-			} else {
-				for (var i in windows) {
-					if (windows[i].id == e.features[0].properties.id) {
-						windows[i].win.focus();
-					}
-				}
-			}
-		});
-
-		fitView(cluster_data);
-	}
-
-	function fitView(cluster_data) {
-		var coords = [];
-		for (var i in cluster_data.features) {
-			coords.push(cluster_data.features[i].geometry.coordinates);
-		};
-
-		var min_lat = Number.MAX_VALUE;
-		var max_lat = Number.MIN_VALUE;
-		var min_lon = Number.MAX_VALUE;
-		var max_lon = Number.MIN_VALUE;
-		for (var i in coords) {
-			if (coords[i][0] > max_lon) {
-				max_lon = coords[i][0];
-			};
-			if (coords[i][0] < min_lon) {
-				min_lon = coords[i][0];
-			};
-			if (coords[i][1] > max_lat) {
-				max_lat = coords[i][1];
-			};
-			if (coords[i][1] < min_lat) {
-				min_lat = coords[i][1];
-			};
-		};
-		// console.log("(" + min_lon + ", " + min_lat + ")" + "(" + max_lon + ", " + max_lat + ")");
-		map.fitBounds([[min_lon-2, min_lat-2], [max_lon+2, max_lat+2]]);
-	}
-
-	function getSize(cluster_data) {
-		var result = [[{zoom: 0, value:0}, 0]];
-		//var result = [[0, 0]];
-		var orig_MIN_SIZE = config.unzoomed_min_size;
-		var orig_MAX_SIZE = config.unzoomed_max_size;
-		var min_value = Number.MAX_VALUE;
-		var max_value = Number.MIN_VALUE;
-
-		for (var i in cluster_data.features) {
-			var size = cluster_data.features[i].properties.size;
-			if (size > max_value) {
-				max_value = size;
-			}
-			if (size < min_value) {
-				min_value = size;
-			}
-		};
-
-		var zoom = [[1,1], [4,1], [7,2], [13, 4], [15, 7], [18, 10]];
-		var sizes = [];
-		for (var i in cluster_data.features) {
-			sizes.push(cluster_data.features[i].properties.size);
-		};
-
-		sizes.sort();
-
-		/*for (var i in sizes) {
-			result.push([sizes[i], ((sizes[i] - min_value)*(orig_MAX_SIZE - orig_MIN_SIZE)/(max_value - min_value) + orig_MIN_SIZE)]);
-		}
-		console.log(result);
-		return result;*/
-
-		var tempresult = {};
-		for (var i in zoom) {
-			tempresult[i] = [];
-			for (var j in sizes) {
-				var size = {};
-				size.zoom = zoom[i][0];
-				size.value = sizes[j];
-				var MAX_SIZE = orig_MAX_SIZE * zoom[i][1];
-				var MIN_SIZE = orig_MIN_SIZE * zoom[i][1];
-				// console.log(size);
-				// console.log(((sizes[j] - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE));
-				tempresult[i].push([size.value, ((sizes[j] - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE)]);
-			}
-		};
-		for (var i in tempresult) {
-			tempresult[i].sort(function(a,b) {return a[1] - b[1]});
-			for (var j in tempresult[i]) {
-				var leftStop = {};
-				leftStop.zoom = parseInt(i);
-				leftStop.value = tempresult[i][j][0];
-				result.push([leftStop, tempresult[i][j][1]]);
-			}
-		}
-		// console.log(result);
-		return result;
-	};
-
-	function containsWin(array, obj) {
-		var i = array.length;
-		while (i--) {
-			if (array[i].id === obj) {
-				return true;
-			}
-		}
-		return false;
-	}
-</script>
+	<script src='index.js'></script>
 
 <!--
 #########################################
 # Configuration menu bar 				#
 #########################################
  -->
-<div id="conf_button" class="material-icons" onclick="openMenu()">navigate_before</div>
+<div id="conf_button" class="material-icons" ng-click="openMenu()">navigate_before</div>
 <div id="conf_drawer" class="">
 	<div class="settingTitle">Colors</div>
 	<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
@@ -308,29 +37,29 @@
 			<tr>
 				<td>No infected color:</td>
 				<td class="colorPicker">
-					<input id="clrNoInfected" class="jscolor" value="ab2567" onchange="pickedColor(this.id)">
+					<input id="clrNoInfected" class="jscolor" ng-model="no_infected_color" style="background-color:{{no_infected_color}}">
 				</td>
 			</tr>
 			<tr>
 				<td>Minimum infected color:</td>
 				<td class="colorPicker">
-					<input id="clrMinInfected" class="jscolor" value="ab2567" onchange="pickedColor(this.id)">
+					<input id="clrMinInfected" class="jscolor" ng-model="min_infected_color" style="background-color:{{min_infected_color}}">
 				</td>
 			</tr>
 			<tr>
 				<td>All infected color:</td>
 				<td class="colorPicker">
-					<input id="clrMaxInfected" class="jscolor" value="ab2567" onchange="pickedColor(this.id)">
+					<input id="clrMaxInfected" class="jscolor" ng-model="max_infected_color" style="background-color:{{max_infected_color}}">
 				</td>
 			</tr>
 			
 			<tr>
 				<td>
-					<label id="opacityLabel">Opacity: 0</label>
+					<label id="opacityLabel">Opacity: {{opacity}}</label>
 				</td>
 				<td>
 					<input class="mdl-slider mdl-js-slider" id="opacitySlider" type="range" min="0.00" max="1.00" value="0" step="0.01" class="rhs"
-						oninput="setLabel(this.id)">
+						ng-model="opacity">
 				</td>
 			</tr>
 		</tbody>
@@ -345,42 +74,42 @@
 		</thead>
 		<tbody>
 				<td>
-					<label id="zoomedMinLabel">Unzoomed minimum: 1</label>
+					<label id="zoomedMinLabel">Unzoomed minimum: {{unzoomed_min}}</label>
 				</td>
 				<td>
-					<input class="mdl-slider mdl-js-slider" id="zoomedMinSlider" type="range" min="1.00" max="100" value="0" step="1" class="rhs"
-						oninput="setLabel(this.id)">
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<label id="zoomedMaxLabel">Unzoomed maximum: 2</label>
-				</td>
-				<td>
-					<input class="mdl-slider mdl-js-slider" id="zoomedMaxSlider" type="range" min="2" max="100" value="0" step="1" class="rhs"
-						oninput="setLabel(this.id)">
+					<input class="mdl-slider mdl-js-slider" id="zoomedMinSlider" type="range" min="1.00" max="10" value="0" step="1" class="rhs"
+						ng-model="unzoomed_min">
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<label id="speedLabel">Animation speed (ms): 100</label>
+					<label id="zoomedMaxLabel">Unzoomed maximum: {{unzoomed_max}}</label>
+				</td>
+				<td>
+					<input class="mdl-slider mdl-js-slider" id="zoomedMaxSlider" type="range" min="2" max="10" value="0" step="1" class="rhs"
+						ng-model="unzoomed_max">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<label id="speedLabel">Animation speed (ms): {{animation_speed}}</label>
 				</td>
 				<td>
 					<input class="mdl-slider mdl-js-slider" id="speedSlider" type="range" min="100" max="5000" value="0" step="1" class="rhs"
-						oninput="setLabel(this.id)">
+						ng-model="animation_speed">
 				</td>
 			</tr>
 		</tbody>
 	</table>
 	<div class="center">
 		<div class="settingTitle">Simulation</div>
-		<button id="btnPrevious" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="clickSimButton(this.id)">
+		<button id="btnPrevious" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="previousDay()">
 			<i class="material-icons">navigate_before</i>
 		</button>
-		<button id="btnNext" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="clickSimButton(this.id)">
+		<button id="btnNext" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="nextDay()">
 			<i class="material-icons">navigate_next</i>
 		</button>
-		<button id="btnPlay" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="clickSimButton(this.id)">
+		<button id="btnPlay" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="runSimulation()">
 			<i class="material-icons">play_arrow</i>
 		</button>
 	</div>
