@@ -49,7 +49,6 @@ set(LIB_SRC
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
-	util/RNGPicker.cpp
 	util/TravellerScheduleReader.cpp
 	util/TransportFacilityReader.cpp
 #---
@@ -68,7 +67,6 @@ set(POPGEN_SRC
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
-	util/RNGPicker.cpp
 #---
 	core/ClusterType.cpp
 #---

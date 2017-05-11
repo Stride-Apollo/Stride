@@ -23,56 +23,6 @@ using namespace ::testing;
 
 namespace Tests {
 
-class AliasDistributionDemos: public ::testing::Test {
-public:
-	/// TestCase set up.
-	static void SetUpTestCase() {}
-
-	/// Tearing down TestCase
-	static void TearDownTestCase() {}
-
-protected:
-	/// Destructor has to be virtual.
-	virtual ~AliasDistributionDemos() {}
-
-	/// Set up for the test fixture
-	virtual void SetUp() {}
-
-	/// Tearing down the test fixture
-	virtual void TearDown() {}
-
-	// Data members of the test fixture
-	static const vector<double>      g_prob_normal;
-	static const vector<double>      g_prob_big;
-	static const vector<double>      g_prob_zero;
-	static const vector<double>      g_prob_near_zero;
-	static AliasDistribution         g_alias_normal;
-	static AliasDistribution         g_alias_big;
-	static AliasDistribution         g_alias_zero;
-	static AliasDistribution         g_alias_near_zero;
-	static random_device             g_rd;
-	static mt19937                   g_rng_mt;
-	static const double              g_confidence;
-	static const uint                g_happy_day_amount;
-	static const string              g_output_prefix;
-};
-
-// Default values
-const vector<double>    AliasDistributionDemos::g_prob_normal               = vector<double>({0.24,0.26, 0.01, 0.09, 0.33, 0.07});
-const vector<double>    AliasDistributionDemos::g_prob_big                  = vector<double>({0.48,0.52, 0.02, 0.18, 0.66, 0.14});
-const vector<double>    AliasDistributionDemos::g_prob_zero                 = vector<double>({0.0});
-const vector<double>    AliasDistributionDemos::g_prob_near_zero            = vector<double>({0.0, 0.0, 0.0, 0.0, 0.01});
-AliasDistribution AliasDistributionDemos::g_alias_normal                    = AliasDistribution({0.24,0.26, 0.01, 0.09, 0.33, 0.07});
-AliasDistribution AliasDistributionDemos::g_alias_big                       = AliasDistribution({0.48,0.52, 0.02, 0.18, 0.66, 0.14});
-AliasDistribution AliasDistributionDemos::g_alias_zero                      = AliasDistribution({0.0});
-AliasDistribution AliasDistributionDemos::g_alias_near_zero                       = AliasDistribution({0.0, 0.0, 0.0, 0.0, 0.01});
-random_device           AliasDistributionDemos::g_rd;
-mt19937                 AliasDistributionDemos::g_rng_mt                    = mt19937(123456);
-const double            AliasDistributionDemos::g_confidence                = 0.975;
-	// Big value for the confidence => see if the distribution is certainly NOT correct (instead of certainly correct)
-const uint              AliasDistributionDemos::g_happy_day_amount          = 1000000;
-const string            AliasDistributionDemos::g_output_prefix             = "AliasDistribution";
-
 bool chi_sq_test(vector<pair<uint, double> > observed_vs_theoretical, double confidence) {
 	/// See http://www.cse.wustl.edu/~jain/cse567-08/ftp/k_27trg.pdf for the maths behind this
 	/// Or you could also use the course "Elementaire Statistiek" by Florence Guillame (University of Antwerp)
@@ -87,19 +37,15 @@ bool chi_sq_test(vector<pair<uint, double> > observed_vs_theoretical, double con
 		D += pow(my_pair.first - my_pair.second, 2) / my_pair.second;
 	}
 
-	if (D == 0.0) {
-		// It's a perfect fit!
+	if (D == 0) {
 		return true;
-	}
+	}else {
+		boost::math::chi_squared chisq {degrees_of_freedom};
 
-	boost::math::chi_squared chisq {degrees_of_freedom};
-	/// 1 - p_value = probability of getting something "as extreme" as the given observations
-	double p_value = boost::math::cdf(chisq,D);
+		/// 1 - p_value = probability of getting something "as extreme" as the given observations
+		double p_value = boost::math::cdf(chisq, D);
 
-	if (p_value > confidence) {
-		return false;
-	} else {
-		return true;
+		return ! (p_value > confidence);
 	}
 }
 
@@ -123,39 +69,45 @@ vector<pair<uint, double> > run_alias_distribution(AliasDistribution& dist, uint
 	return observed_vs_theoretical;
 }
 
-TEST_F(AliasDistributionDemos, HappyDay_default) {
+TEST(AliasDistributionTest, HappyDay_default) {
 	// Tests which reflect the regular use
 
-	// -----------------------------------------------------------------------------------------
-	// Actual tests
-	// -----------------------------------------------------------------------------------------
+	// The distributions that will be used
+	const vector<double> prob_normal      = vector<double>({0.24,0.26, 0.01, 0.09, 0.33, 0.07});
+	const vector<double> prob_big         = vector<double>({0.48,0.52, 0.02, 0.18, 0.66, 0.14});
+	AliasDistribution    alias_normal     = AliasDistribution(prob_normal);
+	AliasDistribution    alias_big        = AliasDistribution(prob_big);
+	random_device        rd;
+	const double         confidence       = 0.975;
+	const uint           happy_day_amount = 1000000;
+	mt19937              rng_mt           = mt19937(123456);
+
 	// Test the normal distribution 
-	vector<pair<uint, double> > normal_result = run_alias_distribution(g_alias_normal, g_happy_day_amount, g_prob_normal, g_rng_mt);
-	EXPECT_TRUE(chi_sq_test(normal_result, g_confidence));
+	vector<pair<uint, double> > normal_result = run_alias_distribution(alias_normal, happy_day_amount, prob_normal, rng_mt);
+	EXPECT_TRUE(chi_sq_test(normal_result, confidence));
 
 	// Test the big distribution
-	vector<pair<uint, double> > big_result = run_alias_distribution(g_alias_big, g_happy_day_amount, g_prob_big, g_rng_mt);
-	EXPECT_TRUE(chi_sq_test(big_result, g_confidence));
+	vector<pair<uint, double> > big_result = run_alias_distribution(alias_big, happy_day_amount, prob_big, rng_mt);
+	EXPECT_TRUE(chi_sq_test(big_result, confidence));
 }
 
-TEST_F(AliasDistributionDemos, Boundaries_default) {
+TEST(AliasDistributionTest, Boundaries_default) {
 	// Tests on certain values given to the constructor of the AliasDistribution (e.g. empty vector of probabilities)
+	const vector<double> prob_near_zero   = vector<double>({0.0, 0.0, 0.0, 0.0, 0.01});
+	const vector<double> prob_zero        = vector<double>({0.0});
+	AliasDistribution    alias_near_zero  = AliasDistribution({0.0, 0.0, 0.0, 0.0, 0.01});
+	AliasDistribution    alias_zero       = AliasDistribution(prob_zero);
+	random_device        rd;
+	const uint           happy_day_amount = 1000000;
+	mt19937              rng_mt           = mt19937(123456);
 
 	// Zero chances
-	EXPECT_EQ(g_alias_zero.operator()<random_device>(g_rd), 0U);
-	EXPECT_EQ(g_alias_zero.operator()<mt19937>(g_rng_mt), 0U);
+	EXPECT_EQ(alias_zero.operator()<random_device>(rd), 0U);
+	EXPECT_EQ(alias_zero.operator()<mt19937>(rng_mt), 0U);
 
 	// Near zero
-	vector<pair<uint, double> > near_zero_result = run_alias_distribution(g_alias_near_zero, g_happy_day_amount, g_prob_near_zero, g_rng_mt);
+	vector<pair<uint, double> > near_zero_result = run_alias_distribution(alias_near_zero, happy_day_amount, prob_near_zero, rng_mt);
 	EXPECT_TRUE(chi_sq_test(near_zero_result, 0.0));
-
-	// TODO, adjust this in alias distribution
-	// Empty vector
-	//ASSERT_THROW(AliasDistribution(vector<double>()), invalid_argument);
-
-	// Default constructor (expected to be the same as the empty vector)
-	//ASSERT_THROW(AliasDistribution(), invalid_argument);
-
 }
 
 } //end-of-namespace-Tests

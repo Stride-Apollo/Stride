@@ -4,7 +4,6 @@
 #include <vector>
 #include <map>
 #include <iostream>
-#include <random>
 #include <cassert>
 #include <exception>
 #include <limits>
@@ -12,10 +11,10 @@
 #include <utility>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <trng/lcg64.hpp>
 
 #include "util/AliasDistribution.h"
 #include "util/GeoCoordCalculator.h"
-#include "util/RNGPicker.h"
 #include "popgen/utils.h"
 #include "core/ClusterType.h"
 
@@ -30,6 +29,7 @@ using uint = unsigned int;
 /**
  * Generate Populations
  */
+template <class U>
 class PopulationGenerator {
 public:
 	/// Constructor: Check if the xml is valid and set up the basic things like a random generator
@@ -41,7 +41,7 @@ public:
 
 private:
 	/// Writes the cities to the file, see PopulationGenerator::generate, recently, the villages have been added to this
-	void writeCities(const string& target_cities) const;
+	void writeCities(const string& target_cities);
 
 	/// Writes the population to the file, see PopulationGenerator::generate
 	void writePop(const string& target_pop) const;
@@ -53,7 +53,7 @@ private:
 	void writeClusters(const string& target_clusters) const;
 
 	/// Checks the xml on correctness, this includes only semantic errors, no syntax errors
-	void chechForValidXML() const;
+	void checkForValidXML() const;
 
 	/// Sets up the random generator, of course the one specified in the xml
 	void makeRNG();
@@ -197,7 +197,7 @@ private:
 	void assignToCommunities();
 
 	boost::property_tree::ptree m_props;							/// > The content of the xml file
-	mutable RNGPicker m_rng;										/// > The random generator
+	U m_rng;										/// > The random generator
 	uint m_total;													/// > The total amount of people to be generated (according to the xml)
 	vector<SimplePerson> m_people;									/// > All the people
 	vector<SimpleHousehold> m_households;							/// > The households (a household is a vector of indices in the vector above)
@@ -226,4 +226,3 @@ private:
 
 }
 }
-
