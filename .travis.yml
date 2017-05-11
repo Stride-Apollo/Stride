@@ -32,7 +32,8 @@ clang_addons: &clang_addons
         packages:
             - *deps
             - clang-3.8
-        
+            - libc++-dev
+
 
 matrix:
   include:
