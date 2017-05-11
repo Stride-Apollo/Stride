@@ -15,7 +15,7 @@ using namespace stride;
 using namespace util;
 using namespace boost::filesystem;
 
-TEST(TravelSchedulerTest, happy_day_default) {
+TEST(UnitTests__TravelSchedulerTest, happy_day) {
 	const auto file_path = InstallDirs::getDataDir() /= string("traveller_schedule.json");
 
 	std::ifstream my_file;

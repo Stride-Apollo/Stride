@@ -19,7 +19,9 @@ Defer<Func> _defer(const Func& f) {
 	return Defer<Func>(f);
 }
 
-#define defer(s) auto _defer_##__FILE__##_##__LINE__ = stride::util::_defer([&](){ s ; });
+#define __defer_name(name) _defer_ ## name
+#define __defer(line, s) auto __defer_name(line) = stride::util::_defer([&](){ s ; });
+#define defer(s) __defer(__LINE__, s)
 
 }
 }

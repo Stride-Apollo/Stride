@@ -18,9 +18,9 @@ Simulator::PersonType P(unsigned int id, bool on_vacation = false) {
 	return Simulator::PersonType(id, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, on_vacation);
 }
 
-class PopulationTest : public ::testing::Test {
+class UnitTests__PopulationTest : public ::testing::Test {
 public:
-	virtual ~PopulationTest() {}
+	virtual ~UnitTests__PopulationTest() {}
 
 	Population pop;
 };
@@ -53,7 +53,7 @@ TEST_F(fixture, fixture ## __ConstAuto) { \
 }
 
 
-class BitOfBothPopulationTest : public PopulationTest {
+class UnitTests__BitOfBothPopulationTest : public UnitTests__PopulationTest {
 public:
 	virtual void SetUp() {
 		pop.m_original.push_back(P(0));
@@ -73,10 +73,10 @@ public:
 	}
 };
 
-VARIOUS_POPULATION_TESTS(BitOfBothPopulationTest, 9)
+VARIOUS_POPULATION_TESTS(UnitTests__BitOfBothPopulationTest, 9)
 
 
-class OnlyOriginalPopulationTest : public PopulationTest {
+class UnitTests__OnlyOriginalPopulationTest : public UnitTests__PopulationTest {
 public:
 	virtual void SetUp() {
 		pop.m_original.push_back(P(0));
@@ -91,10 +91,10 @@ public:
 	}
 };
 
-VARIOUS_POPULATION_TESTS(OnlyOriginalPopulationTest, 4)
+VARIOUS_POPULATION_TESTS(UnitTests__OnlyOriginalPopulationTest, 4)
 
 
-class OnlyRemotePopulationTest : public PopulationTest {
+class UnitTests__OnlyRemotePopulationTest : public UnitTests__PopulationTest {
 public:
 	virtual void SetUp() {
 		pop.m_visitors.add(3, P(0));
@@ -105,10 +105,10 @@ public:
 	}
 };
 
-VARIOUS_POPULATION_TESTS(OnlyRemotePopulationTest, 5)
+VARIOUS_POPULATION_TESTS(UnitTests__OnlyRemotePopulationTest, 5)
 
 
-class EmptyPopulationTest : public PopulationTest {
+class UnitTests__EmptyPopulationTest : public UnitTests__PopulationTest {
 public:
 	virtual void SetUp() {
 		pop.m_original.push_back(P(999, true));
@@ -117,10 +117,10 @@ public:
 	}
 };
 
-VARIOUS_POPULATION_TESTS(EmptyPopulationTest, 0)
+VARIOUS_POPULATION_TESTS(UnitTests__EmptyPopulationTest, 0)
 
 // Truly empty
-VARIOUS_POPULATION_TESTS(PopulationTest, 0)
+VARIOUS_POPULATION_TESTS(UnitTests__PopulationTest, 0)
 
 
 }

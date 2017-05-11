@@ -32,6 +32,7 @@ set( SRC
 		PopGen/AliasDistributionTest.cpp
 		Hdf5UnitTests.cpp
         Hdf5ScenarioTests.cpp
+		Hdf5Base.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)
