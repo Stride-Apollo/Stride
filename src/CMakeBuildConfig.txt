@@ -31,9 +31,11 @@ mark_as_advanced( CLEAR CMAKE_CXX_COMPILER   )
 option( STRIDE_INCLUDE_DOC 
 	"Exclude doc directory from build and install."  OFF 
 )
-option( STRIDE_FORCE_NO_OPENMP  
-	"Do NOT use OpenMP even if available."  OFF 
+
+set( STRIDE_UNIPAR "DUMMY" CACHE STRING
+    "Which Unipar implementation to use. Options are DUMMY, OPENMP, TBB"
 )
+
 option( STRIDE_FORCE_NO_HDF5  
 	"Force CMake to act as if HDF5 had not been found."  OFF 
 )

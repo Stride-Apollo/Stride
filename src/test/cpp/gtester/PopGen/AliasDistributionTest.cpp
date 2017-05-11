@@ -16,7 +16,6 @@ using namespace stride;
 using namespace util;
 using namespace ::testing;
 
-// Default values
 random_device rd;
 mt19937 rng_mt = mt19937(123456);
 // Big value for the confidence, because we'd rather see whether the distribition is certainly

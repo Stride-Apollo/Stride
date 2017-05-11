@@ -38,14 +38,22 @@ using namespace stride::util;
 Simulator::Simulator()
 		: m_config_pt(), m_num_threads(1U), m_log_level(LogMode::Null), m_population(nullptr),
 		  m_disease_profile(), m_track_index_case(false) {
-	m_parallel.getResourceManager().setFunc([&](){
+	m_parallel = Parallel().withFunc<RandomRef>(std::function<RandomRef()>([&](){
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
+			std::cout << "Dummy rng?\n";
 			return m_rng.get();
 		#else
 			// Use the rng to initialize a seed
-			return make_unique<Random>(m_rng->operator()());
+			auto p = make_unique<Random>(m_rng->operator()());
+			if (p.get() == nullptr) {
+				std::cout << "We're passing on null rng?\n";
+			} else {
+				std::cout << "ONE MORE RNG!\n";
+			}
+			return p;
 		#endif
-	});
+	}));
+	//m_parallel.getResourceManager().setFunc();
 }
 
 const shared_ptr<const Population> Simulator::getPopulation() const {
@@ -63,9 +71,15 @@ void Simulator::updateClusters() {
 	// but saves us a lot of typing without resorting to macro's.
 	for (auto clusters: {&m_households, &m_school_clusters, &m_work_clusters,
 						 &m_primary_community, &m_secondary_community}) {
-		m_parallel.for_(0, clusters->size(), [&](RandomRef rng, size_t i) {
-			Infector<log_level, track_index_case>::execute(
-					(*clusters)[i], m_disease_profile, *rng, m_calendar);
+		m_parallel.for_(0, clusters->size(), [&](RandomRef& rng, size_t i) {
+			if (rng) {
+				Infector<log_level, track_index_case>::execute(
+						(*clusters)[i], m_disease_profile, *rng, m_calendar);
+				std::cout << "rng is not null" << endl;
+			} else {
+				std::cout << "rng is null" << endl;
+				_exit(1);
+			}
 		});
 	}
 }

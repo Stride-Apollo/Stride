@@ -54,7 +54,7 @@ struct ResourceManager<Impl> {
 	// End of the recursion
 	template <typename F, typename... Args>
 	auto call(const F& func, Args&&... args) {
-		return func(args...);
+		return func(std::forward<Args>(args)...);
 	}
 };
 

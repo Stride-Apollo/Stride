@@ -100,12 +100,13 @@ void run_stride(bool track_index_case, const string& config_file_name) {
 	// No observers (yet) in C++. Logger was never intended as an observer per timestep.
 
 	// MR test
-	auto sim2 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	auto sim3 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+	//auto sim2 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+	//auto sim3 = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
 	auto l1 = make_unique<LocalSimulatorAdapter>(sim.get());
-	auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
-	auto l3 = make_unique<LocalSimulatorAdapter>(sim3.get());
-	Coordinator coord({l1.get(), l2.get(), l3.get()});
+	//auto l2 = make_unique<LocalSimulatorAdapter>(sim2.get());
+	//auto l3 = make_unique<LocalSimulatorAdapter>(sim3.get());
+	//Coordinator coord({l1.get(), l2.get(), l3.get()});
+	Coordinator coord({l1.get()});
 
 	// Run the simulation.
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");

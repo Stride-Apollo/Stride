@@ -22,17 +22,23 @@
 #if UNIPAR_IMPL == UNIPAR_DUMMY
 
 	#include "dummy.h"
-	using Parallel = unipar::DummyParallel;
+	namespace unipar {
+		using Parallel = unipar::DummyParallel;
+	}
 
 #elif UNIPAR_IMPL == UNIPAR_TBB
 
 	#include "tbb.h"
-	using Parallel = unipar::TbbParallel;
+	namespace unipar {
+		using Parallel = unipar::TbbParallel;
+	}
 
 #elif UNIPAR_IMPL == UNIPAR_OPENMP
 
 	#include "openmp.h"
-	using Parallel = unipar::OpenmpParallel;
+	namespace unipar {
+		using Parallel = unipar::OpenmpParallel;
+	}
 	
 #else
 

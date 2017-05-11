@@ -1,7 +1,5 @@
 #pragma once
 
-namespace stride {
-
 #include "unipar/pick_choices.h"
 
 #ifndef UNIPAR_IMPL
@@ -12,4 +10,6 @@ namespace stride {
 //#define UNIPAR_IMPL UNIPAR_OPENMP
 #include "unipar/pick.h"
 
+namespace stride {
+	using Parallel = unipar::Parallel;
 }
