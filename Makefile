@@ -136,7 +136,7 @@ distclean clean:
 	$(CMAKE) -E remove_directory $(BUILD_DIR)
 
 test: install install_test
-	$(MAKE) -C $(BUILD_DIR)/test --no-print-directory run_default_ctest
+	cd $(BUILD_DIR)/installed && ./bin/gtester
 
 clean_all: distclean
 	git clean -df

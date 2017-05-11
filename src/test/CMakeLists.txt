@@ -15,32 +15,10 @@
 #############################################################################
 
 #============================================================================
-# Test verbosity:
-#============================================================================
-unset( CTEST_VERBOSE_OPTION )
-if( STRIDE_VERBOSE_TESTING )
-	set( CTEST_VERBOSE_OPTION "-V" )
-endif()
-
-#============================================================================
 # Make test directory in install tree:
 #============================================================================
 set( TESTS_DIR ${CMAKE_INSTALL_PREFIX}/${TESTS_INSTALL_LOCATION} )
 install(DIRECTORY DESTINATION  ${TESTS_DIR} )
-
-#============================================================================
-# Top level custom target for interactive use through make:
-#============================================================================
-add_custom_target( run_default_ctest
-	COMMAND ctest --tests-regex default ${CTEST_VERBOSE_OPTION} 
-#		-O ${TESTS_DIR}/ctests_default.txt
-		--output-on-failure
-)
-
-add_custom_target( run_all_ctest
-	COMMAND ctest --tests-regex all ${CTEST_VERBOSE_OPTION}
-		--output-on-failure
-)
 
 #============================================================================
 # Config related to using Google test (src in resources/lib/gtest) for cpp
