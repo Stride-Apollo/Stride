@@ -150,10 +150,11 @@ else()
 	set(ExternalProjectCMakeArgs
 		-DHDF5_BUILD_CPP_LIB=ON
 		)
-	set(_hdf5_version "1.8.15-patch1")
+	
+	set(_hdf5_version "1.8.18")
 	file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/hdf5_local/src)
 	ExternalProject_Add(hdf5_local
-		DOWNLOAD_COMMAND curl http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-${_hdf5_version}.tar.gz | tar xvz -C ${PROJECT_BINARY_DIR}/hdf5_local/src
+		DOWNLOAD_COMMAND curl https://support.hdfgroup.org/ftp/HDF5/current18/src/CMake-hdf5-${_hdf5_version}.tar.gz | tar xvz -C ${PROJECT_BINARY_DIR}/hdf5_local/src
 		CMAKE_ARGS ${ExternalProjectCMakeArgs}
 		SOURCE_DIR ${PROJECT_BINARY_DIR}/hdf5_local/src/hdf5-${_hdf5_version}
 		BINARY_DIR ${PROJECT_BINARY_DIR}/hdf5_local/build
