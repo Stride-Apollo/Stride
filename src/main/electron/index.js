@@ -115,7 +115,6 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 			$interval.cancel($scope.simulation_run);
 			$scope.simulation_run = undefined;
 		} else {
-			updatePaint();
 			updateMap(parseCSVFile(files[$scope.currentDay]))
 		}
 	}
@@ -126,14 +125,16 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 			$interval.cancel($scope.simulation_rewind);
 			$scope.simulation_rewind = undefined
 		} else {
-			updatePaint();
 			updateMap(parseCSVFile(files[$scope.currentDay]))
 		}
 	}
 
 	function updateMap(data) {
-		map.getSource("cluster_data").setData(data);
-		fitView(data);
+		if (map.loaded()) {
+			updatePaint()
+			map.getSource("cluster_data").setData(data);
+			fitView(data);
+		}
 	}
 
 	// function parseData(cluster_data) {
@@ -267,7 +268,7 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 				windows.push({id:e.features[0].properties.id, win: win });
 				win.webContents.on('did-finish-load', ()=>{
 					win.show();
-				//win.webContents.openDevTools();
+				win.webContents.openDevTools();
 				win.focus();
 			});
 
@@ -283,7 +284,7 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 					+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
 					+ "&cluster=" + e.features[0].properties.id
 					+ "&directory=" + __dirname + "/" + config.directory
-					+ "&$scope.currentDay=" + $scope.currentDay;
+					+ "&currentDay=" + $scope.currentDay;
 				win.loadURL(url);
 			} else {
 				for (var i in windows) {
