@@ -5,6 +5,7 @@ app.config(['$locationProvider', function($locationProvider) {
 }]);
 app.controller('ClusterController', ['$scope', '$location', function($scope, $location) {
 
+	console.log($location.url());
 	console.log($location.search().data);
 	console.log($location.search().cluster);
 

@@ -115,7 +115,6 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 			$interval.cancel($scope.simulation_run);
 			$scope.simulation_run = undefined;
 		} else {
-			updatePaint();
 			updateMap(parseCSVFile(files[$scope.currentDay]))
 		}
 	}
@@ -126,14 +125,16 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 			$interval.cancel($scope.simulation_rewind);
 			$scope.simulation_rewind = undefined
 		} else {
-			updatePaint();
 			updateMap(parseCSVFile(files[$scope.currentDay]))
 		}
 	}
 
 	function updateMap(data) {
-		map.getSource("cluster_data").setData(data);
-		fitView(data);
+		if (map.loaded()) {
+			updatePaint()
+			map.getSource("cluster_data").setData(data);
+			fitView(data);
+		}
 	}
 
 	// function parseData(cluster_data) {
@@ -191,6 +192,17 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 		map.setPaintProperty("clusters", 'circle-radius', circle_radius_style);
 	}
 
+	$scope.$watch('animation_speed', function() {
+		if ($scope.simulation_run != undefined) {
+			$interval.cancel($scope.simulation_run);
+			$scope.simulation_run = undefined;
+			$scope.runSimulation();
+		} else if ($scope.simulation_rewind != undefined) {
+			$interval.cancel($scope.simulation_rewind);
+			$scope.simulation_rewind = undefined;
+			$scope.rewindSimulation();
+		}
+	});
 	$scope.$watch('[no_infected_color, min_infected_color, max_infected_color, opacity, unzoomed_min, unzoomed_max]', updatePaint, true);
 
 	// TODO Make this better!
@@ -267,7 +279,7 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 				windows.push({id:e.features[0].properties.id, win: win });
 				win.webContents.on('did-finish-load', ()=>{
 					win.show();
-				//win.webContents.openDevTools();
+				win.webContents.openDevTools();
 				win.focus();
 			});
 
@@ -283,7 +295,7 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 					+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
 					+ "&cluster=" + e.features[0].properties.id
 					+ "&directory=" + __dirname + "/" + config.directory
-					+ "&$scope.currentDay=" + $scope.currentDay;
+					+ "&currentDay=" + $scope.currentDay;
 				win.loadURL(url);
 			} else {
 				for (var i in windows) {
