@@ -102,7 +102,11 @@
 		</tbody>
 	</table>
 	<div class="center">
+		<button id="btnSave" class="mdl-button mdl-js-button mdl-button--raised fullWidthBtn" ng-click="save()">
+			Save Configuration
+		</button>
 		<div class="settingTitle">Simulation</div>
+		<h3>Day<br>{{currentDay}}</h3>
 		<button id="btnRewind" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="rewindSimulation()">
 			<i class="material-icons" ng-show="simulation_rewind == undefined">fast_rewind</i>
 			<i class="material-icons" ng-hide="simulation_rewind == undefined">pause_arrow</i>
@@ -116,10 +120,6 @@
 		<button id="btnPlay" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="runSimulation()">
 			<i class="material-icons" ng-show="simulation_run == undefined">fast_forward</i>
 			<i class="material-icons" ng-hide="simulation_run == undefined">pause_arrow</i>
-		</button>
-		<h3>Day<br>{{currentDay}}</h3>
-		<button id="btnSave" ng-click="save()">
-			<h2>Save Configuration</h2>
 		</button>
 	</div>
 </div>

@@ -96,8 +96,13 @@ table {
 
 .center {
 	text-align: center;
+	margin-top: 20px;
 }
 
 .nonexistent {
 	display: none;
+}
+
+.fullWidthBtn {
+	width: 100%;
 }

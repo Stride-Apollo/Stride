@@ -1,3 +1,19 @@
+body {
+	background-color: rgba(242,242,242,1);
+}
+
+.bg {
+	fill: transparent !important;
+}
+
+.modebar {
+	background-color: transparent !important;
+}
+
+#graph {
+	background-color: transparent;
+}
+
 #title {
 	text-align: center;
 	font-size: 30px;

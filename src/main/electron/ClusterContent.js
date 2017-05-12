@@ -80,8 +80,28 @@ app.controller('ClusterController', ['$scope', '$location', function($scope, $lo
 		y: 0.5,
 		traceorder: 'reversed',
 		font: {size: 16},
-		yref: 'paper'
+		yref: 'paper',
+
+		scene:{
+	xaxis: {
+	 backgroundcolor: "rgb(255,0,0)",
+	 showbackground: true,
+	}, 
+    yaxis: {
+     backgroundcolor: "rgb(255,0,0)",
+     showbackground: true,
+    }, 
+    zaxis: {
+     backgroundcolor: "rgb(255,0,0)",
+     showbackground: true,
+    }}
 	}};
 
-	Plotly.newPlot('graph', data, layout);
+	Plotly.newPlot('graph', data, layout).then(function() {
+		window.requestAnimationFrame(function() {
+			window.requestAnimationFrame(function() {
+				document.getElementsByClassName("main-svg")[0].style = "";
+			});
+		});
+	});
 }]);
