@@ -121,6 +121,9 @@ void run_stride(bool track_index_case,
 		int frequency = checkpointing_frequency == -1 ?
 						pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
 		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
+		if (output_file == "") {
+			output_file = config_hdf5_file;
+		}
 		saver = std::make_shared<Saver>
 				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
@@ -129,6 +132,12 @@ void run_stride(bool track_index_case,
 		std::function<void(const LocalSimulatorAdapter&)> fnCaller2 = std::bind(&ClusterSaver::update, classInstance, std::placeholders::_1);
 		local_sim->registerObserver(classInstance, fnCaller2);
 	}
+
+
+	// TODO add option to turn checkpointing on/off
+	auto ClusterSaver_instance = make_shared<ClusterSaver>("cluster_output");
+	auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
+	local_sim->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
 	cout << "Done adding the observers." << endl << endl;
 
 	// Run the simulation.
