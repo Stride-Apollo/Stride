@@ -192,6 +192,17 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 		map.setPaintProperty("clusters", 'circle-radius', circle_radius_style);
 	}
 
+	$scope.$watch('animation_speed', function() {
+		if ($scope.simulation_run != undefined) {
+			$interval.cancel($scope.simulation_run);
+			$scope.simulation_run = undefined;
+			$scope.runSimulation();
+		} else if ($scope.simulation_rewind != undefined) {
+			$interval.cancel($scope.simulation_rewind);
+			$scope.simulation_rewind = undefined;
+			$scope.rewindSimulation();
+		}
+	});
 	$scope.$watch('[no_infected_color, min_infected_color, max_infected_color, opacity, unzoomed_min, unzoomed_max]', updatePaint, true);
 
 	// TODO Make this better!
