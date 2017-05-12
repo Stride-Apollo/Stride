@@ -114,6 +114,12 @@ matrix:
         - test=scenarios
         - unipar=OpenMP
         - compiler=clang
+        
+    # macOS ...........................
+    
+    #- os: osx
+      #osx_image: xcode8.3
+      
 
 
 before_install:
