@@ -28,13 +28,14 @@ class UnitTests__HDF5 : public Hdf5Base {};
  *	Test case that checks the amount of timestaps created in the H5 file,
  *		using checkpointing frequency = 1.
  */
- 
+
 TEST_P(UnitTests__HDF5, AmtCheckpoints1) {
 	unsigned int num_threads = GetParam();
 
 	unsigned int num_days = 10;
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
+	pt_config.put("run.population_file", "pop_flanders.csv"); // Just to reduce the run time, since the pop size is not relevant here
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
 	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
@@ -71,6 +72,7 @@ TEST_P(UnitTests__HDF5, AmtCheckPoints2) {
 	unsigned int num_days = 10;
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
+	pt_config.put("run.population_file", "pop_flanders.csv"); // Just to reduce the run time, since the pop size is not relevant here
 
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
@@ -110,6 +112,7 @@ TEST_P(UnitTests__HDF5, AmtCheckPoints3) {
 	unsigned int num_days = 10;
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
+	pt_config.put("run.population_file", "pop_flanders.csv"); // Just to reduce the run time, since the pop size is not relevant here
 
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
@@ -147,7 +150,7 @@ TEST_F(UnitTests__HDF5, CheckConfigTree) {
 
 	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
 
-	// Retrieve the configuration settings from the Hdf5 file.
+	/// Retrieve the configuration settings from the Hdf5 file.
 	StrType h5_str (0, H5T_VARIABLE);
 	CompType typeConfData(sizeof(ConfDataType));
 	typeConfData.insertMember(H5std_string("conf_content"), HOFFSET(ConfDataType, conf_content), h5_str);
@@ -157,11 +160,8 @@ TEST_F(UnitTests__HDF5, CheckConfigTree) {
 	ConfDataType configData[1];
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
-	defer(h5file.close());
 	DataSet dataset = h5file.openDataSet("configuration/configuration");
-	defer(dataset.close());
 	dataset.read(configData, typeConfData);
-
 	istringstream iss(configData[0].conf_content);
 	ptree pt_config_hdf5;
 	xml_parser::read_xml(iss, pt_config_hdf5);
@@ -200,7 +200,6 @@ TEST_F(UnitTests__HDF5, CreateSaver) {
  */
 TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 	const string h5filename = "testOutput.h5";
-	// const string h5filename = "/tmp/testOutput.h5";
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
