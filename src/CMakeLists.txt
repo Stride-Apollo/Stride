@@ -50,12 +50,9 @@ include( CMakeCPPConfig.txt    )
 # Configuration for DOC: DOXYGEN AND LATEX
 #============================================================================
 if( STRIDE_INCLUDE_DOC )
-    find_package( Doxygen )	
-    find_package( LATEX )
-    if( NOT "${PDFLATEX_COMPILER}" STREQUAL "PDFLATEX_COMPILER-NOTFOUND" )
-    	set( LATEX_FOUND YES )
-    endif()
+    find_package( Doxygen )
 endif()
+
 #============================================================================
 # Add subdirs
 #============================================================================

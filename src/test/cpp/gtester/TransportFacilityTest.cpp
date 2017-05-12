@@ -14,7 +14,7 @@ using namespace stride;
 using namespace util;
 using namespace boost::filesystem;
 
-TEST(TransportFacilityTest, happy_day_default) {
+TEST(UnitTests__TransportFacilityTest, happy_day) {
 	const auto file_path = InstallDirs::getDataDir() /= string("transportation_facilities.csv");
 
 	std::ifstream my_file;
@@ -22,7 +22,7 @@ TEST(TransportFacilityTest, happy_day_default) {
 
 	if (my_file.bad()) {
 		throw runtime_error(string(__func__)
-							+ ">Config file " + file_path.string() + " not present. Aborting.");
+							+ "> Config file " + file_path.string() + " not present. Aborting.");
 	}
 	my_file.close();
 

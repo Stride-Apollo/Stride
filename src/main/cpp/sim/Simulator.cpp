@@ -36,8 +36,9 @@ using namespace boost::property_tree;
 using namespace stride::util;
 
 Simulator::Simulator()
-		: m_config_pt(), m_num_threads(1U), m_log_level(LogMode::Null), m_population(nullptr),
-		  m_disease_profile(), m_track_index_case(false) {
+        : m_config_pt(), m_num_threads(1U), m_log_level(LogMode::Null),
+		  m_information_policy(InformationPolicy::Null), m_population(nullptr),
+          m_disease_profile(), m_track_index_case(false) {
 	m_parallel = Parallel().withFunc<RandomRef>(std::function<RandomRef()>([&](){
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
 			//std::cout << "Dummy rng?\n";
@@ -64,7 +65,7 @@ void Simulator::setTrackIndexCase(bool track_index_case) {
 	m_track_index_case = track_index_case;
 }
 
-template<LogMode log_level, bool track_index_case>
+template<LogMode log_level, bool track_index_case, InformationPolicy information_policy>
 void Simulator::updateClusters() {
 	// Slight hack (thanks to http://stackoverflow.com/q/31724863/2678118#comment51385875_31724863)
 	// but saves us a lot of typing without resorting to macro's.
@@ -72,7 +73,7 @@ void Simulator::updateClusters() {
 						 &m_primary_community, &m_secondary_community}) {
 		m_parallel.for_(0, clusters->size(), [&](RandomRef& rng, size_t i) {
 			if (rng) {
-				Infector<log_level, track_index_case>::execute(
+				Infector<log_level, track_index_case, information_policy>::execute(
 						(*clusters)[i], m_disease_profile, *rng, m_calendar);
 				//std::cout << "rng is not null" << endl;
 			} else {
@@ -94,37 +95,67 @@ void Simulator::timeStep() {
 	const bool is_work_off {days_off->isWorkOff()};
 	const bool is_school_off {days_off->isSchoolOff()};
 
+	double fraction_infected = m_population->getFractionInfected();
+
 	for (auto& p : *m_population) {
-		p.update(is_work_off, is_school_off);
+			p.update(is_work_off, is_school_off, fraction_infected);
 	}
 
 	if (m_track_index_case) {
-		switch (m_log_level) {
+		switch (m_information_policy) {
+		case InformationPolicy::Global:
+			switch (m_log_level) {
 			case LogMode::Contacts:
-				updateClusters<LogMode::Contacts, true>();
-				break;
+				updateClusters<LogMode::Contacts, true, InformationPolicy::Global>(); break;
 			case LogMode::Transmissions:
-				updateClusters<LogMode::Transmissions, true>();
-				break;
+				updateClusters<LogMode::Transmissions, true, InformationPolicy::Global>(); break;
 			case LogMode::None:
-				updateClusters<LogMode::None, true>();
-				break;
+				updateClusters<LogMode::None, true, InformationPolicy::Global>(); break;
 			default:
-				throw runtime_error(std::string(__func__) + "Log mode screwed up!");
+				throw runtime_error(std::string(__func__) + " Log mode screwed up!");
+		} break;
+		case InformationPolicy::Local:
+			switch (m_log_level) {
+			case LogMode::Contacts:
+				updateClusters<LogMode::Contacts, true, InformationPolicy::Local>(); break;
+			case LogMode::Transmissions:
+				updateClusters<LogMode::Transmissions, true, InformationPolicy::Local>(); break;
+			case LogMode::None:
+				updateClusters<LogMode::None, true, InformationPolicy::Local>(); break;
+			default:
+				throw runtime_error(std::string(__func__) + " Log mode screwed up!");
+			} break;
+		default:
+			throw runtime_error(std::string(__func__) + " Information policy screwed up!");
 		}
 	} else {
-		switch (m_log_level) {
+		switch (m_information_policy) {
+		case InformationPolicy::Global:
+			switch (m_log_level) {
 			case LogMode::Contacts:
-				updateClusters<LogMode::Contacts, false>();
-				break;
+				updateClusters<LogMode::Contacts, false, InformationPolicy::Global>(); break;
 			case LogMode::Transmissions:
-				updateClusters<LogMode::Transmissions, false>();
-				break;
+				updateClusters<LogMode::Transmissions, false, InformationPolicy::Global>(); break;
 			case LogMode::None:
-				updateClusters<LogMode::None, false>();
-				break;
+				updateClusters<LogMode::None, false, InformationPolicy::Global>(); break;
 			default:
-				throw runtime_error(std::string(__func__) + "Log mode screwed up!");
+				throw runtime_error(std::string(__func__) + " Log mode screwed up!");
+			}
+			break;
+		case InformationPolicy::Local:
+			switch (m_log_level) {
+			case LogMode::Contacts:
+				updateClusters<LogMode::Contacts, false, InformationPolicy::Local>(); break;
+			case LogMode::Transmissions:
+				updateClusters<LogMode::Transmissions, false, InformationPolicy::Local>(); break;
+			case LogMode::None:
+				updateClusters<LogMode::None, false, InformationPolicy::Local>(); break;
+			default:
+				throw runtime_error(std::string(__func__) + " Log mode screwed up!");
+			}
+			break;
+			default:
+				throw runtime_error(std::string(__func__) + " Information policy screwed up!");
 		}
 	}
 

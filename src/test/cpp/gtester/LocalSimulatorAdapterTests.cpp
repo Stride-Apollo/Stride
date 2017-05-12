@@ -31,7 +31,7 @@ using namespace boost::property_tree;
 
 namespace Tests {
 
-class LocalSimulatorAdapterTest: public ::testing::Test {
+class UnitTests__LocalSimulatorAdapterTest: public ::testing::Test {
 public:
 	/// TestCase set up.
 	static void SetUpTestCase() {
@@ -47,7 +47,7 @@ protected:
 
 protected:
 	/// Destructor has to be virtual.
-	virtual ~LocalSimulatorAdapterTest() {}
+	virtual ~UnitTests__LocalSimulatorAdapterTest() {}
 
 	/// Set up for the test fixture
 	virtual void SetUp() {
@@ -113,7 +113,7 @@ bool sameCluster(const Cluster& cluster1, const Cluster& cluster2) {
 	return true;
 }
 
-TEST_F(LocalSimulatorAdapterTest, HappyDay) {
+TEST_F(UnitTests__LocalSimulatorAdapterTest, HappyDay) {
 	// Tests which reflect the regular use
 
 	// Keep the original work, primary and secondary communities of simulator 2
@@ -244,7 +244,7 @@ TEST_F(LocalSimulatorAdapterTest, HappyDay) {
 	}
 }
 
-TEST_F(LocalSimulatorAdapterTest, ForceReturn) {
+TEST_F(UnitTests__LocalSimulatorAdapterTest, ForceReturn) {
 	m_l1->setId(1);
 	m_l2->setId(2);
 
@@ -325,7 +325,7 @@ TEST_F(LocalSimulatorAdapterTest, ForceReturn) {
 	}
 }
 
-TEST_F(LocalSimulatorAdapterTest, ForceHost) {
+TEST_F(UnitTests__LocalSimulatorAdapterTest, ForceHost) {
 	// Migrate 1 person for 10 days
 	vector<unsigned int> id_s = m_l1->sendTravellers(1, 10, m_l2.get(), "Antwerp", "ANR");
 	EXPECT_EQ(id_s.size(), 1U);
@@ -389,7 +389,7 @@ TEST_F(LocalSimulatorAdapterTest, ForceHost) {
 	}
 }
 
-TEST_F(LocalSimulatorAdapterTest, getTravellerData) {
+TEST_F(UnitTests__LocalSimulatorAdapterTest, getTravellerData) {
 	// Migrate 1 person for 10 days
 	vector<unsigned int> id_s = m_l1->sendTravellers(1, 10, m_l2.get(), "Antwerp", "ANR");
 	EXPECT_EQ(id_s.size(), 1U);
@@ -421,4 +421,4 @@ TEST_F(LocalSimulatorAdapterTest, getTravellerData) {
 	}
 }
 
-} //end-of-namespace-Tests
+}

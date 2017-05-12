@@ -103,7 +103,7 @@ Testing
 -------
 
 Unit tests and install checks are added to Stride based on Google’s
-*gtest* framework and CMake’s *ctest* tool. In addition, the code base
+*gtest* framework. In addition, the code base
 contains assertions to verify the simulator logic. They are activated
 when the application is built in debug mode and can be used to catch
 errors at run time.

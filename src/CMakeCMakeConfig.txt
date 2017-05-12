@@ -31,7 +31,9 @@ enable_testing()
 # Additional CMake modules:
 #============================================================================
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/main/resources/cmake/" )
-list( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/site/resources/cmake/" )
+if (CMAKE_VERSION VERSION_GREATER 3.5.0 AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	list( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/main/resources/cmake_extra/" )
+endif()
 
 #============================================================================
 # Macro sets NAME to VALUE iff the NAME has not been defined yet:

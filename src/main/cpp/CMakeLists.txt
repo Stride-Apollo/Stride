@@ -21,6 +21,11 @@
 set(LIB_SRC
 #---
 	calendar/Calendar.cpp
+	behaviour/belief_data/ThresholdData.cpp
+	behaviour/belief_policies/Threshold.cpp
+	behaviour/InformationPolicy.cpp
+#---
+    calendar/Calendar.cpp
 #---
 	core/Cluster.cpp
 	core/ClusterType.cpp
@@ -88,15 +93,6 @@ set(POPGEN_MAIN_SRC
 )
 
 #============================================================================
-# HDF5
-#============================================================================
-
-# the option is here so that we can plug it into other
-# codes where HDF5 may be optional
-
-
-
-#============================================================================
 # Build & install the executable.
 #============================================================================
 add_library(libstride ${LIB_SRC})
@@ -128,4 +124,3 @@ unset(POPGEN_SRC)
 unset(POPGEN_MAIN_SRC)
 
 #############################################################################
-

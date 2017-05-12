@@ -146,6 +146,9 @@ public:
 		return m_original.size() + m_visitors.size();
 	}
 
+	template<typename BeliefPolicy>
+	unsigned int getAdoptedCount() const;
+
 	PopulationIterator begin();
 	PopulationIterator end();
 
@@ -177,6 +180,20 @@ public:
 	friend class Population;
 	using _ConstPopIter::_PopulationIterator;
 };
+
+template<typename BeliefPolicy>
+unsigned int Population::getAdoptedCount() const {
+	unsigned int total {0U};
+	//for (const_iterator& it = this->begin(); not it.isEnd(); it++) {
+	for (const auto& p: *this) {
+		auto belief_data = p.getBeliefData();
+		bool adopted = BeliefPolicy::hasAdopted(belief_data);
+		if (adopted) {
+			total++;
+		}
+	}
+	return total;
+}
 
 
 }

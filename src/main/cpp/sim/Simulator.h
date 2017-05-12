@@ -19,37 +19,37 @@
  * Header for the Simulator class.
  */
 
+#include "behaviour/InformationPolicy.h"
 //#include "core/Cluster.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/District.h"
 #include "core/ClusterType.h"
-#include "behavior/behavior_policies/NoBehavior.h"
+#include "behaviour/behaviour_policies/NoBehaviour.h"
 #include "pop/Person.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
 #include "util/Random.h"
 #include "util/unipar.h"
-#include "behavior/belief_policies/NoBelief.h"
+#include "behaviour/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 namespace stride {
 
 class Population;
 class Calendar;
 class Cluster;
-class LocalSimulatorAdapter;
 
 /**
  * Main class that contains and direct the virtual world.
  */
 class Simulator {
 public:
-	using PersonType = Person<NoBehavior, NoBelief>;
+	using PersonType = Person<NoBehaviour, NoBelief>;
+	using BeliefPolicy = NoBelief;
 	using TravellerType = Traveller<PersonType>;
 
 	/// Default constructor for empty Simulator.
@@ -85,16 +85,15 @@ private:
 
 private:
 	/// Update the contacts in the given clusters.
-	template<LogMode log_level, bool track_index_case = false>
+	template<LogMode log_level, bool track_index_case = false, InformationPolicy information_policy = InformationPolicy::Global>
 	void updateClusters();
 
 private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 
 private:
-	unsigned int m_num_threads; 			///< The number of threads (as a hint)
-
-	#if UNIPAR_IMPL == UNIPAR_DUMMY
+	unsigned int                        m_num_threads;          ///< The number of  threads(as a hint)
+   #if UNIPAR_IMPL == UNIPAR_DUMMY
 		using RandomRef = util::Random*;
 	#else
 		using RandomRef = std::unique_ptr<util::Random>;
@@ -102,9 +101,9 @@ private:
 	decltype(Parallel().withFunc<RandomRef>()) m_parallel;
 
 	std::shared_ptr<util::Random> m_rng;
-
-	LogMode m_log_level;            		///< Specifies logging mode.
-	std::shared_ptr<Calendar> m_calendar;	///< Management of calendar.
+	LogMode                             m_log_level;            ///< Specifies logging mode.
+	InformationPolicy					m_information_policy;
+	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
 
 public:	// TODO write getters or set friend class for ClusterSaver
 	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
