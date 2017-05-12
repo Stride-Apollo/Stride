@@ -127,7 +127,7 @@ before_install:
   - PARALLEL_MAKE=2 make install
 
 script:
-  - ./travis/script.sh
+  - travis_wait ./travis/script.sh
 
 notifications:
   slack: 

@@ -168,8 +168,8 @@ else()
 		${CMAKE_HOME_DIRECTORY}/hdf5_local/build
 		)
 	set(_hdf5_libs
-		${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5_cpp.a
-		${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5.a
+		${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5_cpp-shared.so
+		${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5-shared.so
 		-ldl
 		)
 endif() 
