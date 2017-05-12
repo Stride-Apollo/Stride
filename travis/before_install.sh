@@ -36,3 +36,11 @@ else
 	echo "Running all tests"
 	export GTEST_FILTER="*"
 fi
+
+
+# macOS Support!
+
+if [ $TRAVIS_OS_NAME == osx ]; then
+	set -e
+	brew update
+	brew install llvm38 && brew link --force --overwrite llvm38

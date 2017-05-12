@@ -89,7 +89,7 @@ include_directories( SYSTEM ${CMAKE_HOME_DIRECTORY}/main/resources/lib/unipar/in
 if( STRIDE_UNIPAR STREQUAL "OPENMP" )
     if ( NOT DEFINED HAVE_CHECKED_OpenMP )
         set( HAVE_CHECKED_OpenMP  TRUE  CACHE  BOOL  "Have checked for OpenMP?" FORCE )
-        find_package( OpenMP )
+        find_package( ProperOpenMP )
         if( OPENMP_FOUND )
             set( HAVE_FOUND_OpenMP  TRUE  CACHE  BOOL  "Have found OpenMP?" FORCE )
         else()
