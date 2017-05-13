@@ -39,7 +39,7 @@ Simulator::Simulator()
         : m_config_pt(), m_num_threads(1U), m_log_level(LogMode::Null),
 		  m_information_policy(InformationPolicy::Null), m_population(nullptr),
           m_disease_profile(), m_track_index_case(false) {
-	m_parallel = Parallel().withFunc<RandomRef>(std::function<RandomRef()>([&](){
+	m_parallel.resources().setFunc([&](){
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
 			//std::cout << "Dummy rng?\n";
 			return m_rng.get();
@@ -53,8 +53,7 @@ Simulator::Simulator()
 			//}
 			//return p;
 		#endif
-	}));
-	//m_parallel.getResourceManager().setFunc();
+	});
 }
 
 const shared_ptr<const Population> Simulator::getPopulation() const {

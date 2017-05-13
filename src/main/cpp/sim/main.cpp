@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 		ValueArg <string> config_file_Arg("c", "config", "Config File", false,
 				// "./config/run_coordinator.xml", "CONFIGURATION FILE", cmd);
 										  "./config/run_default.xml", "CONFIGURATION FILE", cmd);
-		ValueArg<unsigned int> num_threads_Arg("nt", "num_threads", "Number of threads (as a hint)", false,
+		ValueArg<unsigned int> num_threads_Arg("n", "num_threads", "Number of threads (as a hint)", false,
 											   4, "NUM THREADS", cmd);
 		ValueArg<int> checkpointing_frequency_Arg("f", "frequency", "Checkpointing Frequency", false,
 												  -1, "CHECKPOINTING FREQUENCY", cmd);
