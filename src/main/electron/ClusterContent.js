@@ -102,7 +102,21 @@ app.controller('ClusterController', ['$scope', '$location', function($scope, $lo
 		window.requestAnimationFrame(function() {
 			window.requestAnimationFrame(function() {
 				document.getElementsByClassName("main-svg")[0].style = "";
+				resizeWindow();
 			});
 		});
 	});
 }]);
+
+function resizeWindow() {
+	var body = document.getElementsByTagName("body")[0];
+	var html = document.documentElement;
+
+	// Do this resizing twice, because resizing might cause elements to reorder and thus getting a wrong size
+	for (var i = 0; i < 2; i++) {
+		var height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+		var width = Math.max(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth);
+
+		window.resizeTo( width,  height);
+	}
+}
