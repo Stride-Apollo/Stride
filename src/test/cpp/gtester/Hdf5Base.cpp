@@ -6,7 +6,7 @@ const boost::property_tree::ptree Tests::Hdf5Base::getConfigTree() const {
 	config_tree.put("run.r0", 11.0);
 	config_tree.put("run.seeding_rate", 0.002);
 	config_tree.put("run.immunity_rate", 0.8);
-	config_tree.put("run.population_file", "pop_nassau.csv");
+	config_tree.put("run.population_file", "pop_flanders.csv");
 	config_tree.put("run.num_days", 50U);
 	config_tree.put("run.output_prefix", "testHdf5");
 	config_tree.put("run.disease_config_file", "disease_measles.xml");

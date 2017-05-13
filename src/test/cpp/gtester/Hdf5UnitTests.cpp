@@ -35,7 +35,6 @@ TEST_P(UnitTests__HDF5, AmtCheckpoints) {
 	unsigned int num_days = 10;
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
-	pt_config.put("run.population_file", "pop_flanders.csv"); // Just to reduce the run time, since the pop size is not relevant here
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
 	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
@@ -85,16 +84,11 @@ TEST_F(UnitTests__HDF5, CheckConfigTree) {
 
 	/// Retrieve the configuration settings from the Hdf5 file.
 	StrType h5_str (0, H5T_VARIABLE);
-	CompType typeConfData(sizeof(ConfDataType));
-	typeConfData.insertMember(H5std_string("conf_content"), HOFFSET(ConfDataType, conf_content), h5_str);
-	typeConfData.insertMember(H5std_string("disease_content"), HOFFSET(ConfDataType, disease_content), h5_str);
-	typeConfData.insertMember(H5std_string("age_contact_content"), HOFFSET(ConfDataType, age_contact_content), h5_str);
-	typeConfData.insertMember(H5std_string("holidays_content"), HOFFSET(ConfDataType, holidays_content), h5_str);
 	ConfDataType configData[1];
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 	DataSet dataset = h5file.openDataSet("configuration/configuration");
-	dataset.read(configData, typeConfData);
+	dataset.read(configData, ConfDataType::getCompType());
 	istringstream iss(configData[0].conf_content);
 	ptree pt_config_hdf5;
 	xml_parser::read_xml(iss, pt_config_hdf5);

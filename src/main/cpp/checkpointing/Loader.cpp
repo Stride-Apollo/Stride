@@ -243,52 +243,6 @@ void Loader::extractConfigs(string filename) {
 	writeToFile(filename + "_disease.xml", configData[0].disease_content);
 	writeToFile(filename + "_contact.xml", configData[0].age_contact_content);
 	writeToFile(filename + "_holidays.json", configData[0].holidays_content);
-	// istringstream iss(configData[0].conf_content);
-	//
-	// std::ofstream output_stream;
-	// stringstream output;
-	// output << filename << "_config.xml";
-	// output_stream.open(output.str());
-	// output_stream << iss.rdbuf();
-	//
-	// iss.clear();
-	// iss.str("");
-	// iss.str(configData[0].disease_content);
-	// output.clear();
-	// output.str("");
-	// output << filename << "_disease.xml";
-	// output_stream.close();
-	// output_stream.clear();
-	// output_stream.flush();
-	// output_stream.open(output.str());
-	// output_stream << iss.rdbuf();
-	//
-	// iss.clear();
-	// iss.str("");
-	// iss.str(configData[0].age_contact_content);
-	// output.clear();
-	// output.str("");
-	// output << filename << "_contact.xml";
-	// output_stream.close();
-	// output_stream.clear();
-	// output_stream.flush();
-	// output_stream.open(output.str());
-	// output_stream << iss.rdbuf();
-	//
-	// iss.clear();
-	// iss.str("");
-	// iss.str(configData[0].holidays_content);
-	// output.clear();
-	// output.str("");
-	// output << filename << "_holidays.json";
-	// output_stream.close();
-	// output_stream.clear();
-	// output_stream.flush();
-	// output_stream.open(output.str());
-	// output_stream << iss.rdbuf();
-
-	// dataset.close();
-	// file.close();
 }
 
 

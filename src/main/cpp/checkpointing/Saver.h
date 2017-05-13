@@ -18,6 +18,8 @@
 using std::vector;
 using namespace boost::property_tree;
 using std::string;
+using H5::H5File;
+using H5::Group;
 
 
 namespace stride {
@@ -37,14 +39,36 @@ public:
 
 private:
 	void saveTimestep(const Simulator& sim);
-	void saveClusters(H5::Group& group, string dataset_name, const vector<Cluster>& clusters);
+
+	/// Save the order of persons for a cluster group.
+	void saveClusters(Group& group, string dataset_name, const vector<Cluster>& clusters) const;
+
+	/// Saves the time indepent person data.
+	void savePersonTIData(H5File& file, const Simulator& sim) const;
+
+	/// Saves the time dependent person data.
+	void savePersonTDData(Group& group, const Simulator& sim) const;
+
+	/// Saves the total amount of timesteps and current timestep (create will create the dataset first, otherwise open).
+	void saveTimestepMetadata(H5File& file, unsigned int total_amt, unsigned int current, bool create = false) const;
+
+	/// Saves the state of the rng (NOTE only used with unipar dummy implementation).
+	void saveRngState(Group& group, const Simulator& sim) const;
+
+	/// Saves the calendar.
+	void saveCalendar(Group& group, const Simulator& sim) const;
+
+	/// Save all the configuration files (indirectly via the 'main' config file).
+	void saveConfigs(H5File& file) const;
+
+	/// Save the track index case.
+	void saveTrackIndexCase(H5File& file, bool track_index_case) const;
+
 
 private:
 	string m_filename;
 	int m_frequency;
 	ptree m_pt_config;
-	H5::CompType typeConf;
-
 	int m_current_step;
 	unsigned int m_timestep;
 	unsigned int m_save_count;
