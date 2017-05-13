@@ -23,6 +23,7 @@
 #include "output/CasesFile.h"
 #include "output/PersonFile.h"
 #include "output/SummaryFile.h"
+#include "sim/SimulatorRunMode.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
 #include "sim/SimulatorSetup.h"
@@ -38,6 +39,7 @@
 #include <spdlog/spdlog.h>
 #include <memory>
 #include <cassert>
+#include <stdlib.h>
 
 namespace stride {
 
@@ -54,31 +56,20 @@ void run_stride(bool track_index_case,
 				const string& config_file_name,
 				const string& hdf5_file_name,
 				const string& hdf5_output_file_name,
-				const string& simulator_run_mode,
 				const int checkpointing_frequency,
-				const unsigned int timestamp_replay) {
+				const unsigned int timestamp_replay,
+				RunMode run_mode) {
 
 	// Special case for extract mode -> don't run the simulator, just extract the config file.
-	if (simulator_run_mode == "extract") {
-		bool hdf5_file_exists = exists(system_complete(hdf5_file_name));
-		if (!hdf5_file_exists) {
-			throw runtime_error(string(__func__) + "> Hdf5 file " +
-			system_complete(hdf5_file_name).string() + " does not exist.");
-		}
-
-		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
-		if (!is_regular_file(file_path_hdf5)) {
-			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
-		}
-
-		Loader::extractConfigs(file_path_hdf5.string());
-		return;
+	if (run_mode == RunMode::Extract) {
+		Loader::extractConfigs(hdf5_file_name);
+		exit(0);
 	}
+
 
 	cout << "Loading configuration" << endl;
 
-
-	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case, timestamp_replay);
+	SimulatorSetup setup = SimulatorSetup(config_file_name, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
 
 
@@ -127,14 +118,14 @@ void run_stride(bool track_index_case,
 			output_file = config_hdf5_file;
 		}
 		saver = std::make_shared<Saver>
-				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
+				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
 		local_sim->registerObserver(saver, fnCaller);
 	}
 	cout << "Done adding the observers." << endl << endl;
 
 	// initial save
-	if (saver != nullptr && !(simulator_run_mode == "extend" && start_day != 0)) {
+	if (saver != nullptr && !(run_mode == RunMode::Extend && start_day != 0)) {
 		saver->forceSave(*local_sim);
 	}
 

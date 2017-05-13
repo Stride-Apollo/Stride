@@ -223,6 +223,18 @@ void Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vect
 }
 
 void Loader::extractConfigs(string filename) {
+	// Check for the existence/validity of the hdf5 file.
+	bool hdf5_file_exists = exists(system_complete(filename));
+	if (!hdf5_file_exists) {
+		throw runtime_error(string(__func__) + "> Hdf5 file " +
+			system_complete(filename).string() + " does not exist.");
+	}
+	const auto file_path_hdf5 = canonical(system_complete(filename));
+	if (!is_regular_file(file_path_hdf5)) {
+		throw runtime_error(string(__func__) + "> Hdf5 file " +
+			system_complete(filename).string() + " is not a regular file.");
+	}
+
 	H5File file(filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 
 	DataSet dataset = DataSet(file.openDataSet("configuration/configuration"));

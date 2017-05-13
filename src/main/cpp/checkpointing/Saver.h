@@ -9,6 +9,7 @@
 #include "H5Cpp.h"
 #include "util/Observer.h"
 #include "sim/Simulator.h"
+#include "sim/SimulatorRunMode.h"
 #include "sim/LocalSimulatorAdapter.h"
 #include "core/Cluster.h"
 #include <boost/property_tree/xml_parser.hpp>
@@ -28,7 +29,7 @@ class Saver : public util::Observer<LocalSimulatorAdapter> {
 public:
 	Saver(string filename, const ptree& pt_config,
 		  int frequency, bool track_index_case,
-		  string simulator_run_mode = "initial",
+		  RunMode run_mode = RunMode::Initial,
 		  int start_timestep = 0);
 
 	/// Update function which is called by the subject.

@@ -28,13 +28,13 @@ using std::ostringstream;
 
 namespace stride {
 
-Saver::Saver(string filename, const ptree& pt_config, int frequency, bool track_index_case, string simulator_run_mode, int start_timestep)
+Saver::Saver(string filename, const ptree& pt_config, int frequency, bool track_index_case, RunMode run_mode, int start_timestep)
 	: m_filename(filename), m_frequency(frequency),
 	  m_current_step(start_timestep - 1), m_timestep(start_timestep),
 	  m_save_count(0) {
 
 	// Check if the simulator is run in extend mode and not from timestep 0
-	if (start_timestep != 0 && simulator_run_mode == "extend") {
+	if (start_timestep != 0 && run_mode == RunMode::Extend) {
 		// If the hdf5 file already exists, append the data, otherwise still run the whole constructor
 		if (exists(system_complete(string(filename)))) {
 
