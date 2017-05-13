@@ -8,7 +8,7 @@ const cluster_type = {
 
 function getDecoratedData(data) {
 	return {
-		parsed_data: parseCSVFile(data),
+		parsed_data: data,
 
 		getTotalPopulation: function() {
 			// Loop over the households, they always contain everybody (except travellers)

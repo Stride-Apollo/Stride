@@ -118,7 +118,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			$interval.cancel($scope.simulation_run);
 			$scope.simulation_run = undefined;
 		} else {
-			updateMap(parseCSVFile(files[$scope.currentDay]))
+			updateMap(parseCSVFile(files[$scope.currentDay]));
 		}
 	}
 
@@ -137,8 +137,32 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		if (block) {
 			$timeout(updateMap(data), 50);
 		} else {
-			map.getSource("cluster_data").setData(data);
-			fitView(data);
+			var decoratedData = getDecoratedData(data);
+			var neededData =
+				{
+					type: "FeatureCollection",
+					features: []
+				};
+
+			if ($scope.clusterCheckBoxes[0] == true) {
+				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.household).features);
+			}
+			if ($scope.clusterCheckBoxes[1] == true) {
+				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.school).features);
+			}
+			if ($scope.clusterCheckBoxes[2] == true) {
+				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.work).features);
+			}
+			if ($scope.clusterCheckBoxes[3] == true) {
+				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.primary_community).features);
+			}
+			if ($scope.clusterCheckBoxes[4] == true) {
+				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.secondary_community).features);
+			}
+
+
+			map.getSource("cluster_data").setData(neededData);
+			fitView(neededData);
 		}
 	}
 
@@ -209,6 +233,15 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		}
 	}, true);
 	$scope.$watch('[no_infected_color, min_infected_color, max_infected_color, opacity, unzoomed_min, unzoomed_max]', updatePaint, true);
+
+	//////////////////////////////////////
+	// Checkbox stuff					//
+	//////////////////////////////////////
+	$scope.clusterCheckBoxes = [true, true, true, true, true];
+
+	$scope.changeBox = function() {
+		updateMap(parseCSVFile(files[$scope.currentDay]));
+	}
 
 	function makeClusters(cluster_data) {
 		$scope.cluster_data = cluster_data;
@@ -316,10 +349,10 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			coords.push(cluster_data.features[i].geometry.coordinates);
 		};
 
-		var min_lat = Number.MAX_VALUE;
-		var max_lat = Number.MIN_VALUE;
-		var min_lon = Number.MAX_VALUE;
-		var max_lon = Number.MIN_VALUE;
+		var min_lat = 90;
+		var max_lat = -90;
+		var min_lon = 180;
+		var max_lon = -180;
 		for (var i in coords) {
 			if (coords[i][0] > max_lon) {
 				max_lon = coords[i][0];
