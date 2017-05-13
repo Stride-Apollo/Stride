@@ -1,6 +1,6 @@
 var app = angular.module('VisualizationApp', []);
 
-app.controller('Controller', ['$scope', '$interval', function($scope, $interval) {
+app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope, $timeout, $interval) {
 	mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
 	var map = new mapboxgl.Map({
 		container: 'map',
@@ -22,6 +22,8 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 	}
 
 	var config;
+	var loaded = false;
+	var block = false;
 	var fs = require('fs');
 	fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
 		if (err) return console.log(err);
@@ -38,6 +40,7 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 			});
 			map.on('load', function() {
 				makeClusters(parseCSVFile(files[$scope.currentDay]));
+				loaded = true;
 			});
 		});
 
@@ -130,22 +133,14 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 	}
 
 	function updateMap(data) {
-		if (map.loaded()) {
-			updatePaint()
+		// Kind of sleep until map is done rendering, so you can update the data.
+		if (block) {
+			$timeout(updateMap(data), 50);
+		} else {
 			map.getSource("cluster_data").setData(data);
 			fitView(data);
 		}
 	}
-
-	// function parseData(cluster_data) {
-	// 	for (var i in cluster_data.features) {
-	// 		cluster_data.features[i].properties.infected_percent = parseFloat(cluster_data.features[i].properties.infected_percent);
-	// 		cluster_data.features[i].properties.infected = parseFloat(cluster_data.features[i].properties.infected);
-	// 		cluster_data.features[i].properties.size = parseFloat(cluster_data.features[i].properties.size);
-	// 		cluster_data.features[i].geometry.coordinates = [parseFloat(cluster_data.features[i].geometry.coordinates[0]), parseFloat(cluster_data.features[i].geometry.coordinates[1])];
-	// 	}
-	// 	return cluster_data;
-	// }
 
 	function getHexColor(color) {
 		if (color[0] == "#") {
@@ -157,7 +152,7 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 
 	function updatePaint() {
 		console.log("updating visuals!");
-		if (map.loaded()) {
+		if (loaded) {
 			var no_infected_color = getHexColor($scope.no_infected_color);
 			var min_infected_color = getHexColor($scope.min_infected_color);
 			var max_infected_color = getHexColor($scope.max_infected_color);
@@ -180,6 +175,7 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 					"circle-opacity": $scope.opacity
 				}
 			});
+			block = true;
 		}
 	};
 
@@ -306,6 +302,11 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 			}
 		});
 
+		// If a map is rendered the style loading is done and we can unblock.
+		map.on('render', function() {
+			block = false;
+		})
+
 		fitView(cluster_data);
 	}
 
@@ -333,7 +334,6 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 				min_lat = coords[i][1];
 			};
 		};
-		// console.log("(" + min_lon + ", " + min_lat + ")" + "(" + max_lon + ", " + max_lat + ")");
 		map.fitBounds([[min_lon-2, min_lat-2], [max_lon+2, max_lat+2]]);
 	}
 
@@ -363,12 +363,6 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 
 		sizes.sort();
 
-		/*for (var i in sizes) {
-		 result.push([sizes[i], ((sizes[i] - min_value)*(orig_MAX_SIZE - orig_MIN_SIZE)/(max_value - min_value) + orig_MIN_SIZE)]);
-		 }
-		 console.log(result);
-		 return result;*/
-
 		var tempresult = {};
 		for (var i in zoom) {
 			tempresult[i] = [];
@@ -378,8 +372,6 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 				size.value = sizes[j];
 				var MAX_SIZE = orig_MAX_SIZE * zoom[i][1];
 				var MIN_SIZE = orig_MIN_SIZE * zoom[i][1];
-				// console.log(size);
-				// console.log(((sizes[j] - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE));
 				tempresult[i].push([size.value, ((sizes[j] - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE)]);
 			}
 		};
@@ -392,7 +384,6 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 				result.push([leftStop, tempresult[i][j][1]]);
 			}
 		}
-		// console.log(result);
 		return result;
 	};
 
@@ -406,7 +397,6 @@ app.controller('Controller', ['$scope', '$interval', function($scope, $interval)
 		return false;
 	}
 
-	// TODO Set colors automatically on init
 	$scope.openMenu = function() {
 		var drawer = document.getElementById("conf_drawer");
 		var btn = document.getElementById("conf_button");
