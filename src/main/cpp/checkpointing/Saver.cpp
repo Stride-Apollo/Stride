@@ -28,10 +28,10 @@ using std::ostringstream;
 
 namespace stride {
 
-Saver::Saver(string filename, ptree pt_config, int frequency, bool track_index_case, string simulator_run_mode, int start_timestep)
+Saver::Saver(string filename, const ptree& pt_config, int frequency, bool track_index_case, string simulator_run_mode, int start_timestep)
 	: m_filename(filename), m_frequency(frequency),
-	  m_pt_config(pt_config), m_current_step(start_timestep - 1),
-	  m_timestep(start_timestep), m_save_count(0) {
+	  m_current_step(start_timestep - 1), m_timestep(start_timestep),
+	  m_save_count(0) {
 
 	// Check if the simulator is run in extend mode and not from timestep 0
 	if (start_timestep != 0 && simulator_run_mode == "extend") {
@@ -53,7 +53,7 @@ Saver::Saver(string filename, ptree pt_config, int frequency, bool track_index_c
 	try {
 		H5File file(m_filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
-		this->saveConfigs(file);
+		this->saveConfigs(file, pt_config);
 		this->saveTimestepMetadata(file, 0, 0, true);
 		this->saveTrackIndexCase(file, track_index_case);
 
@@ -71,7 +71,7 @@ void Saver::update(const LocalSimulatorAdapter& local_sim) {
 }
 
 void Saver::forceSave(const LocalSimulatorAdapter& local_sim, int timestep) {
-	// m_current_step++;
+	m_current_step++;
 
 	if (timestep != -1) {
 		m_timestep = timestep;
@@ -334,7 +334,7 @@ void Saver::saveCalendar(Group& group, const Simulator& sim) const {
 }
 
 
-void Saver::saveConfigs(H5File& file) const {
+void Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 	hsize_t dims[1] {1};
 	Group group(file.createGroup("/configuration"));
 	DataSpace dataspace = DataSpace(1, dims);
@@ -359,16 +359,16 @@ void Saver::saveConfigs(H5File& file) const {
 		return tree;
 	};
 
-	string content_config = getStringXmlPtree(m_pt_config);
+	string content_config = getStringXmlPtree(pt_config);
 	configData[0].conf_content = content_config.c_str();
-	string content_disease = getStringXmlPtree(getPtreeXmlFile(m_pt_config.get<string>("run.disease_config_file")));
+	string content_disease = getStringXmlPtree(getPtreeXmlFile(pt_config.get<string>("run.disease_config_file")));
 	configData[0].disease_content = content_disease.c_str();
-	string content_age = getStringXmlPtree(getPtreeXmlFile(m_pt_config.get<string>("run.age_contact_matrix_file")));
+	string content_age = getStringXmlPtree(getPtreeXmlFile(pt_config.get<string>("run.age_contact_matrix_file")));
 	configData[0].age_contact_content = content_age.c_str();
 
 
 	ptree json_tree;
-	string filename = m_pt_config.get<string>("run.holidays_file");
+	string filename = pt_config.get<string>("run.holidays_file");
 	const auto filepath {InstallDirs::getDataDir() /= filename};
 	if (!is_regular_file(filepath))
 		throw std::runtime_error(string(__func__) + "> File " + filepath.string() + " not present/regular.");

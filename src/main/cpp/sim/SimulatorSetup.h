@@ -21,11 +21,11 @@ class SimulatorSetup {
 public:
 	SimulatorSetup(string simulator_mode, string conf_file, string hdf5_file,
 				   int num_threads, bool track_index_case, const unsigned int timestamp_replay);
-	
+
 	ptree getConfigTree() const {
-		return m_pt_config; 
+		return m_pt_config;
 	}
-	shared_ptr<Simulator> getSimulator() const;
+	shared_ptr<Simulator> getSimulator();
 
 	unsigned int getStartDay() const {
 		return m_timestamp_replay;

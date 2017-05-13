@@ -31,8 +31,7 @@ SimulatorSetup::SimulatorSetup(string simulator_mode, string conf_file,
 }
 
 
-shared_ptr<Simulator> SimulatorSetup::getSimulator() const {
-
+shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 	if (m_simulator_mode == "initial") {
 		// Build the simulator either from the provided configuration file or the initial data in the hdf5 file.
 		if (m_conf_file_exists) {
@@ -55,7 +54,8 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() const {
 		}
 
 		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-		auto sim = SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
+		m_pt_config = loader.getConfig();
+		auto sim = SimulatorBuilder::build(loader.getConfig(), loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
 		if (m_simulator_mode == "extend") {
 			loader.extendSimulation(sim);
 			m_timestamp_replay = loader.getLastSavedTimestep();

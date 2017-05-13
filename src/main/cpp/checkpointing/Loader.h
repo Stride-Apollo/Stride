@@ -39,7 +39,7 @@ public:
 	bool getTrackIndexCase() const { return m_track_index_case; }
 
 	/// Retrieves the last saved timestep index in the hdf5 file.
-	int getLastSavedTimestep() const;
+	unsigned int getLastSavedTimestep() const;
 
 public:
 	/// Extract the configuration files saved in the hdf5 file.

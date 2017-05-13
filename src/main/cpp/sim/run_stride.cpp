@@ -76,8 +76,20 @@ void run_stride(bool track_index_case,
 	}
 
 	cout << "Loading configuration" << endl;
+
+
 	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
+
+
+	cout << "Building the simulator." << endl << endl;
+
+	shared_ptr<Simulator> sim = setup.getSimulator();
+	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
+	Coordinator coord({local_sim.get()});
+
+	cout << "Done building the simulator. " << endl << endl;
+	unsigned int start_day = setup.getStartDay();
 
 	// Set output path prefix.
 	string output_prefix = "";
@@ -100,26 +112,20 @@ void run_stride(bool track_index_case,
 	Stopwatch<> total_clock("total_clock", true);
 
 
-	cout << "Building the simulator." << endl << endl;
-
-	shared_ptr<Simulator> sim = setup.getSimulator();
-	unsigned int start_day = setup.getStartDay();
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-
-	cout << "Done building the simulator. " << endl << endl;
-
-	Coordinator coord({local_sim.get()});
 
 	cout << "Adding observers to the simulator." << endl;
 
-	std::shared_ptr<Saver> saver = 0;
-	// Is checkpointing 'enabled'?
+	std::shared_ptr<Saver> saver = nullptr;
 	std::string config_hdf5_file = pt_config.get<string>("run.checkpointing_file", "");
 
+	// Is checkpointing 'enabled'?
 	if (hdf5_file_name != "" || hdf5_output_file_name != "" || config_hdf5_file != "") {
 		int frequency = checkpointing_frequency == -1 ?
 						pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
 		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
+		if (output_file == "") {
+			output_file = config_hdf5_file;
+		}
 		saver = std::make_shared<Saver>
 				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
@@ -127,22 +133,26 @@ void run_stride(bool track_index_case,
 	}
 	cout << "Done adding the observers." << endl << endl;
 
+	// initial save
+	if (saver != nullptr && !(simulator_run_mode == "extend" && start_day != 0)) {
+		saver->forceSave(*local_sim);
+	}
+
 	// Run the simulation.
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
 	vector<unsigned int> cases(num_days);
-	for (unsigned int i = 0; i < num_days; i++) {
+	for (unsigned int i = start_day; i < start_day + num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
-		//sim->timeStep();
 		coord.timeStep();
 		cout << "     Done, infected count: ";
-		cases[i] = sim->getPopulation()->getInfectedCount();
+		cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
 		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
-		cout << setw(7) << cases[i] << "     Adopters count: " << setw(7) << adopters << endl;
+		cout << setw(7) << cases.at(i-start_day) << "     Adopters count: " << setw(7) << adopters << endl;
 	}
 
-	if (saver != 0 && checkpointing_frequency == 0) {
-		// Force save the last timestep
-		saver->forceSave(*local_sim, num_days);
+	if (saver != nullptr && checkpointing_frequency == 0) {
+		// Force save the last timestep in case of frequency 0
+		saver->forceSave(*local_sim, num_days + start_day);
 	}
 
 	// Generate output files

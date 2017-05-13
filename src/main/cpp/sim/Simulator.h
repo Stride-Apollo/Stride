@@ -46,7 +46,7 @@ class Cluster;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator : public util::Subject<Simulator> {
+class Simulator {
 public:
 	using PersonType = Person<NoBehaviour, NoBelief>;
 	using BeliefPolicy = NoBelief;
