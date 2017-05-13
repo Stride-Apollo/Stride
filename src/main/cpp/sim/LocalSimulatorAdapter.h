@@ -4,6 +4,7 @@
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
+#include "util/Subject.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 #include "pop/TravellerData.h"
@@ -14,11 +15,13 @@
 namespace stride {
 
 class Coordinator;
+class ClusterSaver;
 
 using namespace std;
 using namespace util;
 
 class LocalSimulatorAdapter : public AsyncSimulator, public Subject<LocalSimulatorAdapter> {
+
 public:
 	/// The constructor, this adapter will control one simulator
 	LocalSimulatorAdapter(Simulator* sim);
@@ -63,6 +66,7 @@ private:
 	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
 
 	friend class Coordinator;
+	friend class ClusterSaver;
 	friend class Saver;
 	friend class Loader;
 };

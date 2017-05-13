@@ -1,0 +1,253 @@
+<head>
+	<script src="../js/plotly-latest.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+</head>
+<body>
+	<div id="tester"></div>
+
+	<label id="input-1_label">Select File</label>
+	<input id="input-1" type="file" class="file" webkitdirectory directory>
+	<button onclick="previousDay()">Previous day</button>
+	<button onclick="nextDay()">Next day</button>
+</body>
+
+<script>
+	var currentDay = 0;
+	var id_coord_map = {
+		keys: [],
+		values: [],
+		getId: function(key) {
+
+			function myIndexOf(o, arr) {
+				for (var i = 0; i < arr.length; i++) {
+					if (arr[i].lat == o.lat && arr[i].long == o.long) {
+						return i;
+					}
+				}
+				return -1;
+			}
+
+			return this.values[myIndexOf(key, this.keys)];
+		}
+	};
+
+	var files = {
+		keys: [],
+		values: []
+	};	// file-text_of_file pairs
+
+	var inputElement = document.getElementById("input-1");
+
+	function getFileNumber(filename) {
+		var tmp = filename.split("_");
+		return parseInt(tmp[0]);
+	}
+
+	inputElement.onchange = function(event) {
+		var all_files = inputElement.files;
+
+		function searchFirstFile() {
+			var smallestNumber = getFileNumber(all_files[0].name);
+			var smallestNumberIndex = 0;
+
+			for (var i = 1; i < all_files.length; i++) {
+				var candidateNumber = getFileNumber(all_files[i].name);
+				if (smallestNumber > candidateNumber) {
+					smallestNumber = candidateNumber;
+					smallestNumberIndex = i;
+				}
+			}
+			currentDay = smallestNumber;
+			return smallestNumberIndex;
+		}
+
+		function readFile(fileNumber) {
+			if (fileNumber >= all_files.length) {
+				makeClusters(JSON.parse(files.values[searchFirstFile()]));
+				return;
+			}
+
+			(function(file) {
+				var reader = new FileReader();
+				reader.onloadend = function (evt) {
+					if (evt.target.readyState == FileReader.DONE) {
+						files.keys.push(file);
+						files.values.push(reader.result);
+					}
+					readFile(fileNumber + 1);
+				};
+				reader.readAsText(file);
+			}) (all_files[fileNumber]);
+		}
+
+		readFile(0);
+	}
+
+
+	function getClusterData(filename) {
+		$.ajax({
+			url: filename,
+			type:'GET',
+				success: function(data) {
+					makeClusters(JSON.parse(data));
+				},
+				error: function(context) {
+					alert("The given value is not valid.");
+			}
+		});
+	}
+	
+	function getSize(cluster_data) {
+	    var MIN_SIZE = 5;
+	    var MAX_SIZE = 120;
+	    var min_value = Number.MAX_VALUE;
+	    var max_value = Number.MIN_VALUE;
+    	for (var i in cluster_data.data.size_s) {
+		    if (cluster_data.data.size_s[i] > max_value) {
+		        max_value = cluster_data.data.size_s[i];
+		    }   
+		    if (cluster_data.data.size_s[i] < min_value) {
+		        min_value = cluster_data.data.size_s[i];
+		    }
+		};
+        var result = [];
+        
+        for (var i in cluster_data.data.size_s) {
+            result.push((cluster_data.data.size_s[i] - min_value)*(MAX_SIZE - MIN_SIZE)/(max_value - min_value) + MIN_SIZE);
+        };
+        return result;
+	};
+
+	function makeClusters(cluster_data) {
+		console.log("GOT ", JSON.stringify(cluster_data));
+
+		var myPlot = document.getElementById("tester");
+		Plotly.purge(myPlot);
+
+		var colorValues = [];
+
+		for (var i in cluster_data.data.infected_s) {
+			colorValues.push(cluster_data.data.infected_s[i] / cluster_data.data.size_s[i]);
+		}
+		
+		var sizeValues = [];
+		var maxSize = 0;
+		
+		for (var i in cluster_data.data.size_s) {
+		    if (cluster_data.data.size_s[i] > maxSize) {
+		        maxSize = cluster_data.data.size_s[i];
+		    }   
+		};
+		
+		for (var i in cluster_data.data.size_s) {
+		    sizeValues.push(cluster_data.data.size_s[i]); 
+		};
+		var data = [{
+			type:'scattergeo',
+			lon: cluster_data.data.long_s,
+			lat: cluster_data.data.lat_s,
+			hovertext: cluster_data.data.id_s,
+
+			mode: 'markers',
+			marker: {
+				size: getSize(cluster_data),	// TODO size based on population fraction
+//				sizeref: maxSize/70,
+				opacity: 0.8,
+				reversescale: false,
+				autocolorscale: false,
+				symbol: 'circle',
+				line: {
+					width: 0
+				},
+
+				colorscale: [
+				['0.0', 'rgb(0,255,0)'],	// TODO make customizable
+				[Number.MIN_VALUE, 'rgb(255,255,0)'],
+				['1.0', 'rgb(255,0,0)']
+				],
+
+				color: colorValues,
+				cmin: 0,
+				colorbar: {
+					title: 'Infected counts'
+				}
+			}
+		}];
+
+
+		var layout = {
+			title: 'Infected counts',
+			colorbar: true,
+			geo: {
+				scope: 'world',
+				resolution: 100,
+				projection: {
+					type: 'robinson'
+				},
+				showland: true,
+				landcolor: 'rgb(250,250,250)',
+				subunitcolor: 'rgb(217,217,217)',
+				countrycolor: 'rgb(217,217,217)',
+				countrywidth: 0.5,
+				subunitwidth: 0.5
+			},
+			width: 0.65 * window.innerWidth,
+			height: 0.65 * window.innerHeight
+		};
+
+		Plotly.plot("tester", data, layout, {showCountries: true});
+
+		// How to handle click events
+		myPlot.on('plotly_click', function(click_data){
+			// For some reason, the example had a for loop
+			for(var i=0; i < click_data.points.length; i++){
+				console.log("Clicked cluster with ID ",id_coord_map.getId({
+																			lat: click_data.points[i].lon,	// IMPORTANT, for some reason these values were swapped, i can't figure out why
+																			long: click_data.points[i].lat
+																		}));
+				console.log("CLICKED ", click_data.points[i].lat, " ", click_data.points[i].lon);
+
+			};
+		});
+		makeIDMap(cluster_data);
+	}
+
+	function makeIDMap(cluster_data) {
+		for (var i = 0; i < cluster_data.data.id_s.length; i++) {
+			console.log("ADDED ", cluster_data.data.lat_s[i], " ", cluster_data.data.long_s[i]);
+			var coord = {
+							lat: cluster_data.data.lat_s[i],
+							long: cluster_data.data.long_s[i]
+						}
+			id_coord_map.values.push(cluster_data.data.id_s[i]);
+			id_coord_map.keys.push(coord);
+		}
+	}
+
+	function searchFileIndex(number, arr) {
+		for (var i = 0; i < arr.length; i++) {
+			var candidateNumber = getFileNumber(arr[i].name);
+			if (number == candidateNumber) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	function nextDay() {
+		currentDay++;
+		var index = searchFileIndex(currentDay, files.keys); // TODO check for -1
+		console.log("INDEX ", index);
+		console.log("FOUND ", files.values[index]);
+		makeClusters(JSON.parse(files.values[index]));
+	}
+
+	function previousDay() {
+		currentDay--;
+		var index = searchFileIndex(currentDay, files.keys); // TODO check for -1
+		console.log("INDEX ", index);
+		console.log("FOUND ", files.values[index]);
+		makeClusters(JSON.parse(files.values[index]));
+	}
+
+</script>

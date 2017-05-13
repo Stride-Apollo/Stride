@@ -1,8 +1,8 @@
 #############################################################################
-#  This file is part of the Stride software. 
+#  This file is part of the Stride software.
 #  It is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by 
-#  the Free Software Foundation, either version 3 of the License, or any 
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or any
 #  later version.
 #  The software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,6 +29,11 @@ INSTALL( FILES ${DEPLOY_FILES} DESTINATION ${DATA_INSTALL_LOCATION} )
 #install( DIRECTORY config   DESTINATION  ${CONFIG_INSTALL_LOCATION}  )
 file(GLOB DEPLOY_FILES "config/*")
 INSTALL( FILES ${DEPLOY_FILES} DESTINATION ${CONFIG_INSTALL_LOCATION} )
+
+#============================================================================
+# Create an output directory to store visualisation files.
+#============================================================================
+INSTALL( DIRECTORY DESTINATION ${OUTPUT_INSTALL_LOCATION} )
 
 #============================================================================
 # Add subdirs:

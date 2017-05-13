@@ -44,6 +44,9 @@ public:
 	/// Utility method: get application installation root directory.
 	static boost::filesystem::path getRootDir();
 
+	/// Utility method: get the path to the output directory.
+	static boost::filesystem::path getOutputDir();
+
 private:
 	/// Check initialization.
 	static void check();
@@ -57,6 +60,7 @@ private:
 	static boost::filesystem::path g_data_dir;
 	static boost::filesystem::path g_exec_path;
 	static boost::filesystem::path g_root_dir;
+	static boost::filesystem::path g_output_dir;
 };
 
 }

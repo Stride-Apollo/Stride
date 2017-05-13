@@ -32,8 +32,10 @@
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
+#include <util/async.h>
 #include "util/TimeStamp.h"
 
+#include "vis/ClusterSaver.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <spdlog/spdlog.h>
 #include <memory>
@@ -119,20 +121,39 @@ void run_stride(bool track_index_case,
 		int frequency = checkpointing_frequency == -1 ?
 						pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
 		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
+		if (output_file == "") {
+			output_file = config_hdf5_file;
+		}
 		saver = std::make_shared<Saver>
 				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, simulator_run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
 		local_sim->registerObserver(saver, fnCaller);
+		auto classInstance = std::make_shared<ClusterSaver>("cluster_output");
+		std::function<void(const LocalSimulatorAdapter&)> fnCaller2 = std::bind(&ClusterSaver::update, classInstance, std::placeholders::_1);
+		local_sim->registerObserver(classInstance, fnCaller2);
 	}
+
+
+	// TODO add option to turn checkpointing on/off
+	auto ClusterSaver_instance = make_shared<ClusterSaver>("cluster_output");
+	auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
+	local_sim->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
 	cout << "Done adding the observers." << endl << endl;
 
 	// Run the simulation.
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
 	vector<unsigned int> cases(num_days);
+	Stopwatch<> run_clock("run_clock");
+
 	for (unsigned int i = 0; i < num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
-		//sim->timeStep();
-		coord.timeStep();
+		run_clock.start();
+
+		vector<future<bool>> fut_results;
+		fut_results.push_back(local_sim->timeStep());
+		future_pool(fut_results);
+
+		run_clock.stop();
 		cout << "     Done, infected count: ";
 		cases[i] = sim->getPopulation()->getInfectedCount();
 		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
@@ -149,18 +170,8 @@ void run_stride(bool track_index_case,
 	CasesFile cases_file(output_prefix);
 	cases_file.print(cases);
 
+	// No
 	// Summary
-	SummaryFile summary_file(output_prefix);
-	summary_file.print(pt_config,
-					   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
-					   duration_cast<milliseconds>(total_clock.get()).count(),
-					   duration_cast<milliseconds>(total_clock.get()).count());
-
-	// Persons ???
-	if (pt_config.get<double>("run.generate_person_file") == 1) {
-		PersonFile person_file(output_prefix);
-		person_file.print(sim->getPopulation());
-	}
 
 	// print final message to command line.
 	cout << endl << endl;

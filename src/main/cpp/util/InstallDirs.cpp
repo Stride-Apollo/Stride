@@ -43,6 +43,8 @@ path     InstallDirs::g_current_dir;
 path     InstallDirs::g_data_dir;
 path     InstallDirs::g_exec_path;
 path     InstallDirs::g_root_dir;
+path	 InstallDirs::g_output_dir;
+
 
 inline void InstallDirs::check() {
 	static bool initialized = false;
@@ -130,6 +132,11 @@ void InstallDirs::initialize() {
 	{
 		g_current_dir = system_complete(current_path());
 	}
+	//------- Output Dir
+	{
+		g_output_dir = g_root_dir / "output";
+		g_output_dir = is_directory(g_output_dir) ? g_output_dir : path();
+	}
 }
 
 path InstallDirs::getBinDir() {
@@ -155,6 +162,11 @@ path InstallDirs::getExecPath() {
 path InstallDirs::getRootDir() {
 	check();
 	return g_root_dir;
+}
+
+path InstallDirs::getOutputDir() {
+	check();
+	return g_output_dir;
 }
 
 }
