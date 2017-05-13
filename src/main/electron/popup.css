@@ -22,6 +22,10 @@ body {
 	margin-top: 30px;
 }
 
+#clusterInformation {
+	white-space: nowrap;
+}
+
 #questions {
 	display: inline-block;
 	margin-right: 10px;

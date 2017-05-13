@@ -18,48 +18,49 @@
 <p id="title">Cluster {{ID}}</p>
 
 <div id="graph"></div>
+<div id="clusterInformation">
+	<ul class="demo-list-item mdl-list" id="questions">
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Data for current simulated day: </span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Population Size: </span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Infected Persons: </span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Percentage Infected: </span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Cluster type: </span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Location: </span>
+		</li>
+	</ul>
 
-<ul class="demo-list-item mdl-list" id="questions">
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">Data for current simulated day: </span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">Population Size: </span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">Infected Persons: </span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">Percentage Infected: </span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">Cluster type: </span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">Location: </span>
-	</li>
-</ul>
-
-<ul class="demo-list-item mdl-list" id="answers">
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">{{currentDay}}</span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">{{size}}</span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">{{infected}}</span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">{{infected_percent}}</span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">{{cluster_type}}</span>
-	</li>
-	<li class="mdl-list__item">
-		<span class="mdl-list__item-primary-content">(latitude: {{lat}}, longitude: {{lon}})</span>
-	</li>
-</ul>
+	<ul class="demo-list-item mdl-list" id="answers">
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{currentDay}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{size}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{infected}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{infected_percent}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{cluster_type}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">(latitude: {{lat}}, longitude: {{lon}})</span>
+		</li>
+	</ul>
+</div>
 </body>
 
 </html>

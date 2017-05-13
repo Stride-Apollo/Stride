@@ -75,8 +75,12 @@ app.controller('ClusterController', ['$scope', '$location', function($scope, $lo
 
 	var data = [sizes,infected];
 
+	var plotWidth = 800;
+	var plotHeight = 450;
 	var layout = {
 		title: 'Cluster Evolution For Entire Simulation',
+		width: plotWidth,
+		height: plotHeight,
 		legend: {
 		y: 0.5,
 		traceorder: 'reversed',
@@ -103,9 +107,21 @@ app.controller('ClusterController', ['$scope', '$location', function($scope, $lo
 			window.requestAnimationFrame(function() {
 				document.getElementsByClassName("main-svg")[0].style = "";
 				resizeWindow();
+
+				document.getElementById("graph").style="margin: auto; width: " + plotWidth + "px; height: " + plotHeight + "px;";
+
+				document.getElementById("graph").innerWidth = plotWidth;
+				document.getElementById("graph").innerHeight = plotHeight;
+				document.getElementById("graph").margin = "auto";
 			});
 		});
 	});
+
+	document.getElementById("graph").on('plotly_relayout',
+    function(eventdata){  
+        document.getElementsByClassName("main-svg")[0].style = "";
+    });
+
 }]);
 
 function resizeWindow() {
