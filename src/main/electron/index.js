@@ -62,8 +62,8 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		addClass(document.getElementById("opacitySlider"), "is-upgraded");
 
 		updateSlider("opacitySlider", $scope.opacity);
-		updateSlider("zoomedMinSlider", $scope.unzoomed_min/10);
-		updateSlider("zoomedMaxSlider", $scope.unzoomed_max/10);
+		updateSlider("zoomedMinSlider", $scope.unzoomed_min/9);
+		updateSlider("zoomedMaxSlider", ($scope.unzoomed_max-1)/9);
 		updateSlider("speedSlider", $scope.animation_speed/5000);
 		componentHandler.upgradeDom();
 		return config;
@@ -199,16 +199,16 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			$scope.rewindSimulation();
 		}
 	});
-	$scope.$watch('[no_infected_color, min_infected_color, max_infected_color, opacity, unzoomed_min, unzoomed_max]', updatePaint, true);
 
 	// TODO Make this better!
 	$scope.$watch('[unzoomed_min, unzoomed_max]', function() {
 		if ($scope.unzoomed_max <= $scope.unzoomed_min) {
 			$scope.unzoomed_max = $scope.unzoomed_min+1;
-			updateSlider("zoomedMinSlider", $scope.unzoomed_min/10);
-			updateSlider("zoomedMaxSlider", $scope.unzoomed_max/10);
+			updateSlider("zoomedMinSlider", $scope.unzoomed_min/9);
+			updateSlider("zoomedMaxSlider", ($scope.unzoomed_max-1)/9);
 		}
 	}, true);
+	$scope.$watch('[no_infected_color, min_infected_color, max_infected_color, opacity, unzoomed_min, unzoomed_max]', updatePaint, true);
 
 	function makeClusters(cluster_data) {
 		$scope.cluster_data = cluster_data;
