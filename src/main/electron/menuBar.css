@@ -41,6 +41,7 @@
 #conf_drawer.expanded {
 	left: 80%;
 	transition: left 0.5s;
+	overflow: auto;
 }
 
 .settingSection {
@@ -105,4 +106,8 @@ table {
 
 .fullWidthBtn {
 	width: 100%;
+}
+
+::-webkit-scrollbar { 
+    display: none; 
 }

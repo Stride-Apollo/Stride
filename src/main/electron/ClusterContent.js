@@ -81,47 +81,24 @@ app.controller('ClusterController', ['$scope', '$location', function($scope, $lo
 		title: 'Cluster Evolution For Entire Simulation',
 		width: plotWidth,
 		height: plotHeight,
+		paper_bgcolor: "rgba(255,0,0,0)",
+		plot_bgcolor: "rgba(255,0,0,0)",
 		legend: {
 		y: 0.5,
 		traceorder: 'reversed',
 		font: {size: 16},
-		yref: 'paper',
-
-		scene:{
-	xaxis: {
-	 backgroundcolor: "rgb(255,0,0)",
-	 showbackground: true,
-	}, 
-    yaxis: {
-     backgroundcolor: "rgb(255,0,0)",
-     showbackground: true,
-    }, 
-    zaxis: {
-     backgroundcolor: "rgb(255,0,0)",
-     showbackground: true,
-    }}
+		yref: 'paper'
 	}};
 
 	Plotly.newPlot('graph', data, layout).then(function() {
 		window.requestAnimationFrame(function() {
 			window.requestAnimationFrame(function() {
-				document.getElementsByClassName("main-svg")[0].style = "";
 				resizeWindow();
 
 				document.getElementById("graph").style="margin: auto; width: " + plotWidth + "px; height: " + plotHeight + "px;";
-
-				document.getElementById("graph").innerWidth = plotWidth;
-				document.getElementById("graph").innerHeight = plotHeight;
-				document.getElementById("graph").margin = "auto";
 			});
 		});
 	});
-
-	document.getElementById("graph").on('plotly_relayout',
-    function(eventdata){  
-        document.getElementsByClassName("main-svg")[0].style = "";
-    });
-
 }]);
 
 function resizeWindow() {
