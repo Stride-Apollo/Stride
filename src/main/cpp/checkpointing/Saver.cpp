@@ -88,7 +88,6 @@ void Saver::saveTimestep(const Simulator& sim) {
 		if (m_current_step == 0) {
 			this->savePersonTIData(file, sim);
 		}
-		this->saveTimestepMetadata(file, m_save_count, m_current_step);
 
 		stringstream ss;
 		ss << "/Timestep_" << m_timestep;
@@ -113,6 +112,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 		// dims[0] = sim.getPopulation().get()->m_visitors.size();
 		// CompType typeTravellerData(sizeof(TravellerDataType));
 
+		this->saveTimestepMetadata(file, m_save_count, m_current_step);
 		m_timestep += m_frequency;
 		file.close();
 	} catch (GroupIException& error) {
