@@ -58,6 +58,23 @@ void run_stride(bool track_index_case,
 				const int checkpointing_frequency,
 				const unsigned int timestamp_replay) {
 
+	// Special case for extract mode -> don't run the simulator, just extract the config file.
+	if (simulator_run_mode == "extract") {
+		bool hdf5_file_exists = exists(system_complete(hdf5_file_name));
+		if (!hdf5_file_exists) {
+			throw runtime_error(string(__func__) + "> Hdf5 file " +
+			system_complete(hdf5_file_name).string() + " does not exist.");
+		}
+
+		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
+		if (!is_regular_file(file_path_hdf5)) {
+			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
+		}
+
+		Loader::extractConfigs(file_path_hdf5.string());
+		return;
+	}
+
 	cout << "Loading configuration" << endl;
 	SimulatorSetup setup = SimulatorSetup(simulator_run_mode, config_file_name, hdf5_file_name, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
@@ -82,22 +99,6 @@ void run_stride(bool track_index_case,
 	// Create simulator.
 	Stopwatch<> total_clock("total_clock", true);
 
-	// Special case for extract mode -> don't run the simulator, just extract the config file.
-	if (simulator_run_mode == "extract") {
-		bool hdf5_file_exists = exists(system_complete(hdf5_file_name));
-		if (!hdf5_file_exists) {
-			throw runtime_error(string(__func__) + "> Hdf5 file " +
-								system_complete(hdf5_file_name).string() + " does not exist.");
-		}
-
-		const auto file_path_hdf5 = canonical(system_complete(hdf5_file_name));
-		if (!is_regular_file(file_path_hdf5)) {
-			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
-		}
-
-		Loader loader(file_path_hdf5.string().c_str());
-		return;
-	}
 
 	cout << "Building the simulator." << endl << endl;
 

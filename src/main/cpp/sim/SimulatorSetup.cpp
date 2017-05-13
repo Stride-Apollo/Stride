@@ -14,7 +14,7 @@ namespace stride {
 
 SimulatorSetup::SimulatorSetup(string simulator_mode, string conf_file,
 							   string hdf5_file, int num_threads, bool track_index_case, const unsigned int timestamp_replay)
-	: m_simulator_mode(simulator_mode), m_conf_file(conf_file), m_hdf5_file(hdf5_file), m_num_threads(num_threads), 
+	: m_simulator_mode(simulator_mode), m_conf_file(conf_file), m_hdf5_file(hdf5_file), m_num_threads(num_threads),
 	  m_timestamp_replay(timestamp_replay), m_track_index_case(track_index_case) {
 
 	m_conf_file_exists = fileExists(m_conf_file);
@@ -25,7 +25,7 @@ SimulatorSetup::SimulatorSetup(string simulator_mode, string conf_file,
 	} else if (m_simulator_mode == "extend" || m_simulator_mode == "replay") {
 		this->constructConfigTreeExtend();
 	} else {
-		throw runtime_error(string(__func__) + "> " 
+		throw runtime_error(string(__func__) + "> "
 			+ m_simulator_mode + " is not a valid/supported simulator mode.");
 	}
 }
@@ -47,7 +47,7 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() const {
 			m_timestamp_replay = 0;
 			return SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
 		}
-	} else if (m_simulator_mode == "extend") {
+	} else if (m_simulator_mode == "extend" || m_simulator_mode == "replay") {
 		// Build the simulator and adjust it to the most recent saved checkpoint in the hdf5 file.
 		const auto file_path_hdf5 = canonical(system_complete(m_hdf5_file));
 		if (!is_regular_file(file_path_hdf5)) {
@@ -56,23 +56,16 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() const {
 
 		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
 		auto sim = SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
-		loader.extendSimulation(sim);
-		m_timestamp_replay = loader.getLastSavedTimestep();
-		return sim;
-	} else if (m_simulator_mode == "replay") {
-		// Build the simulator and adjust it to the speicified checkpoint in the hdf5 file.
-		const auto file_path_hdf5 = canonical(system_complete(m_hdf5_file));
-		if (!is_regular_file(file_path_hdf5)) {
-			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
+		if (m_simulator_mode == "extend") {
+			loader.extendSimulation(sim);
+			m_timestamp_replay = loader.getLastSavedTimestep();
+		} else {
+			loader.loadFromTimestep(m_timestamp_replay, sim);
 		}
-
-		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-		auto sim = SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
-		loader.loadFromTimestep(m_timestamp_replay, sim);
 		return sim;
 	} else {
 		// Should not be able to get here (runtime error in constructor), but you never know.
-		throw runtime_error(string(__func__) + "> " 
+		throw runtime_error(string(__func__) + "> "
 			+ m_simulator_mode + " is not a valid/supported simulator mode.");
 	}
 }
@@ -99,7 +92,7 @@ void SimulatorSetup::constructConfigTreeInitial() {
 			throw runtime_error(string(__func__) + "> Hdf5 file is not a regular file.");
 		}
 		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-		m_pt_config = loader.getConfig();	
+		m_pt_config = loader.getConfig();
 		m_track_index_case = loader.getTrackIndexCase();
 	}
 
@@ -112,8 +105,8 @@ void SimulatorSetup::constructConfigTreeInitial() {
 void SimulatorSetup::constructConfigTreeExtend() {
 	// Get the config tree from the Hdf5 file.
 	if (!m_hdf5_file_exists) {
-		throw runtime_error(string(__func__) + "> Hdf5 file " + 
-							system_complete(m_hdf5_file).string() + " does not exist.");
+		throw runtime_error(string(__func__) + "> Hdf5 file " +
+			system_complete(m_hdf5_file).string() + " does not exist.");
 	}
 
 	const auto file_path_hdf5 = canonical(system_complete(m_hdf5_file));

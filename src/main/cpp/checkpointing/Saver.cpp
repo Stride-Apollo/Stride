@@ -16,7 +16,6 @@
 #include "checkpointing/customDataTypes/ConfDataType.h"
 #include "checkpointing/customDataTypes/PersonTDDataType.h"
 #include "checkpointing/customDataTypes/PersonTIDataType.h"
-#include "checkpointing/customDataTypes/RNGDataType.h"
 // #include "checkpointing/customDataTypes/TravellerDataType.h"
 
 #include <vector>
@@ -24,10 +23,11 @@
 using namespace H5;
 using namespace stride::util;
 using namespace boost::filesystem;
+using std::string;
 
 namespace stride {
 
-Saver::Saver(std::string filename, ptree pt_config, int frequency, bool track_index_case, std::string simulator_run_mode, int start_timestep)
+Saver::Saver(string filename, ptree pt_config, int frequency, bool track_index_case, string simulator_run_mode, int start_timestep)
 	: m_filename(filename), m_frequency(frequency),
 	  m_pt_config(pt_config), m_current_step(start_timestep - 1),
 	  m_timestep(start_timestep), m_save_count(0) {
@@ -35,17 +35,17 @@ Saver::Saver(std::string filename, ptree pt_config, int frequency, bool track_in
 	// Check if the simulator is run in extend mode and not from timestep 0
 	if (start_timestep != 0 && simulator_run_mode == "extend") {
 		// If the hdf5 file already exists, append the data, otherwise still run the whole constructor
-		if (exists(system_complete(std::string(filename)))) {
+		if (exists(system_complete(string(filename)))) {
 
 			// Adjust the amount of saved timesteps
 			H5File file(m_filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
-			DataSet* dataset = new DataSet(file.openDataSet("amt_timesteps"));
+			DataSet dataset = DataSet(file.openDataSet("amt_timesteps"));
 			unsigned int data[1];
-			dataset->read(data, PredType::NATIVE_UINT);
-			dataset->close();
+			dataset.read(data, PredType::NATIVE_UINT);
+			dataset.close();
 			file.close();
 
-			m_save_count = 	data[0];
+			m_save_count = data[0];
 			return;
 		}
 	}
@@ -57,107 +57,79 @@ Saver::Saver(std::string filename, ptree pt_config, int frequency, bool track_in
 		dims[0] = 1;
 		Group group(file.createGroup("/configuration"));
 
-		DataSpace* dataspace = new DataSpace(1, dims);
+		DataSpace dataspace = DataSpace(1, dims);
 
-		CompType typeConfData(sizeof(ConfDataType));
-		StrType tid1(0, H5T_VARIABLE);
-		typeConfData.insertMember(H5std_string("conf_content"), HOFFSET(ConfDataType, conf_content), tid1);
-		typeConfData.insertMember(H5std_string("disease_content"), HOFFSET(ConfDataType, disease_content), tid1);
-		typeConfData.insertMember(H5std_string("age_contact_content"), HOFFSET(ConfDataType, age_contact_content), tid1);
-		typeConfData.insertMember(H5std_string("holidays_content"), HOFFSET(ConfDataType, holidays_content), tid1);
-		DataSet* dataset = new DataSet(group.createDataSet(H5std_string("configuration"), typeConfData, *dataspace));
+		CompType type_conf_data = ConfDataType::getCompType();
+		DataSet dataset = DataSet(group.createDataSet(H5std_string("configuration"), type_conf_data, dataspace));
+
 		std::ostringstream oss;
 		boost::property_tree::xml_parser::write_xml(oss, pt_config);
-		std::string conf_xml = oss.str();
+		string conf_xml = oss.str();
+		oss.clear();
 		ConfDataType configData[1];
-
 		configData[0].conf_content = conf_xml.c_str();
-		const auto file_name_d {m_pt_config.get<std::string>("run.disease_config_file")};
+
+
+		const auto file_name_d {m_pt_config.get<string>("run.disease_config_file")};
 		const auto file_path_d {InstallDirs::getDataDir() /= file_name_d};
 		if (!is_regular_file(file_path_d)) {
-			throw std::runtime_error(std::string(__func__) + "> No file " + file_path_d.string());
+			throw std::runtime_error(string(__func__) + "> No file " + file_path_d.string());
 		}
 		ptree temp;
 		xml_parser::read_xml(file_path_d.string(), temp);
-		std::ostringstream oss2;
-		xml_parser::write_xml(oss2, temp);
-		std::string xml = oss2.str();
+		xml_parser::write_xml(oss, temp);
+		string xml = oss.str();
+		oss.str("");
 		configData[0].disease_content = xml.c_str();
-		std::string filepath = pt_config.get<std::string>("run.holidays_file");
-		const auto file_name_c {m_pt_config.get<std::string>("run.holidays_file")};
+
+
+		const auto file_name_c {m_pt_config.get<string>("run.holidays_file")};
 		const auto file_path_c {InstallDirs::getDataDir() /= file_name_c};
 		if (!is_regular_file(file_path_c)) {
-			throw std::runtime_error(std::string(__func__) + "> No file " + file_path_c.string());
+			throw std::runtime_error(string(__func__) + "> No file " + file_path_c.string());
 		}
-
 		json_parser::read_json(file_path_c.string(), temp);
-		std::ostringstream oss3;
-		json_parser::write_json(oss3, temp);
-		std::string json = oss3.str();
+		json_parser::write_json(oss, temp);
+		string json = oss.str();
+		oss.str("");
 		configData[0].holidays_content = json.c_str();
-		const auto file_name_a {m_pt_config.get<std::string>("run.age_contact_matrix_file")};
+
+
+		const auto file_name_a {m_pt_config.get<string>("run.age_contact_matrix_file")};
 		const auto file_path_a {InstallDirs::getDataDir() /= file_name_a};
 		if (!is_regular_file(file_path_a)) {
-			throw std::runtime_error(std::string(__func__) + "> No file " + file_path_a.string());
+			throw std::runtime_error(string(__func__) + "> No file " + file_path_a.string());
 		}
 		xml_parser::read_xml(file_path_a.string(), temp);
-		std::ostringstream oss4;
-		xml_parser::write_xml(oss4, temp);
-		std::string age_xml = oss4.str();
-		configData[0].age_contact_content = age_xml.c_str();
-		/*const auto file_name_p {m_pt_config.get<std::string>("run.population_file")};
-		const auto file_path_p {InstallDirs::getDataDir() /= file_name_p};
-		if (!is_regular_file(file_path_p)) {
-			throw std::runtime_error(std::string(__func__) + "> No file " + file_path_p.string());
-		}
-		xml_parser::read_xml(file_path_p.string(), temp);
-		oss.str("");
 		xml_parser::write_xml(oss, temp);
-		xml = oss.str();
-		configData[0].population_content = xml.c_str();
+		string age_xml = oss.str();
+		oss.str("");
+		configData[0].age_contact_content = age_xml.c_str();
 
-		std::cout << configData[0].holidays_content;*/
-		//std::cout << "CONF CONTENT: " << configData[0].conf_content << std::endl;
-		//std::cout << "DISEASE CONTENT: " << configData[0].disease_content << std::endl;
-		//std::cout << "HOLIDAYS CONTENT: " << configData[0].holidays_content << std::endl;
-		//std::cout << "AGE CONTENT: " << configData[0].age_contact_content << std::endl;
+		dataset.write(configData, type_conf_data);
 
-		dataset->write(configData, typeConfData);
-		delete dataspace;
-		delete dataset;
-
-		// TODO amt_ages
-		/*hsize_t dims2[2];
-		dims2[0] = 5;
-		dims2[1] = 5;
-		dataspace = new DataSpace(2, dims2);
-		dataset = new DataSet(group.createDataSet("agecontact", PredType::NATIVE_DOUBLE, *dataspace));
-
-		delete dataspace;
-		delete dataset;*/
-
-		dataspace = new DataSpace(1, dims);
+		dataspace = DataSpace(1, dims);
 		unsigned int amt_time[1] = {0};
-		dataset = new DataSet(file.createDataSet("amt_timesteps", PredType::NATIVE_UINT, *dataspace));
-		dataset->write(amt_time, PredType::NATIVE_UINT);
+		dataset = DataSet(file.createDataSet("amt_timesteps", PredType::NATIVE_UINT, dataspace));
+		dataset.write(amt_time, PredType::NATIVE_UINT);
+		dataset.close();
+		dataspace.close();
 
-		delete dataspace;
-		delete dataset;
 
-		dataspace = new DataSpace(1, dims);
+		dataspace = DataSpace(1, dims);
 		unsigned int last_timestep[1] = {0};
-		dataset = new DataSet(file.createDataSet("last_timestep", PredType::NATIVE_UINT, *dataspace));
-		dataset->write(last_timestep, PredType::NATIVE_UINT);
+		dataset = DataSet(file.createDataSet("last_timestep", PredType::NATIVE_UINT, dataspace));
+		dataset.write(last_timestep, PredType::NATIVE_UINT);
+		dataset.close();
+		dataspace.close();
 
-		delete dataspace;
-		delete dataset;
 
-		dataspace = new DataSpace(1, dims);
-		dataset = new DataSet(file.createDataSet("track_index_case", PredType::NATIVE_INT, *dataspace));
+		dataspace = DataSpace(1, dims);
+		dataset = DataSet(file.createDataSet("track_index_case", PredType::NATIVE_INT, dataspace));
 		bool track[1] = {track_index_case};
-		dataset->write(track, PredType::NATIVE_INT);
-		dataset->close();
-		dataspace->close();
+		dataset.write(track, PredType::NATIVE_INT);
+		dataset.close();
+		dataspace.close();
 		file.close();
 	} catch(FileIException error) {
 		error.printError();
@@ -190,26 +162,10 @@ void Saver::saveTimestep(const Simulator& sim) {
 		if (m_current_step == 0) {
 			// Save Person Time Independent
 			hsize_t dims[1] = {sim.getPopulation().get()->m_original.size()};
-			CompType typePersonTI(sizeof(PersonTIDataType));
-			typePersonTI.insertMember(H5std_string("ID"), HOFFSET(PersonTIDataType, ID), PredType::NATIVE_UINT);
-			typePersonTI.insertMember(H5std_string("age"), HOFFSET(PersonTIDataType, age), PredType::NATIVE_DOUBLE);
-			typePersonTI.insertMember(H5std_string("gender"), HOFFSET(PersonTIDataType, gender), PredType::NATIVE_CHAR);
-			typePersonTI.insertMember(H5std_string("household_ID"), HOFFSET(PersonTIDataType, household_ID), PredType::NATIVE_UINT);
-			typePersonTI.insertMember(H5std_string("school_ID"), HOFFSET(PersonTIDataType, school_ID), PredType::NATIVE_UINT);
-			typePersonTI.insertMember(H5std_string("work_ID"), HOFFSET(PersonTIDataType, work_ID), PredType::NATIVE_UINT);
-			typePersonTI.insertMember(H5std_string("prim_comm_ID"), HOFFSET(PersonTIDataType, prim_comm_ID), PredType::NATIVE_UINT);
-			typePersonTI.insertMember(H5std_string("sec_comm_ID"), HOFFSET(PersonTIDataType, sec_comm_ID), PredType::NATIVE_UINT);
-			typePersonTI.insertMember(H5std_string("start_infectiousness"),
-									  HOFFSET(PersonTIDataType, start_infectiousness), PredType::NATIVE_UINT);
-			typePersonTI.insertMember(H5std_string("time_infectiousness"),
-									  HOFFSET(PersonTIDataType, time_infectiousness), PredType::NATIVE_UINT);
-			typePersonTI.insertMember(H5std_string("start_symptomatic"),
-									  HOFFSET(PersonTIDataType, start_symptomatic), PredType::NATIVE_UINT);
-			typePersonTI.insertMember(H5std_string("time_symptomatic"),
-									  HOFFSET(PersonTIDataType, time_symptomatic), PredType::NATIVE_UINT);
+			CompType type_person_TI = PersonTIDataType::getCompType();
 
-			DataSpace* dataspace = new DataSpace(1, dims);
-			DataSet* dataset = new DataSet(file.createDataSet("personsTI", typePersonTI, *dataspace));
+			DataSpace dataspace = DataSpace(1, dims);
+			DataSet dataset = DataSet(file.createDataSet("personsTI", type_person_TI, dataspace));
 
 			// Persons are saved per chunk
 			unsigned int i = 0;
@@ -242,20 +198,16 @@ void Saver::saveTimestep(const Simulator& sim) {
 				}
 
 				// Select a hyperslab in the dataset.
-				DataSpace *filespace = new DataSpace(dataset->getSpace ());
+				DataSpace filespace = DataSpace(dataset.getSpace());
 				hsize_t offset[1] = {i-selected_dims[0]};
-				filespace->selectHyperslab(H5S_SELECT_SET, selected_dims, offset);
+				filespace.selectHyperslab(H5S_SELECT_SET, selected_dims, offset);
 
 				// Define memory space.
-				DataSpace *memspace = new DataSpace(1, selected_dims, NULL);
+				DataSpace memspace = DataSpace(1, selected_dims, NULL);
 
 				// Write data to the selected portion of the dataset.
-				dataset->write(personData, typePersonTI, *memspace, *filespace);
-				delete filespace;
-				delete memspace;
+				dataset.write(personData, type_person_TI, memspace, filespace);
 			}
-			delete dataspace;
-			delete dataset;
 		}
 
 
@@ -272,59 +224,47 @@ void Saver::saveTimestep(const Simulator& sim) {
 		last_timestepset.write(last_timestep, PredType::NATIVE_UINT);
 		last_timestepset.close();
 
-		std::stringstream ss;
+		stringstream ss;
 		ss << "/Timestep_" << m_timestep;
 
 		Group group(file.createGroup(ss.str()));
 
 
-		// Save Random Number Generator
-		hsize_t dims[1] = {sim.m_num_threads};
-		// dims[0] = sim.m_num_threads;
+		auto saveRngState = [](Group& group, const Simulator& sim) {
+			hsize_t dims[1] = {1};
+			DataSpace dataspace = DataSpace(1, dims);
 
-		DataSpace* dataspace = new DataSpace(1, dims);
-		CompType typeRng(sizeof(RNGDataType));
-		StrType tid1(0, H5T_VARIABLE);
-		typeRng.insertMember(H5std_string("rng_state"), HOFFSET(RNGDataType, rng_state), tid1);
-		DataSet* dataset = new DataSet(group.createDataSet("randomgen", typeRng, *dataspace));
+			StrType str_type(0, H5T_VARIABLE);
+			DataSet dataset = DataSet(group.createDataSet("randomgen", str_type, dataspace));
+			stringstream ss;
+			ss << *sim.m_rng;
+			string rng_state[1] = {ss.str()};
+			dataset.write(rng_state, str_type);
+			dataset.close();
+		};
 
-		RNGDataType* rngs = new RNGDataType[dims[0]];
-		std::vector<std::string> rng_states = sim.getRngStates();
-		// std::cout << std::endl;
-		for (unsigned int i = 0; i < rng_states.size(); i++) {
-			std::string str = rng_states[i];
-			(rngs + i)->rng_state = str.c_str();
+		if (sim.m_rng != nullptr) {
+			saveRngState(group, sim);
 		}
-		// std::cout << std::endl;
-		// for (unsigned int i = 0; i < sim.m_rng_handler.size(); i++) {
-		// 	std::cout << "Saved: " << rngs[i].rng_state << std::endl;
-		// }
-		dataset->write(rngs, typeRng);
 
-		delete dataspace;
-		delete dataset;
-		delete[] rngs;
 
 
 		// Save Calendar
+
+		hsize_t dims[1];
 		dims[0] = 1;
-		CompType typeCalendar(sizeof(CalendarDataType));
-		typeCalendar.insertMember(H5std_string("day"), HOFFSET(CalendarDataType, day), PredType::NATIVE_HSIZE);
-		typeCalendar.insertMember(H5std_string("date"), HOFFSET(CalendarDataType, date), tid1);
-		dataspace = new DataSpace(1, dims);
-		dataset = new DataSet(group.createDataSet("Calendar", typeCalendar, *dataspace));
+		CompType typeCalendar = CalendarDataType::getCompType();
+		DataSpace dataspace = DataSpace(1, dims);
+		DataSet dataset = DataSet(group.createDataSet("Calendar", typeCalendar, dataspace));
 
 		CalendarDataType calendar[1];
 		calendar[0].day = sim.m_calendar->getSimulationDay();
 		ss.str("");
 		ss.clear();
 		ss << sim.m_calendar->getYear() << "-" << sim.m_calendar->getMonth() << "-" << sim.m_calendar->getDay();
-		std::string save_date = ss.str();
+		string save_date = ss.str();
 		calendar[0].date = save_date.c_str();
-		dataset->write(calendar, typeCalendar);
-
-		delete dataspace;
-		delete dataset;
+		dataset.write(calendar, typeCalendar);
 
 
 		// Save Traveller Person Data
@@ -349,30 +289,14 @@ void Saver::saveTimestep(const Simulator& sim) {
 
 		// Save Person Time Dependent
 		dims[0] = sim.getPopulation().get()->m_original.size();
-		CompType typePersonTD(sizeof(PersonTDDataType));
-		typePersonTD.insertMember(H5std_string("at_household"),
-								  HOFFSET(PersonTDDataType, at_household), PredType::NATIVE_HBOOL);
-		typePersonTD.insertMember(H5std_string("at_school"),
-								  HOFFSET(PersonTDDataType, at_school), PredType::NATIVE_HBOOL);
-		typePersonTD.insertMember(H5std_string("at_work"),
-								  HOFFSET(PersonTDDataType, at_work), PredType::NATIVE_HBOOL);
-		typePersonTD.insertMember(H5std_string("at_prim_comm"),
-								  HOFFSET(PersonTDDataType, at_prim_comm), PredType::NATIVE_HBOOL);
-		typePersonTD.insertMember(H5std_string("at_sec_comm"),
-								  HOFFSET(PersonTDDataType, at_sec_comm), PredType::NATIVE_HBOOL);
-		typePersonTD.insertMember(H5std_string("participant"),
-								  HOFFSET(PersonTDDataType, participant), PredType::NATIVE_HBOOL);
-		typePersonTD.insertMember(H5std_string("health_status"),
-								  HOFFSET(PersonTDDataType, health_status), PredType::NATIVE_UINT);
-		typePersonTD.insertMember(H5std_string("disease_counter"),
-								  HOFFSET(PersonTDDataType, disease_counter), PredType::NATIVE_UINT);
+		CompType type_person_TD = PersonTDDataType::getCompType();
 
 		// Dataspace can fit all persons but is chunked in parts of 100 persons
-		dataspace = new DataSpace(1, dims);
-		DSetCreatPropList  *plist = new  DSetCreatPropList;
+		dataspace = DataSpace(1, dims);
+		DSetCreatPropList plist = DSetCreatPropList();
 		hsize_t chunk_dims[1] = {40000};
-		plist->setChunk(1, chunk_dims);
-		dataset = new DataSet(group.createDataSet("PersonTD", typePersonTD, *dataspace, *plist));
+		plist.setChunk(1, chunk_dims);
+		dataset = DataSet(group.createDataSet("PersonTD", type_person_TD, dataspace, plist));
 
 		// Persons are saved per chunk
 		unsigned int i = 0;
@@ -384,36 +308,33 @@ void Saver::saveTimestep(const Simulator& sim) {
 				selected_dims[0] = dims[0] - i;
 			}
 
-			PersonTDDataType personData[selected_dims[0]];
+			PersonTDDataType person_data[selected_dims[0]];
 			for (unsigned int j = 0; j < selected_dims[0]; j++) {
-				personData[j].at_household = sim.getPopulation().get()->m_original.at(i).m_at_household;
-				personData[j].at_school = sim.getPopulation().get()->m_original.at(i).m_at_school;
-				personData[j].at_work = sim.getPopulation().get()->m_original.at(i).m_at_work;
-				personData[j].at_prim_comm = sim.getPopulation().get()->m_original.at(i).m_at_primary_community;
-				personData[j].at_sec_comm = sim.getPopulation().get()->m_original.at(i).m_at_secondary_community;
-				personData[j].participant = sim.getPopulation().get()->m_original.at(i).m_is_participant;
-				personData[j].health_status = (unsigned int) sim.getPopulation().get()->m_original.at(i).m_health.getHealthStatus();
-				personData[j].disease_counter = (unsigned int) sim.getPopulation().get()->m_original.at(i).m_health.getDiseaseCounter();
+				person_data[j].at_household = sim.getPopulation().get()->m_original.at(i).m_at_household;
+				person_data[j].at_school = sim.getPopulation().get()->m_original.at(i).m_at_school;
+				person_data[j].at_work = sim.getPopulation().get()->m_original.at(i).m_at_work;
+				person_data[j].at_prim_comm = sim.getPopulation().get()->m_original.at(i).m_at_primary_community;
+				person_data[j].at_sec_comm = sim.getPopulation().get()->m_original.at(i).m_at_secondary_community;
+				person_data[j].participant = sim.getPopulation().get()->m_original.at(i).m_is_participant;
+				person_data[j].health_status = (unsigned int) sim.getPopulation().get()->m_original.at(i).m_health.getHealthStatus();
+				person_data[j].disease_counter = (unsigned int) sim.getPopulation().get()->m_original.at(i).m_health.getDiseaseCounter();
 				i++;
 			}
 
 			// Select a hyperslab in the dataset.
-			DataSpace *filespace = new DataSpace(dataset->getSpace ());
+			DataSpace filespace = DataSpace(dataset.getSpace());
 			hsize_t offset[1] = {i-selected_dims[0]};
-			filespace->selectHyperslab(H5S_SELECT_SET, selected_dims, offset);
+			filespace.selectHyperslab(H5S_SELECT_SET, selected_dims, offset);
 
 			// Define memory space.
-			DataSpace *memspace = new DataSpace(1, selected_dims, NULL);
+			DataSpace memspace = DataSpace(1, selected_dims, NULL);
 
 			// Write data to the selected portion of the dataset.
-			dataset->write(personData, typePersonTD, *memspace, *filespace);
-			delete filespace;
-			delete memspace;
+			dataset.write(person_data, type_person_TD, memspace, filespace);
 		}
 
-		dataspace->close();
-		dataset->close();
-		delete plist;
+		dataspace.close();
+		dataset.close();
 		m_timestep += m_frequency;
 		file.close();
 	} catch (GroupIException& error) {
@@ -440,7 +361,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 	return;
 }
 
-void Saver::saveClusters(Group& group, std::string dataset_name, const vector<Cluster>& clusters) {
+void Saver::saveClusters(Group& group, string dataset_name, const vector<Cluster>& clusters) {
 	auto getAmtIds = [&]() {
 		unsigned int amt = 0;
 		for (unsigned int i = 0; i < clusters.size(); i++) amt += clusters.at(i).getSize();
@@ -450,8 +371,8 @@ void Saver::saveClusters(Group& group, std::string dataset_name, const vector<Cl
 
 	const unsigned int ndims_clusters = 1;
 	hsize_t dims_clusters[ndims_clusters] = {amtIds};
-	DataSpace* dataspace_clusters = new DataSpace(ndims_clusters, dims_clusters);
-	DataSet* dataset_clusters = new DataSet(group.createDataSet(H5std_string(dataset_name), PredType::NATIVE_UINT, *dataspace_clusters));
+	DataSpace dataspace_clusters = DataSpace(ndims_clusters, dims_clusters);
+	DataSet dataset_clusters = DataSet(group.createDataSet(H5std_string(dataset_name), PredType::NATIVE_UINT, dataspace_clusters));
 
 	unsigned int cluster_data[amtIds];
 	unsigned int index = 0;
@@ -460,11 +381,9 @@ void Saver::saveClusters(Group& group, std::string dataset_name, const vector<Cl
 			cluster_data[index++] = clusters.at(i).m_members.at(j).first->m_id;
 		}
 	}
-	dataset_clusters->write(cluster_data, PredType::NATIVE_UINT);
-	dataspace_clusters->close();
-	dataset_clusters->close();
-	delete dataspace_clusters;
-	delete dataset_clusters;
+	dataset_clusters.write(cluster_data, PredType::NATIVE_UINT);
+	dataspace_clusters.close();
+	dataset_clusters.close();
 }
 
 

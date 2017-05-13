@@ -12,8 +12,9 @@
 #include <gtest/gtest.h>
 #include <boost/property_tree/ptree.hpp>
 
-#include <string>
+#include <cmath>
 #include <iostream>
+#include <string>
 
 using namespace std;
 using namespace stride;
@@ -25,31 +26,34 @@ namespace Tests {
 class UnitTests__HDF5 : public Hdf5Base {};
 
 /**
- *	Test case that checks the amount of timestaps created in the H5 file,
- *		using checkpointing frequency = 1.
+ *	Test case that checks the amount of timestaps created in the H5 file.
  */
 
-TEST_P(UnitTests__HDF5, AmtCheckpoints1) {
-	unsigned int num_threads = GetParam();
+TEST_P(UnitTests__HDF5, AmtCheckpoints) {
+	unsigned int checkpointing_frequency = GetParam();
 
 	unsigned int num_days = 10;
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 	pt_config.put("run.population_file", "pop_flanders.csv"); // Just to reduce the run time, since the pop size is not relevant here
 
-	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
 	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 1, false));
-	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	local_sim->registerObserver(classInstance, fnCaller);
+	auto saverInstance = std::make_shared<Saver>
+		(Saver(h5filename.c_str(), pt_config, checkpointing_frequency, false));
+	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saverInstance, std::placeholders::_1);
+	local_sim->registerObserver(saverInstance, fnCaller);
 
-	local_sim->notify(*local_sim);
+	saverInstance->forceSave(*local_sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
 		vector<future<bool>> fut_results;
 		fut_results.push_back(local_sim->timeStep());
 		future_pool(fut_results);
+	}
+
+	if (checkpointing_frequency == 0) {
+		saverInstance->forceSave(*local_sim, num_days);
 	}
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
@@ -59,87 +63,16 @@ TEST_P(UnitTests__HDF5, AmtCheckpoints1) {
 	dataset.close();
 	h5file.close();
 
-	EXPECT_EQ(num_days + 1, hdf5_timesteps[0]);
-}
 
-/**
- *	Test case that checks the amount of timestaps created in the H5 file,
- *		using checkpointing frequency = 2.
- */
-TEST_P(UnitTests__HDF5, AmtCheckPoints2) {
-	unsigned int num_threads = GetParam();
-
-	unsigned int num_days = 10;
-	const string h5filename = "testOutput.h5";
-	auto pt_config = getConfigTree();
-	pt_config.put("run.population_file", "pop_flanders.csv"); // Just to reduce the run time, since the pop size is not relevant here
-
-
-	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-
-	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 2, false));
-	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	local_sim->registerObserver(classInstance, fnCaller);
-
-	local_sim->notify(*local_sim);
-
-	for (unsigned int i = 0; i < num_days; i++) {
-		vector<future<bool>> fut_results;
-		fut_results.push_back(local_sim->timeStep());
-		future_pool(fut_results);
+	unsigned int amt_expected = floor(num_days / checkpointing_frequency) + 1;
+	// Special case for frequency = 0
+	if (checkpointing_frequency == 0) {
+		amt_expected = 2;
 	}
-
-	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
-	DataSet dataset = h5file.openDataSet("amt_timesteps");
-	unsigned int hdf5_timesteps[1];
-	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
-	dataset.close();
-	h5file.close();
-
-	EXPECT_EQ((num_days/2) + 1, hdf5_timesteps[0]);
+	EXPECT_EQ(amt_expected, hdf5_timesteps[0]);
 }
 
-/**
- *	Test case that checks the amount of timestaps created in the H5 file,
- *		using checkpointing frequency = 0.
- *	With this frequency, the hdf5 saver should save no timesteps automically.
- */
-TEST_P(UnitTests__HDF5, AmtCheckPoints3) {
-	unsigned int num_threads = GetParam();
 
-	unsigned int num_days = 10;
-	const string h5filename = "testOutput.h5";
-	auto pt_config = getConfigTree();
-	pt_config.put("run.population_file", "pop_flanders.csv"); // Just to reduce the run time, since the pop size is not relevant here
-
-
-	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-
-	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 0, false));
-	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	local_sim->registerObserver(classInstance, fnCaller);
-	classInstance->forceSave(*local_sim);
-
-	for (unsigned int i = 0; i < num_days; i++) {
-		vector<future<bool>> fut_results;
-		fut_results.push_back(local_sim->timeStep());
-		future_pool(fut_results);
-	}
-	classInstance->forceSave(*local_sim, num_days);
-
-	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
-	DataSet dataset = h5file.openDataSet("amt_timesteps");
-	unsigned int hdf5_timesteps[1];
-	dataset.read(hdf5_timesteps, PredType::NATIVE_UINT);
-	dataset.close();
-	h5file.close();
-
-	EXPECT_EQ(2U, hdf5_timesteps[0]);
-}
 
 /**
  *	Test that checks the stored config data.
@@ -215,8 +148,8 @@ TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 	future_pool(fut_results);
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 
-	DataSet* dataset = new DataSet(h5file.openDataSet("personsTI"));
-	DataSpace dataspace = dataset->getSpace();
+	DataSet dataset = DataSet(h5file.openDataSet("personsTI"));
+	DataSpace dataspace = dataset.getSpace();
 	const int amt_dims = dataspace.getSimpleExtentNdims();
 
 	EXPECT_EQ(amt_dims, 1);
@@ -224,20 +157,15 @@ TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 	hsize_t dims[amt_dims];
 	dataspace.getSimpleExtentDims(dims, NULL);
 	dataspace.close();
-	dataset->close();
-	delete dataset;
+	dataset.close();
 	h5file.close();
 
 	EXPECT_EQ(sim->getPopulation().get()->m_original.size(), dims[0]);
 }
 
 
-#if UNIPAR_IMPL == UNIPAR_DUMMY
-	unsigned int threads_hdf5unitTests[] { 1U };
-#else
-	unsigned int threads_hdf5unitTests[] { 1U, 4U };
-#endif
+unsigned int checkpointing_frequencies[] { 1U, 2U, 0U };
 
-INSTANTIATE_TEST_CASE_P(HDF5UnitTestsAmtCheckpoints, UnitTests__HDF5, ::testing::ValuesIn(threads_hdf5unitTests));
+INSTANTIATE_TEST_CASE_P(HDF5UnitTestsAmtCheckpoints, UnitTests__HDF5, ::testing::ValuesIn(checkpointing_frequencies));
 
 }
