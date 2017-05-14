@@ -68,8 +68,6 @@ TEST_P(Scenarios__HDF5, StartFromCheckpoints) {
 			sim_checkpointed->timeStep();
 		}
 		const unsigned int num_cases_checkpointed = sim_checkpointed->getPopulation()->getInfectedCount();
-		// cout << "Infected original:\t\t" << num_cases_original << endl;
-		// cout << "Infected checkpnt:\t\t" << num_cases_checkpointed << endl << endl;
 
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
 			ASSERT_EQ(num_cases_original, num_cases_checkpointed);

@@ -11,6 +11,7 @@
 #include <string>
 #include <memory>
 #include "sim/Simulator.h"
+#include "sim/SimulatorRunMode.h"
 
 using namespace boost::property_tree;
 using namespace std;
@@ -19,13 +20,13 @@ namespace stride {
 
 class SimulatorSetup {
 public:
-	SimulatorSetup(string simulator_mode, string conf_file, string hdf5_file,
+	SimulatorSetup(string conf_file, string hdf5_file, RunMode run_mode,
 				   int num_threads, bool track_index_case, const unsigned int timestamp_replay);
-	
+
 	ptree getConfigTree() const {
-		return m_pt_config; 
+		return m_pt_config;
 	}
-	shared_ptr<Simulator> getSimulator() const;
+	shared_ptr<Simulator> getSimulator();
 
 	unsigned int getStartDay() const {
 		return m_timestamp_replay;
@@ -38,7 +39,7 @@ private:
 	/// Helper function to check if the file with filename actually exists.
 	bool fileExists(string filename) const;
 
-	string					m_simulator_mode;
+private:
 	string					m_conf_file;
 	string					m_hdf5_file;
 	int						m_num_threads;
@@ -47,6 +48,9 @@ private:
 	bool					m_conf_file_exists;
 	bool 					m_hdf5_file_exists;
 	ptree 					m_pt_config;
+	RunMode					m_run_mode;
 };
+
+
 
 }
