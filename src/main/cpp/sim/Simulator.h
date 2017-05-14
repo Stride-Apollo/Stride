@@ -46,7 +46,7 @@ class Cluster;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator : public util::Subject<Simulator> {
+class Simulator {
 public:
 	using PersonType = Person<NoBehaviour, NoBelief>;
 	using BeliefPolicy = NoBelief;
@@ -100,7 +100,7 @@ private:
 	#endif
 	decltype(Parallel().withFunc<RandomRef>()) m_parallel;
 
-	std::shared_ptr<util::Random> m_rng;
+	std::shared_ptr<util::Random> 		m_rng;
 	LogMode                             m_log_level;            ///< Specifies logging mode.
 	InformationPolicy					m_information_policy;
 	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.

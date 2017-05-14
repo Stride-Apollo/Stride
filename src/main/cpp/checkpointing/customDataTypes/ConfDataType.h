@@ -1,22 +1,20 @@
 #pragma once
 
+#include "H5Cpp.h"
+using namespace H5;
+
 struct ConfDataType {
-	/*unsigned int checkpointing_frequency;
-	unsigned long rng_seed;
-	const char* disease_config_file;
-	const char* holidays_file;
-	const char* age_contact_matrix_file;
-	const char* checkpointing_file;
-	unsigned int r0;
-	double seeding_rate;
-	double immunity_rate;
-	unsigned int num_days;
-	const char* output_prefix;
-	bool generate_person_file;
-	unsigned int num_participants_survey;
-	const char* start_date;
-	const char* log_level;
-	const char* population_file;*/
+	static CompType getCompType() {
+		StrType str_type(0, H5T_VARIABLE);
+		CompType type_conf_data(sizeof(ConfDataType));
+		type_conf_data.insertMember(H5std_string("conf_content"), HOFFSET(ConfDataType, conf_content), str_type);
+		type_conf_data.insertMember(H5std_string("disease_content"), HOFFSET(ConfDataType, disease_content), str_type);
+		type_conf_data.insertMember(H5std_string("age_contact_content"), HOFFSET(ConfDataType, age_contact_content), str_type);
+		type_conf_data.insertMember(H5std_string("holidays_content"), HOFFSET(ConfDataType, holidays_content), str_type);
+
+		return type_conf_data;
+	}
+
 	const char* conf_content;
 	const char* disease_content;
 	const char* holidays_content;
