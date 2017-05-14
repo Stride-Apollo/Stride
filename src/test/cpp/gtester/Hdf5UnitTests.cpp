@@ -63,10 +63,12 @@ TEST_P(UnitTests__HDF5, AmtCheckpoints) {
 	h5file.close();
 
 
-	unsigned int amt_expected = floor(num_days / checkpointing_frequency) + 1;
+	unsigned int amt_expected = 0;
 	// Special case for frequency = 0
 	if (checkpointing_frequency == 0) {
 		amt_expected = 2;
+	} else {
+		amt_expected = floor(num_days / checkpointing_frequency) + 1;
 	}
 	EXPECT_EQ(amt_expected, hdf5_timesteps[0]);
 }
