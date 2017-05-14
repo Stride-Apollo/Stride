@@ -4,7 +4,9 @@
 #include <string>
 
 #include "AsyncSimulator.h"
+#include "Simulator.h"
 #include "util/TravellerScheduleReader.h"
+#include "pop/TravellerData.h"
 
 namespace stride {
 
@@ -12,6 +14,8 @@ using namespace std;
 using namespace util;
 
 class Coordinator {
+	using AsyncSim = AsyncSimulator<Simulator::TravellerType, void*, TravellerData>;
+
 public:
 	template <typename Iter>
 	Coordinator(const Iter& sims, const string& filename = "") : m_sims(sims.begin(), sims.end()) {
@@ -22,7 +26,7 @@ public:
 		initializeSimulators();
 	}
 
-	Coordinator(initializer_list<AsyncSimulator*> sims)
+	Coordinator(initializer_list<AsyncSim*> sims)
 		: m_sims(sims.begin(), sims.end()) {initializeSimulators();}
 
 	void initializeSimulators() {
@@ -36,14 +40,12 @@ public:
 
 	void timeStep();
 
-	vector<TravellerData> forceReturnTravellers();
-
 	vector<TravellerData> getTravellerData();
 
 	void forceSendTravellers(const vector<TravellerData>& traveller_data);
 
 private:
-	vector<AsyncSimulator*> m_sims;
+	vector<AsyncSim*> m_sims;
 	Schedule m_traveller_schedule;
 };
 

@@ -46,8 +46,12 @@ future<bool> LocalSimulatorAdapter::timeStep() {
 
 	m_planner.nextDay();
 	m_sim->m_population->m_visitors.nextDay();
-
-	return async([&](){m_sim->timeStep(); return true;});
+	
+	return async([&](){
+		m_sim->timeStep();
+		this->notify(*this);
+		return true;
+	});
 }
 
 bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) {
@@ -97,7 +101,6 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 																	traveller.getOldPerson()->getHealth().getEndSymptomatic() - start_symptomatic);
 		new_person.getHealth() = traveller.getOldPerson()->getHealth();
 
-
 		// Add the person to the planner and set him on "vacation mode" in his home region
 		m_sim->m_population->m_visitors.add(days, new_person);
 		Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(),
@@ -124,7 +127,9 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 	return true;
 }
 
-vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, AsyncSimulator* destination_sim, string destination_district, string destination_facility) {
+vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, void* dest_sim, string destination_district, string destination_facility) {
+	LocalSimulatorAdapter* destination_sim = static_cast<LocalSimulatorAdapter*>(dest_sim);
+
 	list<Simulator::PersonType*> working_people;
 	vector<unsigned int> people_id_s;
 
@@ -184,7 +189,6 @@ bool LocalSimulatorAdapter::forceHost(const Simulator::TravellerType& traveller,
 																traveller.getOldPerson()->getHealth().getEndSymptomatic() - start_symptomatic);
 	new_person.getHealth() = traveller.getOldPerson()->getHealth();
 
-	
 	// Add the person to the planner and set him on "vacation mode" in his home region
 	m_sim->m_population->m_visitors.add(days, new_person);
 	Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getOldPerson(),
@@ -252,7 +256,9 @@ vector<TravellerData> LocalSimulatorAdapter::getTravellerData() {
 	return returned_travellers;
 }
 
-void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, AsyncSimulator* destination_sim) {
+void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, void* dest_sim) {
+	LocalSimulatorAdapter* destination_sim = static_cast<LocalSimulatorAdapter*>(dest_sim);
+
 	// Find the person
 	Simulator::PersonType* target_person = nullptr;
 
