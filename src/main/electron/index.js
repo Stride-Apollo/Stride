@@ -1,3 +1,5 @@
+const os = require('os')
+const fs = require('fs')
 var app = angular.module('VisualizationApp', []);
 
 app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope, $timeout, $interval) {
@@ -24,7 +26,6 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	var config;
 	var loaded = false;
 	var block = false;
-	var fs = require('fs');
 	fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
 		if (err) return console.log(err);
 		config = setupConfig(data);
@@ -443,14 +444,14 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	}
 }]);
 
-var windows = [];
 function loadCluster(id, config, filenames, currentDay) {
 	var electron = require('electron').remote;
 	const BrowserWindow = electron.BrowserWindow;
+	var windows = JSON.parse(fs.readFileSync(os.tmpdir() + "/visualization_data")).windows;
 	if (!containsWin(windows, id)) {
 		var win = new BrowserWindow({ width: 800, height: 600 });
+		windows.push({id: id, window: win.id});
 
-		windows.push({id: id, win: win });
 		win.webContents.on('did-finish-load', ()=>{
 			win.show();
 		win.webContents.openDevTools();
@@ -460,8 +461,9 @@ function loadCluster(id, config, filenames, currentDay) {
 		win.on('closed', function () {
 			for (var i in windows) {
 				if (windows[i].id == id) {
-
 					windows.splice(i, 1);
+					var content = "{\"windows\": " + JSON.stringify(windows) + "}";
+					fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
 				}
 			}
 		})
@@ -474,10 +476,12 @@ function loadCluster(id, config, filenames, currentDay) {
 	} else {
 		for (var i in windows) {
 			if (windows[i].id == id) {
-				windows[i].win.focus();
+				BrowserWindow.fromId(windows[i].window).focus();
 			}
 		}
 	}
+	var content = "{\"windows\": " + JSON.stringify(windows) + "}";
+	fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
 };
 
 function containsWin(array, obj) {

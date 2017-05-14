@@ -11,6 +11,11 @@ const url = require('url')
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
+const os = require('os')
+const fs = require('fs')
+var tmpdata = "{\"windows\":[]}"
+fs.writeFileSync(os.tmpdir() + "/visualization_data", tmpdata)
+
 function createWindow() {
 	// Create the browser window.
 	const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
