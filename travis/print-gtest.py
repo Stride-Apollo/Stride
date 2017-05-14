@@ -92,7 +92,7 @@ def status_index(el):
         return max(failure, status_to_index[el.attrib['status']])
 
 
-def print_tree(name, tree, depth=0, maxdepth=30):
+def print_tree(name, tree, depth=0, maxdepth=3):
     stat = index_to_status[status_index(tree)]
     indent = '  ' + depth*'  '
     if isinstance(tree, defaultdict):
