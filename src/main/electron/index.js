@@ -296,51 +296,48 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			popup.remove();
 		});
 
-		var windows = []
-		map.on('click', 'clusters', function(e) {
-			// console.log(e.features[0].properties.id);
-			const electron = require('electron').remote;
-			const BrowserWindow = electron.BrowserWindow;
-
-			if (!containsWin(windows, e.features[0].properties.id)) {
-				var win = new BrowserWindow({ width: 800, height: 600 });
-
-				windows.push({id:e.features[0].properties.id, win: win });
-				win.webContents.on('did-finish-load', ()=>{
-					win.show();
-				win.webContents.openDevTools();
-				win.focus();
-			});
-
-				win.on('closed', function () {
-					for (var i in windows) {
-						if (windows[i].id == e.features[0].properties.id) {
-
-							windows.splice(i, 1);
-						}
-					}
-				})
-				var url = "file://" + __dirname + '/ClusterContent.html?data='
-					+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
-					+ "&cluster=" + e.features[0].properties.id
-					+ "&directory=" + __dirname + "/" + config.directory
-					+ "&currentDay=" + $scope.currentDay;
-				win.loadURL(url);
-			} else {
-				for (var i in windows) {
-					if (windows[i].id == e.features[0].properties.id) {
-						windows[i].win.focus();
-					}
-				}
-			}
-		});
-
 		// If a map is rendered the style loading is done and we can unblock.
 		map.on('render', function() {
 			block = false;
 		})
 
 		fitView(cluster_data);
+	}
+
+	map.on('click', 'clusters', function(e) {
+		for(var i in e.features){
+			loadCluster(e.features[i].properties.id, config, filenames, $scope.currentDay);
+		}
+	});
+
+	var overview = undefined;
+
+	$scope.overview = function() {
+		if (map.loaded()) {
+			// console.log(e.features[0].properties.id);
+			const electron = require('electron').remote;
+			const BrowserWindow = electron.BrowserWindow;
+
+			if (overview == undefined) {
+				overview = new BrowserWindow({ width: 800, height: 600 });
+
+				overview.webContents.on('did-finish-load', ()=>{
+					overview.show();
+				overview.webContents.openDevTools();
+				overview.focus();
+			});
+				overview.on('closed', function () {
+					overview = undefined;
+				})
+				var url = "file://" + __dirname + '/OverviewContent.html?data='
+					+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
+					+ "&directory=" + __dirname + "/" + config.directory
+					+ "&currentDay=" + $scope.currentDay;
+				overview.loadURL(url);
+			} else {
+				overview.focus();
+			}
+		}
 	}
 
 	function fitView(cluster_data) {
@@ -445,3 +442,50 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		}
 	}
 }]);
+
+var windows = [];
+function loadCluster(id, config, filenames, currentDay) {
+	var electron = require('electron').remote;
+	const BrowserWindow = electron.BrowserWindow;
+	if (!containsWin(windows, id)) {
+		var win = new BrowserWindow({ width: 800, height: 600 });
+
+		windows.push({id: id, win: win });
+		win.webContents.on('did-finish-load', ()=>{
+			win.show();
+		win.webContents.openDevTools();
+		win.focus();
+	});
+
+		win.on('closed', function () {
+			for (var i in windows) {
+				if (windows[i].id == id) {
+
+					windows.splice(i, 1);
+				}
+			}
+		})
+		var url = "file://" + __dirname + '/ClusterContent.html?data='
+			+ __dirname + "/" + config.directory + "/" + filenames[currentDay]
+			+ "&cluster=" + id
+			+ "&directory=" + __dirname + "/" + config.directory
+			+ "&currentDay=" + currentDay;
+		win.loadURL(url);
+	} else {
+		for (var i in windows) {
+			if (windows[i].id == id) {
+				windows[i].win.focus();
+			}
+		}
+	}
+};
+
+function containsWin(array, obj) {
+	var i = array.length;
+	while (i--) {
+		if (array[i].id == obj) {
+			return true;
+		}
+	}
+	return false;
+}
