@@ -33,7 +33,7 @@ template <class U>
 class PopulationGenerator {
 public:
 	/// Constructor: Check if the xml is valid and set up the basic things like a random generator
-	PopulationGenerator(const string& filename, bool output = true);
+	PopulationGenerator(const string& filename, const int& seed, bool output = true);
 
 	/// Generates a population, writes the result to the files found in the data directory
 	/// Output files are respectively formatted according to the following template files: belgium_population.csv, pop_miami.csv, pop_miami_geo.csv
@@ -54,9 +54,6 @@ private:
 
 	/// Checks the xml on correctness, this includes only semantic errors, no syntax errors
 	void checkForValidXML() const;
-
-	/// Sets up the random generator, of course the one specified in the xml
-	void makeRNG();
 
 	/// Generates all households (not yet their positions)
 	void makeHouseholds();

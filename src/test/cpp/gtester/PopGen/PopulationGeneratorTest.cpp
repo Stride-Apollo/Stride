@@ -269,7 +269,7 @@ void checkHappyDayHouseHolds(const string& household_file, const string& pop_fil
 TEST(PopulationGeneratorTest, HappyDay_default) {
 	// Tests which reflect the regular use
 
-	PopulationGenerator<mt19937> gen {"happy_day.xml", false};
+	PopulationGenerator<mt19937> gen {"happy_day.xml", 1, false};
 
 	// TODO check cluster file
 	gen.generate("cities.csv", "pop.csv", "hh.csv", "clusters.csv");

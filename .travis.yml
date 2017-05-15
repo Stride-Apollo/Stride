@@ -15,42 +15,157 @@ addons:
     packages: &deps
       - libboost-all-dev
       - libhdf5-serial-dev
-  
-matrix:
-  include:
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
+      - libtbb-dev
+      - libtbb2
+
+gcc_addons: &gcc_addons
+    apt:
+        sources:
             - *sources
-          packages:
+        packages:
             - *deps
             - gcc-5
             - g++-5
-      env: 
-        - CC='gcc-5'
-        - CXX='g++-5'
-        - OMP_NUM_THREADS=4
-      
-    - compiler: clang
-      addons:
-        apt:
-          sources:
+
+clang_addons: &clang_addons
+    apt:
+        sources:
             - *sources
-          packages:
+        packages:
             - *deps
             - clang-3.8
+            - libc++-dev
+            - libiomp-dev
+
+
+matrix:
+  include:
+    
+    # Code quality ....................
+    
+    - stage: Code quality
+      language: node_js
+      env: quality_dir=src/main
+      node_js:
+        - "node"
+      before_install:
+      before_script:
+        - npm install -g jscpd
+      script:
+        - travis/code_quality.sh
+      addons:
+        apt:
+    
+    - language: node_js
+      env: quality_dir=src/test
+      node_js:
+        - "node"
+      before_install:
+      before_script:
+        - npm install -g jscpd
+      script:
+        - travis/code_quality.sh
+      addons:
+        apt:
+    
+    
+    # Unit tests ......................
+    
+    - stage: Unit tests
+      addons: *gcc_addons
       env: 
-        - CC='clang-3.8'
-        - CXX='clang++-3.8'
-        - OMP_NUM_THREADS=4
+        - test=unit
+        - unipar=dummy
+        - compiler=gcc
+      
+    - addons: *clang_addons
+      env: 
+        - test=unit
+        - unipar=dummy
+        - compiler=clang
+    
+    - addons: *gcc_addons
+      env: 
+        - test=unit
+        - unipar=TBB
+        - compiler=gcc
+      
+    - addons: *clang_addons
+      env: 
+        - test=unit
+        - unipar=TBB
+        - compiler=clang
+    
+    - addons: *gcc_addons
+      env: 
+        - test=unit
+        - unipar=OpenMP
+        - compiler=gcc
+      
+    - addons: *clang_addons
+      env: 
+        - test=unit
+        - unipar=OpenMP
+        - compiler=clang
+    
+    # Scenario tests ..................
+    
+    - stage: Scenario tests
+      addons: *gcc_addons
+      env: 
+        - test=scenarios
+        - unipar=dummy
+        - compiler=gcc
+      
+    - addons: *clang_addons
+      env: 
+        - test=scenarios
+        - unipar=dummy
+        - compiler=clang
+    
+    - addons: *gcc_addons
+      env: 
+        - test=scenarios
+        - unipar=TBB
+        - compiler=gcc
+      
+    - addons: *clang_addons
+      env: 
+        - test=scenarios
+        - unipar=TBB
+        - compiler=clang
+    
+    - addons: *gcc_addons
+      env: 
+        - test=scenarios
+        - unipar=OpenMP
+        - compiler=gcc
+      
+    - addons: *clang_addons
+      env: 
+        - test=scenarios
+        - unipar=OpenMP
+        - compiler=clang
+        
+    # macOS ...........................
+    
+    #- os: osx
+      #osx_image: xcode8.3
+      
+
 
 before_install:
+  - . ./travis/before_install.sh  # thanks https://github.com/travis-ci/travis-ci/issues/1313
   - PARALLEL_MAKE=2 make install
 
 script:
-  - ./travis.sh
+  - travis_wait ./travis/script.sh
 
+# Cache HDF5 build if needed
+#cache:
+  #directories:
+    #- src/hdf5local/
+  
 notifications:
   slack: 
     rooms:

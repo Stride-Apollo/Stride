@@ -1,5 +1,0 @@
-find_package(HDF5 COMPONENTS C CXX HL REQUIRED)
-link_directories( ${HDF5_LIBRARY_DIRS} )
-include_directories( ${HDF5_INCLUDE_DIRS} )
-add_executable( tutorial_hdf5 subsets.cpp )
-target_link_libraries( tutorial_hdf5 ${HDF5_CXX_LIBRARIES} )

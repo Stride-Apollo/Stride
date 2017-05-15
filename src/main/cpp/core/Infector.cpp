@@ -24,9 +24,9 @@
 #include "core/Infector.h"
 #include "core/LogMode.h"
 #include "pop/Person.h"
+#include "util/Random.h"
 
 #include <spdlog/spdlog.h>
-#include "RngHandler.h"
 #include <cstddef>
 #include <memory>
 #include <utility>
@@ -35,7 +35,7 @@
 namespace stride {
 
 using namespace std;
-
+using namespace util;
 
 /**
  * Primary R0_POLICY: do nothing i.e. track all cases.
@@ -104,10 +104,10 @@ public:
 // LogMode::None & LogMode::Transmissions, both with
 // track_index_case false and true..
 //--------------------------------------------------------------------------
-template<LogMode log_level, bool track_index_case>
-void Infector<log_level, track_index_case>::execute(
+template<LogMode log_level, bool track_index_case, InformationPolicy information_policy>
+void Infector<log_level, track_index_case, information_policy>::execute(
 		Cluster& cluster, DiseaseProfile disease_profile,
-		RngHandler& contact_handler, shared_ptr<const Calendar> calendar) {
+		util::Random& contact_handler, shared_ptr<const Calendar> calendar) {
 	// check if the cluster has infected members and sort
 	bool infectious_cases;
 	size_t num_cases;
@@ -134,8 +134,7 @@ void Infector<log_level, track_index_case>::execute(
 						// check if member is present today
 						if (c_members[i_contact].second) {
 							auto p2 = c_members[i_contact].first;
-							if (contact_handler.hasTransmission(contact_rate,
-																transmission_rate)) {
+							if (contact_handler.hasContactAndTransmission(contact_rate, transmission_rate)) {
 								LOG_POLICY<log_level>::execute(logger, p1, p2, c_type, calendar);
 								p2->getHealth().startInfection();
 								R0_POLICY<track_index_case>::execute(p2);
@@ -150,19 +149,73 @@ void Infector<log_level, track_index_case>::execute(
 
 
 //--------------------------------------------------------------------------
-// Definition of partial specialization for LogMode::Contacts.
+// Definition of partial specialization for InformationPolicy::Local.
 //--------------------------------------------------------------------------
-template<bool track_index_case>
-void Infector<LogMode::Contacts, track_index_case>::execute(
-		Cluster& cluster, DiseaseProfile disease_profile,
-		RngHandler& contact_handler, shared_ptr<const Calendar> calendar) {
+template<LogMode log_level, bool track_index_case>
+void Infector<log_level, track_index_case, InformationPolicy::Local>::execute(
+        Cluster& cluster, DiseaseProfile disease_profile,
+        util::Random& contact_handler, shared_ptr<const Calendar> calendar) {
 	cluster.updateMemberPresence();
 
 	// set up some stuff
-	auto logger = spdlog::get("contact_logger");
-	const auto c_type = cluster.m_cluster_type;
-	const auto& c_members = cluster.m_members;
+	auto logger            = spdlog::get("contact_logger");
+	const auto c_type      = cluster.m_cluster_type;
+	const auto& c_members  = cluster.m_members;
+	const auto transmission_rate = disease_profile.getTransmissionRate();
 	//const auto c_size      = cluster.getSize();
+
+	// check all contacts
+	for (size_t i_person1 = 0; i_person1 < cluster.m_members.size(); i_person1++) {
+		// check if member participates in the social contact survey && member is present today
+		if (c_members[i_person1].second) {
+			auto p1 = c_members[i_person1].first;
+			const double contact_rate = cluster.getContactRate(p1);
+			for (size_t i_person2 = 0; i_person2 < c_members.size(); i_person2++) {
+				// check if member is present today
+				if ((i_person1 != i_person2) && c_members[i_person2].second) {
+					auto p2 = c_members[i_person2].first;
+					// check for contact
+					if (contact_handler.hasContact(contact_rate)) {
+						// let contacts influence each other's beliefs
+						p1->update(p2);
+						p2->update(p1);
+
+						bool transmission = contact_handler.hasTransmission(transmission_rate);
+						if (transmission) {
+							if (p1->getHealth().isInfectious() && p2->getHealth().isSusceptible()) {
+								p2->getHealth().startInfection();
+								R0_POLICY<track_index_case>::execute(p2);
+							} else if (p2->getHealth().isInfectious() && p1->getHealth().isSusceptible()) {
+								p1->getHealth().startInfection();
+								R0_POLICY<track_index_case>::execute(p1);
+							}
+						}
+
+						LOG_POLICY<log_level>::execute(logger, p1, p2, c_type, calendar);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+// TODO find a solution for this AWFUL case of code duplication
+//-------------------------------------------------------------------------------------------
+// Definition of partial specialization for InformationPolicy::Global and LogMode::Contacts.
+//-------------------------------------------------------------------------------------------
+template<bool track_index_case>
+void Infector<LogMode::Contacts, track_index_case, InformationPolicy::Global>::execute(
+		Cluster& cluster, DiseaseProfile disease_profile,
+		util::Random& contact_handler, shared_ptr<const Calendar> calendar) {
+	cluster.updateMemberPresence();
+
+	// set up some stuff
+	auto logger            = spdlog::get("contact_logger");
+	const auto c_type      = cluster.m_cluster_type;
+	const auto& c_members  = cluster.m_members;
+	const auto transmission_rate = disease_profile.getTransmissionRate();
+	//const autoc_size      = cluster.getSize();
 
 	// check all contacts
 	for (size_t i_person1 = 0; i_person1 < cluster.m_members.size(); i_person1++) {
@@ -176,23 +229,17 @@ void Infector<LogMode::Contacts, track_index_case>::execute(
 					auto p2 = c_members[i_person2].first;
 					// check for contact
 					if (contact_handler.hasContact(contact_rate)) {
-						// TODO ContactHandler doesn't have a separate transmission function anymore to
-						// check for transmission when contact has already been checked.
-						// check for transmission
-						/*bool transmission = contact_handler->transmission(age1, p2->getAge());
-						unsigned int infecter = 0;
+						bool transmission = contact_handler.hasTransmission(transmission_rate);
 						if (transmission) {
-								if (p1->IsInfectious() && p2->IsSusceptible()) {
-										infecter = 1;
-										p2->StartInfection();
-										R0_POLICY<track_index_case>::execute(p2);
-								}
-								else if (p2->isInfectious() && p1->isSusceptible()) {
-										infecter = 2;
-										p1->startInfection();
-										R0_POLICY<track_index_case>::execute(p1);
-								}
-						}*/
+							if (p1->getHealth().isInfectious() && p2->getHealth().isSusceptible()) {
+								p2->getHealth().startInfection();
+								R0_POLICY<track_index_case>::execute(p2);
+							} else if (p2->getHealth().isInfectious() && p1->getHealth().isSusceptible()) {
+								p1->getHealth().startInfection();
+								R0_POLICY<track_index_case>::execute(p1);
+							}
+						}
+
 						LOG_POLICY<LogMode::Contacts>::execute(logger, p1, p2, c_type, calendar);
 					}
 				}
@@ -204,22 +251,23 @@ void Infector<LogMode::Contacts, track_index_case>::execute(
 //--------------------------------------------------------------------------
 // All explicit instantiations.
 //--------------------------------------------------------------------------
-template
-class Infector<LogMode::None, false>;
+template class Infector<LogMode::None, false, InformationPolicy::Global>;
+template class Infector<LogMode::None, false, InformationPolicy::Local>;
 
-template
-class Infector<LogMode::None, true>;
+template class Infector<LogMode::None, true, InformationPolicy::Global>;
+template class Infector<LogMode::None, true, InformationPolicy::Local>;
 
-template
-class Infector<LogMode::Transmissions, false>;
+template class Infector<LogMode::Transmissions, false, InformationPolicy::Global>;
+template class Infector<LogMode::Transmissions, false, InformationPolicy::Local>;
 
-template
-class Infector<LogMode::Transmissions, true>;
+template class Infector<LogMode::Transmissions, true, InformationPolicy::Global>;
+template class Infector<LogMode::Transmissions, true, InformationPolicy::Local>;
 
-template
-class Infector<LogMode::Contacts, false>;
+template class Infector<LogMode::Contacts, false, InformationPolicy::Global>;
+template class Infector<LogMode::Contacts, false, InformationPolicy::Local>;
 
-template
-class Infector<LogMode::Contacts, true>;
+template class Infector<LogMode::Contacts, true, InformationPolicy::Global>;
+template class Infector<LogMode::Contacts, true, InformationPolicy::Local>;
+
 
 }

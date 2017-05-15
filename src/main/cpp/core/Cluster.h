@@ -26,6 +26,7 @@
 #include "pop/PopulationBuilder.h"
 #include "sim/Simulator.h"
 #include "util/GeoCoordinate.h"
+#include "checkpointing/Loader.h"
 
 #include <array>
 #include <cstddef>
@@ -75,7 +76,7 @@ public:
 
 	/// Get the members of this vector
 	/// Rather for testing purposes
-	const std::vector<std::pair<Simulator::PersonType*, bool> >& getMembers() const {return m_members;}
+	const std::vector<std::pair<Simulator::PersonType*, bool>>& getMembers() const {return m_members;}
 
 public:
 	/// Add contact profile.
@@ -86,7 +87,7 @@ private:
 	std::tuple<bool, size_t> sortMembers();
 
 	/// Infector calculates contacts and transmissions.
-	template<LogMode log_level, bool track_index_case>
+	template<LogMode log_level, bool track_index_case, InformationPolicy information_policy>
 	friend class Infector;
 
 	/// Calculate which members are present in the cluster on the current day.
@@ -101,7 +102,9 @@ private:
 	const GeoCoordinate m_coordinate;	///< The location of the cluster
 private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
+private:
+	friend class Loader;
+	friend class Saver;
 };
 
 }
-

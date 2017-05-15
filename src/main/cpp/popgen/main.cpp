@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 		CmdLine cmd("Commandline interface of the PopulationGenerator", ' ', "Beta");
 
 		// The source xml file argument
-		ValueArg<string> sourceArg("s", "source", "Source xml file for the configuration of the generator", true, "data/happy_day.xml", "string");
+		ValueArg<string> sourceArg("i", "input", "Input xml file for the configuration of the generator", true, "data/happy_day.xml", "string");
 		cmd.add(sourceArg);
 
 		// The target city file argument
@@ -52,6 +52,10 @@ int main(int argc, char** argv) {
 		ValueArg<string> rngArg("r", "randomgenerator", options, false, "mt19937", "string");
 		cmd.add(rngArg);
 
+		// The seed argument
+		ValueArg<string> seedArg("s", "seed", "The seed of the random generator", false, "1", "string");
+		cmd.add(seedArg);
+
 		// Parse the argv array
 		cmd.parse(argc, argv);
 
@@ -62,48 +66,39 @@ int main(int argc, char** argv) {
 		string targetHousehold = targetHouseholdArg.getValue();
 		string targetClusters = targetClustersArg.getValue();
 		string rng = rngArg.getValue();
+		int seed = stoi(seedArg.getValue());
 
 		cerr << "Starting...\n";
-		if (rng == "default_random_engine"){
-			PopulationGenerator<default_random_engine> generator {sourceXml};
+		if (rng == "default_random_engine") {
+			PopulationGenerator<default_random_engine> generator {sourceXml, seed};
 			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
-		else if (rng == "mt19937"){
-			PopulationGenerator<mt19937> generator {sourceXml};
+		} else if (rng == "mt19937") {
+			PopulationGenerator<mt19937> generator {sourceXml, seed};
 			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
-		else if (rng == "mt19937_64"){
-			PopulationGenerator<mt19937_64> generator {sourceXml};
+		} else if (rng == "mt19937_64") {
+			PopulationGenerator<mt19937_64> generator {sourceXml, seed};
 			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
-		else if (rng == "minstd_rand0"){
-			PopulationGenerator<minstd_rand0> generator {sourceXml};
+		} else if (rng == "minstd_rand0") {
+			PopulationGenerator<minstd_rand0> generator {sourceXml, seed};
 			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
-		else if (rng == "minstd_rand"){
-			PopulationGenerator<minstd_rand> generator {sourceXml};
+		} else if (rng == "minstd_rand") {
+			PopulationGenerator<minstd_rand> generator {sourceXml, seed};
 			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
-		else if (rng == "ranlux24_base"){
-			PopulationGenerator<ranlux24_base> generator {sourceXml};
+		} else if (rng == "ranlux24_base") {
+			PopulationGenerator<ranlux24_base> generator {sourceXml, seed};
 			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
-		else if (rng == "ranlux48_base"){
-			PopulationGenerator<ranlux48_base> generator {sourceXml};
+		} else if (rng == "ranlux48_base") {
+			PopulationGenerator<ranlux48_base> generator {sourceXml, seed};
 			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
-		else if (rng == "ranlux24"){
-			PopulationGenerator<ranlux24> generator {sourceXml};
+		} else if (rng == "ranlux24") {
+			PopulationGenerator<ranlux24> generator {sourceXml, seed};
 			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
-		else if (rng == "ranlux48"){
-			PopulationGenerator<ranlux48> generator {sourceXml};
+		} else if (rng == "ranlux48") {
+			PopulationGenerator<ranlux48> generator {sourceXml, seed};
 			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
-		else if (rng == "knuth_b"){
-			PopulationGenerator<knuth_b> generator {sourceXml};
-			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);
-		}
+		} else if (rng == "knuth_b") {
+			PopulationGenerator<knuth_b> generator {sourceXml, seed};
+			run(generator, targetCities, targetPopulation, targetHousehold, targetClusters);}
 	} catch (ArgException &exc){
 		cerr << "error: " << exc.error() << " for arg " << exc.argId() << endl;
 	}

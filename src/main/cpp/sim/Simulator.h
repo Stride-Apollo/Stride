@@ -19,38 +19,40 @@
  * Header for the Simulator class.
  */
 
+#include "behaviour/InformationPolicy.h"
 //#include "core/Cluster.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
-#include "core/RngHandler.h"
 #include "core/District.h"
-#include "behavior/behavior_policies/NoBehavior.h"
+#include "core/ClusterType.h"
+#include "behaviour/behaviour_policies/NoBehaviour.h"
 #include "pop/Person.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
-
-#include "behavior/belief_policies/NoBelief.h"
+#include "util/Random.h"
+#include "util/unipar.h"
+#include "behaviour/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 namespace stride {
 
 class Population;
 class Calendar;
 class Cluster;
-class LocalSimulatorAdapter;
+
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator : public util::Subject<Simulator> {
+class Simulator {
 public:
-	using PersonType = Person<NoBehavior, NoBelief>;
+	using PersonType = Person<NoBehaviour, NoBelief>;
+	using BeliefPolicy = NoBelief;
 	using TravellerType = Traveller<PersonType>;
 
-	// Default constructor for empty Simulator.
+	/// Default constructor for empty Simulator.
 	Simulator();
 
 	/// Get the population.
@@ -69,6 +71,12 @@ public:
 	/// This is rather for testing purposes
 	const std::vector<Cluster>& getClusters(ClusterType cluster_type) const;
 
+	/// Retrieve the states of the rng's
+	std::vector<std::string> getRngStates() const;
+
+	/// Set the states of the rng's
+	void setRngStates(std::vector<std::string> states);
+
 private:
 	// Information about travellers
 	// original ID ->
@@ -77,17 +85,26 @@ private:
 
 private:
 	/// Update the contacts in the given clusters.
-	template<LogMode log_level, bool track_index_case = false>
+	template<LogMode log_level, bool track_index_case = false, InformationPolicy information_policy = InformationPolicy::Global>
 	void updateClusters();
 
 private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 
 private:
-	unsigned int m_num_threads; 			///< The number of (OpenMP) threads.
-	std::vector<RngHandler> m_rng_handler;  ///< Pointer to the RngHandlers.
-	LogMode m_log_level;            		///< Specifies logging mode.
-	std::shared_ptr<Calendar> m_calendar;	///< Management of calendar.
+	unsigned int                        m_num_threads;          ///< The number of  threads(as a hint)
+   #if UNIPAR_IMPL == UNIPAR_DUMMY
+		using RandomRef = util::Random*;
+	#else
+		using RandomRef = std::unique_ptr<util::Random>;
+	#endif
+
+	decltype(Parallel().with<RandomRef>()) m_parallel;
+
+	std::shared_ptr<util::Random> 		m_rng;
+	LogMode                             m_log_level;            ///< Specifies logging mode.
+	InformationPolicy					m_information_policy;
+	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
 
 private:
 	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
@@ -106,6 +123,8 @@ private:
 
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;
+	friend class Saver;
+	friend class Loader;
 };
 
 

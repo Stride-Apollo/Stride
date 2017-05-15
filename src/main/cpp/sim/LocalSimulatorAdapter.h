@@ -7,7 +7,8 @@
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 #include "pop/TravellerData.h"
-#include "util/Subject.h"
+#include "checkpointing/Saver.h"
+#include "checkpointing/Loader.h"
 
 namespace stride {
 

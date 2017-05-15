@@ -12,11 +12,10 @@
 #include "util/async.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
-#include "util/stdlib.h"
+#include "util/etc.h"
 #include "core/Cluster.h"
 
 #include <boost/property_tree/xml_parser.hpp>
-#include <omp.h>
 #include <memory>
 #include <cassert>
 #include <string>
@@ -33,24 +32,23 @@ using namespace boost::property_tree;
 
 namespace Tests {
 
-class LocalSimulatorAdapterTest: public ::testing::Test {
+class UnitTests__LocalSimulatorAdapterTest: public ::testing::Test {
 public:
 	/// TestCase set up.
-	static void SetUpTestCase() {}
-
-	/// Tearing down TestCase
-	static void TearDownTestCase() {}
+	static void SetUpTestCase() {
+		
+	}
 
 protected:
-	static std::shared_ptr<Simulator> 				m_sim1;
-	static std::shared_ptr<Simulator> 				m_sim2;
+	std::shared_ptr<Simulator> 				m_sim1;
+	std::shared_ptr<Simulator> 				m_sim2;
 
-	static std::unique_ptr<LocalSimulatorAdapter> 	m_l1;
-	static std::unique_ptr<LocalSimulatorAdapter> 	m_l2;
+	std::unique_ptr<LocalSimulatorAdapter> 	m_l1;
+	std::unique_ptr<LocalSimulatorAdapter> 	m_l2;
 
 protected:
 	/// Destructor has to be virtual.
-	virtual ~LocalSimulatorAdapterTest() {}
+	virtual ~UnitTests__LocalSimulatorAdapterTest() {}
 
 	/// Set up for the test fixture
 	virtual void SetUp() {
@@ -66,12 +64,8 @@ protected:
 		}
 		read_xml(file_path.string(), pt_config);
 
-		// OpenMP
-		unsigned int num_threads;
-		#pragma omp parallel
-		{
-			num_threads = omp_get_num_threads();
-		}
+		// TODO Unipar
+		unsigned int num_threads = 1;
 
 		// Set output path prefix.
 		string output_prefix = "";
@@ -92,11 +86,6 @@ protected:
 	virtual void TearDown() {}
 };
 
-std::shared_ptr<Simulator>					LocalSimulatorAdapterTest::m_sim1;
-std::shared_ptr<Simulator>					LocalSimulatorAdapterTest::m_sim2;
-
-std::unique_ptr<LocalSimulatorAdapter>		LocalSimulatorAdapterTest::m_l1;
-std::unique_ptr<LocalSimulatorAdapter>		LocalSimulatorAdapterTest::m_l2;
 
 bool sameCluster(const Cluster& cluster1, const Cluster& cluster2) {
 	// Test if 2 clusters are equal
@@ -125,7 +114,7 @@ bool sameCluster(const Cluster& cluster1, const Cluster& cluster2) {
 	return true;
 }
 
-TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
+TEST_F(UnitTests__LocalSimulatorAdapterTest, HappyDay) {
 	// Tests which reflect the regular use
 
 	// Keep the original work, primary and secondary communities of simulator 2
@@ -256,7 +245,7 @@ TEST_F(LocalSimulatorAdapterTest, HappyDay_default) {
 	}
 }
 
-TEST_F(LocalSimulatorAdapterTest, ForceReturn_default) {
+TEST_F(UnitTests__LocalSimulatorAdapterTest, ForceReturn) {
 	m_l1->setId(1);
 	m_l2->setId(2);
 
@@ -337,7 +326,7 @@ TEST_F(LocalSimulatorAdapterTest, ForceReturn_default) {
 	}
 }
 
-TEST_F(LocalSimulatorAdapterTest, ForceHost_default) {
+TEST_F(UnitTests__LocalSimulatorAdapterTest, ForceHost) {
 	// Migrate 1 person for 10 days
 	vector<unsigned int> id_s = m_l1->sendTravellers(1, 10, m_l2.get(), "Antwerp", "ANR");
 	EXPECT_EQ(id_s.size(), 1U);
@@ -401,7 +390,7 @@ TEST_F(LocalSimulatorAdapterTest, ForceHost_default) {
 	}
 }
 
-TEST_F(LocalSimulatorAdapterTest, getTravellerData_default) {
+TEST_F(UnitTests__LocalSimulatorAdapterTest, getTravellerData) {
 	// Migrate 1 person for 10 days
 	vector<unsigned int> id_s = m_l1->sendTravellers(1, 10, m_l2.get(), "Antwerp", "ANR");
 	EXPECT_EQ(id_s.size(), 1U);
@@ -433,4 +422,4 @@ TEST_F(LocalSimulatorAdapterTest, getTravellerData_default) {
 	}
 }
 
-} //end-of-namespace-Tests
+}

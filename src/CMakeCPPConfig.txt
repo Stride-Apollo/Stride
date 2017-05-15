@@ -43,7 +43,7 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_HOST_APPLE )
 	add_definitions( -D__APPLE__ )
 	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_HOST_APPLE )
-	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++11" )
+	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++11")
 	add_definitions( -D__extern_always_inline=inline )
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
 	set( CMAKE_CXX_FLAGS 	       "${CMAKE_CXX_FLAGS} -fPIC -std=c++11" )
@@ -82,41 +82,50 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS} )
 set( LIBS   ${LIBS} ${Boost_LIBRARIES} )
 
 #----------------------------------------------------------------------------
-# OpenMP
+# Unified Parallelization
 #----------------------------------------------------------------------------
-if( NOT STRIDE_FORCE_NO_OPENMP )
-	if ( NOT DEFINED HAVE_CHECKED_OpenMP )
-	    set( HAVE_CHECKED_OpenMP  TRUE  CACHE  BOOL  "Have checked for OpenMP?" FORCE )
-        find_package( OpenMP )
+if( STRIDE_UNIPAR STREQUAL "OPENMP" )
+    if ( NOT DEFINED HAVE_CHECKED_OpenMP )
+        set( HAVE_CHECKED_OpenMP  TRUE  CACHE  BOOL  "Have checked for OpenMP?" FORCE )
+        find_package( ProperOpenMP )
         if( OPENMP_FOUND )
             set( HAVE_FOUND_OpenMP  TRUE  CACHE  BOOL  "Have found OpenMP?" FORCE )
         else()
             set( HAVE_FOUND_OpenMP  FALSE  CACHE  BOOL  "Have found OpenMP?" FORCE )
-	    endif()
+        endif()
     endif()
     if ( HAVE_FOUND_OpenMP )
-    	set( OPENMP_FOUND TRUE )
+        set( OPENMP_FOUND TRUE )
         set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}" )
         set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
         message( "OpenMP CXX Flags ${OpenMP_CXX_FLAGS}" )
-    else()
-    	# This is done to eliminate blank output of undefined CMake variables.
-    	set( OPENMP_FOUND FALSE )
     endif()
+    if( NOT OPENMP_FOUND )
+        message( FATAL_ERROR "OpenMP wasn't found. Consider using another Unipar implementation." )
+    endif()
+    add_definitions( -DUNIPAR_IMPL_OPENMP )
+elseif( STRIDE_UNIPAR STREQUAL "TBB" )
+    # FindTBB used from here: https://github.com/justusc/FindTBB
+	find_package( TBB )
+	if( NOT TBB_FOUND )
+		message( FATAL_ERROR "TBB wasn't found. Consider using another Unipar implementation." )
+	endif()
+	add_definitions( ${TBB_DEFINITIONS} )
+	include_directories( ${TBB_INCLUDE_DIRS} )
+	add_definitions( -DUNIPAR_IMPL_TBB )
+    set( LIBS ${LIBS} ${TBB_LIBRARIES})
 else()
-    # This is done to eliminate blank output of undefined CMake variables.
-    set( OPENMP_FOUND FALSE )
-    set( HAVE_CHECKED_OpenMP FALSE )
-    set( HAVE_FOUND_OpenMP FALSE )
-    
-    # Otherwise, STRIDE_FORCE_NO_OPENMP fails
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread" )
+    if( STRIDE_UNIPAR STREQUAL "DUMMY" )
+        message( "Using DUMMY Unipar implementation (no parallelization)." )
+    else()
+        message( "No proper Unipar implementation was specified, using DUMMY (no parallelization)." )
+    endif()
+    add_definitions( -DUNIPAR_IMPL_DUMMY )
 endif()
-# If not found, use the dummy omp.
-if( NOT OPENMP_FOUND )
-    include_directories( ${CMAKE_HOME_DIRECTORY}/main/resources/lib/domp/include )
-endif()
- 
+
+# Always needed
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread" )
+
 #----------------------------------------------------------------------------
 # HDF5 Library
 # Try to find the C variant of libhdf5, if found, USE_HDF5 is defined
@@ -125,21 +134,43 @@ endif()
 # Additional defs are required on Ubuntu where lib are installed 
 # with hdf5 v1.6 as default behavior.
 #----------------------------------------------------------------------------
+# Source: https://github.com/bast/hdf5-cmake-example/blob/master/CMakeLists.txt
 if( STRIDE_FORCE_NO_HDF5 )
 	message( STATUS "---> Skipping HDF5, STRIDE_FORCE_NO_HDF5 set.")
 else()
-	find_package( HDF5 COMPONENTS C HL )
-	if( HDF5_FOUND )
-		include_directories(SYSTEM ${HDF5_INCLUDE_DIRS} )
-		set( LIBS   ${LIBS}   ${HDF5_LIBRARIES} )
-		add_definitions( -DUSE_HDF5 -DH5_NO_DEPRECATED_SYMBOLS )
-		add_definitions( -DH5Dcreate_vers=2 -DH5Dopen_vers=2 )
-		add_definitions( -DH5Acreate_vers=2 -DH5Gcreate_vers=2 )
-		add_definitions( -DH5Gopen_vers=2 )
+	find_package(HDF5)
+	if(HDF5_FOUND)
+		include_directories(${HDF5_INCLUDE_DIRS})
 	else()
-		# This is done to eliminate blank output of undefined CMake variables.
-		set( HDF5_FOUND FALSE )
-	endif()    
+		# we did not find it so we fetch it from the web, configure, compile, and link
+		include(ExternalProject)
+		set(ExternalProjectCMakeArgs
+			-DHDF5_BUILD_CPP_LIB=ON
+			)
+
+		set(_hdf5_version "1.8.18")
+		file(MAKE_DIRECTORY ${CMAKE_HOME_DIRECTORY}/hdf5_local/src)
+		ExternalProject_Add(hdf5_local
+			DOWNLOAD_COMMAND curl https://support.hdfgroup.org/ftp/HDF5/current18/src/hdf5-${_hdf5_version}.tar.gz | tar xvz -C ${CMAKE_HOME_DIRECTORY}/hdf5_local/src
+			CMAKE_ARGS ${ExternalProjectCMakeArgs}
+			SOURCE_DIR ${CMAKE_HOME_DIRECTORY}/hdf5_local/src/hdf5-${_hdf5_version}
+			BINARY_DIR ${CMAKE_HOME_DIRECTORY}/hdf5_local/build
+			STAMP_DIR  ${CMAKE_HOME_DIRECTORY}/hdf5_local/stamp
+			TMP_DIR    ${CMAKE_HOME_DIRECTORY}/hdf5_local/tmp
+			INSTALL_COMMAND ""
+			)
+		include_directories(
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/src/hdf5-${_hdf5_version}/src
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/src/hdf5-${_hdf5_version}/c++/src
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/build
+			)
+		set(HDF5_LIBRARIES
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5_cpp.a
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5.a
+			-ldl
+			)
+	endif()
+	message("HDF LIBS = ${HDF5_LIBRARIES}")
 endif()
 
 #############################################################################
