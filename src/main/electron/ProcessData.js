@@ -13,6 +13,7 @@ function getDecoratedData(data) {
 		getTotalPopulation: function() {
 			// Loop over the households, they always contain everybody (except travellers)
 			var pop_count = 0;
+			console.log(this.parsed_data);
 			for(var i = 0; i < this.parsed_data.features.length; i++) {
 				if (this.parsed_data.features[i].properties.type == cluster_type.household) {
 					pop_count += this.parsed_data.features[i].properties.size;
@@ -83,15 +84,15 @@ function getClusterInfectedCourse(data, id) {
 	return timeline;
 }
 
-function getTotalInfectedCourse(data, type, id) {
+function getTotalInfectedCourse(data) {
 	/// data is iterable
 	/// type is the type of cluster you want to inspect
 	/// id is the id of the cluster you want to inspect
 	var timeline = [];
 
 	for (var i = 0; i < data.length; i++) {
-		var current_data = getDecoratedData(data[i]);
-		var current_cluster = current_data.getCluster(id, type);
+		var current_data = getDecoratedData(parseCSVFile(data[i]));
+		//var current_cluster = current_data.getCluster(id, type);
 
 		timeline.push({
 			size: current_data.getTotalPopulation(),

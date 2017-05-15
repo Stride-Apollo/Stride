@@ -44,23 +44,9 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 		filenames.push(file);
 	});
 
+	var clusterEvolution = getTotalInfectedCourse(files);
 
-	/*$scope.title = "Cluster " + $scope.ID;
-	$scope.currentDay = $location.search().currentDay;
-
-	var files = [];
-	var filenames = [];
-	var clusterEvolution = [];
-	var dircontent = fs.readdirSync($location.search().directory);
-	dircontent.forEach( function (file){
-		var data = fs.readFileSync($location.search().directory + "/" + file, 'utf8');
-		files.push(data);
-		filenames.push(file);
-	});
-
-	clusterEvolution = getClusterInfectedCourse(files, $scope.ID);
-
-	var myPlot = document.getElementById("graph");
+	var myPlot = document.getElementById("graphInfected");
 	Plotly.purge(myPlot);
 
 	var infected = {
@@ -96,7 +82,7 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 	var plotWidth = 800;
 	var plotHeight = 450;
 	var layout = {
-		title: 'Cluster Evolution For Entire Simulation',
+		title: 'Evolution Of Population Illness',
 		width: plotWidth,
 		height: plotHeight,
 		paper_bgcolor: "rgba(255,0,0,0)",
@@ -108,13 +94,13 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 			yref: 'paper'
 		}};
 
-	Plotly.newPlot('graph', data, layout).then(function() {
+	Plotly.newPlot('graphInfected', data, layout).then(function() {
 		window.requestAnimationFrame(function() {
 			window.requestAnimationFrame(function() {
 				resizeWindow();
 
-				document.getElementById("graph").style="margin: auto; width: " + plotWidth + "px; height: " + plotHeight + "px;";
+				document.getElementById("graphInfected").style="margin: auto; width: " + plotWidth + "px; height: " + plotHeight + "px;";
 			});
 		});
-	});*/
+	});
 }]);

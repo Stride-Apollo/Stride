@@ -17,15 +17,15 @@
 </head>
 <body>
 <p id="title">Overview</p>
-
-<div id="graph"></div>
-<div id="clusterInformation">
+<div>
+	<p>Population: {{pop_size}}</p>
 	<ul class="demo-list-item mdl-list" id="questions">
 		<li class="mdl-list__item" ng-repeat="cluster in clusters">
 			<span ng-click="clusterClick(cluster.ID)" class="mdl-list__item-primary-content">Cluster {{cluster.ID}}</span>
 		</li>
 	</ul>
 </div>
+<div id="graphInfected"></div>
 </body>
 
 </html>
