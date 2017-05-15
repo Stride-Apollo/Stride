@@ -138,7 +138,7 @@ set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread" )
 if( STRIDE_FORCE_NO_HDF5 )
 	message( STATUS "---> Skipping HDF5, STRIDE_FORCE_NO_HDF5 set.")
 else()
-	find_package(HDF5)
+	find_package(HDF5 COMPONENTS CXX)
 	if(HDF5_FOUND)
 		include_directories(${HDF5_INCLUDE_DIRS})
 	else()
@@ -170,7 +170,7 @@ else()
 			-ldl
 			)
 	endif()
-	message("HDF LIBS = ${HDF5_LIBRARIES}")
+	set( LIBS ${LIBS} ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES} ${HDF5_HL_LIBRARIES})
 endif()
 
 #############################################################################

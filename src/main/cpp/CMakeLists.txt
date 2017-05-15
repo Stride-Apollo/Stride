@@ -108,7 +108,6 @@ target_link_libraries(stride ${LIBS})
 if(NOT HDF5_FOUND)
 	add_dependencies(stride hdf5_local)
 endif()
-target_link_libraries(stride ${HDF5_LIBRARIES})
 #set_target_properties(stride PROPERTIES LINK_FLAGS_RELEASE "-flto")
 
 install(TARGETS stride DESTINATION ${BIN_INSTALL_LOCATION})
