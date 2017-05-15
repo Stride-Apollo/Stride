@@ -1,6 +1,5 @@
 # Stride
-
-## Group Apollo
+> *extended by [Group Apollo](https://stride-apollo.github.io/)*
 
 ![Travis](https://img.shields.io/travis/Stride-Apollo/Stride.svg)
 
