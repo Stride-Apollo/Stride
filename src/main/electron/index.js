@@ -418,16 +418,6 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		return result;
 	};
 
-	function containsWin(array, obj) {
-		var i = array.length;
-		while (i--) {
-			if (array[i].id === obj) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	$scope.openMenu = function() {
 		var drawer = document.getElementById("conf_drawer");
 		var btn = document.getElementById("conf_button");
@@ -454,34 +444,33 @@ function loadCluster(id, config, filenames, currentDay) {
 
 		win.webContents.on('did-finish-load', ()=>{
 			win.show();
-		win.webContents.openDevTools();
-		win.focus();
-	});
+			win.webContents.openDevTools();
+			win.focus();
+		});
 
-		win.on('closed', function () {
-			for (var i in windows) {
-				if (windows[i].id == id) {
-					windows.splice(i, 1);
-					var content = "{\"windows\": " + JSON.stringify(windows) + "}";
-					fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
-				}
-			}
-		})
 		var url = "file://" + __dirname + '/ClusterContent.html?data='
 			+ __dirname + "/" + config.directory + "/" + filenames[currentDay]
 			+ "&cluster=" + id
 			+ "&directory=" + __dirname + "/" + config.directory
 			+ "&currentDay=" + currentDay;
 		win.loadURL(url);
+
+		var content = "{\"windows\": " + JSON.stringify(windows) + "}";
+		fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
 	} else {
 		for (var i in windows) {
 			if (windows[i].id == id) {
-				BrowserWindow.fromId(windows[i].window).focus();
+				if (BrowserWindow.fromId(windows[i].window) == null) {
+					windows.splice(i, 1);
+					var content = "{\"windows\": " + JSON.stringify(windows) + "}";
+					fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
+					loadCluster(id, config, filenames, currentDay);
+				} else {
+					BrowserWindow.fromId(windows[i].window).focus();
+				}
 			}
 		}
 	}
-	var content = "{\"windows\": " + JSON.stringify(windows) + "}";
-	fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
 };
 
 function containsWin(array, obj) {
