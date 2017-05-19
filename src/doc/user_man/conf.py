@@ -21,6 +21,15 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+# -- Generate Doxygen when on ReadTheDocs ---------------------------------
+
+import subprocess, os
+
+rtd_build = os.environ.get('READTHEDOCS', None) == 'True'
+
+if rtd_build:
+    subprocess.call('cd ../doxygen_ref_man; doxygen Doxyfile_RTD')
+
 
 # -- General configuration ------------------------------------------------
 
@@ -34,7 +43,13 @@
 extensions = ['sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
-    'sphinxcontrib.bibtex']
+    'sphinxcontrib.bibtex',
+    'breathe']
+
+# Breathe config
+
+breathe_projects = {'stride': '../doxygen_ref_man/xml/'}
+breathe_default_project = 'stride'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
