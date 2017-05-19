@@ -54,8 +54,8 @@ target*/
 build*/
 *.cmake
 CMakeCache.txt
-#CMakeFiles
-#Makefile
+CMakeFiles
+Makefile
 
 #------------------------------------
 # Latex stuff
