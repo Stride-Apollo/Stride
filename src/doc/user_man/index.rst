@@ -19,10 +19,17 @@ The following research groups or institutes have provided contributions:
   * Interuniversity Institute for Biostatistics and statistical
     Bioinformatics, Hasselt University.
 
+    
+.. toctree::
+   :maxdepth: 2
+   
+   Index <self>
+
+.. _usermanual:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: User manual
    
    introduction.rst
    software.rst
@@ -31,3 +38,9 @@ The following research groups or institutes have provided contributions:
    PopulationGenerator.rst
    bibliography.rst
    
+.. toctree::
+   :maxdepth:  2
+   :caption: Reference manual
+   :glob:
+   
+   refman/*

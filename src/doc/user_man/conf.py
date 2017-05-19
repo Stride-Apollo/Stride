@@ -28,7 +28,8 @@ import subprocess, os
 rtd_build = os.environ.get('READTHEDOCS', None) == 'True'
 
 if rtd_build:
-    subprocess.call('cd ../doxygen_ref_man; doxygen Doxyfile_RTD')
+    print("Building Doxygen")
+    subprocess.call('cd ../doxygen_ref_man; doxygen Doxyfile_RTD', shell=True)
 
 
 # -- General configuration ------------------------------------------------
