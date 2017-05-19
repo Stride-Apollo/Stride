@@ -43,14 +43,7 @@ if rtd_build:
 extensions = ['sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
-    'sphinxcontrib.bibtex',
-    'breathe']
-
-# Breathe config
-
-breathe_projects = {'stride': '../doxygen_ref_man/xml/'}
-breathe_default_project = 'stride'
-breathe_default_members = ('members', 'protected-members', 'undoc-members')
+    'sphinxcontrib.bibtex']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
