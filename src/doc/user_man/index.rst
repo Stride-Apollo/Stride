@@ -41,8 +41,16 @@ The following research groups or institutes have provided contributions:
    bibliography.rst
    
 .. toctree::
-   :maxdepth: 10
+   :maxdepth: 2
    :caption: Reference manual
    :glob:
    
    refman/*
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Old reference manual
+   :glob:
+   
+   old_refman/*
+
