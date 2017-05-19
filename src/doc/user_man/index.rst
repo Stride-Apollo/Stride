@@ -19,6 +19,8 @@ The following research groups or institutes have provided contributions:
   * Interuniversity Institute for Biostatistics and statistical
     Bioinformatics, Hasselt University.
 
+
+**Contents**:
     
 .. toctree::
    :maxdepth: 2
@@ -39,7 +41,7 @@ The following research groups or institutes have provided contributions:
    bibliography.rst
    
 .. toctree::
-   :maxdepth:  2
+   :maxdepth: 10
    :caption: Reference manual
    :glob:
    
