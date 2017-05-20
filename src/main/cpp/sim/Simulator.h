@@ -31,17 +31,21 @@
 #include "util/Subject.h"
 #include "util/Random.h"
 #include "util/unipar.h"
+#include "util/SimplePlanner.h"
 #include "behaviour/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
 #include <vector>
+#include <utility>
 
 namespace stride {
 
 class Population;
 class Calendar;
 class Cluster;
+class AsyncSimulator;
+using uint = unsigned int;
 
 /**
  * Main class that contains and direct the virtual world.
@@ -77,10 +81,35 @@ public:
 	/// Set the states of the rng's
 	void setRngStates(std::vector<std::string> states);
 
+	void setCommunicationMap(const std::map<uint, AsyncSimulator*>& communication_map) {m_communication_map = communication_map;}
+
 	/// Return an index to a cluster in the given vector
 	/// Current policy: search for the first cluster with equal coordinates
 	/// Return the size of the vector if you can't find any
 	uint chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters);
+
+	/// Receive travellers
+	/// @argument travellers: the travellers this simulator has to host. Contains the data needed to identify a person in the home simulator
+	/// @argument days: The amount of days the travellers will stay in this simulator
+	/// @argument destination_district: The name of the city in which the airport / facility is located e.g. "Antwerp"
+	/// @argument destination_facility: The name of the facility / airport e.g. "ANR"
+	/// TODO: future return value?
+	bool hostTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility);
+
+	/// Return people that were abroad
+	/// @argument travellers_indices: contains the indices (in the m_population->m_original vector) of the returning people
+	/// @argument health_status: The Health of the returning people (equal size as travellers_indices, health_status.at(i) belongs to travellers_indices.at(i))
+	/// TODO: future return value?
+	bool returnHomeTravellers(const vector<uint>& travellers_indices, const vector<Health>& health_status);
+
+	/// Return people that are here FROM abroad
+	/// @return: A pair containing a vector of indices and a vector of health, the same as the input in Simulator::hostTravellers
+	/// TODO: future return value?
+	std::vector<std::pair<vector<uint>, vector<Health> > > returnForeignTravellers();
+
+	vector<Simulator::TravellerType> pickTravellersToSend(uint amount, uint days, uint destination_sim_id, uint home_sim_id);
+
+	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
 
 private:
 	// Information about travellers
@@ -125,6 +154,12 @@ private:
 	DiseaseProfile m_disease_profile;      ///< Profile of disease.
 
 	bool m_track_index_case;     ///< General simulation or tracking index case.
+
+	uint m_next_id;		///< The ID of the next traveller that arrives.
+	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
+
+	std::map<uint, AsyncSimulator*> m_communication_map;			///< A map that contains the other simulators
+	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;

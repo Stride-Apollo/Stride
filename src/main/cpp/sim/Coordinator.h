@@ -36,10 +36,6 @@ public:
 
 	void timeStep();
 
-	vector<TravellerData> getTravellerData();
-
-	void forceSendTravellers(const vector<TravellerData>& traveller_data);
-
 private:
 	vector<AsyncSimulator*> m_sims;
 	Schedule m_traveller_schedule;

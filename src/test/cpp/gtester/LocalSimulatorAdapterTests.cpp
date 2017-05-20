@@ -32,7 +32,7 @@ using namespace boost::property_tree;
 
 namespace Tests {
 
-class UnitTests__LocalSimulatorAdapterTest: public ::testing::Test {
+class Scenarios__LocalSimulatorAdapterTest: public ::testing::Test {
 public:
 	/// TestCase set up.
 	static void SetUpTestCase() {
@@ -48,7 +48,7 @@ protected:
 
 protected:
 	/// Destructor has to be virtual.
-	virtual ~UnitTests__LocalSimulatorAdapterTest() {}
+	virtual ~Scenarios__LocalSimulatorAdapterTest() {}
 
 	/// Set up for the test fixture
 	virtual void SetUp() {
@@ -80,6 +80,18 @@ protected:
 		m_sim2 = SimulatorBuilder::build(pt_config, num_threads, false);
 		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1.get());
 		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2.get());
+
+		m_l1->setId(1);
+		m_l2->setId(2);
+
+		map<uint, AsyncSimulator*> comm_map1;
+		comm_map1[2] = m_l2.get();
+
+		map<uint, AsyncSimulator*> comm_map2;
+		comm_map2[1] = m_l1.get();
+
+		m_l1->setCommunicationMap(comm_map1);
+		m_l2->setCommunicationMap(comm_map2);
 	}
 
 	/// Tearing down the test fixture
@@ -114,7 +126,8 @@ bool sameCluster(const Cluster& cluster1, const Cluster& cluster2) {
 	return true;
 }
 
-TEST_F(UnitTests__LocalSimulatorAdapterTest, HappyDay) {
+// TODO remove fixture, this used to be useful
+TEST_F(Scenarios__LocalSimulatorAdapterTest, HappyDay) {
 	// Tests which reflect the regular use
 
 	// Keep the original work, primary and secondary communities of simulator 2
@@ -126,12 +139,20 @@ TEST_F(UnitTests__LocalSimulatorAdapterTest, HappyDay) {
 	auto first_person = &(m_sim2->getPopulation()->m_original.at(0));
 
 	// Migrate 10 people for 10 days
-	vector<unsigned int> id_s = m_l1->sendTravellers(10, 10, m_l2.get(), "Antwerp", "ANR");
+	m_l1->sendTravellersAway(10, 10, 2, "Antwerp", "ANR");
+
+	// Keep a vector of id's of people who are on vacation
+	vector<unsigned int> id_s;
+
+	for (auto& traveller: *(m_sim2->getPlanner().getDay(10))) {
+		id_s.push_back(traveller->getHomePerson().getId());
+	}
+
+	EXPECT_EQ(id_s.size(), 10U);
 
 	// -----------------------------------------------------------------------------------------
 	// Actual tests.
 	// -----------------------------------------------------------------------------------------
-	EXPECT_EQ(id_s.size(), 10U);
 	ASSERT_EQ(&(m_sim2->getPopulation()->m_original.at(0)), first_person);
 
 	// Test if the people arrived in the destination simulator
@@ -183,7 +204,6 @@ TEST_F(UnitTests__LocalSimulatorAdapterTest, HappyDay) {
 	// Run the simulation.
 	// Note: not 10 days, but 11, because the 10th day, these people will still be there, they depart (and instantly arrive) the day after
 	for (unsigned int i = 0; i < 11; i++) {
-
 		// Test whether they are present in the population of the hosting region
 		EXPECT_EQ(m_sim2->getPopulation()->m_visitors.getDay(10 - i)->size(), 10U);
 		for (unsigned int j = 0; j < m_sim2->getPopulation()->m_visitors.getDay(10 - i)->size(); ++j) {
@@ -197,12 +217,15 @@ TEST_F(UnitTests__LocalSimulatorAdapterTest, HappyDay) {
 		fut_results.push_back(m_l2->timeStep());
 		future_pool(fut_results);
 
-		for (unsigned int j = 0; j < m_l1->getPlanner().getAgenda().size(); ++j) {
-			auto it = m_l2->getPlanner().getAgenda().begin();
+		m_l1->sendTravellersHome();
+		m_l2->sendTravellersHome();
+
+		for (unsigned int j = 0; j < m_sim1->getPlanner().getAgenda().size(); ++j) {
+			auto it = m_sim2->getPlanner().getAgenda().begin();
 			auto block = (*(next(it, j))).get();
 
 			// Test whether they are present in the planner hosting region
-			if (j == m_l2->getPlanner().getAgenda().size() - 1) {
+			if (j == m_sim2->getPlanner().getAgenda().size() - 1) {
 				EXPECT_EQ(block->size(), 10U);
 			} else {
 				EXPECT_EQ(block->size(), 0U);
@@ -213,7 +236,7 @@ TEST_F(UnitTests__LocalSimulatorAdapterTest, HappyDay) {
 	ASSERT_EQ(&(m_sim2->getPopulation()->m_original.at(0)), first_person);
 
 	// The agendas are empty now (or at least, it should be)
-	EXPECT_EQ(m_l2->getPlanner().getAgenda().size(), 0U);
+	EXPECT_EQ(m_sim2->getPlanner().getAgenda().size(), 0U);
 	EXPECT_EQ(m_sim2->getPopulation()->m_visitors.getAgenda().size(), 0U);
 
 	// Test clusters of m_sim2, they must contain the same people as before
@@ -242,38 +265,6 @@ TEST_F(UnitTests__LocalSimulatorAdapterTest, HappyDay) {
 	for (uint i = 0; i < m_sim2->getPopulation()->m_original.size(); ++i) {
 		auto& person = m_sim2->getPopulation()->m_original.at(i);
 		EXPECT_FALSE(person.isOnVacation());
-	}
-}
-
-TEST_F(UnitTests__LocalSimulatorAdapterTest, getTravellerData) {
-	// Migrate 1 person for 10 days
-	vector<unsigned int> id_s = m_l1->sendTravellers(1, 10, m_l2.get(), "Antwerp", "ANR");
-	EXPECT_EQ(id_s.size(), 1U);
-
-	// Get the data of the traveller
-	EXPECT_EQ(m_sim2->getPopulation()->m_visitors.getDay(10)->size(), 1U);
-	vector<Simulator::PersonType> migrated_people_data;
-	for (auto& person: *(m_sim2->getPopulation()->m_visitors.getDay(10))) {
-		migrated_people_data.push_back(*person);
-	}
-
-	// This data must be the same as getTravellerData
-	auto traveller_data = m_l2->getTravellerData();
-	ASSERT_EQ(traveller_data.size(), migrated_people_data.size());
-	ASSERT_EQ(traveller_data.size(), id_s.size());
-
-	for (uint i = 0; i < traveller_data.size(); ++i) {
-		auto& data = traveller_data.at(i);
-		auto& migrated_person = migrated_people_data.at(i);
-		auto& home_person = m_sim1->getPopulation()->m_original.at(id_s[i]);
-
-		EXPECT_EQ(data.m_home_id, home_person.getId());
-		EXPECT_EQ(data.m_home_age, migrated_person.getAge());
-		EXPECT_EQ(data.m_home_age, home_person.getAge());
-		
-		EXPECT_EQ(migrated_person.getClusterId(ClusterType::Work), data.m_destination_work_id);
-		EXPECT_EQ(migrated_person.getClusterId(ClusterType::PrimaryCommunity), data.m_destination_primary_id);
-		EXPECT_EQ(migrated_person.getClusterId(ClusterType::SecondaryCommunity), data.m_destination_secondary_id);
 	}
 }
 
