@@ -127,9 +127,7 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 	return true;
 }
 
-vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, void* dest_sim, string destination_district, string destination_facility) {
-	LocalSimulatorAdapter* destination_sim = static_cast<LocalSimulatorAdapter*>(dest_sim);
-
+vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, AsyncSimulator* destination_sim, string destination_district, string destination_facility) {
 	list<Simulator::PersonType*> working_people;
 	vector<unsigned int> people_id_s;
 
@@ -213,31 +211,6 @@ bool LocalSimulatorAdapter::forceHost(const Simulator::TravellerType& traveller,
 	return true;
 }
 
-vector<TravellerData> LocalSimulatorAdapter::forceReturn() {
-	vector<TravellerData> returned_travellers;
-	uint days_left = 0;
-	while (m_planner.getAgenda().size() != 0) {
-		auto returning_people = m_planner.getDay(0);
-
-		for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
-			TravellerData new_data = TravellerData(*(**it).getOldPerson(),
-													*(**it).getNewPerson(),
-													days_left,
-													(**it).getHomeSimulatorId(),
-													(**it).getDestinationSimulatorId());
-			returned_travellers.push_back(new_data);
-
-			returnTraveller(**it);
-		}
-
-		++days_left;
-		m_planner.nextDay();
-		m_sim->m_population->m_visitors.nextDay();
-	}
-
-	return returned_travellers;
-}
-
 vector<TravellerData> LocalSimulatorAdapter::getTravellerData() {
 	vector<TravellerData> returned_travellers;
 	for (uint days_left = 0; days_left < m_planner.getAgenda().size(); ++days_left) {
@@ -256,9 +229,7 @@ vector<TravellerData> LocalSimulatorAdapter::getTravellerData() {
 	return returned_travellers;
 }
 
-void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, void* dest_sim) {
-	LocalSimulatorAdapter* destination_sim = static_cast<LocalSimulatorAdapter*>(dest_sim);
-
+void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, AsyncSimulator* destination_sim) {
 	// Find the person
 	Simulator::PersonType* target_person = nullptr;
 

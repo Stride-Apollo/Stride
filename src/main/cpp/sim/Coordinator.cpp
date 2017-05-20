@@ -14,7 +14,7 @@ void Coordinator::timeStep() {
 	vector<future<bool>> fut_results;
 
 	// Run the simulator for the day
-	for (AsyncSim* sim: m_sims) {
+	for (AsyncSimulator* sim: m_sims) {
 		fut_results.push_back(sim->timeStep());
 	}
 	future_pool(fut_results);
