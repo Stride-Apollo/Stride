@@ -77,9 +77,9 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 	for (const Simulator::TravellerType& traveller: travellers) {
 
 		// Choose the clusters the traveller will reside in
-		uint work_index = chooseCluster(facility_location, m_sim->m_work_clusters);
-		uint prim_comm_index = chooseCluster(facility_location, m_sim->m_primary_community);
-		uint sec_comm_index = chooseCluster(facility_location, m_sim->m_secondary_community);
+		uint work_index = m_sim->chooseCluster(facility_location, m_sim->m_work_clusters);
+		uint prim_comm_index = m_sim->chooseCluster(facility_location, m_sim->m_primary_community);
+		uint sec_comm_index = m_sim->chooseCluster(facility_location, m_sim->m_secondary_community);
 
 		if (work_index == m_sim->m_work_clusters.size()
 			|| prim_comm_index == m_sim->m_primary_community.size()
@@ -150,8 +150,8 @@ vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint day
 
 	while (chosen_people.size() != amount) {
 		// Randomly generate an index in working_people
-		uniform_int_distribution<unsigned int> dist(0, working_people.size() - 1);
-		unsigned int index = dist(m_rng);
+		// Note: this class will use the rng of the simulator
+		unsigned int index = m_sim->m_rng->operator() (working_people.size());
 
 		// Get the person to be sent
 		Simulator::PersonType* person = *(next(working_people.begin(), index));

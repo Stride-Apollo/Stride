@@ -191,4 +191,25 @@ void Simulator::setRngStates(vector<string> states) {
 	m_rng->setState(states.at(0));
 }
 
+uint Simulator::chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters) {
+	// TODO extend with sphere of influence
+	vector<uint> available_clusters;
+	for (uint i = 1; i < clusters.size(); ++i) {
+
+		const auto& cluster = clusters.at(i);
+
+		if (coordinate == cluster.getLocation()) {
+			available_clusters.push_back(i);
+		}
+	}
+
+	if (available_clusters.size() != 0) {
+		uint chosen_index = m_rng->operator() (available_clusters.size());
+		return available_clusters[chosen_index];
+
+	} else {
+		return clusters.size();
+	}
+}
+
 }

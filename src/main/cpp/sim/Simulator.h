@@ -77,6 +77,11 @@ public:
 	/// Set the states of the rng's
 	void setRngStates(std::vector<std::string> states);
 
+	/// Return an index to a cluster in the given vector
+	/// Current policy: search for the first cluster with equal coordinates
+	/// Return the size of the vector if you can't find any
+	uint chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters);
+
 private:
 	// Information about travellers
 	// original ID ->
