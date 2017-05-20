@@ -36,10 +36,10 @@ endif
 #============================================================================
 #	Determine Visualization install path
 #============================================================================
-PATH_INSTALL_VIS = build/installed/visualization
+PATH_INSTALL_VIS = build/installed/vis
 
 ifneq ($(CMAKE_INSTALL_PREFIX),)
-	PATH_INSTALL_VIS = $(CMAKE_INSTALL_PREFIX)/visualization
+	PATH_INSTALL_VIS = $(CMAKE_INSTALL_PREFIX)/vis
 endif
 
 #============================================================================

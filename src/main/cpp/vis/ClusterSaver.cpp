@@ -32,6 +32,7 @@ void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const
 	ofstream csv_file;
 	stringstream ss;
 	ss << setfill('0') << setw(5) << m_sim_day;
+	// TODO move save directory to local resource directory of the visualization app
 	string file_name = util::InstallDirs::getOutputDir().string() + "/" + m_file_name + "_" + ss.str() + ".csv";
 	csv_file.open(file_name.c_str());
 
