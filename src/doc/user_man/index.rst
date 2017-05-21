@@ -23,11 +23,10 @@ The following research groups or institutes have provided contributions:
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-   
+
    introduction.rst
    software.rst
    simulator.rst
    checkpointing.rst
-   PopulationGenerator.rst
+   populationgenerator.rst
    bibliography.rst
-   

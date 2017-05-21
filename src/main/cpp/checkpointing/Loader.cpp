@@ -240,7 +240,7 @@ void Loader::extractConfigs(string filename) {
 	file.close();
 
 	auto writeToFile = [](string filename, string content) {
-		ofstream file;
+		std::ofstream file;
 		file.open(filename.c_str());
 		file << content;
 		file.close();

@@ -37,8 +37,7 @@ set( SRC
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)
 target_link_libraries(${EXEC} libstride)
-target_link_libraries(${EXEC} ${_hdf5_libs})
-target_link_libraries( ${EXEC}    ${LIBS} gtest pthread)
+target_link_libraries( ${EXEC} ${LIBS} gtest pthread)
 install(TARGETS ${EXEC}  DESTINATION   ${BIN_INSTALL_LOCATION})
 
 #============================================================================

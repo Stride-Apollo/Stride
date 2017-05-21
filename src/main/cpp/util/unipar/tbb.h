@@ -8,55 +8,45 @@
 #include "tbb/enumerable_thread_specific.h"
 
 #include <iostream>
+#include <memory>
 
 namespace unipar {
 namespace internal {
 
-template <typename Impl, typename... TFs>
-struct TbbResourceManager;
+template <typename Impl, typename... Types>
+class TbbResourceManager;
 
-template <typename Impl, typename TF, typename... Rest>
-struct TbbResourceManager<Impl, TF, Rest...> : public ResourceManager<Impl, TF, Rest...> {
-	using TLSType = tbb::enumerable_thread_specific<typename TF::Type>;
-	TLSType tls;
-
-	// Watch out, tls has to be set!
-	TbbResourceManager() {
-		//std::cout << this << " Tbb Resource Manager with empty tls init...\n";
-	}
-
-	TbbResourceManager(TF _tf, Rest&&... rest_tf)
-		: ResourceManager<Impl, TF, Rest...>(_tf, std::forward<Rest>(rest_tf)...), tls(this->tf.func) {}
+template <typename Impl, typename Type, typename... Rest>
+class TbbResourceManager<Impl, Type, Rest...> : public ResourceManager<Impl, Type, Rest...> {
+public:
+	using RestType = typename Impl::template RMType<Impl, Rest...>;
+	using FuncType = std::function<Type()>;
+	using TLSType = tbb::enumerable_thread_specific<Type>;
 	
-	TbbResourceManager(TF _tf, const typename Impl::template RMType<Impl, Rest...>& _rest)
-		: ResourceManager<Impl, TF, Rest...>(_tf, _rest), tls(this->tf.func) {}
+	using ResourceManager<Impl, Type, Rest...>::ResourceManager;
 	
 	template <typename F, typename... Args>
-	auto call(const F& func, Args&&... args) {
-		//std::cout << this << " Current values: \n";
-		//for (auto& i: tls) {
-		//	std::cout << "  - " << i.get() << "\n";
-		//}
-		auto val = std::move(tls.local());
-		//std::cout << this << " Value requested... " << val.get() << "\n";
-		this->rest.call(func, std::forward<typename TLSType::reference>(val), std::forward<Args>(args)...);
-		//std::cout << this << " Value is now... " << val.get() << "\n";
+	typename std::result_of<F(Type&, Args...)>::type call(const F& func, Args&&... args) {
+		return this->m_rest.call(func, std::forward<Type&>(m_tls->local()), std::forward<Args>(args)...);
 	}
 
-	void setFunc(const typename TF::Func& f) {
-		this->tf.func = f;
-		this->tls = TLSType(f);
+	void setFunc(const FuncType& f) {
+		this->m_func = f;
+		this->m_tls.reset(new TLSType(f)); // sadly, I can't directly set the function
 	}
+	
+protected:
+	std::unique_ptr<TLSType> m_tls;
 };
 
 template <typename Impl>
-struct TbbResourceManager<Impl> : public ResourceManager<Impl> {};
+class TbbResourceManager<Impl> : public ResourceManager<Impl> {};
 
 
 class _TbbParallel : public ParallelInterface {
 public:
-	template <typename Impl, typename... TFs>
-	using RMType = TbbResourceManager<Impl, TFs...>;
+	template <typename Impl, typename... Types>
+	using RMType = TbbResourceManager<Impl, Types...>;
 	
 	_TbbParallel(int nthreads = -1): m_nthreads(nthreads) {}
 	
