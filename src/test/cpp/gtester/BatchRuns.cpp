@@ -46,18 +46,18 @@ protected:
 	const double         m_r0                          = 3.0;
 	const unsigned int   m_num_days                    = 30U;
 	const unsigned int   m_rnm_seed                    = 2015U;
-	const double         m_seedinm_rate                = 0.0001;
+	const double         m_seeding_rate                = 0.0001;
 	const double         m_immunity_rate               = 0.0;
-	const string         m_disease_confim_file         = "disease_influenza.xml";
+	const string         m_disease_config_file         = "disease_influenza.xml";
 	const string         m_output_prefix         	   = "test";
 	const string         m_holidays_file               = "holidays_none.json";
 	const unsigned int   m_num_participants_survey     = 10;
 	const string         m_start_date                  = "2017-01-01";
 
 	// Adapted values
-	const double         m_seedinm_rate_adapted        = 0.0;
+	const double         m_seeding_rate_adapted        = 0.0;
 	const double         m_immunity_rate_adapted       = 0.999991;
-	const string         m_disease_confim_file_adapted = "disease_measles.xml";
+	const string         m_disease_config_file_adapted = "disease_measles.xml";
 	const double         m_transmission_rate_measles   = 16U;
 	const double         m_transmission_rate_maximum   = 100U;
 	const string         m_population_file_flanders    = "pop_flanders.csv";
@@ -67,7 +67,7 @@ protected:
 };
 
 const map<string, unsigned int> Scenarios__BatchDemos::g_results {
-	make_pair("default", 70000),
+	make_pair("default", 80000),
 	make_pair("seeding_rate", 0),
 	make_pair("immunity_rate", 6),
 	make_pair("measles", 135000),
@@ -89,12 +89,12 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 	boost::property_tree::ptree pt_config;
 	pt_config.put("run.rng_seed", m_rnm_seed);
 	pt_config.put("run.r0", m_r0);
-	pt_config.put("run.seeding_rate", m_seedinm_rate);
+	pt_config.put("run.seeding_rate", m_seeding_rate);
 	pt_config.put("run.immunity_rate", m_immunity_rate);
 	pt_config.put("run.population_file", m_population_file);
 	pt_config.put("run.num_days", m_num_days);
 	pt_config.put("run.output_prefix", m_output_prefix);
-	pt_config.put("run.disease_config_file",m_disease_confim_file);
+	pt_config.put("run.disease_config_file",m_disease_config_file);
 	pt_config.put("run.num_participants_survey",m_num_participants_survey);
 	pt_config.put("run.start_date",m_start_date);
 	pt_config.put("run.holidays_file",m_holidays_file);
@@ -106,12 +106,12 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 	if (test_tag == "default") {
 		// do nothing
 	} else if (test_tag == "seeding_rate") {
-		pt_config.put("run.seeding_rate", m_seedinm_rate_adapted);
+		pt_config.put("run.seeding_rate", m_seeding_rate_adapted);
 	} else if (test_tag == "immunity_rate") {
 		pt_config.put("run.seeding_rate", 1-m_immunity_rate_adapted);
 		pt_config.put("run.immunity_rate", m_immunity_rate_adapted);
 	} else if (test_tag == "measles") {
-		pt_config.put("run.disease_config_file", m_disease_confim_file_adapted);
+		pt_config.put("run.disease_config_file", m_disease_config_file_adapted);
 		pt_config.put("run.r0", m_transmission_rate_measles);
 	} else if (test_tag == "maximum") {
 		pt_config.put("run.r0", m_transmission_rate_maximum);
@@ -144,7 +144,11 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 
 	// Round up.
 	const unsigned int num_cases = sim->getPopulation()->getInfectedCount();
-	ASSERT_NEAR(num_cases, g_results.at(test_tag), 10000) << "!! CHANGED !!";
+	#if UNIPAR_IMPL == UNIPAR_DUMMY
+		ASSERT_NEAR(num_cases, g_results.at(test_tag), 5000) << "!! CHANGED !!";
+	#else
+		ASSERT_NEAR(num_cases, g_results.at(test_tag), 30000) << "!! CHANGED !!";
+	#endif
 }
 
 namespace {
