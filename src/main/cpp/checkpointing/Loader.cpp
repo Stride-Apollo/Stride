@@ -174,11 +174,6 @@ void Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<Simu
 		DataSpace dataspace = dataset.getSpace();
 		dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
 		dataset.read(person, type_person_TD, memspace, dataspace);
-		sim->m_population->m_original.at(i).m_at_household = person[0].at_household;
-		sim->m_population->m_original.at(i).m_at_work = person[0].at_work;
-		sim->m_population->m_original.at(i).m_at_school = person[0].at_school;
-		sim->m_population->m_original.at(i).m_at_primary_community = person[0].at_prim_comm;
-		sim->m_population->m_original.at(i).m_at_secondary_community = person[0].at_sec_comm;
 		sim->m_population->m_original.at(i).m_is_participant = person[0].participant;
 		sim->m_population->m_original.at(i).m_health.m_status = HealthStatus(person[0].health_status);
 		sim->m_population->m_original.at(i).m_health.m_disease_counter = person[0].disease_counter;
