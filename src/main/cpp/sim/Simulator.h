@@ -44,8 +44,7 @@ namespace stride {
 class Population;
 class Calendar;
 class Cluster;
-class AsyncSimulatorReceiver;
-class AsyncSimulatorSender;
+class AsyncSimulator;
 using uint = unsigned int;
 
 /**
@@ -66,6 +65,10 @@ public:
 	/// Change track_index_case setting.
 	void setTrackIndexCase(bool track_index_case);
 
+	void setId(uint id) {m_id = id;}
+
+	uint getId() const {return m_id;}
+
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
 
@@ -82,9 +85,7 @@ public:
 	/// Set the states of the rng's
 	void setRngStates(std::vector<std::string> states);
 
-	void setCommunicationMap(const std::map<uint, AsyncSimulatorSender*>& sender_map) {m_senders = sender_map;}
-
-	void setReceiver(AsyncSimulatorReceiver* receiver) {m_receiver = receiver;}
+	void setAsyncSimulator(AsyncSimulator* async_sim) {m_async_sim = async_sim;}
 
 	/// Return an index to a cluster in the given vector
 	/// Current policy: search for the first cluster with equal coordinates
@@ -97,18 +98,18 @@ public:
 	/// @argument destination_district: The name of the city in which the airport / facility is located e.g. "Antwerp"
 	/// @argument destination_facility: The name of the facility / airport e.g. "ANR"
 	/// TODO: future return value?
-	bool hostTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility);
+	bool hostForeignTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility);
 
 	/// Return people that were abroad
 	/// @argument travellers_indices: contains the indices (in the m_population->m_original vector) of the returning people
 	/// @argument health_status: The Health of the returning people (equal size as travellers_indices, health_status.at(i) belongs to travellers_indices.at(i))
 	/// TODO: future return value?
-	bool returnHomeTravellers(const vector<uint>& travellers_indices, const vector<Health>& health_status);
+	bool welcomeHomeTravellers(const vector<uint>& travellers_indices, const vector<Health>& health_status);
 
 	/// Return people that are here FROM abroad
 	void returnForeignTravellers();
 
-	void sendTravellersAway(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility);
+	void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility);
 
 	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
 
@@ -160,8 +161,7 @@ private:
 	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
 	uint m_id;	///< ID of the simulator.
 
-	std::map<uint, AsyncSimulatorSender*> m_senders;	///< A map that contains senders to the other simulators
-	AsyncSimulatorReceiver* m_receiver;					///< The receiver of this simulator
+	AsyncSimulator* m_async_sim;
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 	friend class SimulatorBuilder;

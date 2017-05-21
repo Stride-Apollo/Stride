@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include "AsyncSimulatorSender.h"
+#include "AsyncSimulator.h"
 #include "util/TravellerScheduleReader.h"
 
 namespace stride {
@@ -22,7 +22,7 @@ public:
 		initializeSimulators();
 	}
 
-	Coordinator(initializer_list<AsyncSimulatorSender*> sims)
+	Coordinator(initializer_list<AsyncSimulator*> sims)
 		: m_sims(sims.begin(), sims.end()) {initializeSimulators();}
 
 	void initializeSimulators() {
@@ -37,7 +37,7 @@ public:
 	void timeStep();
 
 private:
-	vector<AsyncSimulatorSender*> m_sims;
+	vector<AsyncSimulator*> m_sims;
 	Schedule m_traveller_schedule;
 };
 

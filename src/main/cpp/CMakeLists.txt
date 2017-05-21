@@ -47,8 +47,7 @@ set(LIB_SRC
 	sim/run_stride.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
-	sim/LocalSimulatorSender.cpp
-	sim/LocalSimulatorReceiver.cpp
+	sim/LocalSimulatorAdapter.cpp
 	sim/Coordinator.cpp
 	sim/SimulatorRunMode.cpp
 #---

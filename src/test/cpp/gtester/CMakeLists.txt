@@ -23,7 +23,7 @@ set( SRC
 		BatchRuns.cpp
 		UtilTests.cpp
 		PopulationTests.cpp
-		LocalSimulatorSenderTests.cpp
+		AsyncSimulatorTests.cpp
 		TravelSchedulerTest.cpp
 		TransportFacilityTest.cpp
 		PopGen/PopulationGeneratorTest.cpp

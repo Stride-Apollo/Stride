@@ -19,8 +19,7 @@
  */
 
 #include "Simulator.h"
-#include "AsyncSimulatorSender.h"
-#include "AsyncSimulatorReceiver.h"
+#include "AsyncSimulator.h"
 
 #include "calendar/Calendar.h"
 #include "calendar/DaysOffStandard.h"
@@ -215,7 +214,7 @@ uint Simulator::chooseCluster(const GeoCoordinate& coordinate, const vector<Clus
 	}
 }
 
-bool Simulator::hostTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) {
+bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) {
 	GeoCoordinate facility_location;
 	bool found_airport = false;
 
@@ -290,7 +289,7 @@ bool Simulator::hostTravellers(const vector<Simulator::TravellerType>& traveller
 	return true;
 }
 
-bool Simulator::returnHomeTravellers(const vector<uint>& travellers_indices, const vector<Health>& health_status) {
+bool Simulator::welcomeHomeTravellers(const vector<uint>& travellers_indices, const vector<Health>& health_status) {
 	auto& original_population = m_population->m_original;
 	for (uint i = 0; i < travellers_indices.size(); ++i) {
 		original_population.at(travellers_indices.at(i)).setOnVacation(false);
@@ -340,13 +339,13 @@ void Simulator::returnForeignTravellers() {
 
 	// Give the data to the senders
 	for (int i = 0; i < result.size(); ++i) {
-		if (m_senders.count(i) != 0 && result.at(i).second.size() != 0) {
-			m_senders[i]->sendTravellersHome(result.at(i));
+		if (result.at(i).second.size() != 0) {
+			m_async_sim->returnForeignTravellers(result.at(i), i);
 		}
 	}
 }
 
-void Simulator::sendTravellersAway(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) {
+void Simulator::sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) {
 	list<Simulator::PersonType*> working_people;
 
 	// Get the working people
@@ -375,13 +374,13 @@ void Simulator::sendTravellersAway(uint amount, uint days, uint destination_sim_
 		person->setOnVacation(true);
 
 		// Make the traveller and make sure he can't be sent twice
-		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, m_receiver->getId(), destination_sim_id, person->getId());
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, m_id, destination_sim_id, person->getId());
 		chosen_people.push_back(new_traveller);
 		working_people.erase(next(working_people.begin(), index));
 
 	}
 
-	m_senders.at(destination_sim_id)->sendTravellersAway(chosen_people, days, destination_district, destination_facility);
+	m_async_sim->sendNewTravellers(chosen_people, days, destination_sim_id, destination_district, destination_facility);
 }
 
 }
