@@ -43,7 +43,6 @@ Simulator::Simulator()
           m_disease_profile(), m_track_index_case(false) {
 	m_parallel.resources().setFunc([&](){
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
-			//std::cout << "Dummy rng?\n";
 			return m_rng.get();
 		#else
 			std::random_device rd;

@@ -155,7 +155,7 @@ namespace {
 #if UNIPAR_IMPL == UNIPAR_DUMMY
 	unsigned int threads[] {1U};
 #else
-	unsigned int threads[] {1U, 4U, 8U};
+	unsigned int threads[] {1U, 4U};
 #endif
 }
 
