@@ -29,5 +29,6 @@ The following research groups or institutes have provided contributions:
    simulator.rst
    checkpointing.rst
    PopulationGenerator.rst
+   visualization.rst
    bibliography.rst
    
