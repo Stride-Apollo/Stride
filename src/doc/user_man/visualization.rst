@@ -8,6 +8,8 @@ Configuration
 Installing
 ~~~~~~~~~~
 
+*Building the visualization plugin requires a few libraries/packages. The list of packages can be found in the Software chapter (part System Requirements).*
+
 You can install the visualization post processing tool by executing the command ``make install_vis`` in the root directory of the project.
 This will install the binary visualization executable in the install directory, namely in ``vis/visualization``.
 
@@ -46,6 +48,7 @@ Cluster panel
 ~~~~~~~~~~~~~
 
 The cluster panel can be opened by clicking on a cluster. The cluster panels display a graph showing the evolution of infected persons in that specific cluster, over the simulation. It also displays general information of the cluster.
+
 *If multiple clusters are located on the same coordinates, multiple panels get opened with all the overlapping clusters.*
 
 
@@ -58,7 +61,7 @@ The configuration options include:
 
 -  The displayed colors used by the clusters.
 
--  The sizes of the circles used to display the clusters
+-  The sizes of the circles used to display the clusters.
 
 -  The animation speed when displaying the different days of the simulation.
 
@@ -66,4 +69,12 @@ The configuration options include:
 
 You can save the configuration options after adjusting them, by clicking ``SAVE CONFIGURATION``. The saved options will be reused for further uses of the tool.
 
+
+Overview
+~~~~~~~~
+
+
+.. todo::
+
+	The overview is not finished yet.
 
