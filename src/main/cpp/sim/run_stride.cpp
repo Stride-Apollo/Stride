@@ -112,7 +112,7 @@ void run_stride(bool track_index_case,
 	// Is checkpointing 'enabled'?
 	if (hdf5_file_name != "" || hdf5_output_file_name != "" || config_hdf5_file != "") {
 		int frequency = checkpointing_frequency == -1 ?
-						pt_config.get<int>("run.checkpointing_frequency") : checkpointing_frequency;
+						pt_config.get<int>("run.checkpointing_frequency", 1) : checkpointing_frequency;
 		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
 		if (output_file == "") {
 			output_file = config_hdf5_file;
