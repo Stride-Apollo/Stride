@@ -5,6 +5,7 @@
 
 #include <boost/date_time/gregorian/greg_date.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <iomanip>
 #include "Loader.h"
 #include "calendar/Calendar.h"
 #include "util/InstallDirs.h"
@@ -79,7 +80,7 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 
 	stringstream ss;
-	ss << "/Timestep_" << timestep;
+	ss << "/Timestep_" << std::setfill('0') << std::setw(6) << timestep;
 	string dataset_name = ss.str();
 
 

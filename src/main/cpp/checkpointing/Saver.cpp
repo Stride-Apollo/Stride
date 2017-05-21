@@ -7,6 +7,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>
+#include <iomanip>
 #include "Saver.h"
 #include "util/InstallDirs.h"
 #include "calendar/Calendar.h"
@@ -91,7 +92,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 		}
 
 		stringstream ss;
-		ss << "/Timestep_" << m_timestep;
+		ss << "/Timestep_" << std::setfill('0') << std::setw(6) << m_timestep;
 		Group group(file.createGroup(ss.str()));
 
 		// Only save when unipar dummy implementation is used, otherwise sim.m_rng == nullptr
