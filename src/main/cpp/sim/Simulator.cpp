@@ -19,6 +19,8 @@
  */
 
 #include "Simulator.h"
+#include "AsyncSimulatorSender.h"
+#include "AsyncSimulatorReceiver.h"
 
 #include "calendar/Calendar.h"
 #include "calendar/DaysOffStandard.h"
@@ -298,7 +300,7 @@ bool Simulator::returnHomeTravellers(const vector<uint>& travellers_indices, con
 	return true;
 }
 
-vector<pair<vector<uint>, vector<Health> > > Simulator::returnForeignTravellers() {
+void Simulator::returnForeignTravellers() {
 
 	// Get the people that return home today (according to the planner in the population of this simulator)
 	SimplePlanner<Simulator::TravellerType>::Block* returning_people = m_planner.getModifiableDay(0);
@@ -336,10 +338,15 @@ vector<pair<vector<uint>, vector<Health> > > Simulator::returnForeignTravellers(
 	m_planner.nextDay();
 	m_population->m_visitors.nextDay();
 
-	return result;
+	// Give the data to the senders
+	for (int i = 0; i < result.size(); ++i) {
+		if (m_senders.count(i) != 0 && result.at(i).second.size() != 0) {
+			m_senders[i]->sendTravellersHome(result.at(i));
+		}
+	}
 }
 
-vector<Simulator::TravellerType> Simulator::pickTravellersToSend(uint amount, uint days, uint destination_sim_id, uint home_sim_id) {
+void Simulator::sendTravellersAway(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) {
 	list<Simulator::PersonType*> working_people;
 
 	// Get the working people
@@ -367,14 +374,14 @@ vector<Simulator::TravellerType> Simulator::pickTravellersToSend(uint amount, ui
 		Simulator::PersonType* person = *(next(working_people.begin(), index));
 		person->setOnVacation(true);
 
-		// Make the sender and make sure he can't be sent twice
-		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, home_sim_id, destination_sim_id, person->getId());
+		// Make the traveller and make sure he can't be sent twice
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, m_receiver->getId(), destination_sim_id, person->getId());
 		chosen_people.push_back(new_traveller);
 		working_people.erase(next(working_people.begin(), index));
 
 	}
 
-	return chosen_people;
+	m_senders.at(destination_sim_id)->sendTravellersAway(chosen_people, days, destination_district, destination_facility);
 }
 
 }

@@ -10,8 +10,6 @@ namespace stride {
 // However, since people 'become' travellers at random, that would have
 // been very difficult to achieve (and either hacky or inefficient, too)
 
-class LocalSimulatorAdapter;
-
 template <class PersonType>
 class Traveller {
 public:

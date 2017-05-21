@@ -47,9 +47,9 @@ set(LIB_SRC
 	sim/run_stride.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
-	sim/LocalSimulatorAdapter.cpp
+	sim/LocalSimulatorSender.cpp
+	sim/LocalSimulatorReceiver.cpp
 	sim/Coordinator.cpp
-    sim/SimulatorSetup.cpp
 	sim/SimulatorRunMode.cpp
 #---
 	util/InstallDirs.cpp
@@ -65,8 +65,7 @@ set(LIB_SRC
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
 #---
-    checkpointing/Saver.cpp
-    checkpointing/Loader.cpp
+    
 )
 
 set(POPGEN_SRC

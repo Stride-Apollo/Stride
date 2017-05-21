@@ -2,7 +2,7 @@
 #include "util/async.h"
 #include "util/TravellerScheduleReader.h"
 #include "calendar/Calendar.h"
-#include "sim/LocalSimulatorAdapter.h"
+#include "sim/LocalSimulatorSender.h"
 
 #include <vector>
 

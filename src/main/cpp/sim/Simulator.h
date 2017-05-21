@@ -44,7 +44,8 @@ namespace stride {
 class Population;
 class Calendar;
 class Cluster;
-class AsyncSimulator;
+class AsyncSimulatorReceiver;
+class AsyncSimulatorSender;
 using uint = unsigned int;
 
 /**
@@ -81,7 +82,9 @@ public:
 	/// Set the states of the rng's
 	void setRngStates(std::vector<std::string> states);
 
-	void setCommunicationMap(const std::map<uint, AsyncSimulator*>& communication_map) {m_communication_map = communication_map;}
+	void setCommunicationMap(const std::map<uint, AsyncSimulatorSender*>& sender_map) {m_senders = sender_map;}
+
+	void setReceiver(AsyncSimulatorReceiver* receiver) {m_receiver = receiver;}
 
 	/// Return an index to a cluster in the given vector
 	/// Current policy: search for the first cluster with equal coordinates
@@ -103,11 +106,9 @@ public:
 	bool returnHomeTravellers(const vector<uint>& travellers_indices, const vector<Health>& health_status);
 
 	/// Return people that are here FROM abroad
-	/// @return: A pair containing a vector of indices and a vector of health, the same as the input in Simulator::hostTravellers
-	/// TODO: future return value?
-	std::vector<std::pair<vector<uint>, vector<Health> > > returnForeignTravellers();
+	void returnForeignTravellers();
 
-	vector<Simulator::TravellerType> pickTravellersToSend(uint amount, uint days, uint destination_sim_id, uint home_sim_id);
+	void sendTravellersAway(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility);
 
 	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
 
@@ -157,12 +158,14 @@ private:
 
 	uint m_next_id;		///< The ID of the next traveller that arrives.
 	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
+	uint m_id;	///< ID of the simulator.
 
-	std::map<uint, AsyncSimulator*> m_communication_map;			///< A map that contains the other simulators
+	std::map<uint, AsyncSimulatorSender*> m_senders;	///< A map that contains senders to the other simulators
+	AsyncSimulatorReceiver* m_receiver;					///< The receiver of this simulator
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 	friend class SimulatorBuilder;
-	friend class LocalSimulatorAdapter;
+	friend class AsyncSimulatorReceiver;
 	friend class Saver;
 	friend class Loader;
 };

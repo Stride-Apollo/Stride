@@ -7,8 +7,10 @@
 
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
-#include "sim/AsyncSimulator.h"
-#include "sim/LocalSimulatorAdapter.h"
+#include "sim/AsyncSimulatorSender.h"
+#include "sim/AsyncSimulatorReceiver.h"
+#include "sim/LocalSimulatorSender.h"
+#include "sim/LocalSimulatorReceiver.h"
 #include "util/async.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
@@ -32,7 +34,7 @@ using namespace boost::property_tree;
 
 namespace Tests {
 
-class Scenarios__LocalSimulatorAdapterTest: public ::testing::Test {
+class Scenarios__LocalSimulatorSenderTest: public ::testing::Test {
 public:
 	/// TestCase set up.
 	static void SetUpTestCase() {
@@ -40,15 +42,18 @@ public:
 	}
 
 protected:
-	std::shared_ptr<Simulator> 				m_sim1;
-	std::shared_ptr<Simulator> 				m_sim2;
+	std::shared_ptr<Simulator> 					m_sim1;
+	std::shared_ptr<Simulator> 					m_sim2;
 
-	std::unique_ptr<LocalSimulatorAdapter> 	m_l1;
-	std::unique_ptr<LocalSimulatorAdapter> 	m_l2;
+	std::unique_ptr<LocalSimulatorSender> 		m_sender_to_1;
+	std::unique_ptr<LocalSimulatorSender> 		m_sender_to_2;
+
+	std::unique_ptr<LocalSimulatorReceiver> 	m_sim1_receiver;
+	std::unique_ptr<LocalSimulatorReceiver> 	m_sim2_receiver;
 
 protected:
 	/// Destructor has to be virtual.
-	virtual ~Scenarios__LocalSimulatorAdapterTest() {}
+	virtual ~Scenarios__LocalSimulatorSenderTest() {}
 
 	/// Set up for the test fixture
 	virtual void SetUp() {
@@ -78,20 +83,25 @@ protected:
 		// Create simulators
 		m_sim1 = SimulatorBuilder::build(pt_config, num_threads, false);
 		m_sim2 = SimulatorBuilder::build(pt_config, num_threads, false);
-		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1.get());
-		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2.get());
+		m_sender_to_1 = make_unique<LocalSimulatorSender>(m_sim1.get());
+		m_sender_to_2 = make_unique<LocalSimulatorSender>(m_sim2.get());
+		m_sim1_receiver = make_unique<LocalSimulatorReceiver>(m_sim1.get());
+		m_sim2_receiver = make_unique<LocalSimulatorReceiver>(m_sim2.get());
 
-		m_l1->setId(1);
-		m_l2->setId(2);
+		m_sim1_receiver->setId(1);
+		m_sim2_receiver->setId(2);
 
-		map<uint, AsyncSimulator*> comm_map1;
-		comm_map1[2] = m_l2.get();
+		m_sender_to_1->setReceiver(m_sim1_receiver.get(), 1);
+		m_sender_to_2->setReceiver(m_sim2_receiver.get(), 2);
 
-		map<uint, AsyncSimulator*> comm_map2;
-		comm_map2[1] = m_l1.get();
+		map<uint, AsyncSimulatorSender*> sender_map1;
+		sender_map1[2] = m_sender_to_2.get();
 
-		m_l1->setCommunicationMap(comm_map1);
-		m_l2->setCommunicationMap(comm_map2);
+		map<uint, AsyncSimulatorSender*> sender_map2;
+		sender_map2[1] = m_sender_to_1.get();
+
+		m_sim1->setCommunicationMap(sender_map1);
+		m_sim2->setCommunicationMap(sender_map2);
 	}
 
 	/// Tearing down the test fixture
@@ -127,7 +137,7 @@ bool sameCluster(const Cluster& cluster1, const Cluster& cluster2) {
 }
 
 // TODO remove fixture, this used to be useful
-TEST_F(Scenarios__LocalSimulatorAdapterTest, HappyDay) {
+TEST_F(Scenarios__LocalSimulatorSenderTest, HappyDay) {
 	// Tests which reflect the regular use
 
 	// Keep the original work, primary and secondary communities of simulator 2
@@ -139,7 +149,7 @@ TEST_F(Scenarios__LocalSimulatorAdapterTest, HappyDay) {
 	auto first_person = &(m_sim2->getPopulation()->m_original.at(0));
 
 	// Migrate 10 people for 10 days
-	m_l1->sendTravellersAway(10, 10, 2, "Antwerp", "ANR");
+	m_sim1_receiver->sendTravellersAway(10, 10, 2, "Antwerp", "ANR");
 
 	// Keep a vector of id's of people who are on vacation
 	vector<unsigned int> id_s;
@@ -213,12 +223,12 @@ TEST_F(Scenarios__LocalSimulatorAdapterTest, HappyDay) {
 		}
 
 		vector<future<bool>> fut_results;
-		fut_results.push_back(m_l1->timeStep());
-		fut_results.push_back(m_l2->timeStep());
+		fut_results.push_back(m_sim1_receiver->timeStep());
+		fut_results.push_back(m_sim2_receiver->timeStep());
 		future_pool(fut_results);
 
-		m_l1->sendTravellersHome();
-		m_l2->sendTravellersHome();
+		m_sim1_receiver->sendBackForeignTravellers();
+		m_sim2_receiver->sendBackForeignTravellers();
 
 		for (unsigned int j = 0; j < m_sim1->getPlanner().getAgenda().size(); ++j) {
 			auto it = m_sim2->getPlanner().getAgenda().begin();

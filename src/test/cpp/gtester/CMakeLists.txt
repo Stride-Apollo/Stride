@@ -23,16 +23,13 @@ set( SRC
 		BatchRuns.cpp
 		UtilTests.cpp
 		PopulationTests.cpp
-		LocalSimulatorAdapterTests.cpp
+		LocalSimulatorSenderTests.cpp
 		TravelSchedulerTest.cpp
 		TransportFacilityTest.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp
 		PopGen/AliasDistributionTest.cpp
-		Hdf5UnitTests.cpp
-        Hdf5ScenarioTests.cpp
-		Hdf5Base.cpp
 )
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)
