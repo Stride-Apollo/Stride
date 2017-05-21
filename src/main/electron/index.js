@@ -324,7 +324,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 
 				overview.webContents.on('did-finish-load', ()=>{
 					overview.show();
-				overview.webContents.openDevTools();
+				//overview.webContents.openDevTools();
 				overview.focus();
 			});
 				overview.on('closed', function () {
@@ -444,7 +444,7 @@ function loadCluster(id, config, filenames, currentDay) {
 
 		win.webContents.on('did-finish-load', ()=>{
 			win.show();
-			win.webContents.openDevTools();
+			//win.webContents.openDevTools();
 			win.focus();
 		});
 
