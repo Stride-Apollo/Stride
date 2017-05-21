@@ -17,4 +17,5 @@
     <holidays_file>holidays_none.json</holidays_file>
     <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
     <log_level>None</log_level>
+	<visualization>1</visualization>
 </run>

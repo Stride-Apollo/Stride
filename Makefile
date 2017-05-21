@@ -149,7 +149,7 @@ test: install install_test
 	cd $(BUILD_DIR)/installed && ./bin/gtester
 
 build_vis:
-	cd src/main/electron && npm run-script package
+	@ cd src/main/electron && npm run-script package
 
 
 install_vis: build_vis
