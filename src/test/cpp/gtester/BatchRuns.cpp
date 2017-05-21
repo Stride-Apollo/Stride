@@ -145,7 +145,7 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 	// Round up.
 	const unsigned int num_cases = sim->getPopulation()->getInfectedCount();
 	#if UNIPAR_IMPL == UNIPAR_DUMMY
-		ASSERT_NEAR(num_cases, g_results.at(test_tag), 5000) << "!! CHANGED !!";
+		ASSERT_NEAR(num_cases, g_results.at(test_tag), 10000) << "!! CHANGED !!";
 	#else
 		ASSERT_NEAR(num_cases, g_results.at(test_tag), 30000) << "!! CHANGED !!";
 	#endif
