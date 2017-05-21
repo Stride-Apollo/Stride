@@ -29,6 +29,7 @@
 #include "util/etc.h"
 
 #include <random>
+#include <mutex>
 
 namespace stride {
 
@@ -45,14 +46,8 @@ Simulator::Simulator()
 			//std::cout << "Dummy rng?\n";
 			return m_rng.get();
 		#else
-			// Use the rng to initialize a seed
-			return make_unique<Random>(m_rng->operator()());
-			//if (p.get() == nullptr) {
-			//	std::cout << "We're passing on null rng?\n";
-			//} else {
-			//	std::cout << "ONE MORE RNG!\n";
-			//}
-			//return p;
+			std::random_device rd;
+			return make_unique<Random>(rd());
 		#endif
 	});
 }
@@ -72,14 +67,8 @@ void Simulator::updateClusters() {
 	for (auto clusters: {&m_households, &m_school_clusters, &m_work_clusters,
 						 &m_primary_community, &m_secondary_community}) {
 		m_parallel.for_(0, clusters->size(), [&](RandomRef& rng, size_t i) {
-			if (rng) {
 				Infector<log_level, track_index_case, information_policy>::execute(
 						(*clusters)[i], m_disease_profile, *rng, m_calendar);
-				//std::cout << "rng is not null" << endl;
-			} else {
-				std::cout << "rng is null" << endl;
-				_exit(1);
-			}
 		});
 	}
 }
@@ -154,8 +143,8 @@ void Simulator::timeStep() {
 				throw runtime_error(std::string(__func__) + " Log mode screwed up!");
 			}
 			break;
-			default:
-				throw runtime_error(std::string(__func__) + " Information policy screwed up!");
+		default:
+			throw runtime_error(std::string(__func__) + " Information policy screwed up!");
 		}
 	}
 
