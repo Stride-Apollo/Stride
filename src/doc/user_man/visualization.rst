@@ -55,9 +55,13 @@ Sidebar
 The sidebar can be accessed by clicking on the arrow icon in the top right. The sidebar contains configuration options for the tool and options to display/show different days of the simulation.
 
 The configuration options include:
+
 -  The displayed colors used by the clusters.
+
 -  The sizes of the circles used to display the clusters
+
 -  The animation speed when displaying the different days of the simulation.
+
 -  Display options in order to display certain cluster types.
 
 You can save the configuration options after adjusting them, by clicking ``SAVE CONFIGURATION``. The saved options will be reused for further uses of the tool.
