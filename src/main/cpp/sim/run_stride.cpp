@@ -33,8 +33,10 @@
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
+#include <util/async.h>
 #include "util/TimeStamp.h"
 
+#include "vis/ClusterSaver.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <spdlog/spdlog.h>
 #include <memory>
@@ -121,7 +123,20 @@ void run_stride(bool track_index_case,
 				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
 		local_sim->registerObserver(saver, fnCaller);
+		auto classInstance = std::make_shared<ClusterSaver>("cluster_output");
+		std::function<void(const LocalSimulatorAdapter&)> fnCaller2 = std::bind(&ClusterSaver::update, classInstance, std::placeholders::_1);
+		local_sim->registerObserver(classInstance, fnCaller2);
 	}
+
+
+	if (pt_config.get<bool>("run.visualization", false) == true) {
+		auto ClusterSaver_instance = make_shared<ClusterSaver>("cluster_output");
+		auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
+		local_sim->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
+
+		ClusterSaver_instance->update(*local_sim);
+	}
+
 	cout << "Done adding the observers." << endl << endl;
 
 	// initial save
@@ -132,6 +147,8 @@ void run_stride(bool track_index_case,
 	// Run the simulation.
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
 	vector<unsigned int> cases(num_days);
+	Stopwatch<> run_clock("run_clock");
+
 	for (unsigned int i = start_day; i < start_day + num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
 		coord.timeStep();

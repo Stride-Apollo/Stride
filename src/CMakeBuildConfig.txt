@@ -1,8 +1,8 @@
 #############################################################################
-#  This file is part of the Stride software. 
+#  This file is part of the Stride software.
 #  It is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by 
-#  the Free Software Foundation, either version 3 of the License, or any 
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or any
 #  later version.
 #  The software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,8 +28,8 @@ mark_as_advanced( CLEAR CMAKE_CXX_COMPILER   )
 #============================================================================
 # User defined options:
 #============================================================================
-option( STRIDE_INCLUDE_DOC 
-	"Exclude doc directory from build and install."  OFF 
+option( STRIDE_INCLUDE_DOC
+	"Exclude doc directory from build and install."  OFF
 )
 
 set( STRIDE_UNIPAR "DUMMY" CACHE STRING
@@ -37,10 +37,10 @@ set( STRIDE_UNIPAR "DUMMY" CACHE STRING
 )
 
 option( STRIDE_FORCE_NO_HDF5  
-	"Force CMake to act as if HDF5 had not been found."  OFF 
+	"Force CMake to act as if HDF5 had not been found."  OFF
 )
-option( STRIDE_VERBOSE_TESTING  
-	"Run tests in verbose mode."  OFF 
+option( STRIDE_VERBOSE_TESTING
+	"Run tests in verbose mode."  OFF
 )
 
 #============================================================================
@@ -52,5 +52,6 @@ set( DATA_INSTALL_LOCATION    data   )
 set( CONFIG_INSTALL_LOCATION  config )
 set( DOC_INSTALL_LOCATION     doc    )
 set( TESTS_INSTALL_LOCATION   tests  )
+set( OUTPUT_INSTALL_LOCATION  output )
 
 #############################################################################

@@ -64,6 +64,8 @@ set(LIB_SRC
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
+ #--
+ 	vis/ClusterSaver.cpp
 #---
     checkpointing/Saver.cpp
     checkpointing/Loader.cpp
