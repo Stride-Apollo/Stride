@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 		ValueArg<unsigned int> timestamp_replay_Arg("t", "timestamp", "Replay from Timestamp", false, 0,
 													"REPLAY FROM TIMESTAMP", cmd);
 		ValueArg<string> simulator_mode_Arg("m", "mode", "Simulator Mode", false,
-											 "extend", "SIMULATOR MODE", cmd);
+											 "initial", "SIMULATOR MODE", cmd);
 		ValueArg<string> hdf5_file_Arg("h", "hdf5", "HDF5 File", false,
 										"", "HDF5 FILE", cmd);
 		ValueArg<string> hdf5_output_file_Arg("o", "hdf5output", "HDF5 Output File", false,
