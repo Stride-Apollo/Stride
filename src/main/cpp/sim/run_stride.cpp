@@ -151,13 +151,7 @@ void run_stride(bool track_index_case,
 
 	for (unsigned int i = start_day; i < start_day + num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
-		run_clock.start();
-
-		vector<future<bool>> fut_results;
-		fut_results.push_back(local_sim->timeStep());
-		future_pool(fut_results);
-
-		run_clock.stop();
+		coord.timeStep();
 		cout << "     Done, infected count: ";
 		cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
 		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
@@ -174,8 +168,18 @@ void run_stride(bool track_index_case,
 	CasesFile cases_file(output_prefix);
 	cases_file.print(cases);
 
-	// No
 	// Summary
+	SummaryFile summary_file(output_prefix);
+	summary_file.print(pt_config,
+					   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
+					   duration_cast<milliseconds>(total_clock.get()).count(),
+					   duration_cast<milliseconds>(total_clock.get()).count());
+
+	// Persons ???
+	if (pt_config.get<double>("run.generate_person_file") == 1) {
+		PersonFile person_file(output_prefix);
+		person_file.print(sim->getPopulation());
+	}
 
 	// print final message to command line.
 	cout << endl << endl;

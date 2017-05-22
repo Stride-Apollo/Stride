@@ -104,6 +104,7 @@ endif
 .PHONY: help configure bootstrap all build_all build_main build_test
 .PHONY: install install_all install_main install_test package
 .PHONY: test installcheck distclean remove_build clean_all
+.PHONY: build_vis install_vis
 
 help:
 	@ $(CMAKE) -E echo " "
@@ -162,6 +163,6 @@ clean_all: distclean
 	git ls-files --others | egrep 'CMakeCache' | xargs -r rm
 	git ls-files --others | egrep 'Makefile$$' | xargs -r rm
 	git ls-files --others | egrep 'CMakeFiles' | xargs -r rm
-	
+
 
 #############################################################################
