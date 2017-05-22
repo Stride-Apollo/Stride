@@ -312,29 +312,42 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	});
 
 	var overview = undefined;
+	var overview_day = undefined;
+
+	function loadOverview() {
+		const electron = require('electron').remote;
+		const BrowserWindow = electron.BrowserWindow;
+		overview = new BrowserWindow({ width: 800, height: 600 });
+		overview_day = $scope.currentDay;
+		overview.webContents.on('did-finish-load', ()=>{
+			overview.show();
+			//overview.webContents.openDevTools();
+			overview.focus();
+		});
+		overview.on('closed', function () {
+			overview = undefined;
+			overview_day = undefined;
+		})
+		var url = "file://" + __dirname + '/OverviewContent.html?data='
+			+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
+			+ "&directory=" + __dirname + "/" + config.directory
+			+ "&currentDay=" + $scope.currentDay;
+		overview.loadURL(url);
+	}
 
 	$scope.overview = function() {
 		if (map.loaded()) {
 			// console.log(e.features[0].properties.id);
-			const electron = require('electron').remote;
-			const BrowserWindow = electron.BrowserWindow;
-
 			if (overview == undefined) {
-				overview = new BrowserWindow({ width: 800, height: 600 });
-
-				overview.webContents.on('did-finish-load', ()=>{
-					overview.show();
-				//overview.webContents.openDevTools();
-				overview.focus();
-			});
-				overview.on('closed', function () {
-					overview = undefined;
-				})
+				loadOverview();
+			} else if (overview_day != $scope.currentDay) {
+				overview_day = $scope.currentDay;
 				var url = "file://" + __dirname + '/OverviewContent.html?data='
 					+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
 					+ "&directory=" + __dirname + "/" + config.directory
 					+ "&currentDay=" + $scope.currentDay;
 				overview.loadURL(url);
+				overview.focus();
 			} else {
 				overview.focus();
 			}

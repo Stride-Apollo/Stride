@@ -16,16 +16,28 @@
 	<base href="/">
 </head>
 <body>
-<p id="title">Overview</p>
-<div>
-	<p>Population: {{pop_size}}</p>
+<h2 id="title">Overview</h2>
+
+<div id="graphInfected"></div>
+	<h3>Information for current day: {{currentDay}}</h3>
+	<ul class="demo-list-item mdl-list" id="current_data">
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Population Size: {{population_size}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Amount of infected people: {{infected}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Amount of clusters: {{total_cluster}}</span>
+		</li>
+	</ul>
+	<h3>Available clusters:</h3>
 	<ul class="demo-list-item mdl-list" id="questions">
 		<li class="mdl-list__item" ng-repeat="cluster in clusters">
 			<span ng-click="clusterClick(cluster.ID)" class="mdl-list__item-primary-content">Cluster {{cluster.ID}}</span>
 		</li>
 	</ul>
 </div>
-<div id="graphInfected"></div>
 </body>
 
 </html>
