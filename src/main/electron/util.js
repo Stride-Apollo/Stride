@@ -88,3 +88,13 @@ function resizeWindow() {
 		window.resizeTo( width,  height);
 	}
 }
+
+function scatterplot(name) {return {
+	x: [],
+	y: [],
+	mode: 'lines+markers',
+	name: 'spline',
+	line: {shape: 'spline'},
+	type: 'scatter',
+	name: name
+};};

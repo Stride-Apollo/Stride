@@ -45,25 +45,8 @@ app.controller('ClusterController', ['$scope', '$location', function($scope, $lo
 	var myPlot = document.getElementById("graph");
 	Plotly.purge(myPlot);
 
-	var infected = {
-		x: [],
-		y: [],
-		mode: 'lines+markers',
-		name: 'spline',
-		line: {shape: 'spline'},
-		type: 'scatter',
-		name: 'Infection Count'
-	};
-
-	var sizes = {
-		x: [],
-		y: [],
-		mode: 'lines+markers',
-		name: 'spline',
-		line: {shape: 'spline'},
-		type: 'scatter',
-		name: 'Cluster Sizes'
-	};
+	var infected = scatterplot('Infection Count');
+	var sizes = scatterplot('Cluster Sizes');
 
 	for (i=0; i < clusterEvolution.length; i++) {
 		infected.x.push(i);
