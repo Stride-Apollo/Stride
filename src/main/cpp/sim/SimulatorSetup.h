@@ -51,6 +51,4 @@ private:
 	RunMode					m_run_mode;
 };
 
-
-
 }
