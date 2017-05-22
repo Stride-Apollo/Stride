@@ -158,5 +158,10 @@ install_vis: build_vis
 
 clean_all: distclean
 	git clean -df
+	git ls-files --others | egrep '\.c\?make$$' | xargs -r rm
+	git ls-files --others | egrep 'CMakeCache' | xargs -r rm
+	git ls-files --others | egrep 'Makefile$$' | xargs -r rm
+	git ls-files --others | egrep 'CMakeFiles' | xargs -r rm
+	
 
 #############################################################################

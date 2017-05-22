@@ -102,6 +102,7 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 
 	// initialize number of threads.
 	sim->m_num_threads = number_of_threads;
+	sim->m_parallel.setNumThreads(number_of_threads);
 
 	// initialize calendar.
 	sim->m_calendar = make_shared<Calendar>(pt_config);
