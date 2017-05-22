@@ -63,15 +63,13 @@ void run_stride(bool track_index_case,
 	// Special case for extract mode -> don't run the simulator, just extract the config file.
 	if (run_mode == RunMode::Extract) {
 		Loader::extractConfigs(hdf5_file_name);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
-
 
 	cout << "Loading configuration" << endl;
 
 	SimulatorSetup setup = SimulatorSetup(config_file_name, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
-
 
 	cout << "Building the simulator." << endl << endl;
 
@@ -83,7 +81,8 @@ void run_stride(bool track_index_case,
 	unsigned int start_day = setup.getStartDay();
 
 	// Set output path prefix.
-	string output_prefix = "";
+	string output_prefix = pt_config.get<string>("run.output_prefix", TimeStamp().toTag());
+	cout << "Project output tag:  " << output_prefix << endl << endl;
 
 	// Track index case setting.
 	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
@@ -111,6 +110,7 @@ void run_stride(bool track_index_case,
 
 	// Is checkpointing 'enabled'?
 	if (hdf5_file_name != "" || hdf5_output_file_name != "" || config_hdf5_file != "") {
+		cout << "Checkpointing enabled." << endl;
 		int frequency = checkpointing_frequency == -1 ?
 						pt_config.get<int>("run.checkpointing_frequency", 1) : checkpointing_frequency;
 		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
