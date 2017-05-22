@@ -12,6 +12,8 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 	var fs = require('fs');
 	var content;
 	var data = fs.readFileSync($location.search().data, 'utf8');
+
+	$scope.currentDay = $location.search().currentDay;
 	content = parseCSVFile(data);
 	$scope.clusters = []
 	for (var i in content.features) {
@@ -45,6 +47,10 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 	});
 
 	var clusterEvolution = getTotalInfectedCourse(files);
+
+	$scope.population_size = clusterEvolution[$scope.currentDay].size;
+	$scope.infected = clusterEvolution[$scope.currentDay].infected;
+	$scope.total_cluster = $scope.clusters.length;
 
 	var myPlot = document.getElementById("graphInfected");
 	Plotly.purge(myPlot);

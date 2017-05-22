@@ -15,7 +15,8 @@ function getDecoratedData(data) {
 			var pop_count = 0;
 			console.log(this.parsed_data);
 			for(var i = 0; i < this.parsed_data.features.length; i++) {
-				if (this.parsed_data.features[i].properties.type == cluster_type.household) {
+				// TODO possibly change this type when we save more types
+				if (this.parsed_data.features[i].properties.type == cluster_type.primary_community) {
 					pop_count += this.parsed_data.features[i].properties.size;
 				}
 
@@ -29,7 +30,7 @@ function getDecoratedData(data) {
 			// Loop over the households, they always contain everybody (except travellers)
 			var infected_count = 0;
 			for(var i = 0; i < this.parsed_data.features.length; i++) {
-				if (this.parsed_data.features[i].properties.type == cluster_type.household) {
+				if (this.parsed_data.features[i].properties.type == cluster_type.primary_community) {
 					infected_count += this.parsed_data.features[i].properties.infected;
 				}
 			}
