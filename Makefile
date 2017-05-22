@@ -155,7 +155,7 @@ build_vis:
 
 install_vis: build_vis
 	@ mkdir -p $(PATH_INSTALL_VIS)
-	@ cp -r build/main/electron/vis*/* -t $(PATH_INSTALL_VIS)/
+	@ cp -r build/main/electron/vis*/* $(PATH_INSTALL_VIS)/
 
 clean_all: distclean
 	git clean -df
