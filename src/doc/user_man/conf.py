@@ -21,6 +21,15 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+# -- Generate Doxygen when on ReadTheDocs ---------------------------------
+
+import subprocess, os
+
+rtd_build = os.environ.get('READTHEDOCS', None) == 'True'
+
+if rtd_build:
+    subprocess.call('bash build-doxygen.sh', shell=True)
+
 
 # -- General configuration ------------------------------------------------
 

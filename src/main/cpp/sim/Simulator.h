@@ -98,9 +98,10 @@ private:
 	#else
 		using RandomRef = std::unique_ptr<util::Random>;
 	#endif
-	decltype(Parallel().withFunc<RandomRef>()) m_parallel;
 
-	std::shared_ptr<util::Random> m_rng;
+	decltype(Parallel().with<RandomRef>()) m_parallel;
+
+	std::shared_ptr<util::Random> 		m_rng;
 	LogMode                             m_log_level;            ///< Specifies logging mode.
 	InformationPolicy					m_information_policy;
 	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.

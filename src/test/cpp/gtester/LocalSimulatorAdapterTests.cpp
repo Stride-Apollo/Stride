@@ -12,6 +12,7 @@
 #include "util/async.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
+#include "util/etc.h"
 #include "core/Cluster.h"
 
 #include <boost/property_tree/xml_parser.hpp>

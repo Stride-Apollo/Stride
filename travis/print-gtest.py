@@ -86,7 +86,7 @@ def build_tree(el):
 
 def status_index(el):
     if isinstance(el, defaultdict):
-        return max(status_index(v) for v in el.values())
+        return max((status_index(v) for v in el.values()), default=status_to_index['notrun'])
     else:
         failure = status_to_index['failure'] if any(c.tag.lower() == 'failure' for c in el) else 0
         return max(failure, status_to_index[el.attrib['status']])

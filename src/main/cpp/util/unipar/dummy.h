@@ -7,40 +7,42 @@
 namespace unipar {
 namespace internal {
 
-template <typename Impl, typename... TFs>
-struct DummyResourceManager;
+template <typename Impl, typename... Types>
+class DummyResourceManager;
 
-template <typename Impl, typename TF, typename... Rest>
-struct DummyResourceManager<Impl, TF, Rest...> : public ResourceManager<Impl, TF, Rest...> {
-	typename TF::Type* value = nullptr;
-	
-	using ResourceManager<Impl, TF, Rest...>::ResourceManager;
+template <typename Impl, typename Type, typename... Rest>
+class DummyResourceManager<Impl, Type, Rest...> : public ResourceManager<Impl, Type, Rest...> {
+public:
+	using ResourceManager<Impl, Type, Rest...>::ResourceManager;
 	
 	template <typename F, typename... Args>
-	auto call(const F& func, Args&&... args) {
-		if (value == nullptr) {
+	typename std::result_of<F(Type&, Args...)>::type call(const F& func, Args&&... args) {
+		if (m_value == nullptr) {
 			// Copy constructor is needed!
-			value = new typename TF::Type(this->tf.func());
+			m_value = new Type(std::move(this->m_func()));
 		}
-		return this->rest.call(func, *value, std::forward<Args>(args)...);
+		return this->m_rest.call(func, *m_value, std::forward<Args>(args)...);
 	}
 	
 	~DummyResourceManager() {
-		if (value) {
-			delete value;
-			value = nullptr;
+		if (m_value) {
+			delete m_value;
+			m_value = nullptr;
 		}
 	}
+	
+protected:
+	Type* m_value = nullptr;
 };
 
 template <typename Impl>
-struct DummyResourceManager<Impl> : public ResourceManager<Impl> {};
+class DummyResourceManager<Impl> : public ResourceManager<Impl> {};
 
 
 class _DummyParallel: public ParallelInterface {
 public:
-	template <typename Impl, typename... TFs>
-	using RMType = DummyResourceManager<Impl, TFs...>;
+	template <typename Impl, typename... Types>
+	using RMType = DummyResourceManager<Impl, Types...>;
 	
 	// The dummy implementation will obviously never use more than 1 thread
 	// However, to remain compatible with otherwise multithreaded code, we allow

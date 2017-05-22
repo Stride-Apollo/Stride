@@ -134,9 +134,7 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 	defer(spdlog::drop_all());
 
 	// initialize the simulation.
-	cout << "Building the simulator. " << endl;
 	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
-	cout << "Done building the simulator. " << endl << endl;
 
 	// Run the simulation.
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");

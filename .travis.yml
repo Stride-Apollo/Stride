@@ -15,6 +15,8 @@ addons:
     packages: &deps
       - libboost-all-dev
       - libhdf5-serial-dev
+      - libtbb-dev
+      - libtbb2
 
 gcc_addons: &gcc_addons
     apt:
@@ -38,10 +40,39 @@ clang_addons: &clang_addons
 
 matrix:
   include:
-  
+    
+    # Code quality ....................
+    
+    - stage: Code quality
+      language: node_js
+      env: quality_dir=src/main
+      node_js:
+        - "node"
+      before_install:
+      before_script:
+        - npm install -g jscpd
+      script:
+        - travis/code_quality.sh
+      addons:
+        apt:
+    
+    - language: node_js
+      env: quality_dir=src/test
+      node_js:
+        - "node"
+      before_install:
+      before_script:
+        - npm install -g jscpd
+      script:
+        - travis/code_quality.sh
+      addons:
+        apt:
+    
+    
     # Unit tests ......................
     
-    - addons: *gcc_addons
+    - stage: Unit tests
+      addons: *gcc_addons
       env: 
         - test=unit
         - unipar=dummy
@@ -79,7 +110,8 @@ matrix:
     
     # Scenario tests ..................
     
-    - addons: *gcc_addons
+    - stage: Scenario tests
+      addons: *gcc_addons
       env: 
         - test=scenarios
         - unipar=dummy

@@ -26,7 +26,7 @@ public:
 };
 
 #define VARIOUS_POPULATION_TESTS(fixture, max) \
-TEST_F(fixture, fixture ## __Simple) { \
+TEST_F(fixture, Simple) { \
 	auto it = pop.begin(); \
 	for (int i=0; i<max; i++) { \
 		EXPECT_EQ(i, (*it).getId()); \
@@ -34,7 +34,7 @@ TEST_F(fixture, fixture ## __Simple) { \
 	} \
 } \
 \
-TEST_F(fixture, fixture ## __SimpleAuto) { \
+TEST_F(fixture, SimpleAuto) { \
 	int i = 0; \
 	for (auto& it: pop) { \
 		EXPECT_EQ(i, it.getId()); \
@@ -43,7 +43,7 @@ TEST_F(fixture, fixture ## __SimpleAuto) { \
 	EXPECT_EQ(i, max); \
 } \
 \
-TEST_F(fixture, fixture ## __ConstAuto) { \
+TEST_F(fixture, ConstAuto) { \
 	int i = 0; \
 	for (const auto& it: pop) { \
 		EXPECT_EQ(i, it.getId()); \

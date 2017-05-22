@@ -19,6 +19,7 @@
  */
 
 #include "run_stride.h"
+#include "sim/SimulatorRunMode.h"
 
 #include <tclap/CmdLine.h>
 
@@ -36,6 +37,7 @@ int main(int argc, char** argv) {
 		ValueArg <string> config_file_Arg("c", "config", "Config File", false,
 				// "./config/run_coordinator.xml", "CONFIGURATION FILE", cmd);
 										  "./config/run_flanders.xml", "CONFIGURATION FILE", cmd);
+
 		ValueArg<unsigned int> num_threads_Arg("n", "num_threads", "Number of threads (as a hint)", false,
 											   4, "NUM THREADS", cmd);
 		ValueArg<int> checkpointing_frequency_Arg("f", "frequency", "Checkpointing Frequency", false,
@@ -50,18 +52,20 @@ int main(int argc, char** argv) {
 											  "", "HDF5 OUTPUT FILE", cmd);
 		cmd.parse(argc, argv);
 
+		auto run_mode = SimulatorRunMode::getRunMode(simulator_mode_Arg.getValue());
+
 		run_stride(index_case_Arg.getValue(),
 				   num_threads_Arg.getValue(),
 				   config_file_Arg.getValue(),
 				   hdf5_file_Arg.getValue(),
 				   hdf5_output_file_Arg.getValue(),
-				   simulator_mode_Arg.getValue(),
 				   checkpointing_frequency_Arg.getValue(),
-				   timestamp_replay_Arg.getValue());
+				   timestamp_replay_Arg.getValue(),
+				   run_mode);
 
 	} catch (exception& e) {
 		exit_status = EXIT_FAILURE;
-		cerr << "\nEXCEPTION THROWN: " << e.what() << endl;
+		cerr << e.what() << endl;
 	} catch (...) {
 		exit_status = EXIT_FAILURE;
 		cerr << "\nEXCEPTION THROWN: " << "Unknown exception." << endl;

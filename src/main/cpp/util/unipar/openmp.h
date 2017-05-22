@@ -8,49 +8,55 @@
 namespace unipar {
 namespace internal {
 
-template <typename Impl, typename... TFs>
-struct OpenmpResourceManager;
+template <typename Impl, typename... Types>
+class OpenmpResourceManager;
 
-template <typename Impl, typename TF, typename... Rest>
-struct OpenmpResourceManager<Impl, TF, Rest...> : public ResourceManager<Impl, TF, Rest...> {
-	std::vector<typename TF::Type*> values;
+template <typename Impl, typename Type, typename... Rest>
+class OpenmpResourceManager<Impl, Type, Rest...> : public ResourceManager<Impl, Type, Rest...> {
+public:
+	using RestType = typename Impl::template RMType<Impl, Rest...>;
+	using FuncType = std::function<Type()>;
 	
-	using ResourceManager<Impl, TF, Rest...>::ResourceManager;
+	// Copy constructor does NOT copy the values!
+	using ResourceManager<Impl, Type, Rest...>::ResourceManager;
 	
 	template <typename F, typename... Args>
-	auto call(const F& func, Args&&... args) {
-		auto& value = values[omp_get_thread_num()];
+	typename std::result_of<F(Type&, Args...)>::type call(const F& to_call, Args&&... args) {
+		auto& value = m_values[omp_get_thread_num()];
 		if (value == nullptr) {
-			// Copy constructor is needed!
-			value = new typename TF::Type(this->tf.func());
+			value = new Type(std::move(this->m_func()));
 		}
-		return this->rest.call(func, *value, std::forward<Args>(args)...);
+		return this->m_rest.call(to_call, *value, std::forward<Args>(args)...);
 	}
 	
 	void init(size_t size) {
-		values.resize(size, nullptr);
-		this->rest.init(size);
+		m_values.resize(size, nullptr);
+		this->m_rest.init(size);
 	}
 	
 	~OpenmpResourceManager() {
-		for (auto& v: values) {
+		for (auto& v: m_values) {
 			if (v) {
 				delete v;
 				v = nullptr;
 			}
 		}
 	}
+
+protected:
+	std::vector<Type*> m_values;
 };
 
 template <typename Impl>
-struct OpenmpResourceManager<Impl> : public ResourceManager<Impl> {
+class OpenmpResourceManager<Impl> : public ResourceManager<Impl> {
+public:
 	void init(size_t) {}
 };
 
 class _OpenmpParallel: public ParallelInterface {
 public:
-	template <typename Impl, typename... TFs>
-	using RMType = OpenmpResourceManager<Impl, TFs...>;
+	template <typename Impl, typename... Types>
+	using RMType = OpenmpResourceManager<Impl, Types...>;
 	
 	_OpenmpParallel() {
 		#pragma omp parallel
@@ -75,7 +81,7 @@ public:
 	}
 	
 	inline int getNumThreads() const { return m_nthreads; }
-	inline int setNumThreads(int nthreads) { m_nthreads = nthreads; }
+	inline void setNumThreads(int nthreads) { m_nthreads = nthreads; }
 	
 private:
 	int m_nthreads;

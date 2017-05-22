@@ -41,12 +41,12 @@ set( CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0"   )
 #----------------------------------------------------------------------------
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_HOST_APPLE )
 	add_definitions( -D__APPLE__ )
-	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++")
+	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT CMAKE_HOST_APPLE )
-	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++")
+	set( CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} -std=c++11")
 	add_definitions( -D__extern_always_inline=inline )
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-	set( CMAKE_CXX_FLAGS 	       "${CMAKE_CXX_FLAGS} -fPIC -std=c++14" )
+	set( CMAKE_CXX_FLAGS 	       "${CMAKE_CXX_FLAGS} -fPIC -std=c++11" )
 	set( CMAKE_C_FLAGS             "${CMAKE_C_FLAGS} -fPIC" )
 endif()
 #
@@ -84,8 +84,6 @@ set( LIBS   ${LIBS} ${Boost_LIBRARIES} )
 #----------------------------------------------------------------------------
 # Unified Parallelization
 #----------------------------------------------------------------------------
-include_directories( SYSTEM ${CMAKE_HOME_DIRECTORY}/main/resources/lib/unipar/include )
-
 if( STRIDE_UNIPAR STREQUAL "OPENMP" )
     if ( NOT DEFINED HAVE_CHECKED_OpenMP )
         set( HAVE_CHECKED_OpenMP  TRUE  CACHE  BOOL  "Have checked for OpenMP?" FORCE )
@@ -140,39 +138,39 @@ set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread" )
 if( STRIDE_FORCE_NO_HDF5 )
 	message( STATUS "---> Skipping HDF5, STRIDE_FORCE_NO_HDF5 set.")
 else()
-	find_package(HDF5)
-if(HDF5_FOUND)
-	include_directories(${HDF5_INCLUDE_DIR})
-	set(_hdf5_libs hdf5 hdf5_cpp)
-else()
-	# we did not find it so we fetch it from the web, configure, compile, and link
-	include(ExternalProject)
-	set(ExternalProjectCMakeArgs
-		-DHDF5_BUILD_CPP_LIB=ON
-		)
-	
-	set(_hdf5_version "1.8.18")
-	file(MAKE_DIRECTORY ${CMAKE_HOME_DIRECTORY}/hdf5_local/src)
-	ExternalProject_Add(hdf5_local
-		DOWNLOAD_COMMAND curl https://support.hdfgroup.org/ftp/HDF5/current18/src/hdf5-${_hdf5_version}.tar.gz | tar xvz -C ${CMAKE_HOME_DIRECTORY}/hdf5_local/src
-		CMAKE_ARGS ${ExternalProjectCMakeArgs}
-		SOURCE_DIR ${CMAKE_HOME_DIRECTORY}/hdf5_local/src/hdf5-${_hdf5_version}
-		BINARY_DIR ${CMAKE_HOME_DIRECTORY}/hdf5_local/build
-		STAMP_DIR  ${CMAKE_HOME_DIRECTORY}/hdf5_local/stamp
-		TMP_DIR    ${CMAKE_HOME_DIRECTORY}/hdf5_local/tmp
-		INSTALL_COMMAND ""
-		)
-	include_directories(
-		${CMAKE_HOME_DIRECTORY}/hdf5_local/src/hdf5-${_hdf5_version}/src
-		${CMAKE_HOME_DIRECTORY}/hdf5_local/src/hdf5-${_hdf5_version}/c++/src
-		${CMAKE_HOME_DIRECTORY}/hdf5_local/build
-		)
-	set(_hdf5_libs
-		${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5_cpp-shared.so
-		${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5-shared.so
-		-ldl
-		)
-endif() 
+	find_package(HDF5 COMPONENTS CXX)
+	if(HDF5_FOUND)
+		include_directories(${HDF5_INCLUDE_DIRS})
+	else()
+		# we did not find it so we fetch it from the web, configure, compile, and link
+		include(ExternalProject)
+		set(ExternalProjectCMakeArgs
+			-DHDF5_BUILD_CPP_LIB=ON
+			)
+
+		set(_hdf5_version "1.8.18")
+		file(MAKE_DIRECTORY ${CMAKE_HOME_DIRECTORY}/hdf5_local/src)
+		ExternalProject_Add(hdf5_local
+			DOWNLOAD_COMMAND curl https://support.hdfgroup.org/ftp/HDF5/current18/src/hdf5-${_hdf5_version}.tar.gz | tar xvz -C ${CMAKE_HOME_DIRECTORY}/hdf5_local/src
+			CMAKE_ARGS ${ExternalProjectCMakeArgs}
+			SOURCE_DIR ${CMAKE_HOME_DIRECTORY}/hdf5_local/src/hdf5-${_hdf5_version}
+			BINARY_DIR ${CMAKE_HOME_DIRECTORY}/hdf5_local/build
+			STAMP_DIR  ${CMAKE_HOME_DIRECTORY}/hdf5_local/stamp
+			TMP_DIR    ${CMAKE_HOME_DIRECTORY}/hdf5_local/tmp
+			INSTALL_COMMAND ""
+			)
+		include_directories(
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/src/hdf5-${_hdf5_version}/src
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/src/hdf5-${_hdf5_version}/c++/src
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/build
+			)
+		set(HDF5_LIBRARIES
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5_cpp.a
+			${CMAKE_HOME_DIRECTORY}/hdf5_local/build/bin/libhdf5.a
+			-ldl
+			)
+	endif()
+	set( LIBS ${LIBS} ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES} ${HDF5_HL_LIBRARIES})
 endif()
 
 #############################################################################

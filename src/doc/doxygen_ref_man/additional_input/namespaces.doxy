@@ -21,6 +21,9 @@
  \namespace stride::output
  		\brief Utilities for the output files.
  \namespace stride::util
- 		\brief Utilities for the project.	
-			 	 	 	 	 	 	 	 	 	 	 	 
+ 		\brief Utilities for the project.
+ \namespace stride::popgen
+ 		\brief Population Generator
+ \namespace unipar
+		\brief Unified Parallelisation
  */

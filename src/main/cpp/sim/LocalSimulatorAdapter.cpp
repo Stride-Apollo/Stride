@@ -127,7 +127,9 @@ bool LocalSimulatorAdapter::host(const vector<Simulator::TravellerType>& travell
 	return true;
 }
 
-vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, AsyncSimulator* destination_sim, string destination_district, string destination_facility) {
+vector<unsigned int> LocalSimulatorAdapter::sendTravellers(uint amount, uint days, void* dest_sim, string destination_district, string destination_facility) {
+	LocalSimulatorAdapter* destination_sim = static_cast<LocalSimulatorAdapter*>(dest_sim);
+
 	list<Simulator::PersonType*> working_people;
 	vector<unsigned int> people_id_s;
 
@@ -254,7 +256,9 @@ vector<TravellerData> LocalSimulatorAdapter::getTravellerData() {
 	return returned_travellers;
 }
 
-void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, AsyncSimulator* destination_sim) {
+void LocalSimulatorAdapter::forceSend(const TravellerData& traveller_data, void* dest_sim) {
+	LocalSimulatorAdapter* destination_sim = static_cast<LocalSimulatorAdapter*>(dest_sim);
+
 	// Find the person
 	Simulator::PersonType* target_person = nullptr;
 
