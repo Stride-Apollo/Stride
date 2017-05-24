@@ -13,6 +13,7 @@ using boost::property_tree::ptree;
 using std::string;
 using std::pair;
 using std::ofstream;
+using std::vector;
 
 
 namespace stride {
@@ -30,6 +31,9 @@ public:
 private:
 	void saveClustersCSV(const LocalSimulatorAdapter& local_sim) const;
 	inline void saveClusterCSV(const Cluster& cluster, ofstream& csv_file) const;
+
+	void saveAggrClustersCSV(const vector<Cluster>& households, ofstream& csv_file) const;
+	void saveClusterGroup(const vector<Cluster>& households, const vector<unsigned int> indices, ofstream& csv_file) const;
 
 	void saveClustersJSON(const LocalSimulatorAdapter& local_sim) const;
 	pair<ptree, ptree> getClusterJSON(const Cluster& cluster) const;

@@ -9,17 +9,20 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <map>
 
 #include "vis/ClusterSaver.h"
 #include "util/InstallDirs.h"
 
 using boost::property_tree::ptree;
 using boost::property_tree::write_json;
-using std::string;
-using std::stringstream;
+using std::map;
+using std::ofstream;
 using std::setw;
 using std::setfill;
-using std::ofstream;
+using std::string;
+using std::stringstream;
+using std::vector;
 
 
 namespace stride {
@@ -42,6 +45,13 @@ void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const
 	for (const auto& cluster : local_sim.m_sim->m_primary_community) {
 		this->saveClusterCSV(cluster, csv_file);
 	}
+	for (const auto& cluster : local_sim.m_sim->m_secondary_community) {
+		this->saveClusterCSV(cluster, csv_file);
+	}
+
+	this->saveAggrClustersCSV(local_sim.m_sim->m_households, csv_file);
+
+	csv_file.close();
 }
 
 inline void ClusterSaver::saveClusterCSV(const Cluster& cluster, ofstream& csv_file) const {
@@ -60,6 +70,41 @@ inline void ClusterSaver::saveClusterCSV(const Cluster& cluster, ofstream& csv_f
 		coords.m_latitude << ',' <<
 		coords.m_longitude << ',' <<
 		toString(cluster.getClusterType()) << "\n";
+}
+
+void ClusterSaver::saveAggrClustersCSV(const vector<Cluster>& households, ofstream& csv_file) const {
+	map<GeoCoordinate, vector<unsigned int>> aggregation_mapping;
+
+	for (unsigned int i = 1; i < households.size(); i++) {
+		aggregation_mapping[households[i].getLocation()].push_back(i);
+	}
+
+	for (auto entry : aggregation_mapping) {
+		this->saveClusterGroup(households, entry.second, csv_file);
+	}
+}
+
+void ClusterSaver::saveClusterGroup(const vector<Cluster>& households, const vector<unsigned int> indices, ofstream& csv_file) const {
+	// Use the first id as cluster id
+	unsigned int id = households[indices[0]].getId();
+	GeoCoordinate coords = households[indices[0]].getLocation();
+	string cluster_type = toString(households[indices[0]].getClusterType());
+
+	unsigned int total_size = 0;
+	unsigned int total_infected = 0;
+	for (auto index : indices) {
+		total_size += households[index].getSize();
+		total_infected += households[index].getInfectedCount();
+	}
+	double ratio = (total_infected == 0 ? -1 : (double) total_infected / total_size);
+
+	csv_file << id << ',' <<
+		total_size << ',' <<
+		total_infected << ',' <<
+		ratio << ',' <<
+		coords.m_latitude << ',' <<
+		coords.m_longitude << ',' <<
+		cluster_type << "\n";
 }
 
 
