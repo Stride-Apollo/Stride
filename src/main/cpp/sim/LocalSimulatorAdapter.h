@@ -7,8 +7,11 @@
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 #include "pop/TravellerData.h"
-#include "checkpointing/Saver.h"
-#include "checkpointing/Loader.h"
+
+#ifdef HDF5_USED
+	#include "checkpointing/Saver.h"
+	#include "checkpointing/Loader.h"
+#endif
 
 namespace stride {
 
@@ -62,8 +65,10 @@ private:
 	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
 
 	friend class Coordinator;
-	friend class Saver;
-	friend class Loader;
+	#ifdef HDF5_USED
+		friend class Saver;
+		friend class Loader;
+	#endif
 };
 
 }

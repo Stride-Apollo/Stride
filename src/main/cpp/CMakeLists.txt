@@ -64,10 +64,11 @@ set(LIB_SRC
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
-#---
-    checkpointing/Saver.cpp
-    checkpointing/Loader.cpp
 )
+
+if ( NOT STRIDE_FORCE_NO_HDF5 )
+	list(APPEND LIB_SRC checkpointing/Saver.cpp checkpointing/Loader.cpp)
+endif()
 
 set(POPGEN_SRC
 #---

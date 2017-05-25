@@ -26,7 +26,9 @@
 #include "pop/PopulationBuilder.h"
 #include "sim/Simulator.h"
 #include "util/GeoCoordinate.h"
-#include "checkpointing/Loader.h"
+#ifdef HDF5_USED
+	#include "checkpointing/Loader.h"
+#endif
 
 #include <array>
 #include <cstddef>
@@ -102,9 +104,12 @@ private:
 	const GeoCoordinate m_coordinate;	///< The location of the cluster
 private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
+
 private:
-	friend class Loader;
-	friend class Saver;
+	#ifdef HDF5_USED
+		friend class Loader;
+		friend class Saver;
+	#endif
 };
 
 }

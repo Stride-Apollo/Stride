@@ -123,8 +123,10 @@ private:
 
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;
-	friend class Saver;
-	friend class Loader;
+	#ifdef HDF5_USED
+		friend class Saver;
+		friend class Loader;
+	#endif
 };
 
 

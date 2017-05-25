@@ -60,11 +60,13 @@ void run_stride(bool track_index_case,
 				const unsigned int timestamp_replay,
 				RunMode run_mode) {
 
-	// Special case for extract mode -> don't run the simulator, just extract the config file.
-	if (run_mode == RunMode::Extract) {
-		Loader::extractConfigs(hdf5_file_name);
-		exit(EXIT_SUCCESS);
-	}
+	#ifdef HDF5_USED
+		// Special case for extract mode -> don't run the simulator, just extract the config file.
+		if (run_mode == RunMode::Extract) {
+			Loader::extractConfigs(hdf5_file_name);
+			exit(EXIT_SUCCESS);
+		}
+	#endif
 
 	cout << "Loading configuration" << endl;
 
@@ -105,29 +107,34 @@ void run_stride(bool track_index_case,
 
 	cout << "Adding observers to the simulator." << endl;
 
-	std::shared_ptr<Saver> saver = nullptr;
-	std::string config_hdf5_file = pt_config.get<string>("run.checkpointing_file", "");
 
-	// Is checkpointing 'enabled'?
-	if (hdf5_file_name != "" || hdf5_output_file_name != "" || config_hdf5_file != "") {
-		cout << "Checkpointing enabled." << endl;
-		int frequency = checkpointing_frequency == -1 ?
-						pt_config.get<int>("run.checkpointing_frequency", 1) : checkpointing_frequency;
-		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
-		if (output_file == "") {
-			output_file = config_hdf5_file;
+	#ifdef HDF5_USED
+		std::shared_ptr<Saver> saver = nullptr;
+		std::string config_hdf5_file = pt_config.get<string>("run.checkpointing_file", "");
+
+		// Is checkpointing 'enabled'?
+		if (hdf5_file_name != "" || hdf5_output_file_name != "" || config_hdf5_file != "") {
+			cout << "Checkpointing enabled." << endl;
+			int frequency = checkpointing_frequency == -1 ?
+							pt_config.get<int>("run.checkpointing_frequency", 1) : checkpointing_frequency;
+			string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
+			if (output_file == "") {
+				output_file = config_hdf5_file;
+			}
+			saver = std::make_shared<Saver>
+					(Saver(output_file.c_str(), pt_config, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
+			std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
+			local_sim->registerObserver(saver, fnCaller);
+
+			// initial save
+			if (!(run_mode == RunMode::Extend && start_day != 0)) {
+				saver->forceSave(*local_sim);
+			}
 		}
-		saver = std::make_shared<Saver>
-				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
-		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
-		local_sim->registerObserver(saver, fnCaller);
-	}
-	cout << "Done adding the observers." << endl << endl;
+	#endif
 
-	// initial save
-	if (saver != nullptr && !(run_mode == RunMode::Extend && start_day != 0)) {
-		saver->forceSave(*local_sim);
-	}
+
+	cout << "Done adding the observers." << endl << endl;
 
 	// Run the simulation.
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
@@ -141,10 +148,12 @@ void run_stride(bool track_index_case,
 		cout << setw(7) << cases.at(i-start_day) << "     Adopters count: " << setw(7) << adopters << endl;
 	}
 
-	if (saver != nullptr && checkpointing_frequency == 0) {
-		// Force save the last timestep in case of frequency 0
-		saver->forceSave(*local_sim, num_days + start_day);
-	}
+	#ifdef HDF5_USED
+		if (saver != nullptr && checkpointing_frequency == 0) {
+			// Force save the last timestep in case of frequency 0
+			saver->forceSave(*local_sim, num_days + start_day);
+		}
+	#endif
 
 	// Generate output files
 	// Cases
