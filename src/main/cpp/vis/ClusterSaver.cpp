@@ -3,6 +3,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/filesystem.hpp>
 #include <string>
 #include <utility>
 #include <iostream>
@@ -27,7 +28,22 @@ using std::vector;
 
 namespace stride {
 
-ClusterSaver::ClusterSaver(string file_name) : m_sim_day(0), m_file_name(file_name) {}
+ClusterSaver::ClusterSaver(string file_name) : m_sim_day(0), m_file_name(file_name) {
+	#if defined(__linux__)
+		m_file_dir = "vis/resources/app/data/clusterData";
+	#elif defined(__APPLE__)
+		m_file_dir = "vis/visualization.app/Contents/Resources/app/data/clusterData";
+	#endif
+	// Sorry windows
+
+	boost::filesystem::path file_path(m_file_dir);
+	if (!boost::filesystem::exists(file_path)) {
+		throw runtime_error(string("\n\033[0;31mError: \033[0m") +
+			"The folder used to store the cluster data is not present.\n" +
+			"Make sure you have installed the visualization app by invoking the " +
+			"\033[0;35m'make install_vis'\033[0m" + " command.\n");
+	}
+}
 
 
 
@@ -35,8 +51,7 @@ void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const
 	ofstream csv_file;
 	stringstream ss;
 	ss << setfill('0') << setw(5) << m_sim_day;
-	// TODO move save directory to local resource directory of the visualization app
-	string file_name = util::InstallDirs::getOutputDir().string() + "/" + m_file_name + "_" + ss.str() + ".csv";
+	string file_name = m_file_dir + "/" + m_file_name + "_" + ss.str() + ".csv";
 	csv_file.open(file_name.c_str());
 
 	// Format of the csv file
