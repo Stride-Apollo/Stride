@@ -2,19 +2,7 @@ body {
 	background-color: rgba(242,242,242,1);
 }
 
-.bg {
-	fill: transparent !important;
-}
-
-.modebar {
-	background-color: transparent !important;
-}
-
-#graph {
-	background-color: transparent;
-}
-
-#title {
+.title {
 	text-align: center;
 	font-size: 30px;
 	font-weight: 1000;
@@ -22,19 +10,78 @@ body {
 	margin-top: 30px;
 }
 
-#clusterInformation {
+.clusterInformation {
 	white-space: nowrap;
 }
 
-#questions {
+.questions {
 	display: inline-block;
 	margin-right: 10px;
 }
 
-#answers {
+.answers {
 	display: inline-block;
 }
 
-::-webkit-scrollbar { 
-    display: none; 
+::-webkit-scrollbar {
+	width: 10px;
+	height: 3px;
+}
+
+::-webkit-scrollbar-track {
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+/* 	border-radius: 20px; */
+}
+
+::-webkit-scrollbar-thumb {
+	border-radius: 20px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}
+
+#clusterList {
+	max-height: 400px;
+	overflow: scroll;
+}
+
+.clickable:hover {
+	cursor: pointer;
+}
+
+table {
+	width: initial;
+	table-layout: initial;
+	display: inline-block;
+}
+
+#tableContainer {
+	max-height: 400px;
+	overflow: hidden;
+}
+
+#pickClusterArea {
+	margin-bottom: 25px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.pane {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+#centerPane {
+	margin-left: 25px;
+	margin-right: 25px;
+}
+
+.paneContainer {
+	display: inline-block;
+}
+
+.subtitle {
+	text-align: center;
+	font-size: 20px;
+	font-weight: 700;
+	margin-bottom: 20px;
+	margin-top: 20px;
 }

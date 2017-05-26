@@ -108,6 +108,21 @@ table {
 	width: 100%;
 }
 
-::-webkit-scrollbar { 
-    display: none; 
+::-webkit-scrollbar {
+	width: 10px;
+	height: 3px;
+}
+
+::-webkit-scrollbar-track {
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+/* 	border-radius: 20px; */
+}
+
+::-webkit-scrollbar-thumb {
+	border-radius: 20px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}
+
+#btnOverview {
+	margin-bottom: 25px;
 }
