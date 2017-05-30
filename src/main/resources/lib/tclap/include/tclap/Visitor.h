@@ -20,7 +20,8 @@
  *****************************************************************************/ 
 
 
-#pragma once
+#ifndef TCLAP_VISITOR_H
+#define TCLAP_VISITOR_H
 
 namespace TCLAP {
 
@@ -49,3 +50,4 @@ class Visitor
 
 }
 
+#endif

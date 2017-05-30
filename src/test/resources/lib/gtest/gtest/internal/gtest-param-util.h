@@ -31,7 +31,8 @@
 
 // Type and function utilities for implementing parameterized tests.
 
-#pragma once
+#ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PARAM_UTIL_H_
+#define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PARAM_UTIL_H_
 
 #include <iterator>
 #include <utility>
@@ -615,3 +616,4 @@ class ParameterizedTestCaseRegistry {
 
 #endif  //  GTEST_HAS_PARAM_TEST
 
+#endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PARAM_UTIL_H_

@@ -43,7 +43,8 @@
 // to CHANGE WITHOUT NOTICE.  Therefore DO NOT DEPEND ON IT in a user
 // program!
 
-#pragma once
+#ifndef GTEST_INCLUDE_GTEST_GTEST_MESSAGE_H_
+#define GTEST_INCLUDE_GTEST_GTEST_MESSAGE_H_
 
 #include <limits>
 
@@ -246,3 +247,4 @@ std::string StreamableToString(const T& streamable) {
 }  // namespace internal
 }  // namespace testing
 
+#endif  // GTEST_INCLUDE_GTEST_GTEST_MESSAGE_H_

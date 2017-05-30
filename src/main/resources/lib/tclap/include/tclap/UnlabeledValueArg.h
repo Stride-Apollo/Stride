@@ -21,7 +21,8 @@
  *****************************************************************************/ 
 
 
-#pragma once
+#ifndef TCLAP_UNLABELED_VALUE_ARGUMENT_H
+#define TCLAP_UNLABELED_VALUE_ARGUMENT_H
 
 #include <string>
 #include <vector>
@@ -336,3 +337,4 @@ void UnlabeledValueArg<T>::addToList( std::list<Arg*>& argList ) const
 }
 
 }
+#endif

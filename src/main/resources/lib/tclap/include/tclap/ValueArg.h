@@ -20,7 +20,8 @@
  *****************************************************************************/ 
 
 
-#pragma once
+#ifndef TCLAP_VALUE_ARGUMENT_H
+#define TCLAP_VALUE_ARGUMENT_H
 
 #include <string>
 #include <vector>
@@ -407,3 +408,4 @@ void ValueArg<T>::reset()
 
 } // namespace TCLAP
 
+#endif

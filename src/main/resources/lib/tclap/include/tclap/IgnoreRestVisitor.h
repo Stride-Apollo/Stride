@@ -20,7 +20,8 @@
  *****************************************************************************/ 
 
 
-#pragma once
+#ifndef TCLAP_IGNORE_REST_VISITOR_H
+#define TCLAP_IGNORE_REST_VISITOR_H
 
 #include <tclap/Visitor.h>
 #include <tclap/Arg.h>
@@ -48,3 +49,4 @@ class IgnoreRestVisitor: public Visitor
 
 }
 
+#endif

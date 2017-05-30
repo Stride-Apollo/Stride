@@ -43,7 +43,8 @@
 // by the maximum arity of the implementation of tr1::tuple which is
 // currently set at 10.
 
-#pragma once
+#ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PARAM_UTIL_GENERATED_H_
+#define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PARAM_UTIL_GENERATED_H_
 
 // scripts/fuse_gtest.py depends on gtest's own header being #included
 // *unconditionally*.  Therefore these #includes cannot be moved
@@ -5139,3 +5140,4 @@ CartesianProductHolder10(const Generator1& g1, const Generator2& g2,
 
 #endif  //  GTEST_HAS_PARAM_TEST
 
+#endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PARAM_UTIL_GENERATED_H_

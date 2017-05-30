@@ -421,4 +421,4 @@ TEST_F(LocalSimulatorAdapterTest, getTravellerData) {
 	}
 }
 
-} //end-of-namespace-Tests
+}

@@ -48,7 +48,8 @@
 // registration from Barthelemy Dagenais' (barthelemy@prologique.com)
 // easyUnit framework.
 
-#pragma once
+#ifndef GTEST_INCLUDE_GTEST_GTEST_H_
+#define GTEST_INCLUDE_GTEST_GTEST_H_
 
 #include <limits>
 #include <ostream>
@@ -2287,3 +2288,4 @@ inline int RUN_ALL_TESTS() {
   return ::testing::UnitTest::GetInstance()->Run();
 }
 
+#endif  // GTEST_INCLUDE_GTEST_GTEST_H_

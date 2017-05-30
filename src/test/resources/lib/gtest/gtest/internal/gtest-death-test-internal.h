@@ -34,7 +34,8 @@
 // This header file defines internal utilities needed for implementing
 // death tests.  They are subject to change without notice.
 
-#pragma once
+#ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_DEATH_TEST_INTERNAL_H_
+#define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_DEATH_TEST_INTERNAL_H_
 
 #include "gtest/internal/gtest-internal.h"
 
@@ -315,3 +316,4 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag();
 }  // namespace internal
 }  // namespace testing
 
+#endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_DEATH_TEST_INTERNAL_H_

@@ -22,7 +22,8 @@
  *****************************************************************************/
 
 
-#pragma once
+#ifndef TCLAP_ARGUMENT_H
+#define TCLAP_ARGUMENT_H
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -667,4 +668,5 @@ inline void Arg::reset()
 
 } //namespace TCLAP
 
+#endif
 

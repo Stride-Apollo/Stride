@@ -92,7 +92,8 @@
 // being defined as many user-defined container types don't have
 // value_type.
 
-#pragma once
+#ifndef GTEST_INCLUDE_GTEST_GTEST_PRINTERS_H_
+#define GTEST_INCLUDE_GTEST_GTEST_PRINTERS_H_
 
 #include <ostream>  // NOLINT
 #include <sstream>
@@ -851,3 +852,4 @@ template <typename T>
 
 }  // namespace testing
 
+#endif  // GTEST_INCLUDE_GTEST_GTEST_PRINTERS_H_

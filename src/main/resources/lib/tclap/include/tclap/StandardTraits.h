@@ -23,7 +23,8 @@
 // This is an internal tclap file, you should probably not have to
 // include this directly
 
-#pragma once
+#ifndef TCLAP_STANDARD_TRAITS_H
+#define TCLAP_STANDARD_TRAITS_H
 
 #ifdef HAVE_CONFIG_H
 #include <config.h> // To check for long long
@@ -179,4 +180,5 @@ void SetString(T &dst, const std::string &src)
 
 } // namespace
 
+#endif
 

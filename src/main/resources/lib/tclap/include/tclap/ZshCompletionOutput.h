@@ -20,7 +20,8 @@
  *  
  *****************************************************************************/ 
 
-#pragma once
+#ifndef TCLAP_ZSHCOMPLETIONOUTPUT_H
+#define TCLAP_ZSHCOMPLETIONOUTPUT_H
 
 #include <string>
 #include <vector>
@@ -317,3 +318,4 @@ inline std::string ZshCompletionOutput::getMutexList( CmdLineInterface& _cmd, Ar
 }
 
 } //namespace TCLAP
+#endif
