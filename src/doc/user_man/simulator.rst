@@ -86,6 +86,17 @@ simulator using one or more command line arguments:
 
   * ``-r`` or ``--r0``: To obtain the basic reproduction number, no tertiary infections.
 
+  * ``-m`` or ``--mode``: The simulation run mode (defaults to ``Extend`` mode).
+
+  * ``-f`` or ``--frequency``: The checkpointing frequency.
+
+  * ``-h`` or ``--hdf5``: The hdf5 file used by checkpointing.
+
+  * ``-o`` or ``--hdf5output``: Output file for checkpointing over ``h`` argument if specified.
+
+  * ``-t`` or ``--timestamp``: The timestep from which ``Replay`` mode is replayed.
+
+
 Python Wrapper
 --------------
 

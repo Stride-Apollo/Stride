@@ -10,7 +10,7 @@
 #include "util/Observer.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorRunMode.h"
-#include "sim/LocalSimulatorSender.h"
+#include "sim/LocalSimulatorAdapter.h"
 #include "core/Cluster.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <string>
@@ -25,7 +25,7 @@ using H5::Group;
 
 namespace stride {
 
-class Saver : public util::Observer<LocalSimulatorSender> {
+class Saver : public util::Observer<LocalSimulatorAdapter> {
 public:
 	Saver(string filename, const ptree& pt_config,
 		  int frequency, bool track_index_case,
@@ -33,10 +33,10 @@ public:
 		  int start_timestep = 0);
 
 	/// Update function which is called by the subject.
-	virtual void update(const LocalSimulatorSender& local_sim);
+	virtual void update(const LocalSimulatorAdapter& local_sim);
 
 	/// Forces a save to the hdf5 file, with an optional timestep argument which specifies a new timestep save index.
-	void forceSave(const LocalSimulatorSender& local_sim, int timestep = -1);
+	void forceSave(const LocalSimulatorAdapter& local_sim, int timestep = -1);
 
 private:
 	void saveTimestep(const Simulator& sim);

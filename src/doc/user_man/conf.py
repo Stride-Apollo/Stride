@@ -28,7 +28,7 @@ import subprocess, os
 rtd_build = os.environ.get('READTHEDOCS', None) == 'True'
 
 if rtd_build:
-    subprocess.call('cd ../doxygen_ref_man; doxygen Doxyfile_RTD')
+    subprocess.call('bash build-doxygen.sh', shell=True)
 
 
 # -- General configuration ------------------------------------------------
@@ -43,13 +43,7 @@ if rtd_build:
 extensions = ['sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
-    'sphinxcontrib.bibtex',
-    'breathe']
-
-# Breathe config
-
-breathe_projects = {'stride': '../doxygen_ref_man/xml/'}
-breathe_default_project = 'stride'
+    'sphinxcontrib.bibtex']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

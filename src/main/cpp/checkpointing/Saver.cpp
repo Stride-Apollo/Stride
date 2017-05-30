@@ -7,10 +7,12 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>
+#include <iomanip>
 #include "Saver.h"
 #include "util/InstallDirs.h"
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
+#include "pop/Person.h"
 #include "core/Cluster.h"
 #include "checkpointing/customDataTypes/CalendarDataType.h"
 #include "checkpointing/customDataTypes/ConfDataType.h"
@@ -90,7 +92,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 		}
 
 		stringstream ss;
-		ss << "/Timestep_" << m_timestep;
+		ss << "/Timestep_" << std::setfill('0') << std::setw(6) << m_timestep;
 		Group group(file.createGroup(ss.str()));
 
 		// Only save when unipar dummy implementation is used, otherwise sim.m_rng == nullptr
@@ -225,9 +227,13 @@ void Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 	// Dataspace can fit all persons but is chunked in parts of 100 persons
 	DataSpace dataspace = DataSpace(1, dims);
 	DSetCreatPropList plist = DSetCreatPropList();
-	hsize_t chunk_dims[1] = {40000};
+	hsize_t chunk_dims[1] = {10000};
 	plist.setChunk(1, chunk_dims);
 	DataSet dataset = DataSet(group.createDataSet("PersonTD", type_person_TD, dataspace, plist));
+
+	using PersonType = Simulator::PersonType;
+	const std::vector<PersonType>& population = sim.getPopulation()->m_original;
+
 
 	// Persons are saved per chunk
 	unsigned int person_index = 0;
@@ -241,14 +247,10 @@ void Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 
 		PersonTDDataType person_data[selected_dims[0]];
 		for (unsigned int j = 0; j < selected_dims[0]; j++) {
-			person_data[j].at_household = sim.getPopulation().get()->m_original.at(person_index).m_at_household;
-			person_data[j].at_school = sim.getPopulation().get()->m_original.at(person_index).m_at_school;
-			person_data[j].at_work = sim.getPopulation().get()->m_original.at(person_index).m_at_work;
-			person_data[j].at_prim_comm = sim.getPopulation().get()->m_original.at(person_index).m_at_primary_community;
-			person_data[j].at_sec_comm = sim.getPopulation().get()->m_original.at(person_index).m_at_secondary_community;
-			person_data[j].participant = sim.getPopulation().get()->m_original.at(person_index).m_is_participant;
-			person_data[j].health_status = (unsigned int) sim.getPopulation().get()->m_original.at(person_index).m_health.getHealthStatus();
-			person_data[j].disease_counter = (unsigned int) sim.getPopulation().get()->m_original.at(person_index).m_health.getDiseaseCounter();
+			const PersonType& person = population[person_index];
+			person_data[j].participant = person.m_is_participant;
+			person_data[j].health_status = (unsigned int) person.m_health.getHealthStatus();
+			person_data[j].disease_counter = (unsigned int) person.m_health.getDiseaseCounter();
 			person_index++;
 		}
 

@@ -50,6 +50,7 @@ set(LIB_SRC
 	sim/LocalSimulatorAdapter.cpp
 	sim/Coordinator.cpp
 	sim/SimulatorRunMode.cpp
+	sim/SimulatorSetup.cpp
 #---
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
@@ -63,6 +64,11 @@ set(LIB_SRC
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
+#---
+	checkpointing/Saver.cpp
+	checkpointing/Loader.cpp
+#---
+ 	vis/ClusterSaver.cpp
 #---
     
 )

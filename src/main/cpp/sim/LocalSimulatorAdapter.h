@@ -6,6 +6,7 @@
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
+#include "util/Subject.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
@@ -15,6 +16,7 @@
 namespace stride {
 
 class Coordinator;
+class ClusterSaver;
 
 using namespace std;
 using namespace util;
@@ -65,6 +67,7 @@ private:
 
 	friend class Simulator;
 	friend class Coordinator;
+	friend class ClusterSaver;
 	friend class Saver;
 	friend class Loader;
 };

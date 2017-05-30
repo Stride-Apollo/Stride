@@ -47,6 +47,17 @@ void Cluster::addPerson(Simulator::PersonType* p) {
 	m_index_immune++;
 }
 
+std::size_t Cluster::getInfectedCount() const {
+	// TODO can optimize this with precondition that cluster must be sorted
+	size_t num_cases = 0;
+	for (auto& member : m_members) {
+		auto health = member.first->getHealth();
+		if (health.isInfected() || health.isRecovered())
+			++num_cases;
+	}
+	return num_cases;
+}
+
 void Cluster::removePerson(unsigned int id) {
 	for (unsigned int i_member = 0; i_member < m_members.size(); ++i_member) {
 		if (m_members.at(i_member).first->getId() == id) {

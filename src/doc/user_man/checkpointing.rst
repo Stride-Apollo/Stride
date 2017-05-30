@@ -10,20 +10,20 @@ are specified in the chapters above.* *For more detailed information on
 how to configure checkpointing, read the Simulator chapter (Run the
 simulator part).*
 
-| Checkpointing enables the ability to save the state of the simulator
-  multiple times during the simulation itself. The simulator state is
-  saved in a binary format, based on a HDF5 storage format. The format
-  of this file is described below.
-| Checkpointing is configured by 3 parameters: the checkpointing
-  frequency, the checkpointing file and the simulator run mode.
+Checkpointing enables the ability to save the state of the simulator
+multiple times during the simulation itself. The simulator state is
+saved in a binary format, based on a HDF5 storage format. The format
+of this file is described below.
+Checkpointing is configured by 3 parameters: the checkpointing
+frequency, the checkpointing file and the simulator run mode.
 
 Checkpointing frequency
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-| The amount of times the simulator will be saved, can be set by the
-  checkpointing frequency parameter. This parameter can be set by using
-  a commandline argument or specifying the parameter in the xml
-  configuration file. This are the possible values for the parameter:
+The amount of times the simulator will be saved, can be set by the
+checkpointing frequency parameter. This parameter can be set by using
+a commandline argument or specifying the parameter in the xml
+configuration file. This are the possible values for the parameter:
 
 -  0 - Only save the last timestep of the simulation
 
@@ -35,11 +35,16 @@ Checkpointing file
 This paramater specifies the name of the checkpointing file. The use for
 the file depends on the simulator run mode parameter.
 
+Replay timestep
+~~~~~~~~~~~~~~~
+
+This parameter is used when the run mode is ``Replay``. It specifies the timestep from which you want to start the simulator.
+
 Simulator run mode
 ~~~~~~~~~~~~~~~~~~
 
-| The simulator can be run in different modes. Currently, these run
-  modes are supported:
+The simulator can be run in different modes. Currently, these run
+modes are supported:
 
 -  Initial - The simulator is built from scratch using the configuration
    file, and saved every x timesteps according to the checkpointing
@@ -49,7 +54,9 @@ Simulator run mode
 -  Extend - The simulation is extended from the last saved checkpoint in
    the checkpointing file.
 
--  Extract - A configuration file is extracted from the checkpointing
+-  Replay - The simulation is replayed from a specified timestep.
+
+-  Extract - The configuration files are extracted from the checkpointing
    file. This mode will not actually run the simulator itself.
 
 Table structure
@@ -70,7 +77,13 @@ Table structure
 +-------------------------+---------+---------------------+
 | /amt\_timesteps         | rank    | 1                   |
 +-------------------------+---------+---------------------+
-|                         | dims    | n\_steps            |
+|                         | dims    | 1                   |
++-------------------------+---------+---------------------+
+|                         | dtype   | H5T\_NATIVE\_UINT   |
++-------------------------+---------+---------------------+
+| /last\_timestep         | rank    | 1                   |
++-------------------------+---------+---------------------+
+|                         | dims    | 1                   |
 +-------------------------+---------+---------------------+
 |                         | dtype   | H5T\_NATIVE\_UINT   |
 +-------------------------+---------+---------------------+
@@ -82,9 +95,9 @@ Table structure
 +-------------------------+---------+---------------------+
 | /Timestep\_n/randomgen  | rank    | 1                   |
 +-------------------------+---------+---------------------+
-|                         | dims    | amt\_threads        |
+|                         | dims    | 1                   |
 +-------------------------+---------+---------------------+
-|                         | dtype   | RNGDatatype         |
+|                         | dtype   | StrType             |
 +-------------------------+---------+---------------------+
 | /Timestep\_n/PersonTD   | rank    | 1                   |
 +-------------------------+---------+---------------------+
@@ -113,12 +126,6 @@ ConfDatatype
 
 -  StrType (variable length) - age\_contact\_content
 
-RNGDatatype
-^^^^^^^^^^^
-
--  H5T\_NATIVE\_ULONG - seed
-
--  StrType (variable length) - rng\_state
 
 PersonTIDatatype (time independent)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -150,19 +157,11 @@ PersonTIDatatype (time independent)
 PersonTDDatatype (time dependent)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
--  H5T\_NATIVE\_HBOOL - at\_household
-
--  H5T\_NATIVE\_HBOOL - at\_school
-
--  H5T\_NATIVE\_HBOOL - at\_work
-
--  H5T\_NATIVE\_HBOOL - at\_prim\_comm
-
--  H5T\_NATIVE\_HBOOL - at\_sec\_comm
-
 -  H5T\_NATIVE\_HBOOL - participant
 
 -  H5T\_NATIVE\_UINT - health\_status
+
+-  H5T\_NATIVE\_UINT - disease\_counter
 
 CalendarDatatype
 ^^^^^^^^^^^^^^^^

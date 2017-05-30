@@ -1,8 +1,8 @@
 #############################################################################
-#  This file is part of the Stride software. 
+#  This file is part of the Stride software.
 #  It is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by 
-#  the Free Software Foundation, either version 3 of the License, or any 
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or any
 #  later version.
 #  The software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,6 +30,16 @@
 MakeLocalConfig = $(wildcard MakeLocalConfig)
 ifeq ($(MakeLocalConfig),MakeLocalConfig)
 	include MakeLocalConfig
+endif
+
+
+#============================================================================
+#	Determine Visualization install path
+#============================================================================
+PATH_INSTALL_VIS = build/installed/vis
+
+ifneq ($(CMAKE_INSTALL_PREFIX),)
+	PATH_INSTALL_VIS = $(CMAKE_INSTALL_PREFIX)/vis
 endif
 
 #============================================================================
@@ -92,8 +102,9 @@ endif
 #   Targets
 #============================================================================
 .PHONY: help configure bootstrap all build_all build_main build_test
-.PHONY: install install_all install_main install_test package   
+.PHONY: install install_all install_main install_test package
 .PHONY: test installcheck distclean remove_build clean_all
+.PHONY: build_vis install_vis
 
 help:
 	@ $(CMAKE) -E echo " "
@@ -115,7 +126,7 @@ help:
 	@ $(CMAKE) -E echo "   CMAKE_BUILD_TYPE           : " $(CMAKE_BUILD_TYPE)
 	@ $(CMAKE) -E echo "   CMAKE_INSTALL_PREFIX       : " $(CMAKE_INSTALL_PREFIX)
 	@ $(CMAKE) -E echo " "
-				
+
 configure:
 	$(CMAKE) -E make_directory $(BUILD_DIR)
 	$(CMAKE) -E chdir $(BUILD_DIR) $(CMAKE) $(CMAKE_ARGS) ../src
@@ -124,8 +135,8 @@ all: configure
 	$(MAKE) -j $(PARALLEL_MAKE) -C $(BUILD_DIR) all
 
 install: configure
-	$(MAKE) -j $(PARALLEL_MAKE) -C $(BUILD_DIR) --no-print-directory install   
-	
+	$(MAKE) -j $(PARALLEL_MAKE) -C $(BUILD_DIR) --no-print-directory install
+
 install_main: configure
 	$(MAKE) -j $(PARALLEL_MAKE) -C $(BUILD_DIR)/main --no-print-directory install
 
@@ -138,7 +149,20 @@ distclean clean:
 test: install install_test
 	cd $(BUILD_DIR)/installed && ./bin/gtester
 
+build_vis:
+	@ cd src/main/electron && npm run-script package
+
+
+install_vis: build_vis
+	@ mkdir -p $(PATH_INSTALL_VIS)
+	@ cp -r build/main/electron/vis*/* $(PATH_INSTALL_VIS)/
+
 clean_all: distclean
 	git clean -df
+	git ls-files --others | egrep '\.c\?make$$' | xargs -r rm
+	git ls-files --others | egrep 'CMakeCache' | xargs -r rm
+	git ls-files --others | egrep 'Makefile$$' | xargs -r rm
+	git ls-files --others | egrep 'CMakeFiles' | xargs -r rm
+
 
 #############################################################################

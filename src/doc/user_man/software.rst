@@ -24,6 +24,8 @@ The following tools needs to be installed:
 
   * Sphinx (optional, for documentation)
 
+  * Nodejs, npm, electron and electron-packager (optional, for visualization)
+
 Installation
 ------------
 
