@@ -49,7 +49,7 @@ class Cluster;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator : public util::Subject<Simulator> {
+class Simulator {
 public:
 	using GlobalInformationPolicy = NoGlobalInformation;
 	using LocalInformationPolicy = NoLocalInformation;
@@ -108,13 +108,14 @@ private:
 	#else
 		using RandomRef = std::unique_ptr<util::Random>;
 	#endif
-	decltype(Parallel().withFunc<RandomRef>()) m_parallel;
 
-	std::shared_ptr<util::Random> m_rng;
+	decltype(Parallel().with<RandomRef>()) m_parallel;
+
+	std::shared_ptr<util::Random> 		m_rng;
 	LogMode                             m_log_level;            ///< Specifies logging mode.
 	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
 
-private:
+public:	// TODO write getters or set friend class for ClusterSaver
 	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
 
 	std::vector<Cluster> m_households;           ///< Container with household Clusters.

@@ -14,7 +14,7 @@ namespace Tests {
 
 using SI = SimplePlanner<int>;
 
-TEST(Utils, SimplePlanner) {
+TEST(UnitTests__Utils, SimplePlanner) {
 	SI planner;
 	planner.add(0, 0);
 	planner.add(0, 1);

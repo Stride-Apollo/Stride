@@ -20,7 +20,6 @@
 
 #include "Simulator.h"
 
-#include "behaviour/information_policies/InformationPolicy.h"
 #include "calendar/Calendar.h"
 #include "calendar/DaysOffStandard.h"
 #include "core/Infector.h"
@@ -39,22 +38,15 @@ using namespace stride::util;
 Simulator::Simulator()
         : m_config_pt(), m_num_threads(1U), m_log_level(LogMode::Null), m_population(nullptr),
           m_disease_profile(), m_track_index_case(false) {
-	m_parallel = Parallel().withFunc<RandomRef>(std::function<RandomRef()>([&](){
+	m_parallel.resources().setFunc([&](){
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
 			//std::cout << "Dummy rng?\n";
 			return m_rng.get();
 		#else
-			// Use the rng to initialize a seed
-			return make_unique<Random>(m_rng->operator()());
-			//if (p.get() == nullptr) {
-			//	std::cout << "We're passing on null rng?\n";
-			//} else {
-			//	std::cout << "ONE MORE RNG!\n";
-			//}
-			//return p;
+			std::random_device rd;
+			return make_unique<Random>(rd());
 		#endif
-	}));
-	//m_parallel.getResourceManager().setFunc();
+	});
 }
 
 const shared_ptr<const Population> Simulator::getPopulation() const {
@@ -72,14 +64,8 @@ void Simulator::updateClusters() {
 	for (auto clusters: {&m_households, &m_school_clusters, &m_work_clusters,
 						 &m_primary_community, &m_secondary_community}) {
 		m_parallel.for_(0, clusters->size(), [&](RandomRef& rng, size_t i) {
-			if (rng) {
-				Infector<log_level, track_index_case, LocalInformationPolicy>::execute(
-						(*clusters)[i], m_disease_profile, *rng, m_calendar);
-				//std::cout << "rng is not null" << endl;
-			} else {
-				std::cout << "rng is null" << endl;
-				_exit(1);
-			}
+			Infector<log_level, track_index_case, LocalInformationPolicy>::execute(
+					(*clusters)[i], m_disease_profile, *rng, m_calendar);
 		});
 	}
 }
@@ -125,7 +111,6 @@ void Simulator::timeStep() {
 		}
 	}
 
-	notify(*this);
 	m_calendar->advanceDay();
 }
 

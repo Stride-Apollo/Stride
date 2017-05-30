@@ -19,6 +19,7 @@
  */
 
 #include "run_stride.h"
+#include "sim/SimulatorRunMode.h"
 
 #include <tclap/CmdLine.h>
 
@@ -35,33 +36,36 @@ int main(int argc, char** argv) {
 		SwitchArg index_case_Arg("r", "r0", "R0 only", cmd, false);
 		ValueArg <string> config_file_Arg("c", "config", "Config File", false,
 				// "./config/run_coordinator.xml", "CONFIGURATION FILE", cmd);
-										  "./config/run_default.xml", "CONFIGURATION FILE", cmd);
-		ValueArg<unsigned int> num_threads_Arg("nt", "num_threads", "Number of threads (as a hint)", false,
+										  "./config/run_flanders.xml", "CONFIGURATION FILE", cmd);
+
+		ValueArg<unsigned int> num_threads_Arg("n", "num_threads", "Number of threads (as a hint)", false,
 											   4, "NUM THREADS", cmd);
 		ValueArg<int> checkpointing_frequency_Arg("f", "frequency", "Checkpointing Frequency", false,
 												  -1, "CHECKPOINTING FREQUENCY", cmd);
 		ValueArg<unsigned int> timestamp_replay_Arg("t", "timestamp", "Replay from Timestamp", false, 0,
 													"REPLAY FROM TIMESTAMP", cmd);
 		ValueArg<string> simulator_mode_Arg("m", "mode", "Simulator Mode", false,
-											 "extend", "SIMULATOR MODE", cmd);
+											 "initial", "SIMULATOR MODE", cmd);
 		ValueArg<string> hdf5_file_Arg("h", "hdf5", "HDF5 File", false,
 										"", "HDF5 FILE", cmd);
 		ValueArg<string> hdf5_output_file_Arg("o", "hdf5output", "HDF5 Output File", false,
 											  "", "HDF5 OUTPUT FILE", cmd);
 		cmd.parse(argc, argv);
 
+		auto run_mode = SimulatorRunMode::getRunMode(simulator_mode_Arg.getValue());
+
 		run_stride(index_case_Arg.getValue(),
 				   num_threads_Arg.getValue(),
 				   config_file_Arg.getValue(),
 				   hdf5_file_Arg.getValue(),
 				   hdf5_output_file_Arg.getValue(),
-				   simulator_mode_Arg.getValue(),
 				   checkpointing_frequency_Arg.getValue(),
-				   timestamp_replay_Arg.getValue());
+				   timestamp_replay_Arg.getValue(),
+				   run_mode);
 
 	} catch (exception& e) {
 		exit_status = EXIT_FAILURE;
-		cerr << "\nEXCEPTION THROWN: " << e.what() << endl;
+		cerr << e.what() << endl;
 	} catch (...) {
 		exit_status = EXIT_FAILURE;
 		cerr << "\nEXCEPTION THROWN: " << "Unknown exception." << endl;

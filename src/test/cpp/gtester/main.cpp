@@ -25,16 +25,13 @@
 
 using namespace std;
 
-int main(int argc, char **argv)
-{
-	std::cout << "START TEST ENVIRONMENT" << std::endl;
+int main(int argc, char **argv) {
 
 	int exit_status = EXIT_SUCCESS;
 	try {
 		::testing::InitGoogleTest(&argc, argv);
 		return RUN_ALL_TESTS();
-	}
-	catch (std::exception& e) {
+	} catch (std::exception& e) {
 		cerr << "Exception caught: " << e.what() << endl << endl;
 		exit_status = EXIT_FAILURE;
 	}

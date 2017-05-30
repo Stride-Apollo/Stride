@@ -72,7 +72,7 @@
 # In new projects, please use the ``OpenMP_<lang>_XXX`` equivalents.
 
 cmake_policy(PUSH)
-cmake_policy(SET CMP0057 NEW) # if IN_LIST
+#cmake_policy(SET CMP0057 NEW) # if IN_LIST
 
 function(_OPENMP_FLAG_CANDIDATES LANG)
   if(NOT OpenMP_${LANG}_FLAG)
@@ -159,7 +159,8 @@ function(_OPENMP_GET_FLAGS LANG OPENMP_FLAG_VAR OPENMP_LIB_NAMES_VAR)
   foreach(OPENMP_FLAG IN LISTS OpenMP_${LANG}_FLAG_CANDIDATES)
     set(OPENMP_FLAGS_TEST "${OPENMP_FLAG}")
     if(CMAKE_${LANG}_VERBOSE_FLAG)
-      string(APPEND OPENMP_FLAGS_TEST " ${CMAKE_${LANG}_VERBOSE_FLAG}")
+      #string(APPEND OPENMP_FLAGS_TEST " ${CMAKE_${LANG}_VERBOSE_FLAG}")
+      set(OPENMP_FLAGS_TEST "${OPENMP_FLAGS_TEST} ${CMAKE_${LANG}_VERBOSE_FLAG}")
     endif()
     try_compile( OpenMP_TRY_COMPILE_RESULT ${CMAKE_BINARY_DIR} ${_OPENMP_TEST_SRC}
       CMAKE_FLAGS "-DCOMPILE_DEFINITIONS:STRING=${OPENMP_FLAGS_TEST}"
@@ -192,14 +193,14 @@ function(_OPENMP_GET_FLAGS LANG OPENMP_FLAG_VAR OPENMP_LIB_NAMES_VAR)
 
         unset(_OPENMP_LIB_NAMES)
         foreach(_OPENMP_IMPLICIT_LIB IN LISTS OpenMP_${LANG}_IMPLICIT_LIBRARIES)
-          if(NOT "${_OPENMP_IMPLICIT_LIB}" IN_LIST CMAKE_${LANG}_IMPLICIT_LINK_LIBRARIES)
+          #if(NOT "${_OPENMP_IMPLICIT_LIB}" IN_LIST CMAKE_${LANG}_IMPLICIT_LINK_LIBRARIES)
             find_library(OpenMP_${_OPENMP_IMPLICIT_LIB}_LIBRARY
               NAMES "${_OPENMP_IMPLICIT_LIB}"
               HINTS ${OpenMP_${LANG}_IMPLICIT_LINK_DIRS}
             )
             mark_as_advanced(OpenMP_${_OPENMP_IMPLICIT_LIB}_LIBRARY)
             list(APPEND _OPENMP_LIB_NAMES ${_OPENMP_IMPLICIT_LIB})
-          endif()
+          #endif()
         endforeach()
         set("${OPENMP_LIB_NAMES_VAR}" "${_OPENMP_LIB_NAMES}" PARENT_SCOPE)
       else()

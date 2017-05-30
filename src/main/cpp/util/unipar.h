@@ -1,4 +1,6 @@
 #pragma once
+// This file is just to regulate the usage of unipar in the rest of the project.
+// The files in util/unipar/ basically form their own library in their own namespace.
 
 #include "unipar/pick_choices.h"
 

@@ -60,6 +60,9 @@ public:
 	/// Return number of persons in this cluster.
 	std::size_t getSize() const { return m_members.size(); }
 
+	/// Return the amount of infected people in this cluster.
+	std::size_t getInfectedCount() const;
+
 	/// Return the type of this cluster.
 	ClusterType getClusterType() const { return m_cluster_type; }
 

@@ -14,7 +14,7 @@ void Coordinator::timeStep() {
 	vector<future<bool>> fut_results;
 
 	// Run the simulator for the day
-	for (AsyncSimulator* sim: m_sims) {
+	for (AsyncSim* sim: m_sims) {
 		fut_results.push_back(sim->timeStep());
 	}
 	future_pool(fut_results);
@@ -41,17 +41,6 @@ void Coordinator::timeStep() {
 															new_flight.m_district,
 															new_flight.m_facility);
 	}
-}
-
-vector<TravellerData> Coordinator::forceReturnTravellers() {
-	vector<TravellerData> traveller_data;
-
-	for (auto& sim: m_sims) {
-		vector<TravellerData> sim_data = sim->forceReturn();
-		traveller_data.insert(traveller_data.end(), sim_data.begin(), sim_data.end());
-	}
-
-	return traveller_data;
 }
 
 vector<TravellerData> Coordinator::getTravellerData() {

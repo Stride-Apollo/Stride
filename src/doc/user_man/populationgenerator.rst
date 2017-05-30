@@ -5,6 +5,17 @@ Population Generator
 Using the generator
 -------------------
 
+Command line interface
+~~~~~~~~~~~~~~~~~~~~~~
+
+We provided the population generator with a command line interface (TCLAP).
+This interface contains a help flag which gives more information about the specific arguments.
+In order to display this help you must execute the following command:
+
+.. code-block:: bash
+
+  ./pop_generator -h
+
 Input files
 ~~~~~~~~~~~
 
@@ -25,7 +36,7 @@ Meaning of the attributes in this file
 
    * ``Population::provinces``: The amount of provinces (currently has no effect in stride)
 
-   * ``Population.Random::generator``: The RNG that is used, for a list of allowed random generators, see later
+   * ``Population.Random::generator``: The RNG that is used, for a list of allowed random generators, see 1_.
 
    * ``Population.Random::seed``: The seed of the random generator
 
@@ -99,3 +110,21 @@ Family configuration file
 This contains the possible configurations of each family (based on age).
 Every row is a family. The Population Generator randomly chooses
 configuration.
+
+.. _1:
+
+Random generators
+~~~~~~~~~~~~~~~~~
+The population generator uses the mt19937 random generator by default. Besides the mt19937 random generator, you can choose one of the following:
+
+  - default_random_engine
+  - mt19937_64
+  - minstd_rand0
+  - minstd_rand
+  - ranlux24_base
+  - ranlux48_base
+  - ranlux24
+  - ranlux48
+  - knuth_b
+
+For more information about these generators please go to http://www.cplusplus.com/reference/random/.
