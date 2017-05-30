@@ -34,8 +34,7 @@
 // This file contains purely Google Test's internal implementation.  Please
 // DO NOT #INCLUDE IT IN A USER PROGRAM.
 
-#ifndef GTEST_SRC_GTEST_INTERNAL_INL_H_
-#define GTEST_SRC_GTEST_INTERNAL_INL_H_
+#pragma once
 
 // GTEST_IMPLEMENTATION_ is defined to 1 iff the current translation unit is
 // part of Google Test's implementation; otherwise it's undefined.
@@ -1215,4 +1214,3 @@ class StreamingListener : public EmptyTestEventListener {
 }  // namespace internal
 }  // namespace testing
 
-#endif  // GTEST_SRC_GTEST_INTERNAL_INL_H_

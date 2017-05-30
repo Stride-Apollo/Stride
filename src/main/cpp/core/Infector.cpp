@@ -134,7 +134,7 @@ void Infector<log_level, track_index_case, local_information_policy>::execute(
 					// check for contact
 					if (contact_handler.hasContact(contact_rate)) {
 						// exchange information about health state & beliefs
-						local_information_policy::Update(p1, p2);
+						local_information_policy::update(p1, p2);
 
 						bool transmission = contact_handler.hasTransmission(transmission_rate);
 						if (transmission) {
@@ -202,61 +202,6 @@ void Infector<log_level, track_index_case, NoLocalInformation>::execute(
 	}
 }
 
-
-
-//--------------------------------------------------------------------------
-// Definition of partial specialization for InformationPolicy::Local.
-//--------------------------------------------------------------------------
-template<LogMode log_level, bool track_index_case>
-void Infector<log_level, track_index_case, InformationPolicy::Local>::execute(
-        Cluster& cluster, DiseaseProfile disease_profile,
-        util::Random& contact_handler, shared_ptr<const Calendar> calendar) {
-	cluster.updateMemberPresence();
-
-	// set up some stuff
-	auto logger            = spdlog::get("contact_logger");
-	const auto c_type      = cluster.m_cluster_type;
-	const auto& c_members  = cluster.m_members;
-	const auto transmission_rate = disease_profile.getTransmissionRate();
-	//const auto c_size      = cluster.getSize();
-
-	// check all contacts
-	for (size_t i_person1 = 0; i_person1 < cluster.m_members.size(); i_person1++) {
-		// check if member participates in the social contact survey && member is present today
-		if (c_members[i_person1].second) {
-			auto p1 = c_members[i_person1].first;
-			const double contact_rate = cluster.getContactRate(p1);
-			for (size_t i_person2 = 0; i_person2 < c_members.size(); i_person2++) {
-				// check if member is present today
-				if ((i_person1 != i_person2) && c_members[i_person2].second) {
-					auto p2 = c_members[i_person2].first;
-					// check for contact
-					if (contact_handler.hasContact(contact_rate)) {
-						// let contacts influence each other's beliefs
-						p1->update(p2);
-						p2->update(p1);
-
-						bool transmission = contact_handler.hasTransmission(transmission_rate);
-						if (transmission) {
-							if (p1->getHealth().isInfectious() && p2->getHealth().isSusceptible()) {
-								p2->getHealth().startInfection();
-								R0_POLICY<track_index_case>::execute(p2);
-							} else if (p2->getHealth().isInfectious() && p1->getHealth().isSusceptible()) {
-								p1->getHealth().startInfection();
-								R0_POLICY<track_index_case>::execute(p1);
-							}
-						}
-
-						LOG_POLICY<log_level>::execute(logger, p1, p2, c_type, calendar);
-					}
-				}
-			}
-		}
-	}
-}
-
-
-// TODO find a solution for this AWFUL case of code duplication
 //-------------------------------------------------------------------------------------------
 // Definition of partial specialization for LogMode::Contacts and NoLocalInformation policy.
 //-------------------------------------------------------------------------------------------

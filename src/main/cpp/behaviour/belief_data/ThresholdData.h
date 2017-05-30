@@ -1,6 +1,6 @@
 #pragma once
 
-#include "behaviour/behaviour_policies/AlwaysFollowBeliefs.h"
+#include "behaviour/behaviour_policies/Vaccination.h"
 
 /*
  * Possible variants:

@@ -37,8 +37,7 @@
 // This file is #included in <gtest/internal/gtest-internal.h>.
 // Do not include this header file separately!
 
-#ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_FILEPATH_H_
-#define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_FILEPATH_H_
+#pragma once
 
 #include "gtest/internal/gtest-string.h"
 
@@ -203,4 +202,3 @@ class GTEST_API_ FilePath {
 }  // namespace internal
 }  // namespace testing
 
-#endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_FILEPATH_H_

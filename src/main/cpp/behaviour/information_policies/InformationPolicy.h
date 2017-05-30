@@ -5,8 +5,7 @@
  *      Author: elise
  */
 
-#ifndef SRC_MAIN_CPP_BEHAVIOUR_INFORMATIONPOLICY_H_
-#define SRC_MAIN_CPP_BEHAVIOUR_INFORMATIONPOLICY_H_
+#pragma once
 
 namespace stride {
 
@@ -18,4 +17,3 @@ class InformationPolicy {
 } // end_of_namespace
 
 
-#endif /* SRC_MAIN_CPP_BEHAVIOUR_INFORMATIONPOLICY_H_ */

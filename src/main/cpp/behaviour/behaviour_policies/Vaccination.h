@@ -5,25 +5,18 @@
  *      Author: elise
  */
 
-#ifndef SRC_MAIN_CPP_BEHAVIOUR_BEHAVIOUR_POLICIES_VACCINATION_H_
-#define SRC_MAIN_CPP_BEHAVIOUR_BEHAVIOUR_POLICIES_VACCINATION_H_
+#pragma once
 
 
 template<typename belief_policy>
 class Vaccination {
 public:
-	static bool PracticesSocialDistancing(const typename belief_policy::Data& belief_data) {
+	static bool practicesSocialDistancing(const typename belief_policy::Data& belief_data) {
 		return false;
 	}
 
-	static bool PracticesVaccination(const typename belief_policy::Data& belief_data) {
-		if (belief_policy::HasAdopted(belief_data)) {
-			return true;
-		} else {
-			return false;
-		}
+	static bool practicesVaccination(const typename belief_policy::Data& belief_data) {
+		return belief_policy::hasAdopted(belief_data);
 	}
 };
 
-
-#endif /* SRC_MAIN_CPP_BEHAVIOUR_BEHAVIOUR_POLICIES_VACCINATION_H_ */

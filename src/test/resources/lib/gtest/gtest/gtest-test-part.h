@@ -30,8 +30,7 @@
 // Author: mheule@google.com (Markus Heule)
 //
 
-#ifndef GTEST_INCLUDE_GTEST_GTEST_TEST_PART_H_
-#define GTEST_INCLUDE_GTEST_GTEST_TEST_PART_H_
+#pragma once
 
 #include <iosfwd>
 #include <vector>
@@ -176,4 +175,3 @@ class GTEST_API_ HasNewFatalFailureHelper
 
 }  // namespace testing
 
-#endif  // GTEST_INCLUDE_GTEST_GTEST_TEST_PART_H_

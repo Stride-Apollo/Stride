@@ -5,8 +5,7 @@
  *      Author: elise
  */
 
-#ifndef SRC_MAIN_CPP_BEHAVIOUR_INFORMATION_POLICIES_LOCALDISCUSSION_H_
-#define SRC_MAIN_CPP_BEHAVIOUR_INFORMATION_POLICIES_LOCALDISCUSSION_H_
+#pragma once
 
 #include "util/RNG.h"
 
@@ -15,10 +14,10 @@ namespace stride {
 template <typename PersonType>
 class LocalDiscussion {
 public:
-	static void Update(PersonType* p1, PersonType* p2) {
-		if (RNG::GetInstance().NextDouble() < 1.0) {
-			p1->Update(p2);
-			p2->Update(p1);
+	static void update(PersonType* p1, PersonType* p2) {
+		if (RNG::getInstance().nextDouble() < 1.0) {
+			p1->update(p2);
+			p2->update(p1);
 		}
 	}
 };
@@ -26,4 +25,3 @@ public:
 } /* namespace stride */
 
 
-#endif /* SRC_MAIN_CPP_BEHAVIOUR_INFORMATION_POLICIES_LOCALDISCUSSION_H_ */

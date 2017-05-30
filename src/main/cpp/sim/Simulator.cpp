@@ -20,6 +20,7 @@
 
 #include "Simulator.h"
 
+#include "behaviour/information_policies/InformationPolicy.h"
 #include "calendar/Calendar.h"
 #include "calendar/DaysOffStandard.h"
 #include "core/Infector.h"
@@ -64,7 +65,7 @@ void Simulator::setTrackIndexCase(bool track_index_case) {
 	m_track_index_case = track_index_case;
 }
 
-template<LogMode log_level, bool track_index_case, InformationPolicy information_policy>
+template<LogMode log_level, bool track_index_case>
 void Simulator::updateClusters() {
 	// Slight hack (thanks to http://stackoverflow.com/q/31724863/2678118#comment51385875_31724863)
 	// but saves us a lot of typing without resorting to macro's.
@@ -103,22 +104,22 @@ void Simulator::timeStep() {
 	if (m_track_index_case) {
 		switch (m_log_level) {
 		case LogMode::Contacts:
-				UpdateClusters<LogMode::Contacts, true>(); break;
+			updateClusters<LogMode::Contacts, true>(); break;
 		case LogMode::Transmissions:
-				UpdateClusters<LogMode::Transmissions, true>(); break;
+			updateClusters<LogMode::Transmissions, true>(); break;
 		case LogMode::None:
-				UpdateClusters<LogMode::None, true>(); break;
+			updateClusters<LogMode::None, true>(); break;
 		default:
 			throw runtime_error(std::string(__func__) + "Log mode screwed up!");
 		}
 	} else {
 		switch (m_log_level) {
 		case LogMode::Contacts:
-			UpdateClusters<LogMode::Contacts, false>(); break;
+			updateClusters<LogMode::Contacts, false>(); break;
 		case LogMode::Transmissions:
-			UpdateClusters<LogMode::Transmissions, false>(); break;
+			updateClusters<LogMode::Transmissions, false>(); break;
 		case LogMode::None:
-			UpdateClusters<LogMode::None, false>(); break;
+			updateClusters<LogMode::None, false>(); break;
 		default:
 			throw runtime_error(std::string(__func__) + "Log mode screwed up!");
 		}

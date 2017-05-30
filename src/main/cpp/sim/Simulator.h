@@ -19,19 +19,22 @@
  * Header for the Simulator class.
  */
 
-#include "behaviour/InformationPolicy.h"
-//#include "core/Cluster.h"
+#include "behaviour/behaviour_policies/Vaccination.h"
+#include "behaviour/information_policies/NoLocalInformation.h"
+#include "behaviour/information_policies/NoGlobalInformation.h"
+#include "behaviour/belief_policies/NoBelief.h"
+#include "behaviour/behaviour_policies/NoBehaviour.h"
+
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/District.h"
 #include "core/ClusterType.h"
-#include "behaviour/behaviour_policies/NoBehaviour.h"
 #include "pop/Person.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
 #include "util/Random.h"
 #include "util/unipar.h"
-#include "behaviour/belief_policies/NoBelief.h"
+
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>

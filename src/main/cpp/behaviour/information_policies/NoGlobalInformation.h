@@ -5,8 +5,7 @@
  *      Author: elise
  */
 
-#ifndef SRC_MAIN_CPP_BEHAVIOUR_INFORMATION_POLICIES_NOGLOBALINFORMATION_H_
-#define SRC_MAIN_CPP_BEHAVIOUR_INFORMATION_POLICIES_NOGLOBALINFORMATION_H_
+#pragma once
 
 namespace stride {
 
@@ -16,4 +15,3 @@ class NoGlobalInformation{
 
 } /* namespace stride */
 
-#endif /* SRC_MAIN_CPP_BEHAVIOUR_INFORMATION_POLICIES_NOGLOBALINFORMATION_H_ */

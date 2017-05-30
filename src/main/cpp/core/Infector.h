@@ -20,6 +20,7 @@
  */
 
 #include "behaviour/information_policies/NoLocalInformation.h"
+#include "behaviour/information_policies/LocalDiscussion.h"
 
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"

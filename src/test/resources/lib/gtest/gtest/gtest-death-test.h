@@ -35,8 +35,7 @@
 // #included by gtest.h so a user doesn't need to include this
 // directly.
 
-#ifndef GTEST_INCLUDE_GTEST_GTEST_DEATH_TEST_H_
-#define GTEST_INCLUDE_GTEST_GTEST_DEATH_TEST_H_
+#pragma once
 
 #include "gtest/internal/gtest-death-test-internal.h"
 
@@ -291,4 +290,3 @@ class GTEST_API_ KilledBySignal {
 
 }  // namespace testing
 
-#endif  // GTEST_INCLUDE_GTEST_GTEST_DEATH_TEST_H_

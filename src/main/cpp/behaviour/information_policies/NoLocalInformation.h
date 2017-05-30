@@ -5,8 +5,7 @@
  *      Author: elise
  */
 
-#ifndef SRC_MAIN_CPP_BEHAVIOUR_INFORMATION_POLICIES_NOLOCALINFORMATION_H_
-#define SRC_MAIN_CPP_BEHAVIOUR_INFORMATION_POLICIES_NOLOCALINFORMATION_H_
+#pragma once
 
 namespace stride {
 
@@ -16,4 +15,3 @@ class NoLocalInformation {
 
 } /* namespace stride */
 
-#endif /* SRC_MAIN_CPP_BEHAVIOUR_INFORMATION_POLICIES_NOLOCALINFORMATION_H_ */
