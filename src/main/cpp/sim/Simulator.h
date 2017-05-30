@@ -48,8 +48,14 @@ class Cluster;
  */
 class Simulator : public util::Subject<Simulator> {
 public:
-	using PersonType = Person<NoBehaviour, NoBelief>;
+	using GlobalInformationPolicy = NoGlobalInformation;
+	using LocalInformationPolicy = NoLocalInformation;
+	//using BeliefPolicy = Threshold<true, false>;
 	using BeliefPolicy = NoBelief;
+	//using BehaviourPolicy = Vaccination<BeliefPolicy>;
+	using BehaviourPolicy = NoBehaviour<BeliefPolicy>;
+	using PersonType = Person<BehaviourPolicy, BeliefPolicy>;
+	//using LocalInformationPolicy = LocalDiscussion<PersonType>;
 	using TravellerType = Traveller<PersonType>;
 
 	/// Default constructor for empty Simulator.
@@ -85,7 +91,7 @@ private:
 
 private:
 	/// Update the contacts in the given clusters.
-	template<LogMode log_level, bool track_index_case = false, InformationPolicy information_policy = InformationPolicy::Global>
+	template<LogMode log_level, bool track_index_case = false>
 	void updateClusters();
 
 private:
@@ -93,7 +99,8 @@ private:
 
 private:
 	unsigned int                        m_num_threads;          ///< The number of  threads(as a hint)
-   #if UNIPAR_IMPL == UNIPAR_DUMMY
+
+	#if UNIPAR_IMPL == UNIPAR_DUMMY
 		using RandomRef = util::Random*;
 	#else
 		using RandomRef = std::unique_ptr<util::Random>;
@@ -102,7 +109,6 @@ private:
 
 	std::shared_ptr<util::Random> m_rng;
 	LogMode                             m_log_level;            ///< Specifies logging mode.
-	InformationPolicy					m_information_policy;
 	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
 
 private:

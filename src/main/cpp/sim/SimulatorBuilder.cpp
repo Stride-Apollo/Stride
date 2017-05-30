@@ -111,20 +111,15 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	sim->m_log_level = isLogMode(l) ? toLogMode(l) : throw runtime_error(
 			string(__func__) + "> Invalid input for LogMode.");
 
-	// Get information policy.
-	const string p = pt_config.get<string>("run.information_policy", "Global");
-	sim->m_information_policy = IsInformationPolicy(p) ? ToInformationPolicy(p) :
-			throw runtime_error(string(__func__) + "> Invalid input for Information Policy.");
-
-	// Rng's.
+	//  Rng's.
 	int seed = pt_config.get<double>("run.rng_seed");
-	sim->m_rng = make_shared<util::Random>(seed);
+	sim->m_rng = make_shared<util::Random >(seed);
 
 	// Build population.
 	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, *sim->m_rng);
 
-	// initialize districts.
-	initializeDistricts(sim, pt_config);
+        // Initialize clusters.
+        InitializeClusters(sim);
 
 	// initialize the facilities
 	initializeFacilities(sim, pt_config);

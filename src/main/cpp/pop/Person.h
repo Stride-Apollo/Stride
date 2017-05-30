@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PERSON_H_INCLUDED
+#define PERSON_H_INCLUDED
 /*
  *  This is free software: you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by
@@ -26,7 +27,7 @@
 #include <memory>
 
 #include "behaviour/behaviour_policies/NoBehaviour.h"
-#include "behaviour/behaviour_policies/AlwaysFollowBeliefs.h"
+#include "behaviour/behaviour_policies/Vaccination.h"
 
 #include "behaviour/belief_policies/NoBelief.h"
 #include "behaviour/belief_policies/Threshold.h"
@@ -137,10 +138,10 @@ private:
 };
 
 /// Explicit instantiations in .cpp file
-extern template class Person<NoBehaviour, NoBelief>;
-extern template class Person<AlwaysFollowBeliefs, Threshold<true, false>>;
-extern template class Person<AlwaysFollowBeliefs, Threshold<false, true>>;
-extern template class Person<AlwaysFollowBeliefs, Threshold<true, true>>;
+extern template class Person<NoBehaviour<NoBelief>, NoBelief>;
+extern template class Person<Vaccination<Threshold<true, false> >, Threshold<true, false>>;
+extern template class Person<Vaccination<Threshold<true, false> >, Threshold<false, true>>;
+extern template class Person<Vaccination<Threshold<true, false> >, Threshold<true, true>>;
 
 }
 
