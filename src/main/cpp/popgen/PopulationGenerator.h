@@ -76,6 +76,83 @@ private:
 	/// Generate all villages (without inhabitants)
 	void makeVillages();
 
+	
+	template<typename T>
+	vector<pair<GeoCoordinate, map<double, vector<uint> > > > makeDistanceMap(double radius, double factor, const vector<T>& clusters) const {
+		vector<pair<GeoCoordinate, map<double, vector<uint> > > > distance_map;
+
+		const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
+
+		for (auto& city: m_cities) {
+
+			double current_radius = radius;
+			uint used_clusters = 0;
+			vector<bool> clusters_used = vector<bool>(clusters.size(), false);
+
+			distance_map.push_back(make_pair(city.m_coord, map<double, vector<uint> >()));
+
+			while (used_clusters != clusters.size()) {
+
+				for (uint i = 0; i < clusters.size(); ++i) {
+					if ((!clusters_used.at(i)) && calc.getDistance(city.m_coord, clusters.at(i).m_coord) <= current_radius) {
+						distance_map.back().second[current_radius].push_back(i);
+						clusters_used.at(i) = true;
+						++used_clusters;
+					}
+				}
+
+				current_radius *= factor;
+
+			}
+
+		}
+
+
+		for (auto& village: m_villages) {
+
+			double current_radius = radius;
+			uint used_clusters = 0;
+			vector<bool> clusters_used = vector<bool>(clusters.size(), false);
+
+			distance_map.push_back(make_pair(village.m_coord, map<double, vector<uint> >()));
+
+			while (used_clusters != clusters.size()) {
+
+				for (uint i = 0; i < clusters.size(); ++i) {
+					if (!clusters_used.at(i) && calc.getDistance(village.m_coord, clusters.at(i).m_coord) <= current_radius) {
+						distance_map.back().second[current_radius].push_back(i);
+						clusters_used.at(i) = true;
+						++used_clusters;
+					}
+				}
+
+				current_radius *= factor;
+
+			}
+
+		}
+
+		return distance_map;
+	}
+
+	vector<uint> getClustersWithinRange(double radius, const vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map, GeoCoordinate coordinate) const {
+		for (auto& coord_map_pair: distance_map) {
+			if (coord_map_pair.first == coordinate) {
+				vector<uint> result;
+
+				for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
+					if (it->first <= radius) {
+						result.insert(result.end(), it->second.begin(), it->second.end() );
+					}
+				}
+
+				return result;
+			}
+		}
+
+		return vector<uint>();
+	}
+
 	/// Assign the households to a city/village
 	void placeHouseholds();
 
@@ -185,10 +262,10 @@ private:
 	void assignToWork();
 
 	/// Assign one person to a workplace according to the rule of commuting workers
-	void assignCommutingEmployee(SimplePerson& person);
+	bool assignCommutingEmployee(SimplePerson& person, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map);
 
 	/// Assign one person to a workplace according to the rule of workers that work close to their home
-	void assignCloseEmployee(SimplePerson& person, double start_radius);
+	bool assignCloseEmployee(SimplePerson& person, double start_radius, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map);
 
 	/// Assign entire households
 	void assignToCommunities();
@@ -200,11 +277,12 @@ private:
 	vector<SimpleHousehold> m_households;							/// > The households (a household is a vector of indices in the vector above)
 	vector<SimpleCity> m_cities;									/// > The cities
 	vector<SimpleCluster> m_villages;								/// > The villages
-	list<SimpleCluster> m_workplaces;								/// > The workplaces
+	vector<SimpleCluster> m_workplaces;								/// > The workplaces
 	vector<SimpleCluster> m_primary_communities;					/// > The primary communities
 	vector<SimpleCluster> m_secondary_communities;					/// > The secondary communities
 	vector<SimpleCluster> m_mandatory_schools;						/// > Mandatory schools (Not divided in clusters!!!)
 	vector<vector<SimpleCluster> > m_optional_schools;				/// > The universities: One univ is a vector of clusters, ordering is the same as the cities they belong to (using modulo of course)
+
 	bool m_output;
 
 	/// TODO refactor this, it should be this structure from the beginning (see m_mandatory_schools)

@@ -737,7 +737,7 @@ void PopulationGenerator<U>::makeUniversities() {
 template <class U>
 void PopulationGenerator<U>::sortWorkplaces() {
 	/// Sorts according to the cities (assumes they are sorted in a way that you might desire)
-	list<SimpleCluster> result;
+	vector<SimpleCluster> result;
 
 	for (SimpleCity& city: m_cities) {
 		for (SimpleCluster& workplace: m_workplaces) {
@@ -842,6 +842,8 @@ void PopulationGenerator<U>::assignToSchools() {
 		total += m_age_distribution[i];
 	}
 
+	auto distance_map = makeDistanceMap(start_radius, factor, m_mandatory_schools);
+
 	for (SimplePerson& person: m_people) {
 		current_radius = start_radius;
 		if (person.m_age >= min_age && person.m_age <= max_age) {
@@ -851,7 +853,7 @@ void PopulationGenerator<U>::assignToSchools() {
 			vector<uint> closest_clusters_indices;
 
 			while (closest_clusters_indices.size() == 0 && m_mandatory_schools.size() != 0) {
-				closest_clusters_indices = getClusters(person.m_coord, current_radius, m_mandatory_schools);
+				closest_clusters_indices = getClustersWithinRange(current_radius, distance_map, person.m_coord);
 				current_radius *= factor;
 			}
 
@@ -871,7 +873,7 @@ void PopulationGenerator<U>::assignToSchools() {
 			person.m_school_id = m_mandatory_schools_clusters.at(index).back().m_id;
 		}
 	}
-	if (m_output) cerr << "\rAssigning children to schools [100%]...";
+	if (m_output) cerr << "\rAssigning children to schools [100%]...\n";
 }
 
 template <class U>
@@ -998,14 +1000,17 @@ void PopulationGenerator<U>::assignToWork() {
 
 	uint total = 0;
 	uint total_placed = 0;
+	uint amount_full = 0;
 
 	for (uint i = min_age; i <= max_age; i++) {
 		total += m_age_distribution[i];
 	}
 
+	auto distance_map = makeDistanceMap(radius, 2.0, m_workplaces);
+
 	for (SimplePerson& person: m_people) {
-		if (m_workplaces.size() == 0) {
-			// Stop adding people to workplaces, they are full
+		if (amount_full == m_workplaces.size()) {
+			// No more workplaces left, just stop
 			break;
 		}
 
@@ -1013,12 +1018,17 @@ void PopulationGenerator<U>::assignToWork() {
 			if (m_output) cerr << "\rAssigning people to workplaces [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
 			total_placed++;
 			if (unemployment_dist(m_rng) == 1 && person.m_school_id == 0) {
+				bool filled_cluster = true;
 				if (commute_dist(m_rng) == 0) {
 					/// Commuting employee
-					assignCommutingEmployee(person);
+					filled_cluster = assignCommutingEmployee(person, distance_map);
 				} else {
 					/// Non-commuting employee
-					assignCloseEmployee(person, radius);
+					filled_cluster = assignCloseEmployee(person, radius, distance_map);
+				}
+
+				if (filled_cluster) {
+					++amount_full;
 				}
 			}
 		}
@@ -1027,63 +1037,85 @@ void PopulationGenerator<U>::assignToWork() {
 }
 
 template <class U>
-void PopulationGenerator<U>::assignCommutingEmployee(SimplePerson& person) {
+bool PopulationGenerator<U>::assignCommutingEmployee(SimplePerson& person, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
 	/// TODO ask question: it states that a full workplace has to be ignored
 		/// but workplaces can be in cities and villages where commuting is only in cities  => possible problems with over-employing in cities
 	/// Behavior on that topic is currently as follows: do the thing that is requested, if all cities are full, it just adds to the first village in the list
 
-	for (auto it = m_workplaces.begin(); it != m_workplaces.end(); it++) {
-		SimpleCluster& workplace = *it;
+	for (uint i = 0; i < m_workplaces.size(); ++i) {
+		SimpleCluster& workplace = m_workplaces.at(i);
 
 		if (workplace.m_max_size > workplace.m_current_size) {
 			workplace.m_current_size++;
 			person.m_work_id = workplace.m_id;
 
 			if (workplace.m_current_size >= workplace.m_max_size) {
-				auto it2 = it;
-				it2++;
-				m_workplaces.erase(it, it2);
+				bool deleted = false;
+				// Remove this cluster from the distance map
+				for (auto& coord_map_pair: distance_map) {
+					for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
+						auto& index_vector = it->second;
+
+						auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), i);
+						
+						if (cluster_iterator != index_vector.end()) {
+							index_vector.erase(cluster_iterator, ++cluster_iterator);
+							deleted = true;
+						}
+					}
+				}
+
+				return deleted;
 			}
 
 			break;
 		}
 	}
+	return false;
 }
 
 template <class U>
-void PopulationGenerator<U>::assignCloseEmployee(SimplePerson& person, double start_radius) {
+bool PopulationGenerator<U>::assignCloseEmployee(SimplePerson& person, double start_radius, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
 	double factor = 2.0;
 	double current_radius = start_radius;
 
-	while (true) {
-		vector<list<SimpleCluster>::iterator> closest_clusters_iterators;
-		const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
-		for (auto it = m_workplaces.begin(); it != m_workplaces.end(); it++) {
-			if (calc.getDistance(person.m_coord, it->m_coord) <= current_radius) {
-				closest_clusters_iterators.push_back(it);
-			}
-		}
+	vector<uint> closest_clusters_indices;
 
-
-		if (closest_clusters_iterators.size() != 0) {
-			AliasDistribution dist { vector<double>(closest_clusters_iterators.size(), 1.0 / double(closest_clusters_iterators.size())) };
-			uint rnd = dist(m_rng);
-			auto it = closest_clusters_iterators.at(rnd);
-			SimpleCluster& workplace = *it;
-
-			person.m_work_id = workplace.m_id;
-			workplace.m_current_size++;
-
-			if (workplace.m_current_size >= workplace.m_max_size) {
-				auto it2 = it;
-				it2++;
-				m_workplaces.erase(it, it2);
-			}
-
-			break;
-		}
+	while (closest_clusters_indices.size() == 0) {
+		closest_clusters_indices = getClustersWithinRange(current_radius, distance_map, person.m_coord);
 		current_radius *= factor;
 	}
+
+	AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
+	uint rnd = dist(m_rng);
+	auto index = closest_clusters_indices.at(rnd);
+	SimpleCluster& workplace = m_workplaces.at(index);
+
+	person.m_work_id = workplace.m_id;
+
+	workplace.m_current_size++;
+
+	if (workplace.m_current_size >= workplace.m_max_size) {
+		// Remove this cluster from the distance map
+		bool deleted = false;
+		for (auto& coord_map_pair: distance_map) {
+			for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
+				auto& index_vector = it->second;
+
+				auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
+
+				if (cluster_iterator != index_vector.end()) {
+					index_vector.erase(cluster_iterator, ++cluster_iterator);
+					deleted = true;
+				}
+				
+			}
+		}
+		return deleted;
+	}
+
+
+	return false;
 }
 
 template <class U>
