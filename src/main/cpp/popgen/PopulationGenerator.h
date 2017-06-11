@@ -235,7 +235,7 @@ private:
 
 	/// Get all clusters within a certain radius of the given point, choose those clusters from the given vector of clusters
 	template<typename T>
-	vector<uint> getClusters(GeoCoordinate coord, double radius, const vector<T> clusters) const {
+	vector<uint> getClusters(GeoCoordinate coord, double radius, const vector<T>& clusters) const {
 		vector<uint> result;
 		const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
 		for (uint i = 0; i < clusters.size(); i++) {
@@ -268,7 +268,10 @@ private:
 	bool assignCloseEmployee(SimplePerson& person, double start_radius, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map);
 
 	/// Assign entire households
-	void assignToCommunities();
+	void assignToCommunities(vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map,
+								vector<SimpleCluster>& clusters,
+								uint SimplePerson::* member,
+								const string& name = "");
 
 	boost::property_tree::ptree m_props;							/// > The content of the xml file
 	U m_rng;										/// > The random generator

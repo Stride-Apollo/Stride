@@ -48,6 +48,15 @@ struct SimpleCluster {
 };
 
 struct SimpleCity {
+
+	SimpleCity(uint current_size, uint max_size, uint id, std::string name, util::GeoCoordinate coordinate) {
+		m_current_size = current_size;
+		m_max_size = max_size;
+		m_id = id;
+		m_name = name;
+		m_coord = coordinate;
+	}
+	
 	uint m_current_size = 0;
 	uint m_max_size = 0;
 	uint m_id = 0;
