@@ -83,7 +83,14 @@ private:
 
 		const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
 
+		if (m_output) cerr << "Building distance map for the next cluster type [0%]";
+
+		uint done = 0;
+		uint total = m_cities.size() + m_villages.size();
+
 		for (auto& city: m_cities) {
+			if (m_output) cerr << "\rBuilding distance map for the next cluster type [" << done / total << "%]";
+			++done;
 
 			double current_radius = radius;
 			uint used_clusters = 0;
@@ -109,6 +116,8 @@ private:
 
 
 		for (auto& village: m_villages) {
+			if (m_output) cerr << "\rBuilding distance map for the next cluster type [" << done / total << "%]";
+			++done;
 
 			double current_radius = radius;
 			uint used_clusters = 0;
@@ -120,6 +129,66 @@ private:
 
 				for (uint i = 0; i < clusters.size(); ++i) {
 					if (!clusters_used.at(i) && calc.getDistance(village.m_coord, clusters.at(i).m_coord) <= current_radius) {
+						distance_map.back().second[current_radius].push_back(i);
+						clusters_used.at(i) = true;
+						++used_clusters;
+					}
+				}
+
+				current_radius *= factor;
+
+			}
+
+		}
+
+		if (m_output) cerr << "\rBuilding distance map for the next cluster type [100%]...\n";
+
+		return distance_map;
+	}
+
+	template<typename T>
+	vector<pair<GeoCoordinate, map<double, vector<uint> > > > makeDistanceMap(double radius, double factor, const vector<vector<T> >& clusters) const {
+		vector<pair<GeoCoordinate, map<double, vector<uint> > > > distance_map;
+
+		const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
+
+		for (auto& city: m_cities) {
+
+			double current_radius = radius;
+			uint used_clusters = 0;
+			vector<bool> clusters_used = vector<bool>(clusters.size(), false);
+
+			distance_map.push_back(make_pair(city.m_coord, map<double, vector<uint> >()));
+
+			while (used_clusters != clusters.size()) {
+
+				for (uint i = 0; i < clusters.size(); ++i) {
+					if ((!clusters_used.at(i)) && calc.getDistance(city.m_coord, clusters.at(i).front().m_coord) <= current_radius) {
+						distance_map.back().second[current_radius].push_back(i);
+						clusters_used.at(i) = true;
+						++used_clusters;
+					}
+				}
+
+				current_radius *= factor;
+
+			}
+
+		}
+
+
+		for (auto& village: m_villages) {
+
+			double current_radius = radius;
+			uint used_clusters = 0;
+			vector<bool> clusters_used = vector<bool>(clusters.size(), false);
+
+			distance_map.push_back(make_pair(village.m_coord, map<double, vector<uint> >()));
+
+			while (used_clusters != clusters.size()) {
+
+				for (uint i = 0; i < clusters.size(); ++i) {
+					if (!clusters_used.at(i) && calc.getDistance(village.m_coord, clusters.at(i).front().m_coord) <= current_radius) {
 						distance_map.back().second[current_radius].push_back(i);
 						clusters_used.at(i) = true;
 						++used_clusters;
@@ -189,7 +258,7 @@ private:
 
 		AliasDistribution dist {fractions};
 		for (uint i = 0; i < needed_clusters; i++) {
-			cerr << "\rPlacing " << cluster_name << " [" << min(uint(double(i) / m_households.size() * 100), 100U) << "%]";
+			if (m_output) cerr << "\rPlacing " << cluster_name << " [" << min(uint(double(i) / m_households.size() * 100), 100U) << "%]";
 			uint village_city_index = dist(m_rng);
 
 			if (village_city_index < m_cities.size()) {
@@ -214,7 +283,7 @@ private:
 				m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
 			}
 		}
-		cerr << "\rPlacing " << cluster_name << " [100%]...\n";
+		if (m_output) cerr << "\rPlacing " << cluster_name << " [100%]...\n";
 	}
 
 	/// Make the schools, place them in a village/city
@@ -252,11 +321,18 @@ private:
 	/// Put students in universities
 	void assignToUniversities();
 
+	/// Remove an element from the university map (the university map is special compared to other cluster maps, this is because a university is a cluster of clusters)
+	void removeFromUniMap(vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map, uint index) const;
+
+	/// Remove an element from the map (of regular clusters, not like universities, because they represent a cluster of clusters)
+	/// Return true if the element is deleted, false if not
+	bool removeFromMap(vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map, uint index) const;
+
 	/// Put one student in a university according to the rules of commuting students
-	void assignCommutingStudent(SimplePerson& person);
+	void assignCommutingStudent(SimplePerson& person, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map);
 
 	/// Put one student in a university according to the rules of students that study close to their home
-	void assignCloseStudent(SimplePerson& person, double start_radius);
+	void assignCloseStudent(SimplePerson& person, double start_radius, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map);
 
 	/// Assign people to a workplace
 	void assignToWork();

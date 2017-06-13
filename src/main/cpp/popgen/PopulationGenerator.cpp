@@ -476,6 +476,7 @@ void PopulationGenerator<U>::makeCities() {
 			size_check += size;
 
 			SimpleCity new_city = SimpleCity(0, size, m_next_id, name, GeoCoordinate(latitude, longitude));
+			++m_next_id;
 
 			m_cities.push_back(new_city);
 		}
@@ -868,7 +869,7 @@ void PopulationGenerator<U>::assignToUniversities() {
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	double student_fraction = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 	double commute_fraction = university_config.get<double>("FAR.<xmlattr>.fraction") / 100.0;
-	double radius = university_config.get<double>("<xmlattr>.radius") / 100.0;
+	double radius = university_config.get<double>("<xmlattr>.radius");
 
 	AliasDistribution commute_dist { {commute_fraction, 1.0 - commute_fraction} };
 	AliasDistribution student_dist { {student_fraction, 1.0 - student_fraction} };
@@ -880,6 +881,8 @@ void PopulationGenerator<U>::assignToUniversities() {
 		total += m_age_distribution[i];
 	}
 
+	auto distance_map = makeDistanceMap(radius, 2.0, m_optional_schools);
+
 	for (SimplePerson& person: m_people) {
 		if (person.m_age >= min_age && person.m_age <= max_age && student_dist(m_rng) == 0) {
 			if (m_output) cerr << "\rAssigning students to universities [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
@@ -887,10 +890,10 @@ void PopulationGenerator<U>::assignToUniversities() {
 
 			if (commute_dist(m_rng) == 0) {
 				/// Commuting student
-				assignCommutingStudent(person);
+				assignCommutingStudent(person, distance_map);
 			} else {
 				/// Non-commuting student
-				assignCloseStudent(person, radius);
+				assignCloseStudent(person, radius, distance_map);
 			}
 		}
 	}
@@ -898,19 +901,71 @@ void PopulationGenerator<U>::assignToUniversities() {
 }
 
 template <class U>
-void PopulationGenerator<U>::assignCommutingStudent(SimplePerson& person) {
+void PopulationGenerator<U>::removeFromUniMap(vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map, uint index) const {
+	bool full_capacity = true;
+
+	for (uint curr_univ = index; curr_univ < m_optional_schools.size(); ++curr_univ) {
+		for (const SimpleCluster& uni: m_optional_schools.at(curr_univ)) {
+			if (uni.m_current_size < uni.m_max_size) {
+				full_capacity = false;
+			}
+		}
+	}
+
+	/// Remove the university from the map if it is full
+	if (full_capacity) {
+		for (auto& coord_map_pair: distance_map) {
+			for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
+				auto& index_vector = it->second;
+
+				auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
+
+				if (cluster_iterator != index_vector.end()) {
+					index_vector.erase(cluster_iterator, ++cluster_iterator);
+				}
+				
+			}
+		}
+	}
+}
+
+template <class U>
+bool PopulationGenerator<U>::removeFromMap(vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map, uint index) const {
+	bool deleted = false;
+
+	// Remove this cluster from the distance map
+	for (auto& coord_map_pair: distance_map) {
+		for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
+			auto& index_vector = it->second;
+
+			auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
+			
+			if (cluster_iterator != index_vector.end()) {
+				index_vector.erase(cluster_iterator, ++cluster_iterator);
+				deleted = true;
+			}
+		}
+	}
+
+	return deleted;
+}
+
+template <class U>
+void PopulationGenerator<U>::assignCommutingStudent(SimplePerson& person, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
 	uint current_city = 0;
 	bool added = false;
 
 	while (current_city < m_cities.size() && !added) {
 		uint current_univ = current_city;
 		while (current_univ < m_optional_schools.size() && !added) {
-			for (uint i = 0; i < m_optional_schools.at(current_univ).size(); i++) {
+			for (uint i = 0; i < m_optional_schools.at(current_univ).size(); ++i) {
 				SimpleCluster& univ_cluster = m_optional_schools.at(current_univ).at(i);
 				if (univ_cluster.m_current_size < univ_cluster.m_max_size) {
 					univ_cluster.m_current_size++;
 					person.m_school_id = univ_cluster.m_id;
 					added = true;
+
+					removeFromUniMap(distance_map, current_city);
 					break;
 				}
 			}
@@ -918,14 +973,10 @@ void PopulationGenerator<U>::assignCommutingStudent(SimplePerson& person) {
 		}
 		current_city++;
 	}
-
-	if (!added) {
-		cout << "EXCEPT1\n";
-	}
 }
 
 template <class U>
-void PopulationGenerator<U>::assignCloseStudent(SimplePerson& person, double start_radius) {
+void PopulationGenerator<U>::assignCloseStudent(SimplePerson& person, double start_radius, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
 	double factor = 2.0;
 	double current_radius = start_radius;
 	bool added = false;
@@ -935,19 +986,23 @@ void PopulationGenerator<U>::assignCloseStudent(SimplePerson& person, double sta
 
 		// Note how getting the distance to the closest univ is the same as getting the distance to the closest city
 		// This is because their vectors are in the same order!
-		closest_clusters_indices = getClusters(person.m_coord, current_radius, m_cities);
 
-		while (closest_clusters_indices.size() != 0) {
+		closest_clusters_indices = getClustersWithinRange(current_radius, distance_map, person.m_coord);
+
+		if (closest_clusters_indices.size() != 0) {
 			AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / closest_clusters_indices.size())};
 
 			uint index = dist(m_rng);
 			while (index < m_optional_schools.size() && !added) {
+
 				for (uint i = 0; i < m_optional_schools.at(index).size(); i++) {
 					SimpleCluster& univ_cluster = m_optional_schools.at(index).at(i);
 					if (univ_cluster.m_current_size < univ_cluster.m_max_size) {
 						univ_cluster.m_current_size++;
 						person.m_school_id = univ_cluster.m_id;
 						added = true;
+
+						removeFromUniMap(distance_map, index);
 						break;
 					}
 				}
@@ -956,16 +1011,10 @@ void PopulationGenerator<U>::assignCloseStudent(SimplePerson& person, double sta
 
 			if (added) {
 				break;
-			} else {
-				closest_clusters_indices.erase(closest_clusters_indices.begin() + (index % closest_clusters_indices.size()),
-					closest_clusters_indices.begin() + (index % closest_clusters_indices.size()) + 1);
 			}
 		}
 
 		current_radius *= factor;
-		if (closest_clusters_indices.size() == m_cities.size() && !added) {
-			cout << "EXCEPT2\n";
-		}
 	}
 }
 
@@ -1034,27 +1083,13 @@ bool PopulationGenerator<U>::assignCommutingEmployee(SimplePerson& person, vecto
 			person.m_work_id = workplace.m_id;
 
 			if (workplace.m_current_size >= workplace.m_max_size) {
-				bool deleted = false;
-				// Remove this cluster from the distance map
-				for (auto& coord_map_pair: distance_map) {
-					for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
-						auto& index_vector = it->second;
-
-						auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), i);
-						
-						if (cluster_iterator != index_vector.end()) {
-							index_vector.erase(cluster_iterator, ++cluster_iterator);
-							deleted = true;
-						}
-					}
-				}
-
-				return deleted;
+				return removeFromMap(distance_map, i);
 			}
 
 			break;
 		}
 	}
+
 	return false;
 }
 
@@ -1080,22 +1115,7 @@ bool PopulationGenerator<U>::assignCloseEmployee(SimplePerson& person, double st
 	workplace.m_current_size++;
 
 	if (workplace.m_current_size >= workplace.m_max_size) {
-		// Remove this cluster from the distance map
-		bool deleted = false;
-		for (auto& coord_map_pair: distance_map) {
-			for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
-				auto& index_vector = it->second;
-
-				auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
-
-				if (cluster_iterator != index_vector.end()) {
-					index_vector.erase(cluster_iterator, ++cluster_iterator);
-					deleted = true;
-				}
-				
-			}
-		}
-		return deleted;
+		return removeFromMap(distance_map, index);
 	}
 
 
@@ -1137,18 +1157,7 @@ void PopulationGenerator<U>::assignToCommunities(vector<pair<GeoCoordinate, map<
 
 		/// Remove the community if it is full
 		if (community.m_current_size >= community.m_max_size) {
-			for (auto& coord_map_pair: distance_map) {
-				for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
-					auto& index_vector = it->second;
-
-					auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
-
-					if (cluster_iterator != index_vector.end()) {
-						index_vector.erase(cluster_iterator, ++cluster_iterator);
-					}
-					
-				}
-			}
+			removeFromMap(distance_map, index);
 		}
 
 	}

@@ -125,12 +125,11 @@ void checkHappyDayPop (const string& file, const string& household_file) {
 		const vector<string>& current_person = csv.at(i);
 
 		SimplePerson person;
-		person.m_age = StringUtils::fromString<unsigned int>(current_person[0]);
-		person.m_household_id = StringUtils::fromString<unsigned int>(current_person[1]);
-		person.m_school_id = StringUtils::fromString<unsigned int>(current_person[2]);
-		person.m_work_id = StringUtils::fromString<unsigned int>(current_person[3]);
-		person.m_primary_community = StringUtils::fromString<unsigned int>(current_person[4]);
-		person.m_secondary_community = StringUtils::fromString<unsigned int>(current_person[5]);
+
+		vector<unsigned int*> person_properties {&(person.m_age), &(person.m_household_id), &(person.m_school_id), &(person.m_work_id), &(person.m_primary_community), &(person.m_secondary_community)};
+		for (unsigned int j = 0; j < person_properties.size(); ++j) {
+			*(person_properties[j]) = StringUtils::fromString<unsigned int>(current_person[j]);
+		}
 
 		people[person.m_household_id].push_back(person);
 
