@@ -77,6 +77,14 @@ private:
 	void makeVillages();
 
 	
+	/// Precompute the distances between the locations of the clusters (given as an argument) and the districts (villages and cities)
+	/// The distances measured will start at the radius given as an argument
+	/// If not all clusters are within that radius, the radius will be mulktiplied with the given factor until all clusters have their distance computed
+	/// The result is a vector of pairs, where each pair maps a coordinate of a city to another map
+	/// This inner map has a radius as a key and a vector of indices as its value, these indices refer to the clusters passed as an argument
+	/// assume ret_val is the return value:
+		/// ret_val.at(x).second[10.0] = the indices of all clusters within a radius of 10.0 kilometres of a certain city
+		/// ret_val.at(x).first = the coordinate of the "certain city" used above
 	template<typename T>
 	vector<pair<GeoCoordinate, map<double, vector<uint> > > > makeDistanceMap(double radius, double factor, const vector<T>& clusters) const {
 		vector<pair<GeoCoordinate, map<double, vector<uint> > > > distance_map;
@@ -146,6 +154,8 @@ private:
 		return distance_map;
 	}
 
+	/// Specialization of makeDistanceMap, except now the clusters aren't a vector of clusters anymore, instead, they are a vector of vectors
+	/// This is because the schools are a cluster of clusters (and thus a vector of vectors)
 	template<typename T>
 	vector<pair<GeoCoordinate, map<double, vector<uint> > > > makeDistanceMap(double radius, double factor, const vector<vector<T> >& clusters) const {
 		vector<pair<GeoCoordinate, map<double, vector<uint> > > > distance_map;
@@ -176,7 +186,6 @@ private:
 
 		}
 
-
 		for (auto& village: m_villages) {
 
 			double current_radius = radius;
@@ -204,6 +213,8 @@ private:
 		return distance_map;
 	}
 
+	/// Get the clusters that are within the range of a certain coordinate and radius (both given as an argument)
+	/// The distances are precomputed by PopulationGenerator::makeDistanceMap and the result of that function has to be passed as an argument to this function
 	vector<uint> getClustersWithinRange(double radius, const vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map, GeoCoordinate coordinate) const {
 		for (auto& coord_map_pair: distance_map) {
 			if (coord_map_pair.first == coordinate) {
