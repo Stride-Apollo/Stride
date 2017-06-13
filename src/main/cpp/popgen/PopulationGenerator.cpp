@@ -65,8 +65,8 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 	assignToUniversities();
 	assignToWork();
 	
-	double start_radius = m_props.get<double>("POPULATION.COMMUNITY.<xmlattr>.radius");
-	double factor = 2.0;
+	double start_radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
 
 	vector<pair<GeoCoordinate, map<double, vector<uint> > > > distance_map = makeDistanceMap(start_radius, factor, m_primary_communities);
 	assignToCommunities(distance_map, m_primary_communities, &SimplePerson::m_primary_community, "primary communities");
@@ -99,7 +99,6 @@ void PopulationGenerator<U>::writeCities(const string& target_cities){
 	if (my_file.is_open()) {
 		my_file << "\"city_id\",\"city_name\",\"province\",\"population\",\"x_coord\",\"y_coord\",\"latitude\",\"longitude\"\n";
 
-		/// Picking the province would be better somewhere else, but that would require a big refactor, so I forgive myself for this one
 		uint provinces = m_props.get<uint>("POPULATION.<xmlattr>.provinces");
 		AliasDistribution dist { vector<double>(provinces, 1.0 / provinces) };
 
@@ -234,6 +233,14 @@ void PopulationGenerator<U>::checkForValidXML() const {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 
+		/// Valid commuting data: the start radius is a positive double, and the factor is a double greater than 1
+		double radius = pop_config.get<double>("COMMUTINGDATA.<xmlattr>.start_radius");
+		double factor = pop_config.get<double>("COMMUTINGDATA.<xmlattr>.factor");
+
+		if (radius <= 0 || factor <= 1.0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
 		/// Cities: unique location
 		if (m_output) cerr << "\rChecking for valid XML [0%]";
 		int total_size = 0;
@@ -316,13 +323,12 @@ void PopulationGenerator<U>::checkForValidXML() const {
 		int cluster_size = education_config.get<int>("MANDATORY.<xmlattr>.cluster_size");
 		int mandatory_min = school_work_config.get<int>("MANDATORY.<xmlattr>.min");
 		int mandatory_max = school_work_config.get<int>("MANDATORY.<xmlattr>.max");
-		double radius = education_config.get<double>("MANDATORY.<xmlattr>.radius");
 
 		if (mandatory_min > mandatory_max || mandatory_min < 0 || mandatory_max < 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
 		}
 
-		if (total_size <= 0 || cluster_size <= 0 || radius <= 0) {
+		if (total_size <= 0 || cluster_size <= 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 
@@ -334,13 +340,12 @@ void PopulationGenerator<U>::checkForValidXML() const {
 		cluster_size = education_config.get<int>("OPTIONAL.<xmlattr>.cluster_size");
 		fraction = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 		total_size = education_config.get<uint>("OPTIONAL.<xmlattr>.total_size");
-		radius = education_config.get<double>("OPTIONAL.<xmlattr>.radius");
 
 		if (minimum > max || minimum < 0 || max < 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
 		}
 
-		if (total_size <= 0 || cluster_size <= 0 || radius <= 0 || fraction < 0.0 || fraction > 1.0) {
+		if (total_size <= 0 || cluster_size <= 0 || fraction < 0.0 || fraction > 1.0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 
@@ -365,13 +370,12 @@ void PopulationGenerator<U>::checkForValidXML() const {
 		minimum = school_work_config.get<int>("EMPLOYEE.<xmlattr>.min");
 		max = school_work_config.get<int>("EMPLOYEE.<xmlattr>.max");
 		fraction = school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
-		radius = work_config.get<double>("FAR.<xmlattr>.radius");
 
 		if (minimum > max || minimum < 0 || max < 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
 		}
 
-		if (total_size <= 0 || cluster_size <= 0 || radius <= 0 || fraction < 0.0 || fraction > 1.0) {
+		if (total_size <= 0 || cluster_size <= 0 || fraction < 0.0 || fraction > 1.0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 
@@ -396,9 +400,8 @@ void PopulationGenerator<U>::checkForValidXML() const {
 		/// Check for valid communities
 		if (m_output) cerr << "\rChecking for valid XML [84%]";
 		total_size = pop_config.get<int>("COMMUNITY.<xmlattr>.size");
-		radius = pop_config.get<int>("COMMUNITY.<xmlattr>.radius");
 
-		if (total_size <= 0 || radius <= 0) {
+		if (total_size <= 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 		if (m_output) cerr << "\rChecking for valid XML [100%]\n";
@@ -797,18 +800,16 @@ void PopulationGenerator<U>::makeCommunities() {
 
 template <class U>
 void PopulationGenerator<U>::assignToSchools() {
-	/// TODO add factor to xml?
 	m_next_id = 1;
 	ptree education_config = m_props.get_child("POPULATION.EDUCATION.MANDATORY");
 	ptree school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
-	double start_radius = education_config.get<double>("<xmlattr>.radius");
+	double start_radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
 	uint cluster_size = education_config.get<uint>("<xmlattr>.cluster_size");
 
-	double factor = 2.0;
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
 
-	/// TODO refactor => this is not pretty at all
 	for (SimpleCluster& cluster: m_mandatory_schools) {
 		SimpleCluster new_cluster;
 		new_cluster.m_max_size = cluster_size;
@@ -869,7 +870,7 @@ void PopulationGenerator<U>::assignToUniversities() {
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	double student_fraction = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 	double commute_fraction = university_config.get<double>("FAR.<xmlattr>.fraction") / 100.0;
-	double radius = university_config.get<double>("<xmlattr>.radius");
+	double radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
 
 	AliasDistribution commute_dist { {commute_fraction, 1.0 - commute_fraction} };
 	AliasDistribution student_dist { {student_fraction, 1.0 - student_fraction} };
@@ -977,7 +978,7 @@ void PopulationGenerator<U>::assignCommutingStudent(SimplePerson& person, vector
 
 template <class U>
 void PopulationGenerator<U>::assignCloseStudent(SimplePerson& person, double start_radius, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
-	double factor = 2.0;
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
 	double current_radius = start_radius;
 	bool added = false;
 	vector<uint> closest_clusters_indices;
@@ -1026,7 +1027,7 @@ void PopulationGenerator<U>::assignToWork() {
 	uint max_age = school_work_config.get<uint>("EMPLOYEE.<xmlattr>.max");
 	double unemployment_rate = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 	double commute_fraction = work_config.get<double>("FAR.<xmlattr>.fraction") / 100.0;
-	double radius = work_config.get<double>("FAR.<xmlattr>.radius") / 100.0;
+	double radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
 
 	AliasDistribution unemployment_dist { {unemployment_rate, 1.0 - unemployment_rate} };
 	AliasDistribution commute_dist { {commute_fraction, 1.0 - commute_fraction} };
@@ -1095,7 +1096,7 @@ bool PopulationGenerator<U>::assignCommutingEmployee(SimplePerson& person, vecto
 
 template <class U>
 bool PopulationGenerator<U>::assignCloseEmployee(SimplePerson& person, double start_radius, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
-	double factor = 2.0;
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
 	double current_radius = start_radius;
 
 	vector<uint> closest_clusters_indices;
@@ -1128,8 +1129,8 @@ void PopulationGenerator<U>::assignToCommunities(vector<pair<GeoCoordinate, map<
 													uint SimplePerson::* member,
 													const string& name) {
 
-	double start_radius = m_props.get<double>("POPULATION.COMMUNITY.<xmlattr>.radius");
-	double factor = 2.0;
+	double start_radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
 
 	uint total = m_households.size();
 	uint total_placed = 0;
