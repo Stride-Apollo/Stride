@@ -51,6 +51,8 @@ set(LIB_SRC
 	sim/Coordinator.cpp
 	sim/SimulatorRunMode.cpp
 	sim/SimulatorSetup.cpp
+	sim/RemoteSimulatorSender.cpp
+	sim/RemoteSimulatorReceiver.cpp
 #---
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
