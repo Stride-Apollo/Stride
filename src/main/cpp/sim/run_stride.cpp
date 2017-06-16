@@ -29,6 +29,7 @@
 #include "sim/SimulatorSetup.h"
 #include "sim/LocalSimulatorAdapter.h"
 #include "sim/Coordinator.h"
+#include "sim/ProcessConfig.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
@@ -69,17 +70,29 @@ void run_stride(bool track_index_case,
 
 	cout << "Loading configuration" << endl;
 
-	SimulatorSetup setup = SimulatorSetup(config_file_name, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
-	ptree pt_config = setup.getConfigTree();
+	ProcessConfig processed_config = ProcessConfig(config_file_name);
+	auto config_forest = processed_config.getConfigForest();
 
-	cout << "Building the simulator." << endl << endl;
+	cout << "Building the simulators." << endl << endl;
 
-	shared_ptr<Simulator> sim = setup.getSimulator();
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	Coordinator coord({local_sim.get()});
+	vector<shared_ptr<Simulator> > simulators;
+	vector<Simulator*> raw_simulators;
 
-	cout << "Done building the simulator. " << endl << endl;
-	unsigned int start_day = setup.getStartDay();
+	unsigned int start_day = 0;
+
+	for (auto& config_tree: config_forest) {
+		SimulatorSetup setup = SimulatorSetup(config_tree, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
+		shared_ptr<Simulator> sim = setup.getSimulator();
+
+		start_day = setup.getStartDay();
+
+		simulators.push_back(sim);
+		raw_simulators.push_back(sim.get());
+	}
+
+	Coordinator coord(raw_simulators);
+
+	cout << "Done building the simulators. " << endl << endl;
 
 	// Set output path prefix.
 	string output_prefix = pt_config.get<string>("run.output_prefix", TimeStamp().toTag());
@@ -144,7 +157,7 @@ void run_stride(bool track_index_case,
 	}
 
 	// Run the simulation.
-	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");
+	const unsigned int num_days = pt_config.get<unsigned int>("coordination.num_days");
 	vector<unsigned int> cases(num_days);
 	Stopwatch<> run_clock("run_clock");
 

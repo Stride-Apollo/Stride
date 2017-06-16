@@ -33,7 +33,7 @@ using namespace stride::util;
 Calendar::Calendar(const boost::property_tree::ptree& pt_config)
 		: m_day(0) {
 	// Set start date
-	const string start_date {pt_config.get<string>("run.start_date", "2016-01-01")};
+	const string start_date {pt_config.get<string>("coordination.start_date", "2016-01-01")};
 	m_date = boost::gregorian::from_simple_string(start_date);
 
 	// Set holidays & school holidays

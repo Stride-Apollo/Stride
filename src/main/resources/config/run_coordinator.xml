@@ -1,12 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<coordinator>
-    <sim>run_flanders.xml</sim>
-    <sim>run_flanders2.xml</sim>
-    <sim>run_flanders.xml</sim>
-    <sim>run_flanders.xml</sim>
-    <sim>run_flanders.xml</sim>
-    <sim>run_flanders.xml</sim>
-    <sim>run_flanders.xml</sim>
+
+<coordination>
+    <start_date>2017-01-01</start_date>
     <num_days>50</num_days>
     <traveller_file>traveller_schedule.json</traveller_file>
-</coordinator>
+</coordination>
+
+<run>
+    <rng_seed>1</rng_seed>
+    <r0>11</r0>
+    <seeding_rate>0.002</seeding_rate>
+    <immunity_rate>0.99</immunity_rate>
+    <population_file>pop_flanders.csv</population_file>
+    <output_prefix></output_prefix>
+    <disease_config_file>disease_measles.xml</disease_config_file>
+    <generate_person_file>1</generate_person_file>
+    <num_participants_survey>10</num_participants_survey>
+    <holidays_file>holidays_none.json</holidays_file>
+    <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
+    <log_level>Transmissions</log_level>
+    <checkpointing_frequency>1</checkpointing_frequency>
+    <checkpointing_file>simulator_save1.h5</checkpointing_file>
+    <visualization>1</visualization>
+</run>
+
+<run>
+    <rng_seed>1</rng_seed>
+    <r0>11</r0>
+    <seeding_rate>0.002</seeding_rate>
+    <immunity_rate>0.1</immunity_rate>
+    <population_file>pop_flanders.csv</population_file>
+    <output_prefix></output_prefix>
+    <disease_config_file>disease_measles.xml</disease_config_file>
+    <generate_person_file>1</generate_person_file>
+    <num_participants_survey>10</num_participants_survey>
+    <holidays_file>holidays_none.json</holidays_file>
+    <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
+    <log_level>Transmissions</log_level>
+    <checkpointing_frequency>1</checkpointing_frequency>
+    <checkpointing_file>simulator_save2.h5</checkpointing_file>
+    <visualization>1</visualization>
+</run>
+
+<run>
+    <rng_seed>1</rng_seed>
+    <r0>11</r0>
+    <seeding_rate>0.002</seeding_rate>
+    <immunity_rate>0.5</immunity_rate>
+    <population_file>pop_flanders.csv</population_file>
+    <output_prefix></output_prefix>
+    <disease_config_file>disease_measles.xml</disease_config_file>
+    <generate_person_file>1</generate_person_file>
+    <num_participants_survey>10</num_participants_survey>
+    <holidays_file>holidays_none.json</holidays_file>
+    <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
+    <log_level>Transmissions</log_level>
+    <checkpointing_frequency>1</checkpointing_frequency>
+    <checkpointing_file>simulator_save3.h5</checkpointing_file>
+    <visualization>1</visualization>
+</run>

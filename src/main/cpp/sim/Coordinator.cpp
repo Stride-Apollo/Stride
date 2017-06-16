@@ -31,14 +31,12 @@ void Coordinator::timeStep() {
 		Flight& new_flight = m_traveller_schedule[current_day].at(i);
 
 		// For now, just skip those out-of-bounds simulators
-		if (new_flight.m_destination_sim >= m_sims.size() || new_flight.m_source_sim >= m_sims.size()) {
-			continue;
+		if (! (new_flight.m_destination_sim >= m_sims.size() && new_flight.m_source_sim >= m_sims.size())) {
+			m_sims.at(new_flight.m_source_sim)->sendNewTravellers(new_flight.m_amount,
+																new_flight.m_duration,
+																m_sims.at(new_flight.m_destination_sim)->getId(),
+																new_flight.m_district,
+																new_flight.m_facility);
 		}
-
-		m_sims.at(new_flight.m_source_sim)->sendNewTravellers(new_flight.m_amount,
-															new_flight.m_duration,
-															m_sims.at(new_flight.m_destination_sim)->getId(),
-															new_flight.m_district,
-															new_flight.m_facility);
 	}
 }
