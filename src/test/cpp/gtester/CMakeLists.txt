@@ -27,6 +27,7 @@ set( SRC
 		TravelSchedulerTest.cpp
 		TransportFacilityTest.cpp
 		InfluenceTests.cpp
+		DistrictTests.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp

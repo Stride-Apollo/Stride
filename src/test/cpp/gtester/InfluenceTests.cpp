@@ -58,4 +58,19 @@ TEST(UnitTests__InfluenceTests, addRecord) {
 	}
 }
 
+TEST(UnitTests__InfluenceTests, addToFront) {
+	Influence influence = Influence(7, 50);
+
+	influence.addRecord(5);
+	influence.addToFront(7);
+
+	for (uint i = 0; i < 6; ++i) {
+		influence.addRecord(0);
+		EXPECT_EQ(influence.getScore(), 12);
+	}
+
+	influence.addRecord(0);
+	EXPECT_EQ(influence.getScore(), 0);
+}
+
 }

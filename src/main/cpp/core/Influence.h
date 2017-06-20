@@ -23,6 +23,10 @@ public:
 		m_deque.pop_back();
 	}
 
+	void addToFront(uint amount) {
+		m_deque.front() = m_deque.front() + amount;
+	}
+
 	double getInfluence() const {
 		uint score = 0;
 
