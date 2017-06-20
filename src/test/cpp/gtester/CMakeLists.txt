@@ -26,6 +26,7 @@ set( SRC
 		AsyncSimulatorTests.cpp
 		TravelSchedulerTest.cpp
 		TransportFacilityTest.cpp
+		InfluenceTests.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp
