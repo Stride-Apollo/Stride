@@ -31,8 +31,6 @@ public:
   /// @argument destination_facility: The name of the facility / airport e.g. "ANR"
   virtual void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) override;
 
-  virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health> >& travellers) override;
-
 private:
   /// Send travellers to the destination region
 	/// This function is used by the Simulator to give the signal to send people
