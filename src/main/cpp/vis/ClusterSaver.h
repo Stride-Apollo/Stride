@@ -5,7 +5,7 @@
 #include <utility>
 #include <fstream>
 
-#include "sim/LocalSimulatorAdapter.h"
+#include "sim/Simulator.h"
 #include "core/Cluster.h"
 #include "util/Observer.h"
 
@@ -17,21 +17,21 @@ using std::ofstream;
 
 namespace stride {
 
-class ClusterSaver : public util::Observer<LocalSimulatorAdapter> {
+class ClusterSaver : public util::Observer<Simulator> {
 public:
 	ClusterSaver(string file_name);
 
-	virtual void update(const LocalSimulatorAdapter& sim) {
+	virtual void update(const Simulator& sim) {
 		saveClustersCSV(sim);
 		// saveClustersJSON(sim);
 		m_sim_day++;
 	}
 
 private:
-	void saveClustersCSV(const LocalSimulatorAdapter& local_sim) const;
+	void saveClustersCSV(const Simulator& sim) const;
 	inline void saveClusterCSV(const Cluster& cluster, ofstream& csv_file) const;
 
-	void saveClustersJSON(const LocalSimulatorAdapter& local_sim) const;
+	void saveClustersJSON(const Simulator& sim) const;
 	pair<ptree, ptree> getClusterJSON(const Cluster& cluster) const;
 
 	unsigned int m_sim_day = 0;

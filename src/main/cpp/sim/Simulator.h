@@ -50,7 +50,7 @@ using uint = unsigned int;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator {
+class Simulator : public Subject<Simulator> {
 public:
 	using PersonType = Person<NoBehaviour, NoBelief>;
 	using BeliefPolicy = NoBelief;

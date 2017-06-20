@@ -27,6 +27,11 @@ public:
 		return m_config_forest.at(index);
 	}
 
+	const ptree getCoordinatorConfig() {
+		auto coordinator_config = extractSubTree(m_base_ptree, "coordination", 0);
+		return coordinator_config;
+	}
+
 private:
 	void extractForest();
 

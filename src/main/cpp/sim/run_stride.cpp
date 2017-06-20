@@ -42,7 +42,8 @@
 #include <spdlog/spdlog.h>
 #include <memory>
 #include <cassert>
-#include <stdlib.h>
+#include <cstdlib>
+#include <sstream>
 
 namespace stride {
 
@@ -72,30 +73,44 @@ void run_stride(bool track_index_case,
 
 	ProcessConfig processed_config = ProcessConfig(config_file_name);
 	auto config_forest = processed_config.getConfigForest();
+	auto coordinator_config = processed_config.getCoordinatorConfig();
+
+
+	string start_date = coordinator_config.get<string>("coordination.start_date");
+	unsigned int num_days = coordinator_config.get<unsigned int>("coordination.num_days");
+	string output_prefix = coordinator_config.get<string>("coordination.output_prefix", TimeStamp().toTag());
+	string traveller_file = coordinator_config.get<string>("coordination.traveller_file", "");
+	if (traveller_file != "") {
+		traveller_file = "data/" + traveller_file;
+	}
 
 	cout << "Building the simulators." << endl << endl;
 
 	vector<shared_ptr<Simulator> > simulators;
-	vector<Simulator*> raw_simulators;
+	vector<std::shared_ptr<LocalSimulatorAdapter>> local_simulators;
+	vector<LocalSimulatorAdapter*> raw_simulators;
+
 
 	unsigned int start_day = 0;
-
 	for (auto& config_tree: config_forest) {
+		config_tree.put("run.start_date", start_date);
+
 		SimulatorSetup setup = SimulatorSetup(config_tree, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
 		shared_ptr<Simulator> sim = setup.getSimulator();
 
 		start_day = setup.getStartDay();
 
 		simulators.push_back(sim);
-		raw_simulators.push_back(sim.get());
+		auto local_sim = std::make_shared<LocalSimulatorAdapter>(LocalSimulatorAdapter(sim.get()));
+		local_simulators.push_back(local_sim);
+		raw_simulators.push_back(local_sim.get());
 	}
 
-	Coordinator coord(raw_simulators);
+	Coordinator coord(raw_simulators, traveller_file);
 
 	cout << "Done building the simulators. " << endl << endl;
 
 	// Set output path prefix.
-	string output_prefix = pt_config.get<string>("run.output_prefix", TimeStamp().toTag());
 	cout << "Project output tag:  " << output_prefix << endl << endl;
 
 	// Track index case setting.
@@ -119,79 +134,94 @@ void run_stride(bool track_index_case,
 
 	cout << "Adding observers to the simulator." << endl;
 
-	std::shared_ptr<Saver> saver = nullptr;
-	std::string config_hdf5_file = pt_config.get<string>("run.checkpointing_file", "");
+	std::vector<std::shared_ptr<Saver>> savers(simulators.size());
 
-	// Is checkpointing 'enabled'?
-	if (hdf5_file_name != "" || hdf5_output_file_name != "" || config_hdf5_file != "") {
-		cout << "Checkpointing enabled." << endl;
-		int frequency = checkpointing_frequency == -1 ?
-						pt_config.get<int>("run.checkpointing_frequency", 1) : checkpointing_frequency;
-		string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
-		if (output_file == "") {
-			output_file = config_hdf5_file;
+	for (unsigned int i = 0; i < config_forest.size(); i++) {
+		auto& config_tree = config_forest.at(i);
+		auto simulator = simulators.at(i);
+
+		std::string config_hdf5_file = config_tree.get<string>("run.checkpointing_file", "");
+		// TODO don't use command line filenames for multiple simulators
+		if (hdf5_file_name != "" || hdf5_output_file_name != "" || config_hdf5_file != "") {
+			cout << "Checkpointing enabled." << endl;
+
+			int frequency = checkpointing_frequency == -1 ?
+							config_tree.get<int>("run.checkpointing_frequency", 1) : checkpointing_frequency;
+
+			string output_file = (hdf5_output_file_name == "") ? hdf5_file_name : hdf5_output_file_name;
+			if (output_file == "") {
+				output_file = config_hdf5_file;
+			}
+
+			savers.at(i) = std::make_shared<Saver>
+					(Saver(output_file.c_str(), config_tree, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
+			std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, savers.at(i), std::placeholders::_1);
+			simulator->registerObserver(savers.at(i), fnCaller);
+			// initial save
+			if (!(run_mode == RunMode::Extend && start_day != 0)) {
+				savers.at(i)->forceSave(*simulator);
+			}
 		}
-		saver = std::make_shared<Saver>
-				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
-		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
-		local_sim->registerObserver(saver, fnCaller);
-		auto classInstance = std::make_shared<ClusterSaver>("cluster_output");
-		std::function<void(const LocalSimulatorAdapter&)> fnCaller2 = std::bind(&ClusterSaver::update, classInstance, std::placeholders::_1);
-		local_sim->registerObserver(classInstance, fnCaller2);
-	}
 
+		if (config_tree.get<bool>("run.visualization", false) == true) {
+			auto ClusterSaver_instance = make_shared<ClusterSaver>("cluster_output");
+			auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
+			simulator->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
 
-	if (pt_config.get<bool>("run.visualization", false) == true) {
-		auto ClusterSaver_instance = make_shared<ClusterSaver>("cluster_output");
-		auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
-		local_sim->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
-
-		ClusterSaver_instance->update(*local_sim);
+			ClusterSaver_instance->update(*simulator);
+		}
 	}
 
 	cout << "Done adding the observers." << endl << endl;
 
-	// initial save
-	if (saver != nullptr && !(run_mode == RunMode::Extend && start_day != 0)) {
-		saver->forceSave(*local_sim);
-	}
 
 	// Run the simulation.
-	const unsigned int num_days = pt_config.get<unsigned int>("coordination.num_days");
-	vector<unsigned int> cases(num_days);
+	// const unsigned int num_days = pt_config.get<unsigned int>("coordination.num_days");
+	// TODO cases
+	// vector<unsigned int> cases(num_days);
 	Stopwatch<> run_clock("run_clock");
 
 	for (unsigned int i = start_day; i < start_day + num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
 		coord.timeStep();
-		cout << "     Done, infected count: ";
-		cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
-		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
-		cout << setw(7) << cases.at(i-start_day) << "     Adopters count: " << setw(7) << adopters << endl;
+		cout << "     Done, infected count: \n";
+		// cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
+		for (auto sim : simulators) {
+			unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
+			cout << setw(7) << sim->getPopulation()->getInfectedCount() << "     Adopters count: " << setw(7) << adopters << endl;
+		}
 	}
 
-	if (saver != nullptr && checkpointing_frequency == 0) {
+	for (unsigned int i = 0; i < savers.size(); i++) {
+		auto saver = savers.at(i);
+		auto simulator = simulators.at(i);
+
 		// Force save the last timestep in case of frequency 0
-		saver->forceSave(*local_sim, num_days + start_day);
+		if (saver != nullptr && checkpointing_frequency == 0) {
+			saver->forceSave(*simulator, num_days + start_day);
+		}
 	}
 
 	// Generate output files
+	// TODO cases
 	// Cases
-	CasesFile cases_file(output_prefix);
-	cases_file.print(cases);
+	// CasesFile cases_file(output_prefix);
+	// cases_file.print(cases);
 
 	// Summary
-	SummaryFile summary_file(output_prefix);
-	summary_file.print(pt_config,
-					   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
-					   duration_cast<milliseconds>(total_clock.get()).count(),
-					   duration_cast<milliseconds>(total_clock.get()).count());
+	// TODO summary
+	// SummaryFile summary_file(output_prefix);
+	// summary_file.print(pt_config,
+	// 				   sim->getPopulation()->size(), sim->getPopulation()->getInfectedCount(),
+	// 				   duration_cast<milliseconds>(total_clock.get()).count(),
+	// 				   duration_cast<milliseconds>(total_clock.get()).count());
 
 	// Persons ???
-	if (pt_config.get<double>("run.generate_person_file") == 1) {
-		PersonFile person_file(output_prefix);
-		person_file.print(sim->getPopulation());
-	}
+	// TODO persons
+	// if (pt_config.get<double>("run.generate_person_file") == 1) {
+	// 	PersonFile person_file(output_prefix);
+	// 	person_file.print(sim->getPopulation());
+	// }
 
 	// print final message to command line.
 	cout << endl << endl;

@@ -23,7 +23,7 @@ public:
 	AsyncSimulator(Simulator* sim): m_sim(sim) {}
 
 	void setId(uint id) {m_id = id; m_sim->setId(m_id);}
-	
+
 	uint getId() const {return m_id;}
 
 	/// The bool doesn't matter, C++ can't handle void
@@ -54,11 +54,11 @@ public:
 
 	AsyncSimulator(uint seed = rand()) { std::mt19937 m_rng (seed);}
 
-protected:
+public:
 	uint m_id = 0;		///< The id of this simulator
 	Simulator* m_sim = nullptr;	///< The controlled Simulator
 
-private:
+public:
 	/// Send travellers to the destination region
 	/// This function is used by the Simulator to give the signal to send people
 	virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, uint destination_sim_id, string destination_district, string destination_facility) = 0;

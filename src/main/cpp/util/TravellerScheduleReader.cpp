@@ -51,27 +51,27 @@ Flight TravellerScheduleReader::parseFlight(boost::property_tree::ptree& node) c
 	if (source_sim < 0) {
 		throw invalid_argument("In TravellerScheduleReader: Unexpected simulator index.");
 	}
-	
+
 	int destination_sim = node.get<int>("destination_sim");
 	if (destination_sim < 0) {
 		throw invalid_argument("In TravellerScheduleReader: Unexpected simulator index.");
 	}
-	
+
 	int amount = node.get<int>("amount");
 	if (amount < 0) {
 		throw invalid_argument("In TravellerScheduleReader: Invalid amount of travellers.");
 	}
-	
+
 	int duration = node.get<int>("duration");
 	if (duration < 0) {
 		throw invalid_argument("In TravellerScheduleReader: Invalid duration.");
 	}
-	
+
 	int day_of_the_week = node.get<int>("day_of_the_week");
 	if (day_of_the_week < 0 || day_of_the_week > 6) {
 		throw invalid_argument("In TravellerScheduleReader: Invalid day of the week.");
 	}
-	
+
 	string district = node.get<string>("district");
 	string facility = node.get<string>("facility");
 

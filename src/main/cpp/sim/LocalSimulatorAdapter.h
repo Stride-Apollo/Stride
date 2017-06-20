@@ -6,7 +6,6 @@
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
-#include "util/Subject.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
@@ -21,7 +20,7 @@ class ClusterSaver;
 using namespace std;
 using namespace util;
 
-class LocalSimulatorAdapter : public AsyncSimulator, public Subject<LocalSimulatorAdapter> {
+class LocalSimulatorAdapter : public AsyncSimulator {
 public:
 	/// The constructor, this adapter will control one simulator
 	LocalSimulatorAdapter(Simulator* sim);
@@ -53,7 +52,7 @@ public:
 
 	const Simulator& getSimulator() const {return *m_sim;}
 
-private:
+public:
 	uint m_receiver_id;
 	std::map<uint, AsyncSimulator*> m_adapters;	///< A map that contains the interfaces of the other simulators
 

@@ -28,7 +28,7 @@ ClusterSaver::ClusterSaver(string file_name) : m_sim_day(0), m_file_name(file_na
 
 
 
-void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const {
+void ClusterSaver::saveClustersCSV(const Simulator& sim) const {
 	ofstream csv_file;
 	stringstream ss;
 	ss << setfill('0') << setw(5) << m_sim_day;
@@ -39,7 +39,7 @@ void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const
 	// Format of the csv file
 	csv_file << "id,size,infected,infected_percent,lat,lon,type" << endl;
 
-	for (const auto& cluster : local_sim.m_sim->m_primary_community) {
+	for (const auto& cluster : sim.m_primary_community) {
 		this->saveClusterCSV(cluster, csv_file);
 	}
 }
@@ -64,14 +64,14 @@ inline void ClusterSaver::saveClusterCSV(const Cluster& cluster, ofstream& csv_f
 
 
 
-void ClusterSaver::saveClustersJSON(const LocalSimulatorAdapter& local_sim) const {
+void ClusterSaver::saveClustersJSON(const Simulator& sim) const {
 	ptree clusters;
 	clusters.put("type", "FeatureCollection");
 	{
 		ptree clusters_primaries;
 		// First cluster is always empty
-		for (unsigned int i = 1; i < local_sim.m_sim->m_primary_community.size(); i++) {
-			pair<ptree, ptree> cluster_pair = this->getClusterJSON(local_sim.m_sim->m_primary_community.at(i));
+		for (unsigned int i = 1; i < sim.m_primary_community.size(); i++) {
+			pair<ptree, ptree> cluster_pair = this->getClusterJSON(sim.m_primary_community.at(i));
 			ptree cluster_primary;
 			cluster_primary.put("type", "Feature");
 			cluster_primary.push_back(std::make_pair("geometry", cluster_pair.first));
@@ -83,8 +83,8 @@ void ClusterSaver::saveClustersJSON(const LocalSimulatorAdapter& local_sim) cons
 	}
 	// {
 	// 	ptree clusters_secondaries;
-	// 	for (unsigned int i = 0; i < local_sim.m_sim->m_secondary_community.size(); i++) {
-	// 		pair<ptree, ptree> cluster_pair = this->getClusterJSON(local_sim.m_sim->m_secondary_community.at(i), i);
+	// 	for (unsigned int i = 0; i < sim.m_secondary_community.size(); i++) {
+	// 		pair<ptree, ptree> cluster_pair = this->getClusterJSON(sim.m_secondary_community.at(i), i);
 	// 		ptree cluster_secondary;
 	// 		cluster_secondary.put("type", "Feature");
 	// 		cluster_secondary.push_back(std::make_pair("geometry", cluster_pair.first));

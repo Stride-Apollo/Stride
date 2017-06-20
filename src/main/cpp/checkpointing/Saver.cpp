@@ -65,20 +65,20 @@ Saver::Saver(string filename, const ptree& pt_config, int frequency, bool track_
 	}
 }
 
-void Saver::update(const LocalSimulatorAdapter& local_sim) {
+void Saver::update(const Simulator& sim) {
 	m_current_step++;
-	if (m_frequency != 0 && m_current_step%m_frequency == 0) {
-		this->saveTimestep(*(local_sim.m_sim));
+	if (m_frequency != 0 && m_current_step % m_frequency == 0) {
+		this->saveTimestep(sim);
 	}
 }
 
-void Saver::forceSave(const LocalSimulatorAdapter& local_sim, int timestep) {
+void Saver::forceSave(const Simulator& sim, int timestep) {
 	m_current_step++;
 
 	if (timestep != -1) {
 		m_timestep = timestep;
 	}
-	this->saveTimestep(*(local_sim.m_sim));
+	this->saveTimestep(sim);
 }
 
 
