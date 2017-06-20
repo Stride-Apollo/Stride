@@ -13,7 +13,8 @@ public:
   RemoteSimulatorReceiver(Simulator* sim): m_sim(sim) {};
   ~RemoteSimulatorReceiver() = default;
 
-  void hostForeignTravellers(travelData data);
+  // Receivers listens to messages on the network (MPI)
+  void listen();
 private:
   Simulator* m_sim;
 };
