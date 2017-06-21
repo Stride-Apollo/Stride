@@ -23,14 +23,14 @@ public:
 	AsyncSimulator(Simulator* sim): m_sim(sim) {}
 
 	void setId(uint id) {m_id = id; m_sim->setId(m_id);}
-	
+
 	uint getId() const {return m_id;}
 
 	/// The bool doesn't matter, C++ can't handle void
 	/// We just need to wait until it is done
 	virtual future<bool> timeStep() = 0;
 
-	virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health> >& travellers) = 0;
+	virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) = 0;
 
 	/// Receive travellers
 	/// @argument travellers: the travellers this simulator has to host. Contains the data needed to identify a person in the home simulator
@@ -65,7 +65,7 @@ private:
 
 	/// Send foreign travellers to the original region
 	/// This function is used by the Simulator to give the signal to send people
-	virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health> >& travellers, uint home_sim_id) = 0;
+	virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health>>& travellers, uint home_sim_id) = 0;
 
 	friend class Simulator;
 };

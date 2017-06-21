@@ -31,10 +31,18 @@ public:
   /// @argument destination_facility: The name of the facility / airport e.g. "ANR"
   virtual void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) override;
 
+  virtual void returnForeignTravellers() override;
+
 private:
+  int m_count; // The count of elements in the databuffer
+
   /// Send travellers to the destination region
 	/// This function is used by the Simulator to give the signal to send people
 	virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, uint destination_sim_id, string destination_district, string destination_facility) override;
+
+  /// Send foreign travellers to the original region
+	/// This function is used by the Simulator to give the signal to send people
+	virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health> >& travellers, uint home_sim_id) override;
 
   friend class Simulator;
 };

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <utility>
 
 #include "sim/Simulator.h"
 
@@ -11,9 +12,7 @@ namespace util{
 using namespace std;
 
 struct TravelData{
-  // Default constructor
-  TravelData(){};
-
+  TravelData() = default;
   TravelData(vector<Simulator::TravellerType> travellers, uint amount, uint days, string destination_district, string destination_facility):
     m_amount(amount), m_days(days), m_destination_district(destination_district), m_destination_facility(destination_facility), m_travellers(travellers){};
 
@@ -22,6 +21,14 @@ struct TravelData{
   string m_destination_district;
   string m_destination_facility;
   vector<Simulator::TravellerType> m_travellers;
+};
+
+// Datastruct that contains information about the travellers returning to home
+struct ReturnData{
+  ReturnData() = default;
+  ReturnData(pair<vector<uint>, vector<Health>> travellers): m_travellers(travellers) {};
+
+  pair<vector<uint>, vector<Health>> m_travellers;
 };
 
 }
