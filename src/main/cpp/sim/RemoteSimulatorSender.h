@@ -22,6 +22,11 @@ public:
 	/// We just need to wait until it is done
   virtual future<bool> timeStep() override;
 
+  virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) override;
+
+  /// The hosting is done @Receiver side
+  virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) override {};
+
   /// Send travellers to the destination region
   /// Returns a vector of indices (in the Population of the simulator), these indices are from the people that were sent (debugging purposes)
   /// @argument amount: the amount of travellers to be sent

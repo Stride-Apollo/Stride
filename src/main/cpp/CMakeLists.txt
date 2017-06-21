@@ -102,8 +102,8 @@ set(POPGEN_MAIN_SRC
 #============================================================================
 add_library(libstride ${LIB_SRC})
 #target_compile_options(libstride PUBLIC "-flto")
-add_executable(stride ${MAIN_SRC} $<TARGET_OBJECTS:trng>)
-target_link_libraries(stride libstride)
+add_executable(stride ${MAIN_SRC} $<TARGET_OBJECTS:trng> )
+target_link_libraries(stride libstride ${MPI_LIBRARIES})
 #target_compile_options(stride PUBLIC "-flto")
 
 add_library(libpopgen ${POPGEN_SRC})

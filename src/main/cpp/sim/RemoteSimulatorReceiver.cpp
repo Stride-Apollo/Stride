@@ -20,6 +20,4 @@ void RemoteSimulatorReceiver::listen(){
     MPI_Recv(&data, m_count, MPI_INT, MPI_ANY_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     m_sim->welcomeHomeTravellers(data.m_travellers.first, data.m_travellers.second);
   }
-
-
 }
