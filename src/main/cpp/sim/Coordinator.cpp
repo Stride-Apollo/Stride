@@ -16,11 +16,9 @@ void Coordinator::timeStep() {
 	// Run the simulator for the day
 
 	for (AsyncSimulator* sim: m_sims) {
-		sim->m_sim->timeStep();
-		// TODO revert this
-		// fut_results.push_back(sim->timeStep());
+		fut_results.push_back(sim->timeStep());
 	}
-	// future_pool(fut_results);
+	future_pool(fut_results);
 
 	// Give each simulator a planning containing todays travellers
 	// The simulators will exchange travellers
