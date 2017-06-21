@@ -52,8 +52,7 @@ public:
 
 	const Simulator& getSimulator() const {return *m_sim;}
 
-public:
-	uint m_receiver_id;
+private:
 	std::map<uint, AsyncSimulator*> m_adapters;	///< A map that contains the interfaces of the other simulators
 
 	/// Send travellers to the destination region

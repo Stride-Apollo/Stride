@@ -250,6 +250,8 @@ void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boos
 	boost::optional<const ptree&> districts_config = pt_config.get_child_optional("run.district_file");
 	if(districts_config) {
 		string district_filename = pt_config.get<string>("run.district_file");
+		double influence_speed = pt_config.get<double>("run.sphere_of_influence.speed");
+		unsigned int influence_size = pt_config.get<unsigned int>("run.sphere_of_influence.size");
 
 		// Check for the correctness of the file
 		const auto file_path = InstallDirs::getDataDir() /= district_filename;
@@ -281,6 +283,8 @@ void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boos
 			auto search_duplicate = [&] (const District& district) {return district.getName() == values[1];};
 			if (find_if(sim->m_districts.cbegin(), sim->m_districts.cend(), search_duplicate) == sim->m_districts.cend()) {
 				sim->m_districts.push_back(District(values[1],
+												influence_size,
+												influence_speed,
 												GeoCoordinate(StringUtils::fromString<double>(values[6]),
 																StringUtils::fromString<double>(values[7]))));
 			}
