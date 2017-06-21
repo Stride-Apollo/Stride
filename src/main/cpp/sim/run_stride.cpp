@@ -101,7 +101,7 @@ void run_stride(bool track_index_case,
 		start_day = setup.getStartDay();
 
 		simulators.push_back(sim);
-		auto local_sim = std::make_shared<LocalSimulatorAdapter>(LocalSimulatorAdapter(sim.get()));
+		shared_ptr<LocalSimulatorAdapter> local_sim (new LocalSimulatorAdapter(sim.get()));
 		local_simulators.push_back(local_sim);
 		raw_simulators.push_back(local_sim.get());
 	}

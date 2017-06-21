@@ -2,8 +2,10 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include "AsyncSimulator.h"
+#include "LocalSimulatorAdapter.h"
 #include "util/TravellerScheduleReader.h"
 
 namespace stride {
@@ -27,10 +29,24 @@ public:
 
 	void initializeSimulators() {
 		// TODO: also give the simulators a name
+		
+		// Make the communication map
 		uint id = 0;
+		map<uint, AsyncSimulator*> communication_map;
+
 		for (auto sim: m_sims) {
 			sim->setId(id);
+			communication_map[id] = sim;
 			++id;
+		}
+
+		for (auto sim: m_sims) {
+			// Note: this map contains all simulators, including "sim", this should not be a problem though
+			// This allows "low-budget travels" within one region e.g. flemish people visiting the ardennes
+
+			// TODO remove this troll
+			auto some_sim = dynamic_cast<LocalSimulatorAdapter*>(sim);
+			some_sim->setCommunicationMap(communication_map);
 		}
 	}
 
