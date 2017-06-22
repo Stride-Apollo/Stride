@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <random>
+#include <cmath>
 
 #include "util/GeoCoordinate.h"
 
@@ -52,6 +53,24 @@ public:
 	}
 	/// radius is in kilometres
 	/// TODO make the distribution fair
+
+	GeoCoordinate getMiddle(const GeoCoordinate& coord1, const GeoCoordinate& coord2) const {
+		/// Formula found online
+		/// TODO test
+		double lon1_rad = coord1.m_longitude * PI / 180;
+		double lon2_rad = coord2.m_longitude * PI / 180;
+		double lat1_rad = coord1.m_latitude * PI / 180;
+		double lat2_rad = coord2.m_latitude * PI / 180;
+
+		double lon_diff = lon2_rad - lon1_rad;
+		double x = cos(lat2_rad) * cos(lon_diff);
+		double y = cos(lat2_rad) * sin(lon_diff);
+
+		double center_lat = atan2( sin(lat1_rad) + sin(lat2_rad), sqrt((cos(lat1_rad) + x) * (cos(lat1_rad) + x) + y * y) );
+		double center_lon = lon1_rad + atan2(y, cos(lat1_rad) + x);
+
+		return GeoCoordinate(center_lat * 180 / PI, center_lon * 180 / PI);
+	}
 
 private:
 	GeoCoordCalculator(){}

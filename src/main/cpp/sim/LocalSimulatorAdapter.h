@@ -55,7 +55,7 @@ public:
 	/// For testing purposes
 	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
 
-private:
+public:
 	void returnTraveller(Simulator::TravellerType& traveller);
 
 	Simulator* m_sim;	///< The Simulator this adapter controls.

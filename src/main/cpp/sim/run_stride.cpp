@@ -127,7 +127,7 @@ void run_stride(bool track_index_case,
 
 
 	if (pt_config.get<bool>("run.visualization", false) == true) {
-		auto ClusterSaver_instance = make_shared<ClusterSaver>(output_prefix + "cluster_output");
+		auto ClusterSaver_instance = make_shared<ClusterSaver>(output_prefix + "cluster_output", output_prefix + "pop_output");
 		auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
 		local_sim->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
 
