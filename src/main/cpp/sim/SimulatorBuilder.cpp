@@ -121,17 +121,36 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 
 	// Initialize clusters.
 	initializeClusters(sim, pt_config);
+	// Get the next id for new travellers
+	unsigned int max_id = 0;
+	const Population& population = *(sim->m_population.get());
+	for (auto& person: population) {
+		max_id = std::max(uint(max_id), uint(person.getId()));
+	}
 
-	// initialize the facilities
+	sim->m_next_id = max_id + 1;
+
+	// Get the new household id for travellers
+	max_id = 0;
+	for (auto& hh: sim->m_households) {
+		max_id = std::max(uint(max_id), uint(hh.getId()));
+	}
+
+	sim->m_next_hh_id = max_id + 1;
+
+	// Initialize districts.
+	initializeDistricts(sim, pt_config);
+
+	// Initialize the facilities
 	initializeFacilities(sim, pt_config);
 
-	// initialize clusters.
+	// Initialize clusters.
 	initializeClusters(sim, pt_config);
 
 	// initialize disease profile.
 	sim->m_disease_profile.initialize(pt_config, pt_disease);
 
-	// initialize contact profiles.
+	// Initialize contact profiles.
 	Cluster::addContactProfile(ClusterType::Household, ContactProfile(ClusterType::Household, pt_contact));
 	Cluster::addContactProfile(ClusterType::School, ContactProfile(ClusterType::School, pt_contact));
 	Cluster::addContactProfile(ClusterType::Work, ContactProfile(ClusterType::Work, pt_contact));

@@ -25,6 +25,7 @@ set( SRC
 		PopulationTests.cpp
 		# Segfault, pls fix
 		#LocalSimulatorAdapterTests.cpp
+		AsyncSimulatorTests.cpp
 		TravelSchedulerTest.cpp
 		TransportFacilityTest.cpp
 		PopGen/PopulationGeneratorTest.cpp
@@ -32,7 +33,7 @@ set( SRC
 		PopGen/GeoCalculatorTest.cpp
 		PopGen/AliasDistributionTest.cpp
 		Hdf5UnitTests.cpp
-        Hdf5ScenarioTests.cpp
+		Hdf5ScenarioTests.cpp
 		Hdf5Base.cpp
 )
 
