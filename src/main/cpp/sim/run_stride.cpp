@@ -29,6 +29,7 @@
 #include "sim/SimulatorSetup.h"
 #include "sim/LocalSimulatorAdapter.h"
 #include "sim/RemoteSimulatorSender.h"
+#include "sim/RemoteSimulatorReceiver.h"
 #include "sim/Coordinator.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
@@ -43,6 +44,8 @@
 #include <memory>
 #include <cassert>
 #include <stdlib.h>
+#include <mpi.h>
+#include <thread> // TODO change this later on
 
 namespace stride {
 
@@ -52,7 +55,6 @@ using namespace boost::filesystem;
 using namespace boost::property_tree;
 using namespace std;
 using namespace std::chrono;
-
 /// Run the stride simulator.
 void run_stride(bool track_index_case,
 				unsigned int num_threads,
@@ -73,6 +75,17 @@ void run_stride(bool track_index_case,
 	SimulatorSetup setup = SimulatorSetup(config_file_name, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
 
+	cout << "Initializing the MPI environment" << endl << endl;
+	// Initialize the MPI environment
+	int provided = num_threads;
+	MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+	// Find out rank, size
+	int world_rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+	int world_size;
+	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+	cout << "Done initializing the MPI environment (size = " << world_size << ")" << endl;
+
 	cout << "Building the simulator." << endl << endl;
 
 	shared_ptr<Simulator> sim = setup.getSimulator();
@@ -81,6 +94,13 @@ void run_stride(bool track_index_case,
 	Coordinator coord({local_sim.get()});
 
 	cout << "Done building the simulator. " << endl << endl;
+
+	cout << "Setting up a thread for the receiver" << endl;
+	auto local_receiver = RemoteSimulatorReceiver(sim.get());
+	thread t1(&RemoteSimulatorReceiver::listen, local_receiver);
+	cout << "Done setting up receiving thread" << endl;
+
+
 	unsigned int start_day = setup.getStartDay();
 
 	// Set output path prefix.
@@ -108,8 +128,8 @@ void run_stride(bool track_index_case,
 
 	cout << "Adding observers to the simulator." << endl;
 
-	std::shared_ptr<Saver> saver = nullptr;
-	std::string config_hdf5_file = pt_config.get<string>("run.checkpointing_file", "");
+	// std::shared_ptr<Saver> saver = nullptr;
+	// std::string config_hdf5_file = pt_config.get<string>("run.checkpointing_file", "");
 
 	// Is checkpointing 'enabled'?
 	// TODO
@@ -131,14 +151,14 @@ void run_stride(bool track_index_case,
 	// }
 
 
-	if (pt_config.get<bool>("run.visualization", false) == true) {
-		auto ClusterSaver_instance = make_shared<ClusterSaver>("cluster_output");
-		auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
-		// TODO
-		// local_sim->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
-
-		// ClusterSaver_instance->update(*local_sim);
-	}
+	// if (pt_config.get<bool>("run.visualization", false) == true) {
+	// 	auto ClusterSaver_instance = make_shared<ClusterSaver>("cluster_output");
+	// 	auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
+	// 	// TODO
+	// 	// local_sim->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
+	//
+	// 	// ClusterSaver_instance->update(*local_sim);
+	// }
 
 	cout << "Done adding the observers." << endl << endl;
 
@@ -188,6 +208,9 @@ void run_stride(bool track_index_case,
 	// print final message to command line.
 	cout << endl << endl;
 	cout << "  total time: " << total_clock.toString() << endl << endl;
+
+	// Finalize the MPI environment.
+  MPI_Finalize();
 }
 
 }

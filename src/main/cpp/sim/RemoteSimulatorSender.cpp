@@ -10,7 +10,13 @@ RemoteSimulatorSender::RemoteSimulatorSender(Simulator* sim): AsyncSimulator(sim
 
 // TODO
 // https://stackoverflow.com/questions/14836560/thread-safety-of-mpi-send-using-threads-created-with-stdasync
-future<bool> RemoteSimulatorSender::timeStep(){}
+future<bool> RemoteSimulatorSender::timeStep(){
+  return async([&](){
+			m_sim->timeStep();
+			// this->notify(*this);
+			return true;
+		});
+}
 
 void RemoteSimulatorSender::welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers){
   m_sim->welcomeHomeTravellers(travellers.first, travellers.second);
