@@ -119,8 +119,6 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	// Build population.
 	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, *sim->m_rng);
 
-	// Initialize clusters.
-	initializeClusters(sim, pt_config);
 	// Get the next id for new travellers
 	unsigned int max_id = 0;
 	const Population& population = *(sim->m_population.get());
