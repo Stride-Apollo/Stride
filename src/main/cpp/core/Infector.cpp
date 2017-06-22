@@ -184,16 +184,19 @@ void Infector<log_level, track_index_case, NoLocalInformation>::execute(
 			// check if member is present today
 			if (c_members[i_infected].second) {
 				const auto p1 = c_members[i_infected].first;
-				// FIXME Is it necessary to check for infectiousness here? Infectious members are already sorted...if (p1->getHealth().isInfectious()) {
-				const double contact_rate = cluster.getContactRate(p1);// FIXME if loop 2 in all contacts algorithm should start from 0, we should also implement this symmetry here!
-				for (size_t i_contact = num_cases; i_contact < c_immune; i_contact++) {
-					// check if member is present today
-					if (c_members[i_contact].second) {
-						auto p2 = c_members[i_contact].first;
-						if (contact_handler.hasContactAndTransmission(contact_rate, transmission_rate)) {
-							LOG_POLICY<log_level>::execute(logger, p1, p2, c_type, calendar);
-							p2->getHealth().startInfection();
-							R0_POLICY<track_index_case>::execute(p2);
+				// FIXME Is it necessary to check for infectiousness here? Infectious members are already sorted...
+				if (p1->getHealth().isInfectious()) {
+					const double contact_rate = cluster.getContactRate(p1);
+					// FIXME if loop 2 in all contacts algorithm should start from 0, we should also implement this symmetry here!
+					for (size_t i_contact = num_cases; i_contact < c_immune; i_contact++) {
+						// check if member is present today
+						if (c_members[i_contact].second) {
+							auto p2 = c_members[i_contact].first;
+							if (contact_handler.hasContactAndTransmission(contact_rate, transmission_rate)) {
+								LOG_POLICY<log_level>::execute(logger, p1, p2, c_type, calendar);
+								p2->getHealth().startInfection();
+								R0_POLICY<track_index_case>::execute(p2);
+							}
 						}
 					}
 				}

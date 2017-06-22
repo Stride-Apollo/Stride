@@ -125,9 +125,6 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	// initialize the facilities
 	initializeFacilities(sim, pt_config);
 
-	// initialize clusters.
-	initializeClusters(sim, pt_config);
-
 	// initialize disease profile.
 	sim->m_disease_profile.initialize(pt_config, pt_disease);
 
