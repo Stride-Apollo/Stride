@@ -27,14 +27,14 @@
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
 #include "sim/SimulatorSetup.h"
-#include "sim/AsyncSimulator.h"
 #include "sim/LocalSimulatorAdapter.h"
 #include "sim/Coordinator.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
-#include <util/async.h>
 #include "util/TimeStamp.h"
+#include "checkpointing/Saver.h"
+#include <util/async.h>
 
 #include "vis/ClusterSaver.h"
 #include <boost/property_tree/xml_parser.hpp>
@@ -62,7 +62,6 @@ void run_stride(bool track_index_case,
 				const unsigned int timestamp_replay,
 				RunMode run_mode) {
 
-	// Special case for extract mode -> don't run the simulator, just extract the config file.
 	if (run_mode == RunMode::Extract) {
 		Loader::extractConfigs(hdf5_file_name);
 		exit(EXIT_SUCCESS);
