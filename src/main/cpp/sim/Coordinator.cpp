@@ -37,12 +37,11 @@ void Coordinator::timeStep() {
 		if (new_flight.m_destination_sim >= m_sims.size() || new_flight.m_source_sim >= m_sims.size()) {
 			continue;
 		}
-
+		std::cout << "hello world\n";
 		m_sims.at(new_flight.m_source_sim)->sendNewTravellers(new_flight.m_amount,
 															new_flight.m_duration,
 															m_sims.at(new_flight.m_destination_sim)->getId(),
 															new_flight.m_district,
 															new_flight.m_facility);
 	}
-	std::cout << "10\n";
 }

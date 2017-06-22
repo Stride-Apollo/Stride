@@ -23,7 +23,9 @@ public:
 	}
 
 	Coordinator(initializer_list<AsyncSimulator*> sims)
-		: m_sims(sims.begin(), sims.end()) {initializeSimulators();}
+		: m_sims(sims.begin(), sims.end()) {
+			cout << "Init coordinator\n";
+			initializeSimulators();}
 
 	void initializeSimulators() {
 		// TODO: also give the simulators a name

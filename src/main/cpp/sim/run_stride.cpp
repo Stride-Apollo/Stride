@@ -75,16 +75,16 @@ void run_stride(bool track_index_case,
 	SimulatorSetup setup = SimulatorSetup(config_file_name, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
 
+	// Code for distributed simulations with MPI
 	bool distributedRun = true;
+	int world_rank = 0;
+	int world_size = 0;
 	if (distributedRun){
 		cout << "Initializing the MPI environment" << endl << endl;
 		// Initialize the MPI environment
 		int provided = num_threads;
 		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
-		// Find out rank, size
-		int world_rank;
 		MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-		int world_size;
 		MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 		cout << "Done initializing the MPI environment (size = " << world_size << ")" << endl;
 	}
@@ -98,13 +98,11 @@ void run_stride(bool track_index_case,
 
 	cout << "Done building the simulator. " << endl << endl;
 
-	if (distributedRun){
-		cout << "Setting up a thread for the receiver" << endl;
-		auto local_receiver = RemoteSimulatorReceiver(sim.get());
-		thread t1(&RemoteSimulatorReceiver::listen, local_receiver);
-		cout << "Done setting up receiving thread" << endl;
-	}
-
+	cout << "Setting up a thread for the receiver" << endl;
+	auto local_receiver = RemoteSimulatorReceiver(sim.get());
+	// local_receiver.listen();
+	// TODO gives errors ! thread listenThread(&RemoteSimulatorReceiver::listen, local_receiver);
+	cout << "Done setting up receiving thread" << endl;
 
 	unsigned int start_day = setup.getStartDay();
 
@@ -179,7 +177,10 @@ void run_stride(bool track_index_case,
 
 	for (unsigned int i = start_day; i < start_day + num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
-		coord.timeStep();
+		if (world_rank == 0) {
+			coord.timeStep(); // Only 1 Coordinator (check for distributed case)
+		}
+		local_receiver.listen();
 		cout << "     Done, infected count: ";
 		cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
 		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
