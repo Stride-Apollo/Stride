@@ -75,16 +75,19 @@ void run_stride(bool track_index_case,
 	SimulatorSetup setup = SimulatorSetup(config_file_name, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
 
-	cout << "Initializing the MPI environment" << endl << endl;
-	// Initialize the MPI environment
-	int provided = num_threads;
-	MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
-	// Find out rank, size
-	int world_rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-	int world_size;
-	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-	cout << "Done initializing the MPI environment (size = " << world_size << ")" << endl;
+	bool distributedRun = true;
+	if (distributedRun){
+		cout << "Initializing the MPI environment" << endl << endl;
+		// Initialize the MPI environment
+		int provided = num_threads;
+		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+		// Find out rank, size
+		int world_rank;
+		MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+		int world_size;
+		MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+		cout << "Done initializing the MPI environment (size = " << world_size << ")" << endl;
+	}
 
 	cout << "Building the simulator." << endl << endl;
 
@@ -95,10 +98,12 @@ void run_stride(bool track_index_case,
 
 	cout << "Done building the simulator. " << endl << endl;
 
-	cout << "Setting up a thread for the receiver" << endl;
-	auto local_receiver = RemoteSimulatorReceiver(sim.get());
-	thread t1(&RemoteSimulatorReceiver::listen, local_receiver);
-	cout << "Done setting up receiving thread" << endl;
+	if (distributedRun){
+		cout << "Setting up a thread for the receiver" << endl;
+		auto local_receiver = RemoteSimulatorReceiver(sim.get());
+		thread t1(&RemoteSimulatorReceiver::listen, local_receiver);
+		cout << "Done setting up receiving thread" << endl;
+	}
 
 
 	unsigned int start_day = setup.getStartDay();
@@ -209,8 +214,7 @@ void run_stride(bool track_index_case,
 	cout << endl << endl;
 	cout << "  total time: " << total_clock.toString() << endl << endl;
 
-	// Finalize the MPI environment.
-  MPI_Finalize();
+	if (distributedRun) MPI_Finalize();
 }
 
 }

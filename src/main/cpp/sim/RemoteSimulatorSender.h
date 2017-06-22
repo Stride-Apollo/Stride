@@ -50,5 +50,6 @@ private:
 	virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health> >& travellers, uint home_sim_id) override;
 
   friend class Simulator;
+  friend class Coordinator;
 };
 }
