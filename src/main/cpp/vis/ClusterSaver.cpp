@@ -30,9 +30,9 @@ namespace stride {
 
 ClusterSaver::ClusterSaver(string file_name) : m_sim_day(0), m_file_name(file_name) {
 	#if defined(__linux__)
-		m_file_dir = "vis/resources/app/data/clusterData";
+		m_file_dir = "vis/resources/app/data";
 	#elif defined(__APPLE__)
-		m_file_dir = "vis/visualization.app/Contents/Resources/app/data/clusterData";
+		m_file_dir = "vis/visualization.app/Contents/Resources/app/data";
 	#endif
 	// Sorry windows
 
@@ -42,6 +42,12 @@ ClusterSaver::ClusterSaver(string file_name) : m_sim_day(0), m_file_name(file_na
 			"The folder used to store the cluster data is not present.\n" +
 			"Make sure you have installed the visualization app by invoking the " +
 			"\033[0;35m'make install_vis'\033[0m" + " command.\n");
+	}
+
+	m_file_dir = m_file_dir + "/clusterData";
+	// Create the subdirectory if it does not exist.
+	if (!boost::filesystem::exists(boost::filesystem::path(m_file_dir))) {
+		boost::filesystem::create_directory(boost::filesystem::path(m_file_dir));
 	}
 }
 
