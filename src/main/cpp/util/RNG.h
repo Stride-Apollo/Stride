@@ -5,8 +5,7 @@
  *      Author: elise
  */
 
-#ifndef SRC_MAIN_CPP_UTIL_RNG_H_
-#define SRC_MAIN_CPP_UTIL_RNG_H_
+#pragma once
 
 #include <trng/mrg2.hpp>
 #include <trng/uniform01_dist.hpp>
@@ -21,12 +20,12 @@ private:
 	RNG(const RNG&);
 	RNG& operator=(const RNG&);
 public:
-	static RNG& GetInstance() {
+	static RNG& getInstance() {
 		static RNG instance;
 		return instance;
 	}
 
-	double NextDouble() {
+	double nextDouble() {
 		return m_uniform_dist(m_engine);
 	}
 
@@ -35,8 +34,4 @@ private:
 	trng::uniform01_dist<double>	m_uniform_dist;   ///< The random distribution.
 };
 
-
-
-} /* namespace stride */
-
-#endif /* SRC_MAIN_CPP_UTIL_RNG_H_ */
+}

@@ -146,6 +146,7 @@ void PopulationGenerator<U>::writeCities(const string& target_cities){
 template <class U>
 void PopulationGenerator<U>::writePop(const string& target_pop) const {
 	ofstream my_file {(InstallDirs::getDataDir() /= target_pop).string()};
+
 	if (my_file.is_open()) {
 		my_file << "\"age\",\"household_id\",\"school_id\",\"work_id\",\"primary_community\",\"secondary_community\"\n";
 
@@ -659,13 +660,31 @@ void PopulationGenerator<U>::makeSchools() {
 	uint school_size = education_config.get<uint>("MANDATORY.<xmlattr>.total_size");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
+	uint cluster_size = education_config.get<uint>("MANDATORY.<xmlattr>.cluster_size");
 
 	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools, "schools", ClusterType::School);
+
+	// Split the schools in clusters
+	m_next_id = 1;
+	for (SimpleCluster& cluster: m_mandatory_schools) {
+		uint current_size = 0;
+
+		m_mandatory_schools_clusters.push_back(vector<SimpleCluster>());
+		while (current_size < cluster.m_max_size) {
+			current_size += cluster_size;
+			SimpleCluster new_cluster;
+			new_cluster.m_max_size = cluster_size;
+			new_cluster.m_id = m_next_id;
+			m_next_id++;
+			new_cluster.m_coord = cluster.m_coord;
+			m_mandatory_schools_clusters.back().push_back(new_cluster);
+		}
+	}
 }
 
 template <class U>
 void PopulationGenerator<U>::makeUniversities() {
-	m_next_id = 1;
+	// Note: don't reset the next_id, the universities are also "schools", and the previously handled function was "makeSchools"
 	ptree school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.EMPLOYABLE.YOUNG_EMPLOYEE");
 	ptree university_config = m_props.get_child("POPULATION.EDUCATION.OPTIONAL");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
@@ -806,18 +825,8 @@ void PopulationGenerator<U>::assignToSchools() {
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	double start_radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
-	uint cluster_size = education_config.get<uint>("<xmlattr>.cluster_size");
 
 	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
-
-	for (SimpleCluster& cluster: m_mandatory_schools) {
-		SimpleCluster new_cluster;
-		new_cluster.m_max_size = cluster_size;
-		new_cluster.m_id = m_next_id;
-		m_next_id++;
-		new_cluster.m_coord = cluster.m_coord;
-		m_mandatory_schools_clusters.push_back(vector<SimpleCluster> {new_cluster});
-	}
 
 	double current_radius = start_radius;
 
@@ -846,17 +855,11 @@ void PopulationGenerator<U>::assignToSchools() {
 			AliasDistribution cluster_dist {vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size()))};
 			uint index = closest_clusters_indices.at(cluster_dist(m_rng));
 
-			if (m_mandatory_schools_clusters.at(index).back().m_current_size >= m_mandatory_schools_clusters.at(index).back().m_max_size) {
-				SimpleCluster new_cluster;
-				new_cluster.m_max_size = cluster_size;
-				new_cluster.m_id = m_next_id;
-				m_next_id++;
-				new_cluster.m_coord = m_mandatory_schools_clusters.at(index).back().m_coord;
-				m_mandatory_schools_clusters.push_back(vector<SimpleCluster> {new_cluster});
-			}
+			AliasDistribution inner_cluster_dist {vector<double>(m_mandatory_schools_clusters.at(index).size(), 1.0 / m_mandatory_schools_clusters.at(index).size())};
+			uint index2 = inner_cluster_dist(m_rng);
 
-			m_mandatory_schools_clusters.at(index).back().m_current_size++;
-			person.m_school_id = m_mandatory_schools_clusters.at(index).back().m_id;
+			m_mandatory_schools_clusters.at(index).at(index2).m_current_size++;
+			person.m_school_id = m_mandatory_schools_clusters.at(index).at(index2).m_id;
 		}
 	}
 	if (m_output) cerr << "\rAssigning children to schools [100%]...\n";
