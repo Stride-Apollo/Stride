@@ -70,4 +70,5 @@ Makefile
 #-------------------------------------
 # Output
 #------------------------------------
-src/main/electron/data/clusterData
+src/main/electron/data/clusterData/
+node_modules/

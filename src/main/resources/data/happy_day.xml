@@ -2,6 +2,7 @@
 	<RANDOM generator='MT19937' seed='74128'/>
 	
 	<FAMILY file="households_flanders.txt"/>
+	<COMMUTINGDATA start_radius='10' factor="2.0"/>
 	
 	<CITIES>
 		<CITY name="Antwerp" pop="5000" lat="51.123" lon="4.567"/>
@@ -17,17 +18,17 @@
 	</VILLAGES>
 	
 	<EDUCATION>
-		<MANDATORY total_size="500" cluster_size="20" radius="10"/>
-		<OPTIONAL total_size="3000" cluster_size="50" radius="10">
+		<MANDATORY total_size="500" cluster_size="20"/>
+		<OPTIONAL total_size="3000" cluster_size="50">
 			<FAR fraction="30"/>
 		</OPTIONAL>
 	</EDUCATION>
 
 	<WORK size="20">
-		<FAR fraction="30" radius="10"/>
+		<FAR fraction="30"/>
 	</WORK>
 
-	<COMMUNITY size='2000' average_per_person='1.5' radius="10"/>
+	<COMMUNITY size='2000' average_per_person='1.5'/>
 	
 	<SCHOOL_WORK_PROFILE>
 		<MANDATORY min='3' max='17'/>

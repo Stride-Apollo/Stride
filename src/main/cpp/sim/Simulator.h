@@ -31,17 +31,21 @@
 #include "util/Subject.h"
 #include "util/Random.h"
 #include "util/unipar.h"
+#include "util/SimplePlanner.h"
 #include "behaviour/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
 #include <memory>
 #include <string>
 #include <vector>
+#include <utility>
 
 namespace stride {
 
 class Population;
 class Calendar;
 class Cluster;
+class AsyncSimulator;
+using uint = unsigned int;
 
 /**
  * Main class that contains and direct the virtual world.
@@ -61,6 +65,10 @@ public:
 	/// Change track_index_case setting.
 	void setTrackIndexCase(bool track_index_case);
 
+	void setId(uint id) {m_id = id;}
+
+	uint getId() const {return m_id;}
+
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
 
@@ -76,6 +84,34 @@ public:
 
 	/// Set the states of the rng's
 	void setRngStates(std::vector<std::string> states);
+
+	void setAsyncSimulator(AsyncSimulator* async_sim) {m_async_sim = async_sim;}
+
+	/// Return an index to a cluster in the given vector
+	/// Current policy: search for the first cluster with equal coordinates
+	/// Return the size of the vector if you can't find any
+	uint chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters);
+
+	/// Receive travellers
+	/// @argument travellers: the travellers this simulator has to host. Contains the data needed to identify a person in the home simulator
+	/// @argument days: The amount of days the travellers will stay in this simulator
+	/// @argument destination_district: The name of the city in which the airport / facility is located e.g. "Antwerp"
+	/// @argument destination_facility: The name of the facility / airport e.g. "ANR"
+	/// TODO: future return value?
+	bool hostForeignTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility);
+
+	/// Return people that were abroad
+	/// @argument travellers_indices: contains the indices (in the m_population->m_original vector) of the returning people
+	/// @argument health_status: The Health of the returning people (equal size as travellers_indices, health_status.at(i) belongs to travellers_indices.at(i))
+	/// TODO: future return value?
+	bool welcomeHomeTravellers(const vector<uint>& travellers_indices, const vector<Health>& health_status);
+
+	/// Return people that are here FROM abroad
+	void returnForeignTravellers();
+
+	void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility);
+
+	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
 
 private:
 	// Information about travellers
@@ -121,8 +157,15 @@ public:	// TODO write getters or set friend class for ClusterSaver
 
 	bool m_track_index_case;     ///< General simulation or tracking index case.
 
+	uint m_next_id;		///< The ID of the next traveller that arrives.
+	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
+	uint m_id;	///< ID of the simulator.
+
+	AsyncSimulator* m_async_sim;
+	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
+
 	friend class SimulatorBuilder;
-	friend class LocalSimulatorAdapter;
+	friend class AsyncSimulatorReceiver;
 	friend class Saver;
 	friend class Loader;
 };
