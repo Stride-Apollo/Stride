@@ -15,7 +15,7 @@ using namespace util;
 
 class RemoteSimulatorSender: public AsyncSimulator{
 public:
-  RemoteSimulatorSender(Simulator* sim);
+  RemoteSimulatorSender(const int remote_id);
   ~RemoteSimulatorSender() = default;
 
   /// The bool doesn't matter, C++ can't handle void

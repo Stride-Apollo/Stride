@@ -24,16 +24,15 @@ public:
 
 	Coordinator(initializer_list<AsyncSimulator*> sims)
 		: m_sims(sims.begin(), sims.end()) {
-			cout << "Init coordinator\n";
 			initializeSimulators();}
 
 	void initializeSimulators() {
 		// TODO: also give the simulators a name
-		uint id = 0;
-		for (auto sim: m_sims) {
-			sim->setId(id);
-			++id;
-		}
+		// uint id = 0;
+		// for (auto sim: m_sims) {
+		// 	sim->setId(id);
+		// 	++id;
+		// }
 	}
 
 	void timeStep();

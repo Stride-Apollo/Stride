@@ -4,31 +4,32 @@
 using namespace stride;
 using namespace std;
 
-RemoteSimulatorSender::RemoteSimulatorSender(Simulator* sim): AsyncSimulator(sim), m_count(1){
-  m_sim->setAsyncSimulator(this);
+RemoteSimulatorSender::RemoteSimulatorSender(const int remote_id): m_count(1){
+  this->m_id = remote_id;
+  // m_sim->setAsyncSimulator(this);
 }
 
 // TODO
 // https://stackoverflow.com/questions/14836560/thread-safety-of-mpi-send-using-threads-created-with-stdasync
 future<bool> RemoteSimulatorSender::timeStep(){
   return async([&](){
-			m_sim->timeStep();
+			// m_sim->timeStep();
 			// this->notify(*this);
 			return true;
 		});
 }
 
 void RemoteSimulatorSender::welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers){
-  m_sim->welcomeHomeTravellers(travellers.first, travellers.second);
+  // m_sim->welcomeHomeTravellers(travellers.first, travellers.second);
 }
 
 // usually called by the Coordinator
 void RemoteSimulatorSender::sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility){
-  m_sim->sendNewTravellers(amount, days, destination_sim_id, destination_district, destination_facility);
+  // m_sim->sendNewTravellers(amount, days, destination_sim_id, destination_district, destination_facility);
 }
 
 void RemoteSimulatorSender::returnForeignTravellers(){
-  m_sim->returnForeignTravellers();
+  // m_sim->returnForeignTravellers();
 }
 
 // called by the Simulator

@@ -42,6 +42,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <spdlog/spdlog.h>
 #include <memory>
+#include <vector>
 #include <cassert>
 #include <stdlib.h>
 #include <mpi.h>
@@ -93,8 +94,15 @@ void run_stride(bool track_index_case,
 
 	shared_ptr<Simulator> sim = setup.getSimulator();
 	// auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	auto local_sim = make_shared<RemoteSimulatorSender>(sim.get());
-	Coordinator coord({local_sim.get()});
+	auto local_sim = make_shared<RemoteSimulatorSender>(world_rank);
+	// Initialize remote simulators
+	std::vector<RemoteSimulatorSender*> remoteSenders;
+	remoteSenders.push_back(local_sim.get());
+	for (int i = 1; i < world_size; i++){
+		auto remoteSender = make_shared<RemoteSimulatorSender>(i);
+		remoteSenders.push_back(remoteSender.get());
+	}
+	Coordinator coord({remoteSenders});
 
 	cout << "Done building the simulator. " << endl << endl;
 
