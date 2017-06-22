@@ -45,50 +45,42 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, const int& s
 	m_output = output;
 	m_rng = U(seed);
 
-	try {
-		if (!m_output) {
-			cerr.setstate(ios_base::failbit);
-		}
-		checkForValidXML();
-		cerr.clear();
-	} catch (...) {
-		cerr.clear();
-		throw;
-	}
+	checkForValidXML();
 }
 
 template <class U>
 void PopulationGenerator<U>::generate(const string& target_cities, const string& target_pop, const string& target_households, const string& target_clusters) {
-	if (!m_output) {
-		cerr.setstate(ios_base::failbit);
-	}
 
-	try {
-		if (m_output) cerr << "Generating " << m_total << " people...\n";
-		makeHouseholds();
-		makeCities();
-		makeVillages();
-		placeHouseholds();
-		makeSchools();
-		makeUniversities();
-		makeWork();
-		makeCommunities();
-		assignToSchools();
-		assignToUniversities();
-		assignToWork();
-		assignToCommunities();
-		if (m_output) cerr << "Generated " << m_people.size() << " people\n";
+	if (m_output) cerr << "Generating " << m_total << " people...\n";
 
-		writeCities(target_cities);
-		writePop(target_pop);
-		writeHouseholds(target_households);
-		writeClusters(target_clusters);
-		cerr.clear();
-	} catch(...) {
-		cerr.clear();
-		throw;
-	}
-	cerr.clear();
+	makeHouseholds();
+	makeCities();
+	makeVillages();
+	placeHouseholds();
+	makeSchools();
+	makeUniversities();
+	makeWork();
+	makeCommunities();
+	assignToSchools();
+	assignToUniversities();
+	assignToWork();
+	
+	double start_radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
+
+	vector<pair<GeoCoordinate, map<double, vector<uint> > > > distance_map = makeDistanceMap(start_radius, factor, m_primary_communities);
+	assignToCommunities(distance_map, m_primary_communities, &SimplePerson::m_primary_community, "primary communities");
+
+	distance_map.clear();
+	distance_map = makeDistanceMap(start_radius, factor, m_secondary_communities);
+	assignToCommunities(distance_map, m_secondary_communities, &SimplePerson::m_secondary_community, "secondary communities");
+
+	if (m_output) cerr << "Generated " << m_people.size() << " people\n";
+
+	writeCities(target_cities);
+	writePop(target_pop);
+	writeHouseholds(target_households);
+	writeClusters(target_clusters);
 }
 
 template <class U>
@@ -107,22 +99,30 @@ void PopulationGenerator<U>::writeCities(const string& target_cities){
 	if (my_file.is_open()) {
 		my_file << "\"city_id\",\"city_name\",\"province\",\"population\",\"x_coord\",\"y_coord\",\"latitude\",\"longitude\"\n";
 
-		/// Picking the province would be better somewhere else, but that would require a big refactor, so I forgive myself for this one
 		uint provinces = m_props.get<uint>("POPULATION.<xmlattr>.provinces");
 		AliasDistribution dist { vector<double>(provinces, 1.0 / provinces) };
+
+		auto printCityData = [&] (const SimpleCity& to_print) {
+			my_file << to_print.m_current_size / total_pop
+				<< ",0,0,"
+				<< to_print.m_coord.m_latitude
+				<< ","
+				<< to_print.m_coord.m_longitude
+				<< endl;
+		};
+
+		auto printVillageData = [&] (const SimpleCluster& to_print) {
+			SimpleCity city = SimpleCity(to_print.m_current_size, to_print.m_max_size, to_print.m_id, "", to_print.m_coord);
+			printCityData(city);
+		};
 
 		for (const SimpleCity& city: m_cities) {
 			my_file.precision(std::numeric_limits<double>::max_digits10);
 			my_file << city.m_id
 				<< ",\""
 				<< city.m_name
-				<< "\"," << dist(m_rng) + 1 << ","
-				<< city.m_current_size / total_pop
-				<< ",0,0,"
-				<< city.m_coord.m_latitude
-				<< ","
-				<< city.m_coord.m_longitude
-				<< endl;
+				<< "\"," << dist(m_rng) + 1 << ",";
+			printCityData(city);
 		}
 
 		uint village_counter = 1;
@@ -131,13 +131,9 @@ void PopulationGenerator<U>::writeCities(const string& target_cities){
 			my_file << village.m_id
 				<< ",\""
 				<< village_counter
-				<< "\"," << dist(m_rng) + 1 << ","
-				<< village.m_current_size / total_pop
-				<< ",0,0,"
-				<< village.m_coord.m_latitude
-				<< ","
-				<< village.m_coord.m_longitude
-				<< endl;
+				<< "\"," << dist(m_rng) + 1 << ",";
+
+			printVillageData(village);
 			village_counter++;
 		}
 
@@ -237,6 +233,14 @@ void PopulationGenerator<U>::checkForValidXML() const {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 
+		/// Valid commuting data: the start radius is a positive double, and the factor is a double greater than 1
+		double radius = pop_config.get<double>("COMMUTINGDATA.<xmlattr>.start_radius");
+		double factor = pop_config.get<double>("COMMUTINGDATA.<xmlattr>.factor");
+
+		if (radius <= 0 || factor <= 1.0) {
+			throw invalid_argument("In PopulationGenerator: Numerical error.");
+		}
+
 		/// Cities: unique location
 		if (m_output) cerr << "\rChecking for valid XML [0%]";
 		int total_size = 0;
@@ -272,12 +276,6 @@ void PopulationGenerator<U>::checkForValidXML() const {
 		if (has_no_cities) {
 			throw invalid_argument("In PopulationGenerator: No cities found.");
 		}
-
-		// if (total_size > m_total) {
-		// 	/// TODO is this necessary?
-		// 	/// throw invalid_argument("In PopulationGenerator: City population in XML exceeds the total population.");
-		// }
-
 
 		/// Check for valid villages
 		if (m_output) cerr << "\rChecking for valid XML [18%]";
@@ -325,13 +323,12 @@ void PopulationGenerator<U>::checkForValidXML() const {
 		int cluster_size = education_config.get<int>("MANDATORY.<xmlattr>.cluster_size");
 		int mandatory_min = school_work_config.get<int>("MANDATORY.<xmlattr>.min");
 		int mandatory_max = school_work_config.get<int>("MANDATORY.<xmlattr>.max");
-		double radius = education_config.get<double>("MANDATORY.<xmlattr>.radius");
 
 		if (mandatory_min > mandatory_max || mandatory_min < 0 || mandatory_max < 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
 		}
 
-		if (total_size <= 0 || cluster_size <= 0 || radius <= 0) {
+		if (total_size <= 0 || cluster_size <= 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 
@@ -343,13 +340,12 @@ void PopulationGenerator<U>::checkForValidXML() const {
 		cluster_size = education_config.get<int>("OPTIONAL.<xmlattr>.cluster_size");
 		fraction = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 		total_size = education_config.get<uint>("OPTIONAL.<xmlattr>.total_size");
-		radius = education_config.get<double>("OPTIONAL.<xmlattr>.radius");
 
 		if (minimum > max || minimum < 0 || max < 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
 		}
 
-		if (total_size <= 0 || cluster_size <= 0 || radius <= 0 || fraction < 0.0 || fraction > 1.0) {
+		if (total_size <= 0 || cluster_size <= 0 || fraction < 0.0 || fraction > 1.0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 
@@ -374,13 +370,12 @@ void PopulationGenerator<U>::checkForValidXML() const {
 		minimum = school_work_config.get<int>("EMPLOYEE.<xmlattr>.min");
 		max = school_work_config.get<int>("EMPLOYEE.<xmlattr>.max");
 		fraction = school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
-		radius = work_config.get<double>("FAR.<xmlattr>.radius");
 
 		if (minimum > max || minimum < 0 || max < 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error in min/max pair.");
 		}
 
-		if (total_size <= 0 || cluster_size <= 0 || radius <= 0 || fraction < 0.0 || fraction > 1.0) {
+		if (total_size <= 0 || cluster_size <= 0 || fraction < 0.0 || fraction > 1.0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 
@@ -405,9 +400,8 @@ void PopulationGenerator<U>::checkForValidXML() const {
 		/// Check for valid communities
 		if (m_output) cerr << "\rChecking for valid XML [84%]";
 		total_size = pop_config.get<int>("COMMUNITY.<xmlattr>.size");
-		radius = pop_config.get<int>("COMMUNITY.<xmlattr>.radius");
 
-		if (total_size <= 0 || radius <= 0) {
+		if (total_size <= 0) {
 			throw invalid_argument("In PopulationGenerator: Numerical error.");
 		}
 		if (m_output) cerr << "\rChecking for valid XML [100%]\n";
@@ -484,14 +478,8 @@ void PopulationGenerator<U>::makeCities() {
 			double longitude = it->second.get<double>("<xmlattr>.lon");
 			size_check += size;
 
-			SimpleCity new_city;
-			new_city.m_max_size = size;
-			new_city.m_current_size = 0;
-			new_city.m_id = m_next_id;
-			new_city.m_name = name;
-			m_next_id++;
-			new_city.m_coord.m_longitude = longitude;
-			new_city.m_coord.m_latitude = latitude;
+			SimpleCity new_city = SimpleCity(0, size, m_next_id, name, GeoCoordinate(latitude, longitude));
+			++m_next_id;
 
 			m_cities.push_back(new_city);
 		}
@@ -737,7 +725,7 @@ void PopulationGenerator<U>::makeUniversities() {
 template <class U>
 void PopulationGenerator<U>::sortWorkplaces() {
 	/// Sorts according to the cities (assumes they are sorted in a way that you might desire)
-	list<SimpleCluster> result;
+	vector<SimpleCluster> result;
 
 	for (SimpleCity& city: m_cities) {
 		for (SimpleCluster& workplace: m_workplaces) {
@@ -812,18 +800,16 @@ void PopulationGenerator<U>::makeCommunities() {
 
 template <class U>
 void PopulationGenerator<U>::assignToSchools() {
-	/// TODO add factor to xml?
 	m_next_id = 1;
 	ptree education_config = m_props.get_child("POPULATION.EDUCATION.MANDATORY");
 	ptree school_work_config = m_props.get_child("POPULATION.SCHOOL_WORK_PROFILE.MANDATORY");
 	uint min_age = school_work_config.get<uint>("<xmlattr>.min");
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
-	double start_radius = education_config.get<double>("<xmlattr>.radius");
+	double start_radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
 	uint cluster_size = education_config.get<uint>("<xmlattr>.cluster_size");
 
-	double factor = 2.0;
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
 
-	/// TODO refactor => this is not pretty at all
 	for (SimpleCluster& cluster: m_mandatory_schools) {
 		SimpleCluster new_cluster;
 		new_cluster.m_max_size = cluster_size;
@@ -842,6 +828,8 @@ void PopulationGenerator<U>::assignToSchools() {
 		total += m_age_distribution[i];
 	}
 
+	auto distance_map = makeDistanceMap(start_radius, factor, m_mandatory_schools);
+
 	for (SimplePerson& person: m_people) {
 		current_radius = start_radius;
 		if (person.m_age >= min_age && person.m_age <= max_age) {
@@ -851,7 +839,7 @@ void PopulationGenerator<U>::assignToSchools() {
 			vector<uint> closest_clusters_indices;
 
 			while (closest_clusters_indices.size() == 0 && m_mandatory_schools.size() != 0) {
-				closest_clusters_indices = getClusters(person.m_coord, current_radius, m_mandatory_schools);
+				closest_clusters_indices = getClustersWithinRange(current_radius, distance_map, person.m_coord);
 				current_radius *= factor;
 			}
 
@@ -871,7 +859,7 @@ void PopulationGenerator<U>::assignToSchools() {
 			person.m_school_id = m_mandatory_schools_clusters.at(index).back().m_id;
 		}
 	}
-	if (m_output) cerr << "\rAssigning children to schools [100%]...";
+	if (m_output) cerr << "\rAssigning children to schools [100%]...\n";
 }
 
 template <class U>
@@ -882,7 +870,7 @@ void PopulationGenerator<U>::assignToUniversities() {
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	double student_fraction = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 	double commute_fraction = university_config.get<double>("FAR.<xmlattr>.fraction") / 100.0;
-	double radius = university_config.get<double>("<xmlattr>.radius") / 100.0;
+	double radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
 
 	AliasDistribution commute_dist { {commute_fraction, 1.0 - commute_fraction} };
 	AliasDistribution student_dist { {student_fraction, 1.0 - student_fraction} };
@@ -894,6 +882,8 @@ void PopulationGenerator<U>::assignToUniversities() {
 		total += m_age_distribution[i];
 	}
 
+	auto distance_map = makeDistanceMap(radius, 2.0, m_optional_schools);
+
 	for (SimplePerson& person: m_people) {
 		if (person.m_age >= min_age && person.m_age <= max_age && student_dist(m_rng) == 0) {
 			if (m_output) cerr << "\rAssigning students to universities [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
@@ -901,10 +891,10 @@ void PopulationGenerator<U>::assignToUniversities() {
 
 			if (commute_dist(m_rng) == 0) {
 				/// Commuting student
-				assignCommutingStudent(person);
+				assignCommutingStudent(person, distance_map);
 			} else {
 				/// Non-commuting student
-				assignCloseStudent(person, radius);
+				assignCloseStudent(person, radius, distance_map);
 			}
 		}
 	}
@@ -912,19 +902,71 @@ void PopulationGenerator<U>::assignToUniversities() {
 }
 
 template <class U>
-void PopulationGenerator<U>::assignCommutingStudent(SimplePerson& person) {
+void PopulationGenerator<U>::removeFromUniMap(vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map, uint index) const {
+	bool full_capacity = true;
+
+	for (uint curr_univ = index; curr_univ < m_optional_schools.size(); ++curr_univ) {
+		for (const SimpleCluster& uni: m_optional_schools.at(curr_univ)) {
+			if (uni.m_current_size < uni.m_max_size) {
+				full_capacity = false;
+			}
+		}
+	}
+
+	/// Remove the university from the map if it is full
+	if (full_capacity) {
+		for (auto& coord_map_pair: distance_map) {
+			for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
+				auto& index_vector = it->second;
+
+				auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
+
+				if (cluster_iterator != index_vector.end()) {
+					index_vector.erase(cluster_iterator, ++cluster_iterator);
+				}
+				
+			}
+		}
+	}
+}
+
+template <class U>
+bool PopulationGenerator<U>::removeFromMap(vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map, uint index) const {
+	bool deleted = false;
+
+	// Remove this cluster from the distance map
+	for (auto& coord_map_pair: distance_map) {
+		for (auto it = coord_map_pair.second.begin(); it != coord_map_pair.second.end(); ++it) {
+			auto& index_vector = it->second;
+
+			auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
+			
+			if (cluster_iterator != index_vector.end()) {
+				index_vector.erase(cluster_iterator, ++cluster_iterator);
+				deleted = true;
+			}
+		}
+	}
+
+	return deleted;
+}
+
+template <class U>
+void PopulationGenerator<U>::assignCommutingStudent(SimplePerson& person, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
 	uint current_city = 0;
 	bool added = false;
 
 	while (current_city < m_cities.size() && !added) {
 		uint current_univ = current_city;
 		while (current_univ < m_optional_schools.size() && !added) {
-			for (uint i = 0; i < m_optional_schools.at(current_univ).size(); i++) {
+			for (uint i = 0; i < m_optional_schools.at(current_univ).size(); ++i) {
 				SimpleCluster& univ_cluster = m_optional_schools.at(current_univ).at(i);
 				if (univ_cluster.m_current_size < univ_cluster.m_max_size) {
 					univ_cluster.m_current_size++;
 					person.m_school_id = univ_cluster.m_id;
 					added = true;
+
+					removeFromUniMap(distance_map, current_city);
 					break;
 				}
 			}
@@ -932,15 +974,11 @@ void PopulationGenerator<U>::assignCommutingStudent(SimplePerson& person) {
 		}
 		current_city++;
 	}
-
-	if (!added) {
-		cout << "EXCEPT1\n";
-	}
 }
 
 template <class U>
-void PopulationGenerator<U>::assignCloseStudent(SimplePerson& person, double start_radius) {
-	double factor = 2.0;
+void PopulationGenerator<U>::assignCloseStudent(SimplePerson& person, double start_radius, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
 	double current_radius = start_radius;
 	bool added = false;
 	vector<uint> closest_clusters_indices;
@@ -949,19 +987,23 @@ void PopulationGenerator<U>::assignCloseStudent(SimplePerson& person, double sta
 
 		// Note how getting the distance to the closest univ is the same as getting the distance to the closest city
 		// This is because their vectors are in the same order!
-		closest_clusters_indices = getClusters(person.m_coord, current_radius, m_cities);
 
-		while (closest_clusters_indices.size() != 0) {
+		closest_clusters_indices = getClustersWithinRange(current_radius, distance_map, person.m_coord);
+
+		if (closest_clusters_indices.size() != 0) {
 			AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / closest_clusters_indices.size())};
 
 			uint index = dist(m_rng);
 			while (index < m_optional_schools.size() && !added) {
+
 				for (uint i = 0; i < m_optional_schools.at(index).size(); i++) {
 					SimpleCluster& univ_cluster = m_optional_schools.at(index).at(i);
 					if (univ_cluster.m_current_size < univ_cluster.m_max_size) {
 						univ_cluster.m_current_size++;
 						person.m_school_id = univ_cluster.m_id;
 						added = true;
+
+						removeFromUniMap(distance_map, index);
 						break;
 					}
 				}
@@ -970,16 +1012,10 @@ void PopulationGenerator<U>::assignCloseStudent(SimplePerson& person, double sta
 
 			if (added) {
 				break;
-			} else {
-				closest_clusters_indices.erase(closest_clusters_indices.begin() + (index % closest_clusters_indices.size()),
-					closest_clusters_indices.begin() + (index % closest_clusters_indices.size()) + 1);
 			}
 		}
 
 		current_radius *= factor;
-		if (closest_clusters_indices.size() == m_cities.size() && !added) {
-			cout << "EXCEPT2\n";
-		}
 	}
 }
 
@@ -991,21 +1027,24 @@ void PopulationGenerator<U>::assignToWork() {
 	uint max_age = school_work_config.get<uint>("EMPLOYEE.<xmlattr>.max");
 	double unemployment_rate = 1.0 - school_work_config.get<double>("<xmlattr>.fraction") / 100.0;
 	double commute_fraction = work_config.get<double>("FAR.<xmlattr>.fraction") / 100.0;
-	double radius = work_config.get<double>("FAR.<xmlattr>.radius") / 100.0;
+	double radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
 
 	AliasDistribution unemployment_dist { {unemployment_rate, 1.0 - unemployment_rate} };
 	AliasDistribution commute_dist { {commute_fraction, 1.0 - commute_fraction} };
 
 	uint total = 0;
 	uint total_placed = 0;
+	uint amount_full = 0;
 
 	for (uint i = min_age; i <= max_age; i++) {
 		total += m_age_distribution[i];
 	}
 
+	auto distance_map = makeDistanceMap(radius, 2.0, m_workplaces);
+
 	for (SimplePerson& person: m_people) {
-		if (m_workplaces.size() == 0) {
-			// Stop adding people to workplaces, they are full
+		if (amount_full == m_workplaces.size()) {
+			// No more workplaces left, just stop
 			break;
 		}
 
@@ -1013,12 +1052,17 @@ void PopulationGenerator<U>::assignToWork() {
 			if (m_output) cerr << "\rAssigning people to workplaces [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
 			total_placed++;
 			if (unemployment_dist(m_rng) == 1 && person.m_school_id == 0) {
+				bool filled_cluster = true;
 				if (commute_dist(m_rng) == 0) {
 					/// Commuting employee
-					assignCommutingEmployee(person);
+					filled_cluster = assignCommutingEmployee(person, distance_map);
 				} else {
 					/// Non-commuting employee
-					assignCloseEmployee(person, radius);
+					filled_cluster = assignCloseEmployee(person, radius, distance_map);
+				}
+
+				if (filled_cluster) {
+					++amount_full;
 				}
 			}
 		}
@@ -1027,142 +1071,96 @@ void PopulationGenerator<U>::assignToWork() {
 }
 
 template <class U>
-void PopulationGenerator<U>::assignCommutingEmployee(SimplePerson& person) {
+bool PopulationGenerator<U>::assignCommutingEmployee(SimplePerson& person, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
 	/// TODO ask question: it states that a full workplace has to be ignored
 		/// but workplaces can be in cities and villages where commuting is only in cities  => possible problems with over-employing in cities
 	/// Behavior on that topic is currently as follows: do the thing that is requested, if all cities are full, it just adds to the first village in the list
 
-	for (auto it = m_workplaces.begin(); it != m_workplaces.end(); it++) {
-		SimpleCluster& workplace = *it;
+	for (uint i = 0; i < m_workplaces.size(); ++i) {
+		SimpleCluster& workplace = m_workplaces.at(i);
 
 		if (workplace.m_max_size > workplace.m_current_size) {
 			workplace.m_current_size++;
 			person.m_work_id = workplace.m_id;
 
 			if (workplace.m_current_size >= workplace.m_max_size) {
-				auto it2 = it;
-				it2++;
-				m_workplaces.erase(it, it2);
+				return removeFromMap(distance_map, i);
 			}
 
 			break;
 		}
 	}
+
+	return false;
 }
 
 template <class U>
-void PopulationGenerator<U>::assignCloseEmployee(SimplePerson& person, double start_radius) {
-	double factor = 2.0;
+bool PopulationGenerator<U>::assignCloseEmployee(SimplePerson& person, double start_radius, vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map) {
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
 	double current_radius = start_radius;
 
-	while (true) {
-		vector<list<SimpleCluster>::iterator> closest_clusters_iterators;
-		const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
-		for (auto it = m_workplaces.begin(); it != m_workplaces.end(); it++) {
-			if (calc.getDistance(person.m_coord, it->m_coord) <= current_radius) {
-				closest_clusters_iterators.push_back(it);
-			}
-		}
+	vector<uint> closest_clusters_indices;
 
-
-		if (closest_clusters_iterators.size() != 0) {
-			AliasDistribution dist { vector<double>(closest_clusters_iterators.size(), 1.0 / double(closest_clusters_iterators.size())) };
-			uint rnd = dist(m_rng);
-			auto it = closest_clusters_iterators.at(rnd);
-			SimpleCluster& workplace = *it;
-
-			person.m_work_id = workplace.m_id;
-			workplace.m_current_size++;
-
-			if (workplace.m_current_size >= workplace.m_max_size) {
-				auto it2 = it;
-				it2++;
-				m_workplaces.erase(it, it2);
-			}
-
-			break;
-		}
+	while (closest_clusters_indices.size() == 0) {
+		closest_clusters_indices = getClustersWithinRange(current_radius, distance_map, person.m_coord);
 		current_radius *= factor;
 	}
+
+	AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
+	uint rnd = dist(m_rng);
+	auto index = closest_clusters_indices.at(rnd);
+	SimpleCluster& workplace = m_workplaces.at(index);
+
+	person.m_work_id = workplace.m_id;
+
+	workplace.m_current_size++;
+
+	if (workplace.m_current_size >= workplace.m_max_size) {
+		return removeFromMap(distance_map, index);
+	}
+
+
+	return false;
 }
 
 template <class U>
-void PopulationGenerator<U>::assignToCommunities() {
-	/// NOTE to self: community vectors are destroyed!
-	double start_radius = m_props.get<double>("POPULATION.COMMUNITY.<xmlattr>.radius");
-	double factor = 2.0;
-	vector<uint> closest_clusters_indices;
+void PopulationGenerator<U>::assignToCommunities(vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map,
+													vector<SimpleCluster>& clusters,
+													uint SimplePerson::* member,
+													const string& name) {
+
+	double start_radius = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.start_radius");
+	double factor = m_props.get<double>("POPULATION.COMMUTINGDATA.<xmlattr>.factor");
 
 	uint total = m_households.size();
 	uint total_placed = 0;
 
 	for (SimpleHousehold& household: m_households) {
-		if (m_output) cerr << "\rAssigning people to primary community [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
+		if (m_output) cerr << "\rAssigning people to " << name << " [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
 		total_placed++;
 
 		double current_radius = start_radius;
+		vector<uint> closest_clusters_indices;
 
-		while (true) {
-			/// Get the clusters within a certain radius
-			closest_clusters_indices = getClusters(m_people.at(household.m_indices.at(0)).m_coord, current_radius, m_primary_communities);
-
-			if (closest_clusters_indices.size() == 0) {
-				/// Search was unsuccessful, try again
-				current_radius *= factor;
-			} else {
-				/// Search was successfull, uniformly choose a community
-				AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
-				uint index = closest_clusters_indices.at(dist(m_rng));
-				SimpleCluster& community = m_primary_communities.at(index);
-				for (uint& person_index: household.m_indices) {
-					SimplePerson& person = m_people.at(person_index);
-					person.m_primary_community = community.m_id;
-					community.m_current_size++;
-				}
-
-				/// Remove the community if it is full
-				if (community.m_current_size >= community.m_max_size) {
-					m_primary_communities.erase(m_primary_communities.begin() + index);
-				}
-				break;
-			}
+		while (closest_clusters_indices.size() == 0) {
+			closest_clusters_indices = getClustersWithinRange(current_radius, distance_map, m_people.at(household.m_indices.back()).m_coord);
+			current_radius *= factor;
 		}
-	}
-	if (m_output) cerr << "\rAssigning people to primary community [100%]...\n";
 
-	total_placed = 0;
-
-	for (SimpleHousehold& household: m_households) {
-		if (m_output) cerr << "\rAssigning people to secondary community [" << min(uint(double(total_placed) / total * 100), 100U) << "%]";
-		total_placed++;
-
-		double current_radius = start_radius;
-
-		while (true) {
-			/// Get the clusters within a certain radius
-			closest_clusters_indices = getClusters(m_people.at(household.m_indices.at(0)).m_coord, current_radius, m_secondary_communities);
-
-			if (closest_clusters_indices.size() == 0) {
-				/// Search was unsuccessful, try again
-				current_radius *= factor;
-			} else {
-				/// Search was successfull, uniformly choose a community
-				AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
-				uint index = closest_clusters_indices.at(dist(m_rng));
-				SimpleCluster& community = m_secondary_communities.at(index);
-				for (uint& person_index: household.m_indices) {
-					SimplePerson& person = m_people.at(person_index);
-					person.m_secondary_community = community.m_id;
-					community.m_current_size++;
-				}
-
-				/// Remove the community if it is full
-				if (community.m_current_size >= community.m_max_size) {
-					m_secondary_communities.erase(m_secondary_communities.begin() + index);
-				}
-				break;
-			}
+		AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
+		uint index = closest_clusters_indices.at(dist(m_rng));
+		SimpleCluster& community = clusters.at(index);
+		for (uint& person_index: household.m_indices) {
+			SimplePerson& person = m_people.at(person_index);
+			person.*member = community.m_id;
+			community.m_current_size++;
 		}
+
+		/// Remove the community if it is full
+		if (community.m_current_size >= community.m_max_size) {
+			removeFromMap(distance_map, index);
+		}
+
 	}
-	if (m_output) cerr << "\rAssigning people to secondary community [100%]...\n";
+	if (m_output) cerr << "\rAssigning people to " << name << " [100%]...\n";
 }

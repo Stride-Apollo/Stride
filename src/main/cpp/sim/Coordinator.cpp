@@ -14,7 +14,7 @@ void Coordinator::timeStep() {
 	vector<future<bool>> fut_results;
 
 	// Run the simulator for the day
-	for (AsyncSim* sim: m_sims) {
+	for (AsyncSimulator* sim: m_sims) {
 		fut_results.push_back(sim->timeStep());
 	}
 	future_pool(fut_results);
@@ -35,27 +35,10 @@ void Coordinator::timeStep() {
 			continue;
 		}
 
-		m_sims.at(new_flight.m_source_sim)->sendTravellers(new_flight.m_amount,
+		m_sims.at(new_flight.m_source_sim)->sendNewTravellers(new_flight.m_amount,
 															new_flight.m_duration,
-															m_sims.at(new_flight.m_destination_sim),
+															m_sims.at(new_flight.m_destination_sim)->getId(),
 															new_flight.m_district,
 															new_flight.m_facility);
-	}
-}
-
-vector<TravellerData> Coordinator::getTravellerData() {
-	vector<TravellerData> traveller_data;
-
-	for (auto& sim: m_sims) {
-		vector<TravellerData> sim_data = sim->getTravellerData();
-		traveller_data.insert(traveller_data.end(), sim_data.begin(), sim_data.end());
-	}
-
-	return traveller_data;
-}
-
-void Coordinator::forceSendTravellers(const vector<TravellerData>& traveller_data) {
-	for (auto& data: traveller_data) {
-		m_sims.at(data.m_source_simulator)->forceSend(data, m_sims.at(data.m_destination_simulator));
 	}
 }

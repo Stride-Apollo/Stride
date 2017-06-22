@@ -1,73 +1,80 @@
 #pragma once
 
 #include <future>
+#include <map>
+#include <iostream>
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
 #include "util/Subject.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
-#include "pop/TravellerData.h"
-#include "checkpointing/Saver.h"
-#include "checkpointing/Loader.h"
+#include "util/Subject.h"
+#include "core/ClusterType.h"
+// #include "checkpointing/Saver.h"
+// #include "checkpointing/Loader.h"
 
 namespace stride {
 
 class Coordinator;
 class ClusterSaver;
 
+template<ClusterType clusterType>
+class ClusterCalculator;
+
 using namespace std;
 using namespace util;
 
-class LocalSimulatorAdapter : public AsyncSimulator<Simulator::TravellerType, void*, TravellerData>, public Subject<LocalSimulatorAdapter> {
-
+class LocalSimulatorAdapter : public AsyncSimulator, public Subject<LocalSimulatorAdapter> {
 public:
 	/// The constructor, this adapter will control one simulator
 	LocalSimulatorAdapter(Simulator* sim);
 
-	/// Run one day in the simulation
+	void setCommunicationMap(const std::map<uint, AsyncSimulator*>& adapters) {m_adapters = adapters;}
+
 	virtual future<bool> timeStep() override;
 
-	/// Receive travelers
-	virtual bool host(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) override;
+	virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health> >& travellers) override;
 
-	/// Send travellers to the destination region, return a vector with the ID's of the sent people
-	virtual vector<unsigned int> sendTravellers(uint amount, uint days, void* destination_sim, string destination_district, string destination_facility) override;
+	/// Receive travellers
+	/// @argument travellers: the travellers this simulator has to host. Contains the data needed to identify a person in the home simulator
+	/// @argument days: The amount of days the travellers will stay in this simulator
+	/// @argument destination_district: The name of the city in which the airport / facility is located e.g. "Antwerp"
+	/// @argument destination_facility: The name of the facility / airport e.g. "ANR"
+	/// TODO: future return value?
+	virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) override;
 
-	/// Helps to integrate multi region and HDF5 checkpointing
-	/// Receive a traveller, get your new IDs of the clusters from the traveller data
-	virtual bool forceHost(const Simulator::TravellerType& traveller, const TravellerData& traveller_data) override;
+	/// Send travellers to the destination region
+	/// Returns a vector of indices (in the Population of the simulator), these indices are from the people that were sent (debugging purposes)
+	/// @argument amount: the amount of travellers to be sent
+	/// @argument days: how long these people will be gone
+	/// @argument destination_sim: a way of communicating with the destination simulator, this must contain all data to achieve communication
+	/// @argument destination_district: The name of the city in which the airport / facility is located e.g. "Antwerp"
+	/// @argument destination_facility: The name of the facility / airport e.g. "ANR"
+	virtual void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) override;
 
-	/// Helps to integrate multi region and HDF5 checkpointing
-	/// Return all travellers in this simulator back home
-	vector<TravellerData> forceReturn();
-
-	/// Helps to integrate multi region and HDF5 checkpointing
-	/// Does the same as AsyncSimulator::forceReturn except for the fact that the travellers aren't sent back home
-	virtual vector<TravellerData> getTravellerData() override;
-
-	/// Helps to integrate multi region and HDF5 checkpointing
-	/// Force send a traveller to a simulator
-	virtual void forceSend(const TravellerData& traveller_data, void* destination_sim) override;
+	virtual void returnForeignTravellers() override;
 
 	const Simulator& getSimulator() const {return *m_sim;}
 
-	/// For testing purposes
-	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
+private:
+	std::map<uint, AsyncSimulator*> m_adapters;	///< A map that contains the interfaces of the other simulators
 
-public:
-	void returnTraveller(Simulator::TravellerType& traveller);
+	/// Send travellers to the destination region
+	/// This function is used by the Simulator to give the signal to send people
+	virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, uint destination_sim_id, string destination_district, string destination_facility) override;
 
-	Simulator* m_sim;	///< The Simulator this adapter controls.
-	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
+	/// Send foreign travellers to the original region
+	/// This function is used by the Simulator to give the signal to send people
+	virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health> >& travellers, uint home_sim_id) override;
 
-	uint m_next_id;		///< The ID of the next traveller that arrives.
-	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
-
+	friend class Simulator;
 	friend class Coordinator;
 	friend class ClusterSaver;
 	friend class Saver;
 	friend class Loader;
+	template<ClusterType clusterType>
+	friend class ClusterCalculator;
 };
 
 }

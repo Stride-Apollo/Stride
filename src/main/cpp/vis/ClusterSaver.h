@@ -110,7 +110,7 @@ public:
 			cout << "HANDLED CL " << toString(cluster.getClusterType()) << " " << cluster.getSize() << " ID " << cluster.getId() << endl;
 
 			if (result.find(cluster.getSize()) == result.end() && cluster.getSize() != 0) {
-				result[cluster.getSize()] = 0;
+				result[cluster.getSize()] = 1;
 			} else {
 				++result[cluster.getSize()];
 			}
