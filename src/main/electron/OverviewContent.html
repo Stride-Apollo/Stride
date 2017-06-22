@@ -3,6 +3,7 @@
 <head>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+	<link rel="stylesheet" href="menuBar.css">
 	<link rel="stylesheet" href="popup.css">
 	<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
@@ -16,27 +17,70 @@
 	<base href="/">
 </head>
 <body>
-<h2 id="title">Overview</h2>
+<p class="title">Overview</p>
 
 <div id="graphInfected"></div>
-	<h3>Information for current day: {{currentDay}}</h3>
-	<ul class="demo-list-item mdl-list" id="current_data">
+	<p class="subtitle">Information for current day: {{currentDay}}</p>
+	<ul class="demo-list-item mdl-list questions" id="current_data">
 		<li class="mdl-list__item">
-			<span class="mdl-list__item-primary-content">Population Size: {{population_size}}</span>
+			<span class="mdl-list__item-primary-content">Population Size:</span>
 		</li>
 		<li class="mdl-list__item">
-			<span class="mdl-list__item-primary-content">Amount of infected people: {{infected}}</span>
+			<span class="mdl-list__item-primary-content">Amount of infected people:</span>
 		</li>
 		<li class="mdl-list__item">
-			<span class="mdl-list__item-primary-content">Amount of clusters: {{total_cluster}}</span>
+			<span class="mdl-list__item-primary-content">Amount of clusters:</span>
 		</li>
 	</ul>
-	<h3>Available clusters:</h3>
-	<ul class="demo-list-item mdl-list" id="questions">
-		<li class="mdl-list__item" ng-repeat="cluster in clusters">
-			<span ng-click="clusterClick(cluster.ID)" class="mdl-list__item-primary-content">Cluster {{cluster.ID}}</span>
+
+	<ul class="demo-list-item mdl-list answers">
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{population_size}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{infected}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{total_cluster}}</span>
 		</li>
 	</ul>
+
+	<p class="subtitle">Pick a cluster</p>
+	<div id="pickClusterArea">
+		<div class="paneContainer">
+			<div class="pane">
+				<div id="tableContainer">
+					<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp"  id="clusterList">
+						<thead class="nonexistent">
+							<tr class="nonexistent">
+								<th class="mdl-data-table__cell--non-numeric nonexistent"></th>
+								<th class="nonexistent"></th>
+							</tr class="nonexistent">
+						</thead>
+						<tbody>
+							<tr ng-click="clusterClick(cluster.ID)" ng-repeat="cluster in clusters">
+								<td class="clickable">Cluster {{cluster.ID}}</td>
+								<td class="clickable">{{cluster.type}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div id="centerPane" class="pane">Or</div>
+			<div class="pane">
+				<form action="#">
+					<div class="mdl-textfield mdl-js-textfield">
+						<input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="inputID">
+						<label class="mdl-textfield__label" for="sample2">Cluster ID...</label>
+						<span class="mdl-textfield__error">Input is not a number!</span>
+					</div>
+				</form>
+				<button id="btnChooseCluster" class="mdl-button mdl-js-button mdl-button--raised fullWidthBtn center" ng-click="TODO()">
+					Open Cluster
+				</button>
+			</div>
+		</div>
+	</div>
 </div>
 </body>
 
