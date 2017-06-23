@@ -14,7 +14,8 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 
 	$scope.save = function() {
 		console.log("Saving");
-		var saveString = "{\"directory\": \"" + config.directory.toString() + "\",\"color_no_infected\": \""
+		var saveString = "{\"directory\": \"" + config.directory.toString()
+			+ "\",\"population_directory\": \"" + $scope.population_directory + "\",\"color_no_infected\": \""
 			+ getHexColor($scope.no_infected_color).toString() + "\",\"color_min_infected\": \""
 			+ getHexColor($scope.min_infected_color).toString() + "\",\"color_max_infected\": \""
 			+ getHexColor($scope.max_infected_color).toString() + "\",\"circle_opacity\": "
@@ -51,6 +52,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 
 	function setupConfig(data) {
 		config = JSON.parse(data);
+		$scope.population_directory = config.population_directory;
 		$scope.no_infected_color = config.color_no_infected;
 		$scope.min_infected_color = config.color_min_infected;
 		$scope.max_infected_color = config.color_max_infected;
@@ -334,6 +336,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		var url = "file://" + __dirname + '/OverviewContent.html?data='
 			+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
 			+ "&directory=" + __dirname + "/" + config.directory
+			+ "&population=" + __dirname + "/" + config.population_directory
 			+ "&currentDay=" + $scope.currentDay;
 		overview.loadURL(url);
 	}
@@ -348,6 +351,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 				var url = "file://" + __dirname + '/OverviewContent.html?data='
 					+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
 					+ "&directory=" + __dirname + "/" + config.directory
+					+ "&population=" + __dirname + "/" + config.population_directory
 					+ "&currentDay=" + $scope.currentDay;
 				overview.loadURL(url);
 				overview.focus();

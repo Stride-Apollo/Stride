@@ -31,8 +31,10 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 		$scope.clusters.push(cluster);
 	}
 
+
+	// Load clusters
 	$scope.clusterClick = function(ID) {
-		var dir = $location.search().directory
+		var dir = $location.search().directory;
 		var config = {directory: dir.slice(__dirname.length)};
 		loadCluster(ID, config, filenames, $location.search().currentDay);
 	}
@@ -47,6 +49,21 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 	});
 
 	var clusterEvolution = getTotalInfectedCourse(files);
+
+	// Load population files
+	var pop_files = [];
+	var pop_filenames = [];
+	var pop_dir = $location.search().population;
+	dircontent = fs.readdirSync(pop_dir);
+	dircontent.forEach( function (file){
+		var data = fs.readFileSync(pop_dir + "/" + file, 'utf8');
+		pop_files.push(data);
+		pop_filenames.push(file);
+	});
+
+	console.log(pop_files);
+	console.log(pop_filenames);
+
 
 	$scope.population_size = clusterEvolution[$scope.currentDay].size;
 	$scope.infected = clusterEvolution[$scope.currentDay].infected;
