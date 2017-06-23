@@ -99,8 +99,9 @@ void run_stride(bool track_index_case,
 	std::vector<RemoteSimulatorSender*> remoteSenders;
 	remoteSenders.push_back(local_sim.get());
 	for (int i = 1; i < world_size; i++){
-		shared_ptr<RemoteSimulatorSender> remoteSender(new RemoteSimulatorSender(i));
-		remoteSenders.push_back(remoteSender.get());
+		// shared_ptr<RemoteSimulatorSender> remoteSender(new RemoteSimulatorSender(i));
+		// remoteSenders.push_back(remoteSender.get());
+		remoteSenders.push_back(new RemoteSimulatorSender(i)); // TODO fix this with shared ptrs
 	}
 	Coordinator coord({remoteSenders});
 
