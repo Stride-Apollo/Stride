@@ -52,7 +52,7 @@ void Runner::printInfo() {
 	// TODO: I don't know what kind of info would be really useful to print
 	cout << "  - regions:" << endl;
 	for (auto& it: m_region_configs) {
-		boost::optional<string> remote = it.second.get_optional("remote");
+		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		if (remote)
 			cout << "    - '" << it.first << "' running at " << remote << endl;
 		else
@@ -67,11 +67,11 @@ void Runner::initSimulators() {
 		cout << "\rInitializing simulators [" << i << "/" << m_region_configs.size() << "]";
 		cout.flush();
 
-		boost::optional<string> remote = it.second.get_optional("remote");
+		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		if (not remote) {
 			// build a Simulator...
-			auto sim = make_shared<Simulator>()
-			m_local_simulators[it.first] =
+			//auto sim = make_shared<Simulator>()
+			//m_local_simulators[it.first] =
 		}
 	}
 }

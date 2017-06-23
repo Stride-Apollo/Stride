@@ -24,7 +24,7 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, const int& s
 	try {
 		read_xml((InstallDirs::getDataDir() /= filename).string(), m_props, trim_whitespace | no_comments);
 	} catch (exception& e) {
-		throw invalid_argument("Invalid file");
+		throw invalid_argument(string("Invalid file: ") + (InstallDirs::getDataDir() /= filename).string());
 	}
 
 	try {
@@ -49,7 +49,7 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, const int& s
 }
 
 template <class U>
-void PopulationGenerator<U>::generate(const string& target_cities, const string& target_pop, const string& target_households, const string& target_clusters) {
+void PopulationGenerator<U>::generate(const string& prefix) {
 
 	if (m_output) cerr << "Generating " << m_total << " people...\n";
 
@@ -77,6 +77,11 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 
 	if (m_output) cerr << "Generated " << m_people.size() << " people\n";
 
+	string target_cities = prefix + "_cities.csv";
+	string target_pop = prefix + "_people.csv";
+	string target_households = prefix + "_households.csv";
+	string target_clusters = prefix + "_clusters.csv";
+
 	writeCities(target_cities);
 	writePop(target_pop);
 	writeHouseholds(target_households);
@@ -84,12 +89,12 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 
 	// Now write a summary
 	ptree config;
-	config.put_value("population.people", target_pop);
-	config.put_value("population.districts", target_cities);
-	config.put_value("population.clusters", target_clusters);
-	config.put_value("population.households", target_households);
-	config.put_value("population.cities", m_props.get_child("POPULATION.CITIES"));
-	write_xml()
+	config.put("population.people", target_pop);
+	config.put("population.districts", target_cities);
+	config.put("population.clusters", target_clusters);
+	config.put("population.households", target_households);
+	config.add_child("population.cities", m_props.get_child("POPULATION.CITIES"));
+	write_xml(prefix + ".xml", config, std::locale(), xml_writer_make_settings<string>('\t', 0));
 }
 
 template <class U>
