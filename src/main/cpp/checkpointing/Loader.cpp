@@ -54,7 +54,7 @@ void Loader::loadConfigs() {
 	auto getPropTree = [](string xml_content, ptree& dest_pt) {
 		istringstream iss;
 		iss.str(xml_content);
-		xml_parser::read_xml(iss, dest_pt);
+		xml_parser::read_xml(iss, dest_pt, boost::property_tree::xml_parser::trim_whitespace);
 	};
 
 	getPropTree(configData[0].conf_content, m_pt_config);

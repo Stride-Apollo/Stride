@@ -19,7 +19,7 @@ ProcessConfig::ProcessConfig(const string& filename) {
 				"' is not a regular file. Aborting");
 		}
 
-		read_xml(file_path_config.string(), m_base_ptree);
+		read_xml(file_path_config.string(), m_base_ptree, boost::property_tree::xml_parser::trim_whitespace);
 		this->extractForest();
 	} else {
 		throw runtime_error("Configuration file '" +

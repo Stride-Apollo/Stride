@@ -75,7 +75,6 @@ void run_stride(bool track_index_case,
 	auto config_forest = processed_config.getConfigForest();
 	auto coordinator_config = processed_config.getCoordinatorConfig();
 
-
 	string start_date = coordinator_config.get<string>("coordination.start_date");
 	unsigned int num_days = coordinator_config.get<unsigned int>("coordination.num_days");
 	string output_prefix = coordinator_config.get<string>("coordination.output_prefix", TimeStamp().toTag());
@@ -143,8 +142,6 @@ void run_stride(bool track_index_case,
 		std::string config_hdf5_file = config_tree.get<string>("run.checkpointing_file", "");
 		// TODO don't use command line filenames for multiple simulators
 		if (hdf5_file_name != "" || hdf5_output_file_name != "" || config_hdf5_file != "") {
-			cout << "Checkpointing enabled." << endl;
-
 			int frequency = checkpointing_frequency == -1 ?
 							config_tree.get<int>("run.checkpointing_frequency", 1) : checkpointing_frequency;
 
@@ -186,10 +183,16 @@ void run_stride(bool track_index_case,
 		coord.timeStep();
 		cout << "     Done, infected count: \n";
 		// cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
+		cout << "\tInfected count: ";
+		for (auto sim : simulators) {
+			cout << setw(7) << sim->getPopulation()->getInfectedCount() << " ";
+		}
+		cout << "\n\tAdopters count: ";
 		for (auto sim : simulators) {
 			unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
-			cout << setw(7) << sim->getPopulation()->getInfectedCount() << "     Adopters count: " << setw(7) << adopters << endl;
+			cout << setw(7) <<  adopters << " ";
 		}
+		cout << endl << endl;
 	}
 
 	for (unsigned int i = 0; i < savers.size(); i++) {

@@ -6,16 +6,22 @@ using namespace H5;
 /**
  * Traveller data (multi region extension)
  */
-struct PersonTDDataType {
+struct TravellerType {
+	static CompType getCompType() {
+		CompType type_traveller_data(sizeof(TravellerType));
+		type_traveller_data.insertMember(H5std_string("home_sim_id"), HOFFSET(TravellerType, m_home_sim_id), PredType::NATIVE_UINT);
+		type_traveller_data.insertMember(H5std_string("dest_sim_id"), HOFFSET(TravellerType, m_dest_sim_id), PredType::NATIVE_UINT);
+		type_traveller_data.insertMember(H5std_string("home_sim_index"), HOFFSET(TravellerType, m_home_sim_index), PredType::NATIVE_UINT);
+		type_traveller_data.insertMember(H5std_string("dest_sim_index"), HOFFSET(TravellerType, m_dest_sim_index), PredType::NATIVE_UINT);
+		type_traveller_data.insertMember(H5std_string("days_left"), HOFFSET(TravellerType, m_days_left), PredType::NATIVE_UINT);
 
-	unsigned int m_home_id;
-	unsigned int m_home_age;
+		return type_traveller_data;
+	}
 
-	unsigned int m_destination_work_id;
-	unsigned int m_destination_primary_id;
-	unsigned int m_destination_secondary_id;
+	unsigned int m_home_sim_id;
+	unsigned int m_dest_sim_id;
+	unsigned int m_home_sim_index;
+	unsigned int m_dest_sim_index;
+
 	unsigned int m_days_left;
-
-	unsigned int m_source_simulator;
-	unsigned int m_destination_simulator;
 };

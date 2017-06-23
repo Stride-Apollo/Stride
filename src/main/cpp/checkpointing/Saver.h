@@ -50,6 +50,9 @@ private:
 	/// Saves the time dependent person data.
 	void savePersonTDData(Group& group, const Simulator& sim) const;
 
+	/// Saves the travellers.
+	void saveTravellers(Group& group, const Simulator& sim) const;
+
 	/// Saves the total amount of timesteps and current timestep (create will create the dataset first, otherwise open).
 	void saveTimestepMetadata(H5File& file, unsigned int total_amt, unsigned int current, bool create = false) const;
 

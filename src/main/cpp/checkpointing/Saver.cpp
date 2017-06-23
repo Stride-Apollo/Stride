@@ -13,14 +13,19 @@
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
 #include "pop/Person.h"
+#include "pop/Traveller.h"
 #include "core/Cluster.h"
+#include "util/etc.h"
+#include "util/SimplePlanner.h"
 #include "checkpointing/customDataTypes/CalendarDataType.h"
 #include "checkpointing/customDataTypes/ConfDataType.h"
 #include "checkpointing/customDataTypes/PersonTDDataType.h"
 #include "checkpointing/customDataTypes/PersonTIDataType.h"
-// #include "checkpointing/customDataTypes/TravellerDataType.h"
+#include "checkpointing/customDataTypes/TravellerDataType.h"
 
 #include <vector>
+#include <list>
+#include <memory>
 
 using namespace H5;
 using namespace stride::util;
@@ -102,6 +107,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 
 		this->saveCalendar(group, sim);
 		this->savePersonTDData(group, sim);
+		this->saveTravellers(group, sim);
 
 		this->saveClusters(group, "household_clusters", sim.m_households);
 		this->saveClusters(group, "school_clusters", sim.m_school_clusters);
@@ -109,10 +115,6 @@ void Saver::saveTimestep(const Simulator& sim) {
 		this->saveClusters(group, "primary_community_clusters", sim.m_primary_community);
 		this->saveClusters(group, "secondary_community_clusters", sim.m_secondary_community);
 
-
-		// TODO Save Traveller Person Data
-		// dims[0] = sim.getPopulation().get()->m_visitors.size();
-		// CompType typeTravellerData(sizeof(TravellerDataType));
 
 		this->saveTimestepMetadata(file, m_save_count, m_current_step);
 		m_timestep += m_frequency;
@@ -273,6 +275,57 @@ void Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 }
 
 
+void Saver::saveTravellers(Group& group, const Simulator& sim) const {
+	using PersonType = Simulator::PersonType;
+	using Block = SimplePlanner<Simulator::TravellerType>::Block;
+	using Agenda = SimplePlanner<Simulator::TravellerType>::Agenda;
+
+	// const auto& travellers = sim.m_population->m_visitors.getAgenda();
+	const Agenda& travellers = sim.m_planner.getAgenda();
+	hsize_t dims[1] { sim.m_planner.size() };
+	CompType type_traveller = TravellerType::getCompType();
+
+	DataSpace dataspace = DataSpace(1, dims);
+	DataSet dataset = DataSet(group.createDataSet("Travellers", type_traveller, dataspace));
+	auto traveller_data = make_unique<std::vector<TravellerType>>(dims[0]);
+
+
+	// TODO optimize this
+	auto searchIndex = [&](PersonType* person) {
+		int i = sim.m_population->size();
+		for (auto iter = sim.m_population->begin(); iter != sim.m_population->end(); iter++) {
+			if (person->m_id == (*iter).m_id) {
+				return i;
+			}
+			i++;
+		}
+		return -1;
+	};
+
+	unsigned int current_index = 0;
+	unsigned int list_index = 0;
+
+	for (auto&& day : travellers) {
+		const Block& current_day = *(day);
+		for (auto&& person: current_day) {
+			TravellerType traveller;
+			traveller.m_days_left = list_index;
+			traveller.m_home_sim_id = person->getHomeSimulatorId();
+			traveller.m_dest_sim_id = person->getDestinationSimulatorId();
+			traveller.m_home_sim_index = person->getHomeSimulatorIndex();
+			traveller.m_dest_sim_index = searchIndex(person->getNewPerson());
+
+			(*traveller_data)[current_index++] = traveller;
+		}
+		list_index++;
+	}
+
+	dataset.write(traveller_data->data(), TravellerType::getCompType());
+	dataset.close();
+	dataspace.close();
+}
+
+
 void Saver::saveTimestepMetadata(H5File& file, unsigned int total_amt, unsigned int current, bool create) const {
 	DataSet dataset_amt;
 	if (create == true) {
@@ -357,7 +410,7 @@ void Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 		if (!is_regular_file(filepath))
 			throw std::runtime_error(string(__func__) + "> File " + filepath.string() + " not present/regular.");
 		ptree tree;
-		xml_parser::read_xml(filepath.string(), tree);
+		xml_parser::read_xml(filepath.string(), tree, boost::property_tree::xml_parser::trim_whitespace);
 		return tree;
 	};
 
