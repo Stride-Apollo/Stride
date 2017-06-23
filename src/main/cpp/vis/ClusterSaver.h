@@ -80,22 +80,25 @@ public:
 			longitude_middle += cluster.getLocation().m_longitude;
 		}
 
-		latitude_middle /= clusters.size();
-		longitude_middle /= clusters.size();
+		latitude_middle /= clusters.size() - 1;
+		longitude_middle /= clusters.size() - 1;
 
 		GeoCoordinate middle;
 		middle.m_latitude = latitude_middle;
 		middle.m_longitude = longitude_middle;
 
 		double radius = 0.0;
-		for (const auto& cluster: clusters) {
+
+		for (auto it = clusters.begin() + 1; it != clusters.end(); ++it) {
+			const auto& cluster = *it;
+
 			double candidate_distance = calc.getDistance(middle, cluster.getLocation());
 
-			if (radius < candidate_distance) {
+			if (radius < candidate_distance && cluster.getActiveClusterMembers() != 0) {
 				radius = candidate_distance;
 			}
 		}
-
+		
 		return PI * radius * radius;
 	}
 
@@ -103,16 +106,12 @@ public:
 		map<uint, uint> result;
 
 		for (const auto& cluster: clusters) {
-			if (cluster.getSize() > 30) {
-				cout << "FOUND CL " << toString(cluster.getClusterType()) << " " << cluster.getSize() << " ID " << cluster.getId() << endl;
-				cin.ignore();
-			}
-			cout << "HANDLED CL " << toString(cluster.getClusterType()) << " " << cluster.getSize() << " ID " << cluster.getId() << endl;
+			uint count = cluster.getActiveClusterMembers();
 
-			if (result.find(cluster.getSize()) == result.end() && cluster.getSize() != 0) {
-				result[cluster.getSize()] = 1;
+			if (result.find(count) == result.end() && count != 0) {
+				result[count] = 1;
 			} else {
-				++result[cluster.getSize()];
+				++result[count];
 			}
 
 		}

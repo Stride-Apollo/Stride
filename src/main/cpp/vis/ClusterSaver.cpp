@@ -209,20 +209,25 @@ pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster) const {
 	return std::make_pair(cluster_geometry, cluster_properties);
 }
 
-#define SET_CLUSTER_SURFACE(clusterType) \
+#define SET_CLUSTER_SURFACE(cluster_type) \
 { \
-	surface = ClusterCalculator<clusterType>::calculateSurface(local_sim); \
-	densities.put(toString(clusterType), double(pop_count) / surface); \
+	surface = ClusterCalculator<cluster_type>::calculateSurface(local_sim); \
+	if (surface == 0.0) \
+		densities.put(toString(cluster_type), 0.0); \
+	else \
+		densities.put(toString(cluster_type), double(pop_count) / surface); \
 }
 
-#define SET_CLUSTER_MAP(clusterType) \
+#define SET_CLUSTER_MAP(cluster_type) \
 { \
 	ptree specific_cluster_map; \
-	auto cluster_map = ClusterCalculator<clusterType>::getClusterMap(local_sim); \
+	auto cluster_map = ClusterCalculator<cluster_type>::getClusterMap(local_sim); \
 	for (auto it = cluster_map.begin(); it != cluster_map.end(); ++it) { \
-		specific_cluster_map.put(to_string(it->first), it->second); \
+		if (it->first != 0) { \
+			specific_cluster_map.put(to_string(it->first), it->second); \
+		} \
 	} \
-	cluster_sizes.add_child(toString(clusterType), specific_cluster_map); \
+	cluster_sizes.add_child(toString(cluster_type), specific_cluster_map); \
 }
 
 void ClusterSaver::savePopDataJSON(const LocalSimulatorAdapter& local_sim) const {
