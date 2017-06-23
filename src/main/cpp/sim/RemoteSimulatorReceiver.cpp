@@ -16,6 +16,7 @@ void RemoteSimulatorReceiver::listen(){
   cout << "Tag " << status.MPI_TAG << endl;
   cout << "Flag " << flag << endl;
   if (flag == 1){
+    // Message received
     if (status.MPI_TAG == 1){
       cout << "Received travellers " << status.MPI_TAG << endl;
       // Tag 1 means travellers from another region (sendNewTravellers @ RemoteSimulatorSender)
@@ -35,5 +36,6 @@ void RemoteSimulatorReceiver::listen(){
       MPI_Recv(&data, m_count, MPI_INT, MPI_ANY_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       m_sim->sendNewTravellers(data.m_amount, data.m_days, status.MPI_SOURCE, data.m_destination_district, data.m_destination_facility);
     }
+    if (status.MPI_TAG == 4) m_sim->timeStep();
   }
 }

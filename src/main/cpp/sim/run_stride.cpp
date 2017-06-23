@@ -84,7 +84,7 @@ void run_stride(bool track_index_case,
 		cout << "Initializing the MPI environment" << endl << endl;
 		// Initialize the MPI environment
 		int provided = num_threads;
-		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+		MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
 		MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 		cout << "Done initializing the MPI environment (size = " << world_size << ")" << endl;
@@ -99,7 +99,7 @@ void run_stride(bool track_index_case,
 	std::vector<RemoteSimulatorSender*> remoteSenders;
 	remoteSenders.push_back(local_sim.get());
 	for (int i = 1; i < world_size; i++){
-		auto remoteSender = make_shared<RemoteSimulatorSender>(i);
+		shared_ptr<RemoteSimulatorSender> remoteSender(new RemoteSimulatorSender(i));
 		remoteSenders.push_back(remoteSender.get());
 	}
 	Coordinator coord({remoteSenders});
@@ -108,8 +108,7 @@ void run_stride(bool track_index_case,
 
 	cout << "Setting up a thread for the receiver" << endl;
 	auto local_receiver = RemoteSimulatorReceiver(sim.get());
-	// local_receiver.listen();
-	// TODO gives errors ! thread listenThread(&RemoteSimulatorReceiver::listen, local_receiver);
+	thread listenThread(&RemoteSimulatorReceiver::listen, local_receiver);
 	cout << "Done setting up receiving thread" << endl;
 
 	unsigned int start_day = setup.getStartDay();
@@ -185,10 +184,7 @@ void run_stride(bool track_index_case,
 
 	for (unsigned int i = start_day; i < start_day + num_days; i++) {
 		cout << "Simulating day: " << setw(5) << i;
-		if (world_rank == 0) {
-			coord.timeStep(); // Only 1 Coordinator (check for distributed case)
-		}
-		// local_receiver.listen();
+		if (world_rank == 0) coord.timeStep(); // Only 1 Coordinator (check for distributed case)
 		cout << "     Done, infected count: ";
 		cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
 		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
@@ -223,7 +219,10 @@ void run_stride(bool track_index_case,
 	cout << endl << endl;
 	cout << "  total time: " << total_clock.toString() << endl << endl;
 
-	if (distributedRun) MPI_Finalize();
+	if (distributedRun) {
+		listenThread.join(); // Join and terminate listen thread
+		MPI_Finalize();
+	}
 }
 
 }

@@ -18,7 +18,7 @@ void Coordinator::timeStep() {
 	// Run the simulator for the day
 	for (AsyncSimulator* sim: m_sims) {
 		std::cout << "Before\n";
-		// fut_results.push_back(sim->timeStep());
+		fut_results.push_back(sim->timeStep());
 		std::cout << "After\n";
 	}
 
