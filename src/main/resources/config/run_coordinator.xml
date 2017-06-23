@@ -13,6 +13,13 @@
     <seeding_rate>0.002</seeding_rate>
     <immunity_rate>0.99</immunity_rate>
     <population_file>pop_flanders.csv</population_file>
+    <cluster_location_file>clusters_flanders.csv</cluster_location_file>
+    <district_file>districts_flanders.csv</district_file>
+    <sphere_of_influence>
+        <speed>100</speed>
+        <size>7</size>
+    </sphere_of_influence>
+    <facility_file>transportation_facilities.csv</facility_file>
     <output_prefix></output_prefix>
     <disease_config_file>disease_measles.xml</disease_config_file>
     <generate_person_file>1</generate_person_file>
@@ -31,6 +38,13 @@
     <seeding_rate>0.002</seeding_rate>
     <immunity_rate>0.1</immunity_rate>
     <population_file>pop_flanders.csv</population_file>
+    <cluster_location_file>clusters_flanders.csv</cluster_location_file>
+    <district_file>districts_flanders.csv</district_file>
+    <sphere_of_influence>
+        <speed>100</speed>
+        <size>7</size>
+    </sphere_of_influence>
+    <facility_file>transportation_facilities.csv</facility_file>
     <output_prefix></output_prefix>
     <disease_config_file>disease_measles.xml</disease_config_file>
     <generate_person_file>1</generate_person_file>
@@ -49,6 +63,13 @@
     <seeding_rate>0.002</seeding_rate>
     <immunity_rate>0.5</immunity_rate>
     <population_file>pop_flanders.csv</population_file>
+    <cluster_location_file>clusters_flanders.csv</cluster_location_file>
+    <district_file>districts_flanders.csv</district_file>
+    <sphere_of_influence>
+        <speed>100</speed>
+        <size>7</size>
+    </sphere_of_influence>
+    <facility_file>transportation_facilities.csv</facility_file>
     <output_prefix></output_prefix>
     <disease_config_file>disease_measles.xml</disease_config_file>
     <generate_person_file>1</generate_person_file>
@@ -68,6 +89,13 @@
     <seeding_rate>0.002</seeding_rate>
     <immunity_rate>0.1</immunity_rate>
     <population_file>pop_flanders.csv</population_file>
+    <cluster_location_file>clusters_flanders.csv</cluster_location_file>
+    <district_file>districts_flanders.csv</district_file>
+    <sphere_of_influence>
+        <speed>100</speed>
+        <size>7</size>
+    </sphere_of_influence>
+    <facility_file>transportation_facilities.csv</facility_file>
     <output_prefix></output_prefix>
     <disease_config_file>disease_measles.xml</disease_config_file>
     <generate_person_file>1</generate_person_file>
@@ -87,6 +115,13 @@
     <seeding_rate>0.002</seeding_rate>
     <immunity_rate>0.2</immunity_rate>
     <population_file>pop_flanders.csv</population_file>
+    <cluster_location_file>clusters_flanders.csv</cluster_location_file>
+    <district_file>districts_flanders.csv</district_file>
+    <sphere_of_influence>
+        <speed>100</speed>
+        <size>7</size>
+    </sphere_of_influence>
+    <facility_file>transportation_facilities.csv</facility_file>
     <output_prefix></output_prefix>
     <disease_config_file>disease_measles.xml</disease_config_file>
     <generate_person_file>1</generate_person_file>
@@ -106,6 +141,13 @@
     <seeding_rate>0.002</seeding_rate>
     <immunity_rate>0.3</immunity_rate>
     <population_file>pop_flanders.csv</population_file>
+    <cluster_location_file>clusters_flanders.csv</cluster_location_file>
+    <district_file>districts_flanders.csv</district_file>
+    <sphere_of_influence>
+        <speed>100</speed>
+        <size>7</size>
+    </sphere_of_influence>
+    <facility_file>transportation_facilities.csv</facility_file>
     <output_prefix></output_prefix>
     <disease_config_file>disease_measles.xml</disease_config_file>
     <generate_person_file>1</generate_person_file>
@@ -125,6 +167,13 @@
     <seeding_rate>0.002</seeding_rate>
     <immunity_rate>0.4</immunity_rate>
     <population_file>pop_flanders.csv</population_file>
+    <cluster_location_file>clusters_flanders.csv</cluster_location_file>
+    <district_file>districts_flanders.csv</district_file>
+    <sphere_of_influence>
+        <speed>100</speed>
+        <size>7</size>
+    </sphere_of_influence>
+    <facility_file>transportation_facilities.csv</facility_file>
     <output_prefix></output_prefix>
     <disease_config_file>disease_measles.xml</disease_config_file>
     <generate_person_file>1</generate_person_file>
@@ -144,6 +193,13 @@
     <seeding_rate>0.002</seeding_rate>
     <immunity_rate>0.5</immunity_rate>
     <population_file>pop_flanders.csv</population_file>
+    <cluster_location_file>clusters_flanders.csv</cluster_location_file>
+    <district_file>districts_flanders.csv</district_file>
+    <sphere_of_influence>
+        <speed>100</speed>
+        <size>7</size>
+    </sphere_of_influence>
+    <facility_file>transportation_facilities.csv</facility_file>
     <output_prefix></output_prefix>
     <disease_config_file>disease_measles.xml</disease_config_file>
     <generate_person_file>1</generate_person_file>
