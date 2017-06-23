@@ -15,7 +15,7 @@
 
 /**
  * @file
- * Main program: command line handling.
+ * Main program: command line handling and different runmodes
  */
 
 #include <vector>
@@ -33,30 +33,37 @@ using namespace TCLAP;
 
 int main(int argc, char** argv) {
 	int exit_status = EXIT_SUCCESS;
-	try {
+	//try {
 		// Parse command line.
 		CmdLine cmd("stride", ' ', "2.0", false);
 		ValueArg <string> config_file_Arg("c", "config", "Config File", true,
 										  "./config/run_flanders.xml", "filename", cmd);
 		ValueArg<unsigned int> timestamp_replay_Arg("t", "timestamp", "Replay from Timestamp", false,
 													0, "integer", cmd);
-		ValueArg<string> simulator_mode_Arg("m", "mode", "Simulator Mode", false,
-											 "initial", "initial/extend/replay/extract", cmd);
+		ValueArg<string> simulator_mode_Arg("m", "mode", "Simulator Mode (initial/extend/replay/extract)", false,
+											 "initial", "mode", cmd);
 		MultiArg<string> overrides_Arg("o", "override", "Override the configuration", false,
 		                               "string", cmd);
 		cmd.parse(argc, argv);
 
 		auto run_mode = SimulatorRunMode::getRunMode(simulator_mode_Arg.getValue());
 
-		Runner(overrides_Arg.getValue(), config_file_Arg.getValue(), run_mode).run();
+		Runner runner(overrides_Arg.getValue(), config_file_Arg.getValue(), run_mode);
+		if (run_mode != RunMode::Extract) {
+			runner.printInfo();
+			runner.initSimulators();
+			runner.run();
+		}
 
+/*
 	} catch (exception& e) {
 		exit_status = EXIT_FAILURE;
-		cerr << e.what() << endl;
+		cerr << endl << "Exception: " << e.what() << endl;
 	} catch (...) {
 		exit_status = EXIT_FAILURE;
 		cerr << endl << "Unknown exception thrown." << endl;
 	}
+*/
 
 	return exit_status;
 }
