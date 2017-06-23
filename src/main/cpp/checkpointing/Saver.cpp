@@ -30,7 +30,7 @@ using std::ostringstream;
 
 namespace stride {
 
-Saver::Saver(string filename, const ptree& pt_config, int frequency, bool track_index_case, RunMode run_mode, int start_timestep)
+Saver::Saver(string filename, const ptree& pt_config, int frequency, RunMode run_mode, int start_timestep)
 	: m_filename(filename), m_frequency(frequency),
 	  m_current_step(start_timestep - 1), m_timestep(start_timestep),
 	  m_save_count(0) {
@@ -57,7 +57,6 @@ Saver::Saver(string filename, const ptree& pt_config, int frequency, bool track_
 
 		this->saveConfigs(file, pt_config);
 		this->saveTimestepMetadata(file, 0, 0, true);
-		this->saveTrackIndexCase(file, track_index_case);
 
 		file.close();
 	} catch(FileIException error) {
@@ -388,15 +387,6 @@ void Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 	group.close();
 }
 
-void Saver::saveTrackIndexCase(H5File& file, bool track_index_case) const {
-	hsize_t dims[1] = {1};
-	DataSpace dataspace = DataSpace(1, dims);
-	DataSet dataset = DataSet(file.createDataSet("track_index_case", PredType::NATIVE_INT, dataspace));
-	int track[1] = {track_index_case};
-	dataset.write(track, PredType::NATIVE_INT);
-	dataset.close();
-	dataspace.close();
-}
 
 
 }

@@ -21,7 +21,7 @@ namespace stride {
 
 class Loader {
 public:
-	Loader(const char* filename, unsigned int num_threads);
+	Loader(const char* filename);
 
 	/// Load from timestep, if the specified timestep is present in the hdf5 file.
 	void loadFromTimestep(unsigned int timestep, shared_ptr<Simulator> sim) const;
@@ -36,7 +36,6 @@ public:
 	ptree getConfig() const { return m_pt_config; }
 	ptree getDisease() const { return m_pt_disease; }
 	ptree getContact() const { return m_pt_contact; }
-	bool getTrackIndexCase() const { return m_track_index_case; }
 
 	/// Retrieves the last saved timestep index in the hdf5 file.
 	unsigned int getLastSavedTimestep() const;
@@ -68,13 +67,8 @@ private:
 	/// Loads the configuration files from the hdf5 file (stored as class attributes).
 	void loadConfigs();
 
-	/// Loads the track index case from the hdf5 file (stored as class attribute).
-	void loadTrackIndexCase();
-
 private:
 	const char* m_filename;
-	bool m_track_index_case;
-	unsigned int m_num_threads;
 	ptree m_pt_config;
 	ptree m_pt_disease;
 	ptree m_pt_contact;

@@ -27,10 +27,8 @@ namespace stride {
 
 class Saver : public util::Observer<LocalSimulatorAdapter> {
 public:
-	Saver(string filename, const ptree& pt_config,
-		  int frequency, bool track_index_case,
-		  RunMode run_mode = RunMode::Initial,
-		  int start_timestep = 0);
+	Saver(string filename, const ptree& pt_config, int frequency,
+		  RunMode run_mode = RunMode::Initial, int start_timestep = 0);
 
 	/// Update function which is called by the subject.
 	virtual void update(const LocalSimulatorAdapter& local_sim);
@@ -61,10 +59,6 @@ private:
 
 	/// Save all the configuration files (indirectly via the 'main' config file).
 	void saveConfigs(H5File& file, const ptree& pt_config) const;
-
-	/// Save the track index case.
-	void saveTrackIndexCase(H5File& file, bool track_index_case) const;
-
 
 private:
 	string m_filename;

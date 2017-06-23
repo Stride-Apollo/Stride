@@ -18,6 +18,8 @@
  * Actually run the simulator.
  */
 
+/* TODO: put functionality in Runner
+
 #include "run_stride.h"
 
 #include "output/CasesFile.h"
@@ -183,3 +185,5 @@ void run_stride(bool track_index_case,
 }
 
 }
+
+ */

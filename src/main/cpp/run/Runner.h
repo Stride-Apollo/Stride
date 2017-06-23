@@ -8,8 +8,6 @@
 #include "sim/SimulatorRunMode.h"
 #include "sim/Simulator.h"
 
-namespace pt = boost::property_tree;
-
 namespace stride {
 namespace run {
 
@@ -18,15 +16,16 @@ class Runner {
 public:
 	// The different steps we do:
 	Runner(const std::vector<std::string>& overrides_list, const std::string& config_file,
-           const RunMode& mode);
+           const RunMode& mode, int timestep);
 	void printInfo();
 	void initSimulators();
     void run();
 
-	void writeConfig(std::ostream& out);
-	void writeRegionsConfig(std::ostream& out, const std::vector<string>& names);
+	boost::property_tree::ptree getConfig();
+	boost::property_tree::ptree getRegionsConfig(const std::vector<string>& names);
+	void write(std::ostream& out, const boost::property_tree::ptree&);
 
-	static pt::xml_writer_settings<string> g_xml_settings;
+	static boost::property_tree::xml_writer_settings<string> g_xml_settings;
 
 private:
 	void parseConfig();  // done by constructor
@@ -34,8 +33,9 @@ private:
 	std::map<std::string, std::string> m_overrides;
 	std::string m_config_file;
 	RunMode m_mode;
-	pt::ptree m_config;
-	std::map<std::string, pt::ptree> m_region_configs;
+	int m_timestep;
+	boost::property_tree::ptree m_config;
+	std::map<std::string, boost::property_tree::ptree> m_region_configs;
 	std::vector<std::string> m_region_order;
 
 	std::map<std::string, shared_ptr<Simulator>> m_local_simulators;

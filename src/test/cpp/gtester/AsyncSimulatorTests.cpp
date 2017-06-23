@@ -61,24 +61,24 @@ protected:
 
 		if (my_file.bad()) {
 			throw runtime_error(string(__func__)
-								+ ">Config file " + file_path.string() + " not present. Aborting.");
+								+ "> Config file " + file_path.string() + " not present. Aborting.");
 		}
 		read_xml(file_path.string(), pt_config);
 
 		// TODO Unipar
-		unsigned int num_threads = 1;
+		pt_config.put("run.num_threads", 1);
 
 		// Set output path prefix.
 		string output_prefix = "";
 
 		// Additional run configurations.
-		if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
-			pt_config.put("run.num_participants_survey", 1);
+		if (pt_config.get_optional<bool>("run.outputs.participants_survey.<xml_attr>.num") == false) {
+			pt_config.put("run.outputs.participants_survey.<xml_attr>.num", 1);
 		}
 
 		// Create simulators
-		m_sim1 = SimulatorBuilder::build(pt_config, num_threads, false);
-		m_sim2 = SimulatorBuilder::build(pt_config, num_threads, false);
+		m_sim1 = SimulatorBuilder::build(pt_config);
+		m_sim2 = SimulatorBuilder::build(pt_config);
 		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1.get());
 		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2.get());
 

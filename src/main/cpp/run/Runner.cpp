@@ -1,7 +1,9 @@
 
+#include "Runner.h"
+
 #include <iostream>
 #include <exception>
-#include "Runner.h"
+#include "sim/SimulatorSetup.h"
 #include "util/StringUtils.h"
 
 using namespace stride;
@@ -9,8 +11,11 @@ using namespace util;
 using namespace run;
 using namespace std;
 
-Runner::Runner(const vector<string>& overrides_list, const string& config_file, const RunMode& mode)
-        : m_config_file(config_file), m_mode(mode) {
+namespace pt = boost::property_tree;
+
+Runner::Runner(const vector<string>& overrides_list, const string& config_file,
+			   const RunMode& mode, int timestep)
+        : m_config_file(config_file), m_mode(mode), m_timestep(timestep) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -18,7 +23,7 @@ Runner::Runner(const vector<string>& overrides_list, const string& config_file, 
         }
 
         string key = string("run.") + StringUtils::trim(parts[0]);
-        key = StringUtils::replace(key, "$", "<xmlattr>.");
+        key = StringUtils::replace(key, "@", "<xmlattr>.");
         m_overrides[key] = StringUtils::trim(parts[1]);
     }
 	parseConfig();
@@ -68,10 +73,14 @@ void Runner::initSimulators() {
 		cout.flush();
 
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
+		pt::ptree sim_config = getRegionsConfig({it.first});
 		if (not remote) {
 			// build a Simulator...
-			//auto sim = make_shared<Simulator>()
-			//m_local_simulators[it.first] =
+			auto sim = SimulatorSetup(sim_config, string("hdf5_") + m_name,
+									  m_mode, m_timestep).getSimulator();
+			m_local_simulators[it.first] = sim;
+		} else {
+			// TODO: DO MPI STUFF
 		}
 	}
 }
@@ -80,18 +89,22 @@ void Runner::run() {
 
 }
 
-void Runner::writeConfig(std::ostream& out) {
-	writeRegionsConfig(out, m_region_order);
+pt::ptree Runner::getConfig() {
+	return getRegionsConfig(m_region_order);
 }
 
-void Runner::writeRegionsConfig(std::ostream& out, const std::vector<string>& names) {
+pt::ptree Runner::getRegionsConfig(const std::vector<string>& names) {
 	pt::ptree regions;
 	for (const string& name: names) {
 		regions.add_child("region", m_region_configs[name]); // includes the name
 	}
 	pt::ptree new_config = m_config;
 	new_config.add_child("run.regions", regions);
-	pt::write_xml(out, new_config, g_xml_settings);
+	return new_config;
+}
+
+void Runner::write(std::ostream& out, const pt::ptree& tree) {
+	pt::write_xml(out, tree, g_xml_settings);
 }
 
 pt::xml_writer_settings<string> Runner::g_xml_settings = pt::xml_writer_make_settings<string>('\t', 1);

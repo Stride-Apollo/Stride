@@ -31,12 +31,11 @@ using namespace stride::util;
 namespace stride {
 
 
-Loader::Loader(const char *filename, unsigned int num_threads) :
- 	m_filename(filename), m_num_threads(num_threads) {
+Loader::Loader(const char *filename) :
+ 	m_filename(filename) {
 
 	try {
 		this->loadConfigs();
-		this->loadTrackIndexCase();
 	} catch(FileIException error) {
 		error.printError();
 	}
@@ -61,19 +60,6 @@ void Loader::loadConfigs() {
 	getPropTree(configData[0].disease_content, m_pt_disease);
 	getPropTree(configData[0].age_contact_content, m_pt_contact);
 }
-
-void Loader::loadTrackIndexCase() {
-	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
-	DataSet dataset = DataSet(file.openDataSet("track_index_case"));
-	int track[1];
-	dataset.read(track, PredType::NATIVE_INT);
-	dataset.close();
-	file.close();
-
-	m_track_index_case = track[0];
-}
-
-
 
 
 void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> sim) const {
@@ -122,8 +108,7 @@ void Loader::setupPopulation(std::shared_ptr<Simulator> sim) const {
 	const auto seed = m_pt_config.get<double>("run.rng_seed");
 	Random rng(seed);
 
-	sim = SimulatorBuilder::build(m_pt_config, m_pt_disease, m_pt_contact,
-								  m_num_threads, m_track_index_case);
+	sim = SimulatorBuilder::build(m_pt_config, m_pt_disease, m_pt_contact);
 }
 
 

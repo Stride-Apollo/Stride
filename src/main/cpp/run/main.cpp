@@ -48,7 +48,8 @@ int main(int argc, char** argv) {
 
 		auto run_mode = SimulatorRunMode::getRunMode(simulator_mode_Arg.getValue());
 
-		Runner runner(overrides_Arg.getValue(), config_file_Arg.getValue(), run_mode);
+		Runner runner(overrides_Arg.getValue(), config_file_Arg.getValue(),
+					  run_mode, timestamp_replay_Arg.getValue());
 		if (run_mode != RunMode::Extract) {
 			runner.printInfo();
 			runner.initSimulators();
