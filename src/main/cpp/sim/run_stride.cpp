@@ -188,7 +188,7 @@ void run_stride(bool track_index_case,
 		if (world_rank == 0) {
 			coord.timeStep(); // Only 1 Coordinator (check for distributed case)
 		}
-		local_receiver.listen();
+		// local_receiver.listen();
 		cout << "     Done, infected count: ";
 		cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
 		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();

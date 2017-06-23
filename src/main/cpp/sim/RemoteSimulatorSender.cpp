@@ -6,29 +6,34 @@ using namespace std;
 
 RemoteSimulatorSender::RemoteSimulatorSender(const int remote_id): m_count(1){
   this->m_id = remote_id;
-  // m_sim->setAsyncSimulator(this);
 }
 
 // TODO
 // https://stackoverflow.com/questions/14836560/thread-safety-of-mpi-send-using-threads-created-with-stdasync
 future<bool> RemoteSimulatorSender::timeStep(){
+  std::cout << "Timestep @ RemoteSimulatorSender" << std::endl;
   return async([&](){
-			// m_sim->timeStep();
+			m_sim->timeStep();
 			// this->notify(*this);
 			return true;
 		});
 }
 
 void RemoteSimulatorSender::welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers){
+  std::cout << "TODO" << std::endl;
   // m_sim->welcomeHomeTravellers(travellers.first, travellers.second);
 }
 
 // usually called by the Coordinator
 void RemoteSimulatorSender::sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility){
-  // m_sim->sendNewTravellers(amount, days, destination_sim_id, destination_district, destination_facility);
+  int tag = 3;    // Tag of the message (Tag 3 = travellers going to a region issued by the Coordinator)
+  std::vector<Simulator::TravellerType> travellers; // Empty vector
+  TravelData data {travellers, amount, days, destination_district, destination_facility};
+  MPI_Send(&data, m_count, MPI_INT, destination_sim_id, tag, MPI_COMM_WORLD);
 }
 
 void RemoteSimulatorSender::returnForeignTravellers(){
+  std::cout << "TODO" << std::endl;
   // m_sim->returnForeignTravellers();
 }
 
