@@ -66,14 +66,15 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 
 	var currentGraph = 0;
 	var graphs = [];
-	var titles = [];
+	var titles = ['Evolution Of Population Illness', 'Age distribution', 'Household cluster sizes',
+					'School cluster sizes', 'Work cluster sizes', 'Primary community cluster sizes', 'Secondary community cluster sizes'];
 
 	function drawGraph() {
 		var plotWidth = 800;
 		var plotHeight = 450;
 
 		var layout = {
-			title: 'Evolution Of Population Illness',
+			title: titles[currentGraph],
 			width: plotWidth,
 			height: plotHeight,
 			paper_bgcolor: "rgba(255,0,0,0)",
@@ -89,6 +90,9 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 		var myPlot = document.getElementById("graphInfected");
 		Plotly.purge(myPlot);
 
+		console.log("PRINTING");
+		console.log(graphs[currentGraph]);
+
 		Plotly.newPlot('graphInfected', graphs[currentGraph], layout).then(function() {
 			window.requestAnimationFrame(function() {
 				window.requestAnimationFrame(function() {
@@ -100,10 +104,19 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 		});
 	}
 
-	function nextGraph() {
+	$scope.nextGraph = function() {
 		currentGraph += 1;
 		if (currentGraph == graphs.length) {
 			currentGraph = 0;
+		}
+
+		drawGraph();
+	}
+
+	$scope.previousGraph = function() {
+		currentGraph -= 1;
+		if (currentGraph == -1) {
+			currentGraph = graphs.length - 1;
 		}
 
 		drawGraph();
@@ -115,7 +128,7 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 		for (var attr in data) {
 			if (data.hasOwnProperty(attr)) {
 				xData.push(parseInt(attr));
-				yData.push(parseInt(data.attr));
+				yData.push(parseInt(data[attr]));
 			}
 		}
 
@@ -155,11 +168,11 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 	var cluster_sizes = popDataJSON.cluster_sizes;
 
 	var age_map = popDataJSON.age_map;
-	var household_map = popDataJSON.household;
-	var school_map = popDataJSON.school;
-	var work_map = popDataJSON.work;
-	var primary_community_map = popDataJSON.primary_community;
-	var secondary_community_map = popDataJSON.secondary_community;
+	var household_map = popDataJSON.cluster_sizes.household;
+	var school_map = popDataJSON.cluster_sizes.school;
+	var work_map = popDataJSON.cluster_sizes.work;
+	var primary_community_map = popDataJSON.cluster_sizes.primary_community;
+	var secondary_community_map = popDataJSON.cluster_sizes.secondary_community;
 
 	var graphData = [age_map, household_map, school_map, work_map, primary_community_map, secondary_community_map];
 

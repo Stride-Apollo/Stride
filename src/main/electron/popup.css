@@ -58,8 +58,10 @@ table {
 	overflow: hidden;
 }
 
-#pickClusterArea {
+#pickClusterArea, .paneBody {
 	margin-bottom: 25px;
+	padding-left: 25px;
+	padding-right: 25px;
 	text-align: center;
 	white-space: nowrap;
 }
@@ -69,9 +71,10 @@ table {
 	vertical-align: middle;
 }
 
-#centerPane {
+#centerPane, .centerPane {
 	margin-left: 25px;
 	margin-right: 25px;
+	display: inline-block;
 }
 
 .paneContainer {

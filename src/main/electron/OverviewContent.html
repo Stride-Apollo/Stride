@@ -17,9 +17,26 @@
 	<base href="/">
 </head>
 <body>
-<p class="title">Overview</p>
+	<p class="title">Overview</p>
 
-<div id="graphInfected"></div>
+	<div class="paneBody">
+		<div class="paneContainer">
+			<div class="pane">
+				<button id="btnPreviousGraph" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="previousGraph()">
+					<i class="material-icons">navigate_before</i>
+				</button>
+			</div>
+			<div class="centerPane pane">
+				<div id="graphInfected"></div>
+			</div>
+			<div class="pane">
+				<button id="btnNextGraph" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="nextGraph()">
+					<i class="material-icons">navigate_next</i>
+				</button>
+			</div>
+		</div>
+	</div>
+
 	<p class="subtitle">Information for current day: {{currentDay}}</p>
 	<ul class="demo-list-item mdl-list questions" id="current_data">
 		<li class="mdl-list__item">
