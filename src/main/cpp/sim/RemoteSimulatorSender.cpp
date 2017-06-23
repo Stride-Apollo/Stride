@@ -13,9 +13,11 @@ RemoteSimulatorSender::RemoteSimulatorSender(const int remote_id): m_count(1){
 future<bool> RemoteSimulatorSender::timeStep(){
   std::cout << "Timestep @ RemoteSimulatorSender" << std::endl;
   return async([&](){
-      int data = 0;
       int tag = 4;  // Tag 4 = the remote simulator must execute a timestep and we need to wait until it's done
-      MPI_Send(&data, m_count, MPI_INT, this->m_id, tag, MPI_COMM_WORLD);
+      std::cout << "Sending message to remote sim @process " << this->m_id << std::endl;
+      MPI_Send(nullptr, 0, MPI_INT, this->m_id, tag, MPI_COMM_WORLD);
+      MPI_Recv(nullptr, 0, MPI_INT, this->m_id, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      std::cout << "Received message from remote sim @process "<< this->m_id << std::endl;
 			return true;
 		});
 }
@@ -36,8 +38,7 @@ void RemoteSimulatorSender::sendNewTravellers(uint amount, uint days, uint desti
 
 void RemoteSimulatorSender::returnForeignTravellers(){
   int tag = 6;
-  int data = 0;
-  MPI_Send(&data, m_count, MPI_INT, this->m_id, tag, MPI_COMM_WORLD);
+  MPI_Send(nullptr, 0, MPI_INT, this->m_id, tag, MPI_COMM_WORLD);
 }
 
 // called by the Simulator

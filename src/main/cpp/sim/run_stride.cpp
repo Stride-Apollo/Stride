@@ -183,13 +183,15 @@ void run_stride(bool track_index_case,
 	vector<unsigned int> cases(num_days);
 	Stopwatch<> run_clock("run_clock");
 
-	for (unsigned int i = start_day; i < start_day + num_days; i++) {
-		cout << "Simulating day: " << setw(5) << i;
-		if (world_rank == 0) coord.timeStep(); // Only 1 Coordinator (check for distributed case)
-		cout << "     Done, infected count: ";
-		cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
-		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
-		cout << setw(7) << cases.at(i-start_day) << "     Adopters count: " << setw(7) << adopters << endl;
+	if (world_rank == 0){
+		for (unsigned int i = start_day; i < start_day + num_days; i++) {
+			cout << "Simulating day: " << setw(5) << i;
+			if (world_rank == 0) coord.timeStep(); // Only 1 Coordinator (check for distributed case)
+			cout << "     Done, infected count: ";
+			cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
+			unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
+			cout << setw(7) << cases.at(i-start_day) << "     Adopters count: " << setw(7) << adopters << endl;
+		}
 	}
 
 	// TODO
@@ -221,14 +223,11 @@ void run_stride(bool track_index_case,
 	cout << "  total time: " << total_clock.toString() << endl << endl;
 
 	if (distributedRun) {
-		// Terminate all listening threads
 		if (world_rank == 0){
-			int data = 0;
-			for (int i = 0; i < world_size; i++){
-				MPI_Send(&data, 1, MPI_INT, i, 10, MPI_COMM_WORLD);
-			}
+			// Send MPI message to terminate all systems
+			for (int i = 0; i < world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
 		}
-		listenThread.join(); // Join and terminate listen thread
+		listenThread.join(); // Join and terminate listening thread
 		MPI_Finalize();
 	}
 }

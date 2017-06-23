@@ -10,6 +10,7 @@ using namespace util;
 void RemoteSimulatorReceiver::listen(){
   cout << "Listening\n";
   MPI_Status status;
+
   MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
   cout << "Tag: " << status.MPI_TAG << endl;
   // // Message received
@@ -34,19 +35,17 @@ void RemoteSimulatorReceiver::listen(){
   }
   if (status.MPI_TAG == 4) {
     // Tag 4 means that this simulator must execute a timestep
-    int data;
-    MPI_Recv(&data, m_count, MPI_INT, 0, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(nullptr, 0, MPI_INT, 0, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     m_sim->timeStep();
+    MPI_Send(nullptr, 0, MPI_INT, 0, 4, MPI_COMM_WORLD);
   }
   if (status.MPI_TAG == 6){
     // Tag 6 means travellers returning home
-    int data;
-    MPI_Recv(&data, m_count, MPI_INT, MPI_ANY_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(nullptr, 0, MPI_INT, MPI_ANY_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     m_sim->returnForeignTravellers();
   }
   if (status.MPI_TAG == 10) { // End listening
-    int data;
-    MPI_Bcast(&data, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
     std::cout << "No more messages\n";
     return;
   }
