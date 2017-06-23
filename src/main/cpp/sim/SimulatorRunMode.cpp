@@ -16,8 +16,6 @@ map<string, RunMode> SimulatorRunMode::g_name_run_mode {
 };
 
 
-
-
 vector<string> SimulatorRunMode::getAcceptedModes() {
 	vector<string> modes;
 	for (auto map_entry : SimulatorRunMode::g_name_run_mode) {

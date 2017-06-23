@@ -42,9 +42,7 @@ set(LIB_SRC
 	pop/Person.cpp
 	pop/PopulationBuilder.cpp
 	pop/Population.cpp
-
 #---
-	sim/run_stride.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
@@ -70,7 +68,8 @@ set(LIB_SRC
 #---
  	vis/ClusterSaver.cpp
 #---
-    
+	run/Runner.cpp
+	run/run_stride.cpp
 )
 
 set(POPGEN_SRC
@@ -88,7 +87,7 @@ set(POPGEN_SRC
 )
 
 set(MAIN_SRC
-	sim/main.cpp
+	run/main.cpp
 )
 
 set(POPGEN_MAIN_SRC
