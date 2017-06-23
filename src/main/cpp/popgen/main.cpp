@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 		ValueArg<string> rngArg("r", "randomgenerator", options, false, "mt19937", "string", cmd);
 
 		// The seed argument
-		ValueArg<string> seedArg("s", "seed", "The seed of the random generator", false, "1", "string");
+		ValueArg<int> seedArg("s", "seed", "The seed of the random generator", false, 1, "int");
 		cmd.add(seedArg);
 
 		// Parse the argv array
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 		string sourceXml = sourceArg.getValue();
 		string prefix = outputPrefixArg.getValue();
 		string rng = rngArg.getValue();
-		int seed = stoi(seedArg.getValue());
+		int seed = seedArg.getValue();
 
 		cerr << "Starting...\n";
 		if (rng == "default_random_engine") {

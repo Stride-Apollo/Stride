@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 	//try {
 		// Parse command line.
 		CmdLine cmd("stride", ' ', "2.0", false);
-		ValueArg <string> config_file_Arg("c", "config", "Config File", true,
+		ValueArg<string> config_file_Arg("c", "config", "Config File", true,
 										  "./config/run_flanders.xml", "filename", cmd);
 		ValueArg<unsigned int> timestamp_replay_Arg("t", "timestamp", "Replay from Timestamp", false,
 													0, "integer", cmd);

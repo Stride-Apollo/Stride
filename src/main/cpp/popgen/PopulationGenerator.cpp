@@ -81,6 +81,7 @@ void PopulationGenerator<U>::generate(const string& prefix) {
 	string target_pop = prefix + "_people.csv";
 	string target_households = prefix + "_households.csv";
 	string target_clusters = prefix + "_clusters.csv";
+	string target_summary = prefix + ".xml";
 
 	writeCities(target_cities);
 	writePop(target_pop);
@@ -94,7 +95,9 @@ void PopulationGenerator<U>::generate(const string& prefix) {
 	config.put("population.clusters", target_clusters);
 	config.put("population.households", target_households);
 	config.add_child("population.cities", m_props.get_child("POPULATION.CITIES"));
-	write_xml(prefix + ".xml", config, std::locale(), xml_writer_make_settings<string>('\t', 0));
+	write_xml((InstallDirs::getDataDir() /= target_summary).string(), config,
+			  std::locale(), xml_writer_make_settings<string>('\t', 1));
+	cout << "Written summary " << target_summary << endl;
 }
 
 template <class U>
@@ -152,6 +155,7 @@ void PopulationGenerator<U>::writeCities(const string& target_cities){
 		}
 
 		my_file.close();
+		cout << "Written " << target_cities << endl;
 	} else {
 		throw invalid_argument("In PopulationGenerator: Invalid file.");
 	}
@@ -175,6 +179,7 @@ void PopulationGenerator<U>::writePop(const string& target_pop) const {
 		}
 
 		my_file.close();
+		cout << "Written " << target_pop << endl;
 	} else {
 		throw invalid_argument("In PopulationGenerator: Invalid file.");
 	}
@@ -195,6 +200,7 @@ void PopulationGenerator<U>::writeHouseholds(const string& target_households) co
 		}
 
 		my_file.close();
+		cout << "Written " << target_households << endl;
 	} else {
 		throw invalid_argument("In PopulationGenerator: Invalid file.");
 	}
@@ -228,6 +234,7 @@ void PopulationGenerator<U>::writeClusters(const string& target_clusters) const 
 		}
 
 		my_file.close();
+		cout << "Written " << target_clusters << endl;
 	} else {
 		throw invalid_argument("In PopulationGenerator: Invalid file.");
 	}

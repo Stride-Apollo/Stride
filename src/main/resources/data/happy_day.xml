@@ -1,4 +1,4 @@
-<POPULATION total='1000000' provinces='10'>
+<POPULATION total='1000' provinces='10'>
 	<RANDOM generator='MT19937' seed='74128'/>
 	
 	<FAMILY file="households_flanders.txt"/>
