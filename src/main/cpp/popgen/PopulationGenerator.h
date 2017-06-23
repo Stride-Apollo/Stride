@@ -49,7 +49,7 @@ private:
 	/// Writes the households to the file, see PopulationGenerator::generate
 	void writeHouseholds(const string& target_households) const;
 
-	/// Writes the clusters to the file (tŷpe, ID and coordinates), see PopulationGenerator::generate
+	/// Writes the clusters to the file (type, ID and coordinates), see PopulationGenerator::generate
 	void writeClusters(const string& target_clusters) const;
 
 	/// Checks the xml on correctness, this includes only semantic errors, no syntax errors

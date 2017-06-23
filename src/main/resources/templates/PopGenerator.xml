@@ -5,8 +5,13 @@
 	<COMMUTINGDATA start_radius='10' factor="2.0"/>
 	
 	<CITIES>
-		<CITY name="Antwerp" pop="500000" lat="51.123" lon="4.567"/>
-		<CITY name="Brussels" pop="1000000" lat="54.567" lon="5.890"/>
+		<CITY name="Antwerp" pop="500000" lat="51.123" lon="4.567">
+			<AIRPORT name="ANR"/>
+			<AIRPORT name="ANR2"/>
+		</CITY>
+		<CITY name="Brussels" pop="1000000" lat="54.567" lon="5.890">
+			<AIRPORT name="BRU"/>
+		</CITY>
 	</CITIES>
 	
 	<VILLAGES radius="1.5">  <!-- i.e. 1.5 times the distance from center 

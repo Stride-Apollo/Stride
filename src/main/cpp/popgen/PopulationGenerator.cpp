@@ -81,6 +81,15 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 	writePop(target_pop);
 	writeHouseholds(target_households);
 	writeClusters(target_clusters);
+
+	// Now write a summary
+	ptree config;
+	config.put_value("population.people", target_pop);
+	config.put_value("population.districts", target_cities);
+	config.put_value("population.clusters", target_clusters);
+	config.put_value("population.households", target_households);
+	config.put_value("population.cities", m_props.get_child("POPULATION.CITIES"));
+	write_xml()
 }
 
 template <class U>
