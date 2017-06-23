@@ -64,49 +64,118 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 	console.log(pop_files);
 	console.log(pop_filenames);
 
+	var currentGraph = 0;
+	var graphs = [];
+	var titles = [];
+
+	function drawGraph() {
+		var plotWidth = 800;
+		var plotHeight = 450;
+
+		var layout = {
+			title: 'Evolution Of Population Illness',
+			width: plotWidth,
+			height: plotHeight,
+			paper_bgcolor: "rgba(255,0,0,0)",
+			plot_bgcolor: "rgba(255,0,0,0)",
+			legend: {
+				y: 0.5,
+				traceorder: 'reversed',
+				font: {size: 16},
+				yref: 'paper'
+			}
+		};
+
+		var myPlot = document.getElementById("graphInfected");
+		Plotly.purge(myPlot);
+
+		Plotly.newPlot('graphInfected', graphs[currentGraph], layout).then(function() {
+			window.requestAnimationFrame(function() {
+				window.requestAnimationFrame(function() {
+					resizeWindow();
+
+					document.getElementById("graphInfected").style="margin: auto; width: " + plotWidth + "px; height: " + plotHeight + "px;";
+				});
+			});
+		});
+	}
+
+	function nextGraph() {
+		currentGraph += 1;
+		if (currentGraph == graphs.length) {
+			currentGraph = 0;
+		}
+
+		drawGraph();
+	}
+
+	function makeBarChart(data) {
+		var xData = [];
+		var yData = [];
+		for (var attr in data) {
+			if (data.hasOwnProperty(attr)) {
+				xData.push(parseInt(attr));
+				yData.push(parseInt(data.attr));
+			}
+		}
+
+		var chartData = [
+			{
+				x: xData,
+				y: yData,
+				type: "bar"
+			}
+		];
+
+		console.log(chartData);
+
+		return chartData;
+	}
+
+	function makeEvolutionGraph() {
+		var infected = scatterplot('Infection Count');
+		var sizes = scatterplot('Cluster Sizes');
+
+		for (i=0; i < clusterEvolution.length; i++) {
+			infected.x.push(i);
+			sizes.x.push(i);
+			infected.y.push(clusterEvolution[i].infected);
+			sizes.y.push(clusterEvolution[i].size);
+		}
+		console.log(infected.y);
+
+		var data = [sizes,infected];
+
+		return data;
+	}
+
+	graphs.push(makeEvolutionGraph());
+
+	var popDataJSON = JSON.parse(pop_files[$scope.currentDay])
+	var cluster_sizes = popDataJSON.cluster_sizes;
+
+	var age_map = popDataJSON.age_map;
+	var household_map = popDataJSON.household;
+	var school_map = popDataJSON.school;
+	var work_map = popDataJSON.work;
+	var primary_community_map = popDataJSON.primary_community;
+	var secondary_community_map = popDataJSON.secondary_community;
+
+	var graphData = [age_map, household_map, school_map, work_map, primary_community_map, secondary_community_map];
+
+	for (var i = 0; i < graphData.length; ++i) {
+		graphs.push(makeBarChart(graphData[i]));
+	}
+
+	drawGraph();
 
 	$scope.population_size = clusterEvolution[$scope.currentDay].size;
 	$scope.infected = clusterEvolution[$scope.currentDay].infected;
 	$scope.total_cluster = $scope.clusters.length;
 
-	var myPlot = document.getElementById("graphInfected");
-	Plotly.purge(myPlot);
-
-	var infected = scatterplot('Infection Count');
-	var sizes = scatterplot('Cluster Sizes');
-
-	for (i=0; i < clusterEvolution.length; i++) {
-		infected.x.push(i);
-		sizes.x.push(i);
-		infected.y.push(clusterEvolution[i].infected);
-		sizes.y.push(clusterEvolution[i].size);
-	}
-	console.log(infected.y);
-
-	var data = [sizes,infected];
-
-	var plotWidth = 800;
-	var plotHeight = 450;
-	var layout = {
-		title: 'Evolution Of Population Illness',
-		width: plotWidth,
-		height: plotHeight,
-		paper_bgcolor: "rgba(255,0,0,0)",
-		plot_bgcolor: "rgba(255,0,0,0)",
-		legend: {
-			y: 0.5,
-			traceorder: 'reversed',
-			font: {size: 16},
-			yref: 'paper'
-		}};
-
-	Plotly.newPlot('graphInfected', data, layout).then(function() {
-		window.requestAnimationFrame(function() {
-			window.requestAnimationFrame(function() {
-				resizeWindow();
-
-				document.getElementById("graphInfected").style="margin: auto; width: " + plotWidth + "px; height: " + plotHeight + "px;";
-			});
-		});
-	});
+	$scope.household_density = Number((parseFloat(popDataJSON.densities.household)).toFixed(2));
+	$scope.school_density = Number((parseFloat(popDataJSON.densities.school)).toFixed(2));
+	$scope.work_density = Number((parseFloat(popDataJSON.densities.work)).toFixed(2));
+	$scope.primary_community_density = Number((parseFloat(popDataJSON.densities.primary_community)).toFixed(2));
+	$scope.secondary_community_density = Number((parseFloat(popDataJSON.densities.secondary_community)).toFixed(2));
 }]);
