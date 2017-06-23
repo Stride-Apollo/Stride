@@ -122,14 +122,11 @@ void run_stride(bool track_index_case,
 				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
 		local_sim->registerObserver(saver, fnCaller);
-		auto classInstance = std::make_shared<ClusterSaver>("cluster_output");
-		std::function<void(const LocalSimulatorAdapter&)> fnCaller2 = std::bind(&ClusterSaver::update, classInstance, std::placeholders::_1);
-		local_sim->registerObserver(classInstance, fnCaller2);
 	}
 
 
 	if (pt_config.get<bool>("run.visualization", false) == true) {
-		auto ClusterSaver_instance = make_shared<ClusterSaver>("cluster_output");
+		auto ClusterSaver_instance = make_shared<ClusterSaver>(output_prefix + "cluster_output", output_prefix + "pop_output");
 		auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
 		local_sim->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
 

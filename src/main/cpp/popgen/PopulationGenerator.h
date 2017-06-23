@@ -240,7 +240,7 @@ private:
 	/// size: the size of each cluster
 	/// min_age and max_age: the category of people that belongs to these clusters (e.g. schools an work have a minimum/maximum age)
 	template<typename C>
-	void placeClusters(uint size, uint min_age, uint max_age, double fraction, C& clusters, string cluster_name, ClusterType cluster_type) {
+	void placeClusters(uint size, uint min_age, uint max_age, double fraction, C& clusters, string cluster_name, ClusterType cluster_type, bool add_location = true) {
 		uint people = 0;
 
 		if (min_age == 0 && max_age == 0) {
@@ -281,7 +281,9 @@ private:
 				m_next_id++;
 				clusters.push_back(new_cluster);
 
-				m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
+				if (add_location) {
+					m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
+				}
 			} else {
 				/// Add to a village
 				SimpleCluster new_cluster;
@@ -291,7 +293,9 @@ private:
 				m_next_id++;
 				clusters.push_back(new_cluster);
 
-				m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
+				if (add_location) {
+					m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
+				}
 			}
 		}
 		if (m_output) cerr << "\rPlacing " << cluster_name << " [100%]...\n";

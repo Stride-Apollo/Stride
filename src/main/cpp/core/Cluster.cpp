@@ -68,6 +68,17 @@ void Cluster::removePerson(unsigned int id) {
 	}
 }
 
+std::size_t Cluster::getActiveClusterMembers() const {
+	std::size_t total = 0;
+	for (const auto& person: m_members) {
+		if (! person.first->isOnVacation()) {
+			++total;
+		}
+	}
+
+	return total;
+}
+
 tuple<bool, size_t> Cluster::sortMembers() {
 	bool infectious_cases = false;
 	size_t num_cases = 0;

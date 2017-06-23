@@ -3,28 +3,62 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/filesystem.hpp>
 #include <string>
 #include <utility>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <map>
 
 #include "vis/ClusterSaver.h"
 #include "util/InstallDirs.h"
+#include "util/GeoCoordCalculator.h"
+#include "core/ClusterType.h"
 
 using boost::property_tree::ptree;
 using boost::property_tree::write_json;
-using std::string;
-using std::stringstream;
+using std::map;
+using std::ofstream;
 using std::setw;
 using std::setfill;
-using std::ofstream;
+using std::string;
+using std::stringstream;
+using std::vector;
+using std::to_string;
 
 
 namespace stride {
 
-ClusterSaver::ClusterSaver(string file_name) : m_sim_day(0), m_file_name(file_name) {}
+ClusterSaver::ClusterSaver(string file_name, string pop_file_name) : m_sim_day(0), m_file_name(file_name), m_pop_file_name(pop_file_name)  {
+	#if defined(__linux__)
+		m_file_dir = "vis/resources/app/data";
+	#elif defined(__APPLE__)
+		m_file_dir = "vis/visualization.app/Contents/Resources/app/data";
+	#endif
+	// Sorry windows
+
+	boost::filesystem::path file_path(m_file_dir);
+	if (!boost::filesystem::exists(file_path)) {
+		throw runtime_error(string("\n\033[0;31mError: \033[0m") +
+			"The folder used to store the cluster data is not present.\n" +
+			"Make sure you have installed the visualization app by invoking the " +
+			"\033[0;35m'make install_vis'\033[0m" + " command.\n");
+	}
+
+	m_pop_file_dir = m_file_dir + "/populationData";
+	m_file_dir = m_file_dir + "/clusterData";
+	// Create the subdirectory if it does not exist.
+	if (!boost::filesystem::exists(boost::filesystem::path(m_file_dir))) {
+		boost::filesystem::create_directory(boost::filesystem::path(m_file_dir));
+	}
+
+	// Create the subdirectory if it does not exist.
+	if (!boost::filesystem::exists(boost::filesystem::path(m_pop_file_dir))) {
+		boost::filesystem::create_directory(boost::filesystem::path(m_pop_file_dir));
+	}
+}
 
 
 
@@ -32,8 +66,7 @@ void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const
 	ofstream csv_file;
 	stringstream ss;
 	ss << setfill('0') << setw(5) << m_sim_day;
-	// TODO move save directory to local resource directory of the visualization app
-	string file_name = util::InstallDirs::getOutputDir().string() + "/" + m_file_name + "_" + ss.str() + ".csv";
+	string file_name = m_file_dir + "/" + m_file_name + "_" + ss.str() + ".csv";
 	csv_file.open(file_name.c_str());
 
 	// Format of the csv file
@@ -42,6 +75,13 @@ void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const
 	for (const auto& cluster : local_sim.m_sim->m_primary_community) {
 		this->saveClusterCSV(cluster, csv_file);
 	}
+	for (const auto& cluster : local_sim.m_sim->m_secondary_community) {
+		this->saveClusterCSV(cluster, csv_file);
+	}
+
+	this->saveAggrClustersCSV(local_sim.m_sim->m_households, csv_file);
+
+	csv_file.close();
 }
 
 inline void ClusterSaver::saveClusterCSV(const Cluster& cluster, ofstream& csv_file) const {
@@ -60,6 +100,41 @@ inline void ClusterSaver::saveClusterCSV(const Cluster& cluster, ofstream& csv_f
 		coords.m_latitude << ',' <<
 		coords.m_longitude << ',' <<
 		toString(cluster.getClusterType()) << "\n";
+}
+
+void ClusterSaver::saveAggrClustersCSV(const vector<Cluster>& households, ofstream& csv_file) const {
+	map<GeoCoordinate, vector<unsigned int>> aggregation_mapping;
+
+	for (unsigned int i = 1; i < households.size(); i++) {
+		aggregation_mapping[households[i].getLocation()].push_back(i);
+	}
+
+	for (auto entry : aggregation_mapping) {
+		this->saveClusterGroup(households, entry.second, csv_file);
+	}
+}
+
+void ClusterSaver::saveClusterGroup(const vector<Cluster>& households, const vector<unsigned int> indices, ofstream& csv_file) const {
+	// Use the first id as cluster id
+	unsigned int id = households[indices[0]].getId();
+	GeoCoordinate coords = households[indices[0]].getLocation();
+	string cluster_type = toString(households[indices[0]].getClusterType());
+
+	unsigned int total_size = 0;
+	unsigned int total_infected = 0;
+	for (auto index : indices) {
+		total_size += households[index].getSize();
+		total_infected += households[index].getInfectedCount();
+	}
+	double ratio = (total_infected == 0 ? -1 : (double) total_infected / total_size);
+
+	csv_file << id << ',' <<
+		total_size << ',' <<
+		total_infected << ',' <<
+		ratio << ',' <<
+		coords.m_latitude << ',' <<
+		coords.m_longitude << ',' <<
+		cluster_type << "\n";
 }
 
 
@@ -87,7 +162,7 @@ void ClusterSaver::saveClustersJSON(const LocalSimulatorAdapter& local_sim) cons
 	// 		pair<ptree, ptree> cluster_pair = this->getClusterJSON(local_sim.m_sim->m_secondary_community.at(i), i);
 	// 		ptree cluster_secondary;
 	// 		cluster_secondary.put("type", "Feature");
-	// 		cluster_secondary.push_back(std::make_pair("geometry", cluster_pair.first));
+	// 		cluster_secondary.push_back(std::make_pair("geometry", cluster_pair.first));m_pop_file_name
 	// 		cluster_secondary.push_back(std::make_pair("properties", cluster_pair.second));
 	//
 	// 		clusters_secondaries.push_back(std::make_pair("", cluster_secondary));
@@ -132,6 +207,100 @@ pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster) const {
 	cluster_properties.put("type", cluster_type);
 
 	return std::make_pair(cluster_geometry, cluster_properties);
+}
+
+#define SET_CLUSTER_SURFACE(cluster_type) \
+{ \
+	surface = ClusterCalculator<cluster_type>::calculateSurface(local_sim); \
+	if (surface == 0.0) \
+		densities.put(toString(cluster_type), 0.0); \
+	else \
+		densities.put(toString(cluster_type), double(pop_count) / surface); \
+}
+
+#define SET_CLUSTER_MAP(cluster_type) \
+{ \
+	ptree specific_cluster_map; \
+	auto cluster_map = ClusterCalculator<cluster_type>::getClusterMap(local_sim); \
+	for (auto it = cluster_map.begin(); it != cluster_map.end(); ++it) { \
+		if (it->first != 0) { \
+			specific_cluster_map.put(to_string(it->first), it->second); \
+		} \
+	} \
+	cluster_sizes.add_child(toString(cluster_type), specific_cluster_map); \
+}
+
+void ClusterSaver::savePopDataJSON(const LocalSimulatorAdapter& local_sim) const {
+	stringstream ss;
+	ss << setfill('0') << setw(5) << m_sim_day;
+	string file_name = m_pop_file_dir + "/" + m_pop_file_name + "_" + ss.str() + ".json";
+
+	ptree pop_data;
+	{
+		uint pop_count = getPopCount(local_sim);
+
+		ptree densities;
+
+		// Set population densities
+		double surface;
+		SET_CLUSTER_SURFACE(ClusterType::Household)
+		SET_CLUSTER_SURFACE(ClusterType::School)
+		SET_CLUSTER_SURFACE(ClusterType::Work)
+		SET_CLUSTER_SURFACE(ClusterType::PrimaryCommunity)
+		SET_CLUSTER_SURFACE(ClusterType::SecondaryCommunity)
+
+		pop_data.add_child("densities", densities);
+
+		ptree ages;
+		// Set ages
+		auto age_map = getAgeMap(local_sim);
+		for (auto it = age_map.begin(); it != age_map.end(); ++it) {
+			ages.put(to_string(it->first), it->second);
+		}
+
+		pop_data.add_child("age_map", ages);
+
+		ptree cluster_sizes;
+
+		// Set cluster sizes
+		SET_CLUSTER_MAP(ClusterType::Household)
+		SET_CLUSTER_MAP(ClusterType::School)
+		SET_CLUSTER_MAP(ClusterType::Work)
+		SET_CLUSTER_MAP(ClusterType::PrimaryCommunity)
+		SET_CLUSTER_MAP(ClusterType::SecondaryCommunity)
+
+		pop_data.add_child("cluster_sizes", cluster_sizes);
+	}
+
+	write_json(file_name.c_str(), pop_data);
+}
+
+double ClusterSaver::getPopCount(const LocalSimulatorAdapter& local_sim) const {
+	// TODO only people that are not on vacation
+	uint total = 0;
+
+	for (const auto& cluster: local_sim.m_sim->m_primary_community) {
+		total += cluster.getSize();
+	}
+
+	return total;
+}
+
+map<uint, uint> ClusterSaver::getAgeMap(const LocalSimulatorAdapter& local_sim) const {
+	map<uint, uint> result;
+
+	for (const auto& cluster: local_sim.m_sim->m_primary_community) {
+		for (const auto& person: cluster.getMembers()) {
+			if (result.find(person.first->getAge()) == result.end()) {
+				result[person.first->getAge()] = 0;
+			} else {
+				++result[person.first->getAge()];
+			}
+
+		}
+	}
+
+	return result;
 }
 
 }

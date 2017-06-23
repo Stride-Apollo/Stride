@@ -13,13 +13,16 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	$scope.currentDay = 0;
 
 	$scope.save = function() {
-		var saveString = "{\"directory\": \"" + config.directory.toString() + "\",\"color_no_infected\": \""
+		console.log("Saving");
+		var saveString = "{\"directory\": \"" + config.directory.toString()
+			+ "\",\"population_directory\": \"" + $scope.population_directory + "\",\"color_no_infected\": \""
 			+ getHexColor($scope.no_infected_color).toString() + "\",\"color_min_infected\": \""
 			+ getHexColor($scope.min_infected_color).toString() + "\",\"color_max_infected\": \""
 			+ getHexColor($scope.max_infected_color).toString() + "\",\"circle_opacity\": "
 			+ $scope.opacity + ",\"unzoomed_min_size\": " + $scope.unzoomed_min
 			+ ",\"unzoomed_max_size\":  " + $scope.unzoomed_max
-			+ ",\"animation_step\": " + $scope.animation_speed + "}";
+			+ ",\"animation_step\": " + $scope.animation_speed
+			+ ",\"boundary\": " + $scope.boundary + "}";
 		fs.writeFileSync(__dirname + "/data/config.json", saveString);
 	}
 
@@ -49,6 +52,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 
 	function setupConfig(data) {
 		config = JSON.parse(data);
+		$scope.population_directory = config.population_directory;
 		$scope.no_infected_color = config.color_no_infected;
 		$scope.min_infected_color = config.color_min_infected;
 		$scope.max_infected_color = config.color_max_infected;
@@ -56,6 +60,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		$scope.unzoomed_max = config.unzoomed_max_size;
 		$scope.opacity = config.circle_opacity;
 		$scope.animation_speed = config.animation_step;
+		$scope.boundary = config.boundary;
 		//$scope.$apply();
 		addClass(document.getElementById("opacitySlider"), "is-dirty");
 		removeClass(document.getElementById("opacitySlider"), "ng-untouched");
@@ -331,6 +336,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		var url = "file://" + __dirname + '/OverviewContent.html?data='
 			+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
 			+ "&directory=" + __dirname + "/" + config.directory
+			+ "&population=" + __dirname + "/" + config.population_directory
 			+ "&currentDay=" + $scope.currentDay;
 		overview.loadURL(url);
 	}
@@ -345,6 +351,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 				var url = "file://" + __dirname + '/OverviewContent.html?data='
 					+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
 					+ "&directory=" + __dirname + "/" + config.directory
+					+ "&population=" + __dirname + "/" + config.population_directory
 					+ "&currentDay=" + $scope.currentDay;
 				overview.loadURL(url);
 				overview.focus();
@@ -378,7 +385,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 				min_lat = coords[i][1];
 			};
 		};
-		map.fitBounds([[min_lon-2, min_lat-2], [max_lon+2, max_lat+2]]);
+		map.fitBounds([[min_lon-$scope.boundary, min_lat-$scope.boundary], [max_lon+$scope.boundary, max_lat+$scope.boundary]]);
 	}
 
 	function getSize(cluster_data) {
