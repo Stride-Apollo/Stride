@@ -21,8 +21,9 @@ future<bool> RemoteSimulatorSender::timeStep(){
 }
 
 void RemoteSimulatorSender::welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers){
-  std::cout << "TODO" << std::endl;
-  // m_sim->welcomeHomeTravellers(travellers.first, travellers.second);
+  int tag = 5;
+  ReturnData data{travellers};
+  MPI_Send(&data, m_count, MPI_INT, this->m_id, tag, MPI_COMM_WORLD);
 }
 
 // usually called by the Coordinator
@@ -34,8 +35,9 @@ void RemoteSimulatorSender::sendNewTravellers(uint amount, uint days, uint desti
 }
 
 void RemoteSimulatorSender::returnForeignTravellers(){
-  std::cout << "TODO" << std::endl;
-  // m_sim->returnForeignTravellers();
+  int tag = 6;
+  int data = 0;
+  MPI_Send(&data, m_count, MPI_INT, this->m_id, tag, MPI_COMM_WORLD);
 }
 
 // called by the Simulator

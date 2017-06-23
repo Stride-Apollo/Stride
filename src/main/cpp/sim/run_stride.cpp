@@ -221,6 +221,13 @@ void run_stride(bool track_index_case,
 	cout << "  total time: " << total_clock.toString() << endl << endl;
 
 	if (distributedRun) {
+		// Terminate all listening threads
+		if (world_rank == 0){
+			int data = 0;
+			for (int i = 0; i < world_size; i++){
+				MPI_Send(&data, 1, MPI_INT, i, 10, MPI_COMM_WORLD);
+			}
+		}
 		listenThread.join(); // Join and terminate listen thread
 		MPI_Finalize();
 	}
