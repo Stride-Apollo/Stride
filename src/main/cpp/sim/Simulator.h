@@ -20,7 +20,6 @@
  */
 
 #include "behaviour/InformationPolicy.h"
-//#include "core/Cluster.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/District.h"

@@ -283,11 +283,11 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	// const auto& travellers = sim.m_population->m_visitors.getAgenda();
 	const Agenda& travellers = sim.m_planner.getAgenda();
 	hsize_t dims[1] { sim.m_planner.size() };
-	CompType type_traveller = TravellerType::getCompType();
+	CompType type_traveller = TravellerDataType::getCompType();
 
 	DataSpace dataspace = DataSpace(1, dims);
 	DataSet dataset = DataSet(group.createDataSet("Travellers", type_traveller, dataspace));
-	auto traveller_data = make_unique<std::vector<TravellerType>>(dims[0]);
+	auto traveller_data = make_unique<std::vector<TravellerDataType>>(dims[0]);
 
 
 	// TODO optimize this
@@ -308,19 +308,42 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	for (auto&& day : travellers) {
 		const Block& current_day = *(day);
 		for (auto&& person: current_day) {
-			TravellerType traveller;
+			TravellerDataType traveller;
 			traveller.m_days_left = list_index;
 			traveller.m_home_sim_id = person->getHomeSimulatorId();
 			traveller.m_dest_sim_id = person->getDestinationSimulatorId();
 			traveller.m_home_sim_index = person->getHomeSimulatorIndex();
 			traveller.m_dest_sim_index = searchIndex(person->getNewPerson());
 
+			PersonType original_person = person->getHomePerson();
+			#define setAttributeTraveller(attr_lhs, attr_rhs) traveller.attr_lhs = original_person.attr_rhs
+			setAttributeTraveller(m_ID, m_id);
+			setAttributeTraveller(m_age, m_age);
+			setAttributeTraveller(m_gender, m_gender);
+			setAttributeTraveller(m_household_ID, m_household_id);
+			setAttributeTraveller(m_school_ID, m_school_id);
+			setAttributeTraveller(m_work_ID, m_work_id);
+			setAttributeTraveller(m_prim_comm_ID, m_primary_community_id);
+			setAttributeTraveller(m_sec_comm_ID, m_secondary_community_id);
+			setAttributeTraveller(m_start_infectiousness, m_health.getStartInfectiousness());
+			setAttributeTraveller(m_start_symptomatic, m_health.getStartSymptomatic());
+			traveller.m_time_infectiousness = original_person.m_health.getEndInfectiousness() -
+						original_person.m_health.getStartInfectiousness();
+			traveller.m_time_symptomatic = original_person.m_health.getEndSymptomatic() -
+						original_person.m_health.getStartSymptomatic();
+
+			PersonType current_person = *person->getNewPerson();
+			traveller.m_participant = current_person.m_is_participant;
+			traveller.m_health_status = (unsigned int) current_person.m_health.getHealthStatus();;
+			traveller.m_disease_counter = (unsigned int) current_person.m_health.getDiseaseCounter();;
+
 			(*traveller_data)[current_index++] = traveller;
 		}
 		list_index++;
 	}
+	#undef setAttributeTraveller
 
-	dataset.write(traveller_data->data(), TravellerType::getCompType());
+	dataset.write(traveller_data->data(), TravellerDataType::getCompType());
 	dataset.close();
 	dataspace.close();
 }
