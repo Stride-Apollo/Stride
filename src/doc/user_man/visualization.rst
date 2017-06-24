@@ -50,6 +50,14 @@ The first thing you see, when running the tool, is a world map. On this map
 you can see several circles, which represent the clusters saved by the simulator.
 
 The color of the circles represents the percentage of infected people in the cluster.
+The following color values are used by default:
+
+-  Green: No people are infected in this cluster.
+
+-  Yellow: A low percentage of people are infected in this cluster.
+
+-  Red: A high percentage of people are infected in this cluster.
+
 
 Hovering over a cluster displays some useful information, namely the cluster size,
 the infected count, the cluster ID and its coordinates.
