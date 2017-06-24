@@ -189,24 +189,33 @@ void Simulator::setRngStates(vector<string> states) {
 
 uint Simulator::chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters, double influence) {
 	// TODO extend with sphere of influence
-	vector<uint> available_clusters;
-	const auto& calc = GeoCoordCalculator::getInstance();
+	double current_influence = influence;
 
-	for (uint i = 1; i < clusters.size(); ++i) {
-
-		const auto& cluster = clusters.at(i);
-
-		if (calc.getDistance(coordinate, cluster.getLocation()) <= influence) {
-			available_clusters.push_back(i);
-		}
+	if (clusters.size() == 0) {
+		throw runtime_error(string(__func__) + string("> Empty cluster vector."));
 	}
 
-	if (available_clusters.size() != 0) {
-		uint chosen_index = m_rng->operator() (available_clusters.size());
-		return available_clusters[chosen_index];
+	while (true) {
+		vector<uint> available_clusters;
+		const auto& calc = GeoCoordCalculator::getInstance();
 
-	} else {
-		return clusters.size();
+		for (uint i = 1; i < clusters.size(); ++i) {
+
+			const auto& cluster = clusters.at(i);
+
+			if (calc.getDistance(coordinate, cluster.getLocation()) <= current_influence) {
+				available_clusters.push_back(i);
+			}
+		}
+
+		if (available_clusters.size() != 0) {
+			uint chosen_index = m_rng->operator() (available_clusters.size());
+			return available_clusters[chosen_index];
+
+		} else {
+			// Couldn't find cluster within influence range
+			current_influence *= 2.0;
+		}
 	}
 }
 
