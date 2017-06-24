@@ -11,7 +11,7 @@ using namespace std;
 using namespace util;
 
 LocalSimulatorAdapter::LocalSimulatorAdapter(Simulator* sim)
-	: AsyncSimulator(sim) {
+	: m_sim(sim) {
 		m_sim->setAsyncSimulator(this);
 	}
 
@@ -23,15 +23,15 @@ future<bool> LocalSimulatorAdapter::timeStep() {
 		});
 }
 
-void LocalSimulatorAdapter::welcomeHomeTravellers(const pair<vector<uint>, vector<Health> >& travellers) {
+void LocalSimulatorAdapter::welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) {
 	m_sim->welcomeHomeTravellers(travellers.first, travellers.second);
 }
 
-void LocalSimulatorAdapter::hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) {
+void LocalSimulatorAdapter::hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, const string& destination_district, const string& destination_facility) {
 	m_sim->hostForeignTravellers(travellers, days, destination_district, destination_facility);
 }
 
-void LocalSimulatorAdapter::sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) {
+void LocalSimulatorAdapter::sendNewTravellers(uint amount, uint days, uint destination_sim_id, const string& destination_district, const string& destination_facility) {
 	m_sim->sendNewTravellers(amount, days, destination_sim_id, destination_district, destination_facility);
 }
 
@@ -39,10 +39,10 @@ void LocalSimulatorAdapter::returnForeignTravellers() {
 	m_sim->returnForeignTravellers();
 }
 
-void LocalSimulatorAdapter::sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, uint destination_sim_id, string destination_district, string destination_facility) {
+void LocalSimulatorAdapter::sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, uint destination_sim_id, const string& destination_district, const string& destination_facility) {
 	m_adapters.at(destination_sim_id)->hostForeignTravellers(travellers, days, destination_district, destination_facility);
 }
 
-void LocalSimulatorAdapter::returnForeignTravellers(const pair<vector<uint>, vector<Health> >& travellers, uint home_sim_id) {
+void LocalSimulatorAdapter::returnForeignTravellers(const pair<vector<uint>, vector<Health>>& travellers, uint home_sim_id) {
 	m_adapters.at(home_sim_id)->welcomeHomeTravellers(travellers);
 }

@@ -84,7 +84,8 @@ void run_stride(bool track_index_case,
 		cout << "Initializing the MPI environment" << endl << endl;
 		// Initialize the MPI environment
 		int provided = num_threads;
-		MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
+		// TODO set MPI_THREAD to funneled, serialized or multiple?
+		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
 		MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 		cout << "Done initializing the MPI environment (size = " << world_size << ")" << endl;
@@ -97,12 +98,13 @@ void run_stride(bool track_index_case,
 	auto local_sim = make_shared<RemoteSimulatorSender>(world_rank);
 	// Initialize remote simulators
 	std::vector<RemoteSimulatorSender*> remoteSenders;
-	remoteSenders.push_back(local_sim.get());
+	// remoteSenders.push_back(local_sim.get());
 	for (int i = 1; i < world_size; i++){
 		// shared_ptr<RemoteSimulatorSender> remoteSender(new RemoteSimulatorSender(i));
 		// remoteSenders.push_back(remoteSender.get());
 		remoteSenders.push_back(new RemoteSimulatorSender(i)); // TODO fix this with shared ptrs
 	}
+	remoteSenders.push_back(local_sim.get());
 	Coordinator coord({remoteSenders});
 
 	cout << "Done building the simulator. " << endl << endl;
@@ -183,6 +185,7 @@ void run_stride(bool track_index_case,
 	vector<unsigned int> cases(num_days);
 	Stopwatch<> run_clock("run_clock");
 
+	// TODO temporary because of visibility purposes
 	if (world_rank == 0){
 		for (unsigned int i = start_day; i < start_day + num_days; i++) {
 			cout << "Simulating day: " << setw(5) << i;
@@ -227,7 +230,9 @@ void run_stride(bool track_index_case,
 			// Send MPI message to terminate all systems
 			for (int i = 0; i < world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
 		}
+		cout << "Before joining thread@" << world_rank << endl;;
 		listenThread.join(); // Join and terminate listening thread
+		cout << "After joining thread\n";
 		MPI_Finalize();
 	}
 }

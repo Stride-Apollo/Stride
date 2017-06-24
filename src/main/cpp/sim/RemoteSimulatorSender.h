@@ -18,6 +18,9 @@ public:
   RemoteSimulatorSender(const int remote_id);
   ~RemoteSimulatorSender() = default;
 
+  virtual void setId(uint id) override {m_remote_id = id;};
+  virtual uint getId() const override {return m_remote_id;};
+
   /// The bool doesn't matter, C++ can't handle void
 	/// We just need to wait until it is done
   virtual future<bool> timeStep() override;
@@ -25,7 +28,7 @@ public:
   virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) override;
 
   /// The hosting is done @Receiver side
-  virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) override {};
+  virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, const string& destination_district, const string& destination_facility) override {};
 
   /// Send travellers to the destination region
   /// Returns a vector of indices (in the Population of the simulator), these indices are from the people that were sent (debugging purposes)
@@ -34,16 +37,17 @@ public:
   /// @argument destination_sim: a way of communicating with the destination simulator, this must contain all data to achieve communication
   /// @argument destination_district: The name of the city in which the airport / facility is located e.g. "Antwerp"
   /// @argument destination_facility: The name of the facility / airport e.g. "ANR"
-  virtual void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) override;
+  virtual void sendNewTravellers(uint amount, uint days, uint destination_sim_id, const string& destination_district, const string& destination_facility) override;
 
   virtual void returnForeignTravellers() override;
 
 private:
-  int m_count; // The count of elements in the databuffer
+  int m_count;      // The count of elements in the databuffer (default = 1)
+  int m_remote_id;  // The id which will be used for MPI communication
 
   /// Send travellers to the destination region
 	/// This function is used by the Simulator to give the signal to send people
-	virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, uint destination_sim_id, string destination_district, string destination_facility) override;
+	virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, uint destination_sim_id, const string& destination_district, const string& destination_facility) override;
 
   /// Send foreign travellers to the original region
 	/// This function is used by the Simulator to give the signal to send people
