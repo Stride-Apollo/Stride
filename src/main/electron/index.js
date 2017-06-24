@@ -524,8 +524,8 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			var coords = e.features[0].geometry.coordinates;
 			map.getCanvas().style.cursor = 'pointer';
 
-			var htmlText = "Cluster " + e.features[0].properties.id.toString()
-				+ "<br>Size: " + e.features[0].properties.size.toString()
+			var htmlText = "<h5 class='center'>Cluster " + e.features[0].properties.id.toString()
+				+ "</h5><br>Size: " + e.features[0].properties.size.toString()
 				+ "<br>Infected: " + e.features[0].properties.infected.toString()
 				+ "<br>Coordinates: (" + coords[0] + ", " + coords[1] + ")";
 
