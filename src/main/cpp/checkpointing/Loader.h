@@ -6,7 +6,6 @@
 */
 
 #include "H5Cpp.h"
-#include "checkpointing/customDataTypes/TravellerDataType.h"
 #include "util/Observer.h"
 #include "sim/Simulator.h"
 #include <boost/property_tree/xml_parser.hpp>
@@ -79,12 +78,12 @@ private:
 
 
 private:
-	const char* m_filename;
-	bool m_track_index_case;
+	const char*  m_filename;
+	bool 		 m_track_index_case;
 	unsigned int m_num_threads;
-	ptree m_pt_config;
-	ptree m_pt_disease;
-	ptree m_pt_contact;
+	ptree 		 m_pt_config;
+	ptree 		 m_pt_disease;
+	ptree 		 m_pt_contact;
 };
 
 }

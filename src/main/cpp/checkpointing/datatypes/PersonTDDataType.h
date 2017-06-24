@@ -10,15 +10,15 @@ struct PersonTDDataType {
 	static CompType getCompType() {
 		CompType type_person_TD(sizeof(PersonTDDataType));
 		#define insertMemberTD(name, attribute, type) type_person_TD.insertMember(H5std_string(name), HOFFSET(PersonTDDataType, attribute), type)
-		insertMemberTD("participant", participant, PredType::NATIVE_HBOOL);
-		insertMemberTD("health_status", health_status, PredType::NATIVE_UINT);
-		insertMemberTD("disease_counter", disease_counter, PredType::NATIVE_UINT);
+		insertMemberTD("participant", m_participant, PredType::NATIVE_HBOOL);
+		insertMemberTD("health_status", m_health_status, PredType::NATIVE_UINT);
+		insertMemberTD("disease_counter", m_disease_counter, PredType::NATIVE_UINT);
 		#undef insertMemberTD
 
 		return type_person_TD;
 	}
 
-	int participant;
-	unsigned int health_status;
-	unsigned int disease_counter;
+	int 		 m_participant;
+	unsigned int m_health_status;
+	unsigned int m_disease_counter;
 };

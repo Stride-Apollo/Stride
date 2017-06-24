@@ -70,9 +70,9 @@ private:
 
 
 private:
-	string m_filename;
-	int m_frequency;
-	int m_current_step;
+	string 		 m_filename;
+	int 		 m_frequency;
+	int 		 m_current_step;
 	unsigned int m_timestep;
 	unsigned int m_save_count;
 };

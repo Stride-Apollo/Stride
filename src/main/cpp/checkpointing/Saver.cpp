@@ -17,11 +17,11 @@
 #include "core/Cluster.h"
 #include "util/etc.h"
 #include "util/SimplePlanner.h"
-#include "checkpointing/customDataTypes/CalendarDataType.h"
-#include "checkpointing/customDataTypes/ConfDataType.h"
-#include "checkpointing/customDataTypes/PersonTDDataType.h"
-#include "checkpointing/customDataTypes/PersonTIDataType.h"
-#include "checkpointing/customDataTypes/TravellerDataType.h"
+#include "checkpointing/datatypes/CalendarDataType.h"
+#include "checkpointing/datatypes/ConfigDataType.h"
+#include "checkpointing/datatypes/PersonTDDataType.h"
+#include "checkpointing/datatypes/PersonTIDataType.h"
+#include "checkpointing/datatypes/TravellerDataType.h"
 
 #include <vector>
 #include <list>
@@ -174,7 +174,7 @@ void Saver::savePersonTIData(H5File& file, const Simulator& sim) const {
 	DataSpace dataspace = DataSpace(1, dims);
 
 	CompType type_person_TI = PersonTIDataType::getCompType();
-	DataSet dataset = DataSet(file.createDataSet("personsTI", type_person_TI, dataspace));
+	DataSet dataset = DataSet(file.createDataSet("person_time_independent", type_person_TI, dataspace));
 
 	// Persons are saved per chunk
 	unsigned int person_index = 0;
@@ -190,19 +190,19 @@ void Saver::savePersonTIData(H5File& file, const Simulator& sim) const {
 		PersonTIDataType personData[selected_dims[0]];
 		for (unsigned int j = 0; j < selected_dims[0]; j++) {
 			#define setAttributePerson(attr_lhs, attr_rhs) personData[j].attr_lhs = sim.getPopulation().get()->m_original.at(person_index).attr_rhs
-			setAttributePerson(ID, m_id);
-			setAttributePerson(age, m_age);
-			setAttributePerson(gender, m_gender);
-			setAttributePerson(household_ID, m_household_id);
-			setAttributePerson(school_ID, m_school_id);
-			setAttributePerson(work_ID, m_work_id);
-			setAttributePerson(prim_comm_ID, m_primary_community_id);
-			setAttributePerson(sec_comm_ID, m_secondary_community_id);
-			setAttributePerson(start_infectiousness, m_health.getStartInfectiousness());
-			setAttributePerson(start_symptomatic, m_health.getStartSymptomatic());
-			personData[j].time_infectiousness = sim.getPopulation().get()->m_original.at(person_index).m_health.getEndInfectiousness() -
+			setAttributePerson(m_id, m_id);
+			setAttributePerson(m_age, m_age);
+			setAttributePerson(m_gender, m_gender);
+			setAttributePerson(m_household_id, m_household_id);
+			setAttributePerson(m_school_id, m_school_id);
+			setAttributePerson(m_work_id, m_work_id);
+			setAttributePerson(m_prim_comm_id, m_primary_community_id);
+			setAttributePerson(m_sec_comm_id, m_secondary_community_id);
+			setAttributePerson(m_start_infectiousness, m_health.getStartInfectiousness());
+			setAttributePerson(m_start_symptomatic, m_health.getStartSymptomatic());
+			personData[j].m_time_infectiousness = sim.getPopulation().get()->m_original.at(person_index).m_health.getEndInfectiousness() -
 						sim.getPopulation().get()->m_original.at(person_index).m_health.getStartInfectiousness();
-			personData[j].time_symptomatic = sim.getPopulation().get()->m_original.at(person_index).m_health.getEndSymptomatic() -
+			personData[j].m_time_symptomatic = sim.getPopulation().get()->m_original.at(person_index).m_health.getEndSymptomatic() -
 						sim.getPopulation().get()->m_original.at(person_index).m_health.getStartSymptomatic();
 			person_index++;
 		}
@@ -231,7 +231,7 @@ void Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 	DSetCreatPropList plist = DSetCreatPropList();
 	hsize_t chunk_dims[1] = {10000};
 	plist.setChunk(1, chunk_dims);
-	DataSet dataset = DataSet(group.createDataSet("PersonTD", type_person_TD, dataspace, plist));
+	DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace, plist));
 
 	using PersonType = Simulator::PersonType;
 	const std::vector<PersonType>& population = sim.getPopulation()->m_original;
@@ -250,9 +250,9 @@ void Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 		PersonTDDataType person_data[selected_dims[0]];
 		for (unsigned int j = 0; j < selected_dims[0]; j++) {
 			const PersonType& person = population[person_index];
-			person_data[j].participant = person.m_is_participant;
-			person_data[j].health_status = (unsigned int) person.m_health.getHealthStatus();
-			person_data[j].disease_counter = (unsigned int) person.m_health.getDiseaseCounter();
+			person_data[j].m_participant = person.m_is_participant;
+			person_data[j].m_health_status = (unsigned int) person.m_health.getHealthStatus();
+			person_data[j].m_disease_counter = (unsigned int) person.m_health.getDiseaseCounter();
 			person_index++;
 		}
 
@@ -317,14 +317,14 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 
 			PersonType original_person = person->getHomePerson();
 			#define setAttributeTraveller(attr_lhs, attr_rhs) traveller.attr_lhs = original_person.attr_rhs
-			setAttributeTraveller(m_orig_ID, m_id);
+			setAttributeTraveller(m_orig_id, m_id);
 			setAttributeTraveller(m_age, m_age);
 			setAttributeTraveller(m_gender, m_gender);
-			setAttributeTraveller(m_orig_household_ID, m_household_id);
-			setAttributeTraveller(m_orig_school_ID, m_school_id);
-			setAttributeTraveller(m_orig_work_ID, m_work_id);
-			setAttributeTraveller(m_orig_prim_comm_ID, m_primary_community_id);
-			setAttributeTraveller(m_orig_sec_comm_ID, m_secondary_community_id);
+			setAttributeTraveller(m_orig_household_id, m_household_id);
+			setAttributeTraveller(m_orig_school_id, m_school_id);
+			setAttributeTraveller(m_orig_work_id, m_work_id);
+			setAttributeTraveller(m_orig_prim_comm_id, m_primary_community_id);
+			setAttributeTraveller(m_orig_sec_comm_id, m_secondary_community_id);
 			setAttributeTraveller(m_start_infectiousness, m_health.getStartInfectiousness());
 			setAttributeTraveller(m_start_symptomatic, m_health.getStartSymptomatic());
 			traveller.m_time_infectiousness = original_person.m_health.getEndInfectiousness() -
@@ -336,12 +336,12 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 			traveller.m_participant = current_person.m_is_participant;
 			traveller.m_health_status = (unsigned int) current_person.m_health.getHealthStatus();;
 			traveller.m_disease_counter = (unsigned int) current_person.m_health.getDiseaseCounter();;
-			traveller.m_new_ID = current_person.m_id;
-			traveller.m_new_household_ID = current_person.m_household_id;
-			traveller.m_new_school_ID = current_person.m_school_id;
-			traveller.m_new_work_ID = current_person.m_work_id;
-			traveller.m_new_prim_comm_ID = current_person.m_primary_community_id;
-			traveller.m_new_sec_comm_ID = current_person.m_secondary_community_id;
+			traveller.m_new_id = current_person.m_id;
+			traveller.m_new_household_id = current_person.m_household_id;
+			traveller.m_new_school_id = current_person.m_school_id;
+			traveller.m_new_work_id = current_person.m_work_id;
+			traveller.m_new_prim_comm_id = current_person.m_primary_community_id;
+			traveller.m_new_sec_comm_id = current_person.m_secondary_community_id;
 
 
 			(*traveller_data)[current_index++] = traveller;
@@ -403,15 +403,15 @@ void Saver::saveCalendar(Group& group, const Simulator& sim) const {
 	hsize_t dims[1] {1};
 	CompType typeCalendar = CalendarDataType::getCompType();
 	DataSpace dataspace = DataSpace(1, dims);
-	DataSet dataset = DataSet(group.createDataSet("Calendar", typeCalendar, dataspace));
+	DataSet dataset = DataSet(group.createDataSet("calendar", typeCalendar, dataspace));
 
 	stringstream ss;
 	ss << sim.m_calendar->getYear() << "-" << sim.m_calendar->getMonth() << "-" << sim.m_calendar->getDay();
 	string save_date = ss.str();
 
 	CalendarDataType calendar[1];
-	calendar[0].day = sim.m_calendar->getSimulationDay();
-	calendar[0].date = save_date.c_str();
+	calendar[0].m_day = sim.m_calendar->getSimulationDay();
+	calendar[0].m_date = save_date.c_str();
 	dataset.write(calendar, typeCalendar);
 
 	dataset.close();
@@ -421,12 +421,12 @@ void Saver::saveCalendar(Group& group, const Simulator& sim) const {
 
 void Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 	hsize_t dims[1] {1};
-	Group group(file.createGroup("/configuration"));
+	Group group(file.createGroup("/Configuration"));
 	DataSpace dataspace = DataSpace(1, dims);
 
-	CompType type_conf_data = ConfDataType::getCompType();
+	CompType type_conf_data = ConfigDataType::getCompType();
 	DataSet dataset = DataSet(group.createDataSet(H5std_string("configuration"), type_conf_data, dataspace));
-	ConfDataType configData[1];
+	ConfigDataType configData[1];
 
 	auto getStringXmlPtree = [](const ptree xml) {
 		ostringstream oss;
@@ -445,11 +445,11 @@ void Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 	};
 
 	string content_config = getStringXmlPtree(pt_config);
-	configData[0].conf_content = content_config.c_str();
+	configData[0].m_config_content = content_config.c_str();
 	string content_disease = getStringXmlPtree(getPtreeXmlFile(pt_config.get<string>("run.disease_config_file")));
-	configData[0].disease_content = content_disease.c_str();
+	configData[0].m_disease_content = content_disease.c_str();
 	string content_age = getStringXmlPtree(getPtreeXmlFile(pt_config.get<string>("run.age_contact_matrix_file")));
-	configData[0].age_contact_content = content_age.c_str();
+	configData[0].m_age_contact_content = content_age.c_str();
 
 
 	ptree json_tree;
@@ -462,7 +462,7 @@ void Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 	ostringstream oss;
 	json_parser::write_json(oss, json_tree);
 	string content_holidays = oss.str();
-	configData[0].holidays_content = content_holidays.c_str();
+	configData[0].m_holidays_content = content_holidays.c_str();
 
 
 	dataset.write(configData, type_conf_data);

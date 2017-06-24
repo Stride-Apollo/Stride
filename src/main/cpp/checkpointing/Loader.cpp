@@ -10,10 +10,11 @@
 #include "calendar/Calendar.h"
 #include "util/InstallDirs.h"
 #include "pop/Population.h"
-#include "checkpointing/customDataTypes/CalendarDataType.h"
-#include "checkpointing/customDataTypes/ConfDataType.h"
-#include "checkpointing/customDataTypes/PersonTDDataType.h"
-#include "checkpointing/customDataTypes/PersonTIDataType.h"
+#include "checkpointing/datatypes/CalendarDataType.h"
+#include "checkpointing/datatypes/ConfigDataType.h"
+#include "checkpointing/datatypes/PersonTDDataType.h"
+#include "checkpointing/datatypes/PersonTIDataType.h"
+#include "checkpointing/datatypes/TravellerDataType.h"
 #include "sim/SimulatorBuilder.h"
 #include "pop/PopulationBuilder.h"
 #include "core/Cluster.h"
@@ -46,9 +47,9 @@ Loader::Loader(const char *filename, unsigned int num_threads) :
 void Loader::loadConfigs() {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 
-	DataSet dataset = DataSet(file.openDataSet("configuration/configuration"));
-	ConfDataType configData[1];
-	dataset.read(configData, ConfDataType::getCompType());
+	DataSet dataset = DataSet(file.openDataSet("Configuration/configuration"));
+	ConfigDataType configData[1];
+	dataset.read(configData, ConfigDataType::getCompType());
 	dataset.close();
 	file.close();
 
@@ -58,9 +59,9 @@ void Loader::loadConfigs() {
 		xml_parser::read_xml(iss, dest_pt, boost::property_tree::xml_parser::trim_whitespace);
 	};
 
-	getPropTree(configData[0].conf_content, m_pt_config);
-	getPropTree(configData[0].disease_content, m_pt_disease);
-	getPropTree(configData[0].age_contact_content, m_pt_contact);
+	getPropTree(configData[0].m_config_content, m_pt_config);
+	getPropTree(configData[0].m_disease_content, m_pt_disease);
+	getPropTree(configData[0].m_age_contact_content, m_pt_contact);
 }
 
 void Loader::loadTrackIndexCase() {
@@ -147,13 +148,13 @@ void Loader::updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const {
 }
 
 void Loader::loadCalendar(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
-	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/Calendar"));
+	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/calendar"));
 	CalendarDataType calendar[1];
 	dataset.read(calendar, CalendarDataType::getCompType());
 	dataset.close();
 
-	sim->m_calendar->m_day = calendar[0].day;
-	sim->m_calendar->m_date = boost::gregorian::from_simple_string(calendar[0].date);
+	sim->m_calendar->m_day = calendar[0].m_day;
+	sim->m_calendar->m_date = boost::gregorian::from_simple_string(calendar[0].m_date);
 }
 
 
@@ -178,9 +179,9 @@ void Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Simula
 
 			// First of all, add the person to the population (visitors)
 			Simulator::PersonType person = Simulator::PersonType(
-				object.m_new_ID, object.m_age,
-				object.m_new_household_ID, object.m_new_school_ID, object.m_new_work_ID,
-				object.m_new_prim_comm_ID, object.m_new_sec_comm_ID,
+				object.m_new_id, object.m_age,
+				object.m_new_household_id, object.m_new_school_id, object.m_new_work_id,
+				object.m_new_prim_comm_id, object.m_new_sec_comm_id,
 				object.m_start_infectiousness, object.m_start_symptomatic,
 				object.m_time_infectiousness, object.m_time_symptomatic
 			);
@@ -194,9 +195,9 @@ void Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Simula
 
 			// Construct the person from the original simulator (his health does not matter, since his new one is used and returned eventually)
 			Simulator::PersonType original_person = Simulator::PersonType(
-				object.m_orig_ID, object.m_age,
-				object.m_orig_household_ID, object.m_orig_school_ID, object.m_orig_work_ID,
-				object.m_orig_prim_comm_ID, object.m_orig_sec_comm_ID,
+				object.m_orig_id, object.m_age,
+				object.m_orig_household_id, object.m_orig_school_id, object.m_orig_work_id,
+				object.m_orig_prim_comm_id, object.m_orig_sec_comm_id,
 				object.m_start_infectiousness, object.m_start_symptomatic,
 				object.m_time_infectiousness, object.m_time_symptomatic
 			);
@@ -213,14 +214,14 @@ void Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Simula
 			// Finally, add the traveller to clusters
 			Simulator::PersonType* added_person = sim->m_population->m_visitors.getModifiableDay(object.m_days_left)->back().get();
 
-			sim->m_work_clusters.at(object.m_new_work_ID).addPerson(added_person);
-			sim->m_primary_community.at(object.m_new_prim_comm_ID).addPerson(added_person);
-			sim->m_secondary_community.at(object.m_new_sec_comm_ID).addPerson(added_person);
+			sim->m_work_clusters.at(object.m_new_work_id).addPerson(added_person);
+			sim->m_primary_community.at(object.m_new_prim_comm_id).addPerson(added_person);
+			sim->m_secondary_community.at(object.m_new_sec_comm_id).addPerson(added_person);
 
 
 			// Since the travellers are ordered, it is safe to set these values every iteration
-			sim->m_next_id = object.m_new_ID + 1;
-			sim->m_next_hh_id = object.m_new_household_ID + 1;
+			sim->m_next_id = object.m_new_id + 1;
+			sim->m_next_hh_id = object.m_new_household_id + 1;
 
 			// TODO remove debug output
 			// std::cout << "Traveller: id(home)=" << object.m_home_sim_index <<
@@ -235,7 +236,7 @@ void Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Simula
 
 
 void Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
-	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/PersonTD"));
+	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/person_time_dependent"));
 	unsigned long dims[1] = {sim->m_population.get()->m_original.size()};
 	CompType type_person_TD = PersonTDDataType::getCompType();
 
@@ -254,9 +255,9 @@ void Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<Simu
 		DataSpace dataspace = dataset.getSpace();
 		dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
 		dataset.read(person, type_person_TD, memspace, dataspace);
-		sim->m_population->m_original.at(i).m_is_participant = person[0].participant;
-		sim->m_population->m_original.at(i).m_health.m_status = HealthStatus(person[0].health_status);
-		sim->m_population->m_original.at(i).m_health.m_disease_counter = person[0].disease_counter;
+		sim->m_population->m_original.at(i).m_is_participant = person[0].m_participant;
+		sim->m_population->m_original.at(i).m_health.m_status = HealthStatus(person[0].m_health_status);
+		sim->m_population->m_original.at(i).m_health.m_disease_counter = person[0].m_disease_counter;
 		memspace.close();
 		dataspace.close();
 	}
@@ -338,9 +339,9 @@ void Loader::extractConfigs(string filename) {
 
 	H5File file(filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 
-	DataSet dataset = DataSet(file.openDataSet("configuration/configuration"));
-	ConfDataType configData[1];
-	dataset.read(configData, ConfDataType::getCompType());
+	DataSet dataset = DataSet(file.openDataSet("Configuration/configuration"));
+	ConfigDataType configData[1];
+	dataset.read(configData, ConfigDataType::getCompType());
 	dataset.close();
 	file.close();
 
@@ -351,10 +352,10 @@ void Loader::extractConfigs(string filename) {
 		file.close();
 	};
 
-	writeToFile(filename + "_config.xml", configData[0].conf_content);
-	writeToFile(filename + "_disease.xml", configData[0].disease_content);
-	writeToFile(filename + "_contact.xml", configData[0].age_contact_content);
-	writeToFile(filename + "_holidays.json", configData[0].holidays_content);
+	writeToFile(filename + "_config.xml", configData[0].m_config_content);
+	writeToFile(filename + "_disease.xml", configData[0].m_disease_content);
+	writeToFile(filename + "_contact.xml", configData[0].m_age_contact_content);
+	writeToFile(filename + "_holidays.json", configData[0].m_holidays_content);
 }
 
 
