@@ -23,7 +23,7 @@ public:
 	AsyncSimulator(Simulator* sim): m_sim(sim) {}
 
 	void setId(uint id) {m_id = id; m_sim->setId(m_id);}
-	
+
 	uint getId() const {return m_id;}
 
 	/// The bool doesn't matter, C++ can't handle void
@@ -39,8 +39,8 @@ public:
 	/// @argument destination_facility: The name of the facility / airport e.g. "ANR"
 	virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) = 0;
 
-	/// Send travellers to the destination region
-	/// Returns a vector of indices (in the Population of the simulator), these indices are from the people that were sent (debugging purposes)
+	/// Commands to send an amount of travellers to another region
+	/// The Simulator will have to take action, select travellers, and indicate which travellers he chose
 	/// @argument amount: the amount of travellers to be sent
 	/// @argument days: how long these people will be gone
 	/// @argument destination_sim: a way of communicating with the destination simulator, this must contain all data to achieve communication
@@ -48,23 +48,24 @@ public:
 	/// @argument destination_facility: The name of the facility / airport e.g. "ANR"
 	virtual void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) = 0;
 
+	/// Return foreign people that would return today, signals the Simulator to return today's travellers
 	virtual void returnForeignTravellers() = 0;
 
 	virtual ~AsyncSimulator() {};
 
 	AsyncSimulator(uint seed = rand()) { std::mt19937 m_rng (seed);}
 
-protected:
+public:
 	uint m_id = 0;		///< The id of this simulator
 	Simulator* m_sim = nullptr;	///< The controlled Simulator
 
 private:
-	/// Send travellers to the destination region
+	/// Send specifically chosen travellers to the destination region
 	/// This function is used by the Simulator to give the signal to send people
 	virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, uint destination_sim_id, string destination_district, string destination_facility) = 0;
 
 	/// Send foreign travellers to the original region
-	/// This function is used by the Simulator to give the signal to send people
+	/// This function is used by the Simulator to give the signal to send people back
 	virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health> >& travellers, uint home_sim_id) = 0;
 
 	friend class Simulator;

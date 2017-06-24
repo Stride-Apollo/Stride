@@ -20,7 +20,6 @@
  */
 
 #include "behaviour/InformationPolicy.h"
-//#include "core/Cluster.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/District.h"
@@ -50,7 +49,7 @@ using uint = unsigned int;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator {
+class Simulator : public Subject<Simulator> {
 public:
 	using PersonType = Person<NoBehaviour, NoBelief>;
 	using BeliefPolicy = NoBelief;
@@ -90,7 +89,7 @@ public:
 	/// Return an index to a cluster in the given vector
 	/// Current policy: search for the first cluster with equal coordinates
 	/// Return the size of the vector if you can't find any
-	uint chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters);
+	uint chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters, double influence);
 
 	/// Receive travellers
 	/// @argument travellers: the travellers this simulator has to host. Contains the data needed to identify a person in the home simulator
@@ -165,7 +164,6 @@ public:	// TODO write getters or set friend class for ClusterSaver
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 	friend class SimulatorBuilder;
-	friend class AsyncSimulatorReceiver;
 	friend class Saver;
 	friend class Loader;
 };

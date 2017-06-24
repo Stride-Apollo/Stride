@@ -6,10 +6,13 @@
 #include <fstream>
 #include <map>
 
-#include "sim/LocalSimulatorAdapter.h"
+#include "sim/Simulator.h"
 #include "core/Cluster.h"
 #include "util/GeoCoordCalculator.h"
 #include "util/Observer.h"
+
+
+namespace stride {
 
 using boost::property_tree::ptree;
 using std::string;
@@ -18,14 +21,11 @@ using std::ofstream;
 using std::vector;
 using std::map;
 
-
-namespace stride {
-
-class ClusterSaver : public util::Observer<LocalSimulatorAdapter> {
+class ClusterSaver : public util::Observer<Simulator> {
 public:
 	ClusterSaver(string file_name, string pop_file_name);
 
-	virtual void update(const LocalSimulatorAdapter& sim) {
+	virtual void update(const Simulator& sim) {
 		saveClustersCSV(sim);
 		savePopDataJSON(sim);
 		m_sim_day++;
@@ -35,7 +35,7 @@ private:
 	using uint = unsigned int;
 
 	/// Saves cluster information for Households (aggregated), Primary Communities and Secondary Communities.
-	void saveClustersCSV(const LocalSimulatorAdapter& local_sim) const;
+	void saveClustersCSV(const Simulator& sim) const;
 
 	/// Saves a single cluster.
 	inline void saveClusterCSV(const Cluster& cluster, ofstream& csv_file) const;
@@ -47,7 +47,7 @@ private:
 	void saveClusterGroup(const vector<Cluster>& households, const vector<uint> indices, ofstream& csv_file) const;
 
 	// Deprecated
-	void saveClustersJSON(const LocalSimulatorAdapter& local_sim) const;
+	void saveClustersJSON(const Simulator& sim) const;
 	// Deprecated
 	pair<ptree, ptree> getClusterJSON(const Cluster& cluster) const;
 
@@ -98,7 +98,7 @@ public:
 				radius = candidate_distance;
 			}
 		}
-		
+
 		return PI * radius * radius;
 	}
 

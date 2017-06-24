@@ -6,7 +6,6 @@
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
-#include "util/Subject.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
@@ -25,7 +24,7 @@ class ClusterCalculator;
 using namespace std;
 using namespace util;
 
-class LocalSimulatorAdapter : public AsyncSimulator, public Subject<LocalSimulatorAdapter> {
+class LocalSimulatorAdapter : public AsyncSimulator {
 public:
 	/// The constructor, this adapter will control one simulator
 	LocalSimulatorAdapter(Simulator* sim);

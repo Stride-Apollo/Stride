@@ -21,7 +21,7 @@ public:
 
 	Traveller(const Traveller& other_traveller)
 		: m_home_simulator_id(other_traveller.m_home_simulator_id), m_destination_simulator_id(other_traveller.m_destination_simulator_id),
-		m_home_person(other_traveller.m_home_person), m_new_person(other_traveller.m_new_person)
+		m_home_simulator_index(other_traveller.m_home_simulator_index), m_home_person(other_traveller.m_home_person), m_new_person(other_traveller.m_new_person)
 		 {}
 
 	const PersonType& getHomePerson() const {

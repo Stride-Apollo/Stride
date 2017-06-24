@@ -10,13 +10,15 @@
 #include "calendar/Calendar.h"
 #include "util/InstallDirs.h"
 #include "pop/Population.h"
-#include "checkpointing/customDataTypes/CalendarDataType.h"
-#include "checkpointing/customDataTypes/ConfDataType.h"
-#include "checkpointing/customDataTypes/PersonTDDataType.h"
-#include "checkpointing/customDataTypes/PersonTIDataType.h"
+#include "checkpointing/datatypes/CalendarDataType.h"
+#include "checkpointing/datatypes/ConfigDataType.h"
+#include "checkpointing/datatypes/PersonTDDataType.h"
+#include "checkpointing/datatypes/PersonTIDataType.h"
+#include "checkpointing/datatypes/TravellerDataType.h"
 #include "sim/SimulatorBuilder.h"
 #include "pop/PopulationBuilder.h"
 #include "core/Cluster.h"
+#include "util/etc.h"
 
 #include <algorithm>
 #include <vector>
@@ -44,21 +46,21 @@ Loader::Loader(const char *filename) :
 void Loader::loadConfigs() {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 
-	DataSet dataset = DataSet(file.openDataSet("configuration/configuration"));
-	ConfDataType configData[1];
-	dataset.read(configData, ConfDataType::getCompType());
+	DataSet dataset = DataSet(file.openDataSet("Configuration/configuration"));
+	ConfigDataType configData[1];
+	dataset.read(configData, ConfigDataType::getCompType());
 	dataset.close();
 	file.close();
 
 	auto getPropTree = [](string xml_content, ptree& dest_pt) {
 		istringstream iss;
 		iss.str(xml_content);
-		xml_parser::read_xml(iss, dest_pt);
+		xml_parser::read_xml(iss, dest_pt, boost::property_tree::xml_parser::trim_whitespace);
 	};
 
-	getPropTree(configData[0].conf_content, m_pt_config);
-	getPropTree(configData[0].disease_content, m_pt_disease);
-	getPropTree(configData[0].age_contact_content, m_pt_contact);
+	getPropTree(configData[0].m_config_content, m_pt_config);
+	getPropTree(configData[0].m_disease_content, m_pt_disease);
+	getPropTree(configData[0].m_age_contact_content, m_pt_contact);
 }
 
 
@@ -72,16 +74,16 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 
 	this->loadCalendar(file, dataset_name, sim);
 	this->loadPersonTDData(file, dataset_name, sim);
-
+	this->loadTravellers(file, dataset_name, sim);
 	// Sort the population by id first, in order to increase the speed of cluster reordening
 	auto sortByID = [](const Simulator::PersonType& lhs, const Simulator::PersonType& rhs) { return lhs.getId() < rhs.getId(); };
 	std::sort(sim->m_population->m_original.begin(), sim->m_population->m_original.end(), sortByID);
 
-	this->loadClusters(file, ss.str() + "/household_clusters", sim->m_households, sim.get()->m_population);
-	this->loadClusters(file, ss.str() + "/school_clusters", sim->m_school_clusters, sim.get()->m_population);
-	this->loadClusters(file, ss.str() + "/work_clusters", sim->m_work_clusters, sim.get()->m_population);
-	this->loadClusters(file, ss.str() + "/primary_community_clusters", sim->m_primary_community, sim.get()->m_population);
-	this->loadClusters(file, ss.str() + "/secondary_community_clusters", sim->m_secondary_community, sim.get()->m_population);
+	this->loadClusters(file, dataset_name + "/household_clusters", sim->m_households, sim);
+	this->loadClusters(file, dataset_name + "/school_clusters", sim->m_school_clusters, sim);
+	this->loadClusters(file, dataset_name + "/work_clusters", sim->m_work_clusters, sim);
+	this->loadClusters(file, dataset_name + "/primary_community_clusters", sim->m_primary_community, sim);
+	this->loadClusters(file, dataset_name + "/secondary_community_clusters", sim->m_secondary_community, sim);
 
 	this->updateClusterImmuneIndices(sim);
 
@@ -131,21 +133,99 @@ void Loader::updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const {
 }
 
 void Loader::loadCalendar(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
-	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/Calendar"));
+	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/calendar"));
 	CalendarDataType calendar[1];
 	dataset.read(calendar, CalendarDataType::getCompType());
 	dataset.close();
 
-	sim->m_calendar->m_day = calendar[0].day;
-	sim->m_calendar->m_date = boost::gregorian::from_simple_string(calendar[0].date);
+	sim->m_calendar->m_day = calendar[0].m_day;
+	sim->m_calendar->m_date = boost::gregorian::from_simple_string(calendar[0].m_date);
+}
+
+
+void Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
+	try {
+		DataSet dataset = DataSet(file.openDataSet(dataset_name + "/travellers"));
+		DataSpace dataspace = dataset.getSpace();
+		hsize_t dims_travellers[1];
+		dataspace.getSimpleExtentDims(dims_travellers, NULL);
+		const unsigned int amt_travellers = dims_travellers[0];
+		dataspace.close();
+
+		auto travellers = make_unique<std::vector<TravellerDataType>>(amt_travellers);
+
+		dataset.read(travellers->data(), TravellerDataType::getCompType());
+
+		// TODO if necessary, count the travellers for each day, reserve in the planner
+
+		// The travellers are saved in order of their index in the new simulator
+		// Therefore, we can just iterate over them and add them without worrying about changing the original order
+		for (auto object : *travellers) {
+
+			// First of all, add the person to the population (visitors)
+			Simulator::PersonType person = Simulator::PersonType(
+				object.m_new_id, object.m_age,
+				object.m_new_household_id, object.m_new_school_id, object.m_new_work_id,
+				object.m_new_prim_comm_id, object.m_new_sec_comm_id,
+				object.m_start_infectiousness, object.m_start_symptomatic,
+				object.m_time_infectiousness, object.m_time_symptomatic
+			);
+			person.m_health.m_status = HealthStatus(object.m_health_status);
+			person.m_health.m_disease_counter = object.m_disease_counter;
+			person.m_is_participant = object.m_participant;
+
+			sim->m_population->m_visitors.add(object.m_days_left, person);
+
+			// Secondly, add the traveller to the planner in the simulator
+
+			// Construct the person from the original simulator (his health does not matter, since his new one is used and returned eventually)
+			Simulator::PersonType original_person = Simulator::PersonType(
+				object.m_orig_id, object.m_age,
+				object.m_orig_household_id, object.m_orig_school_id, object.m_orig_work_id,
+				object.m_orig_prim_comm_id, object.m_orig_sec_comm_id,
+				object.m_start_infectiousness, object.m_start_symptomatic,
+				object.m_time_infectiousness, object.m_time_symptomatic
+			);
+
+			Simulator::TravellerType traveller = Simulator::TravellerType(
+				original_person, sim->m_population->m_visitors.getModifiableDay(object.m_days_left)->back().get(),
+				object.m_home_sim_id, object.m_dest_sim_id, object.m_home_sim_index
+			);
+
+			traveller.getNewPerson()->setOnVacation(false);
+			sim->m_planner.add(object.m_days_left, traveller);
+
+
+			// Finally, add the traveller to clusters
+			Simulator::PersonType* added_person = sim->m_population->m_visitors.getModifiableDay(object.m_days_left)->back().get();
+
+			sim->m_work_clusters.at(object.m_new_work_id).addPerson(added_person);
+			sim->m_primary_community.at(object.m_new_prim_comm_id).addPerson(added_person);
+			sim->m_secondary_community.at(object.m_new_sec_comm_id).addPerson(added_person);
+
+
+			// Since the travellers are ordered, it is safe to set these values every iteration
+			sim->m_next_id = object.m_new_id + 1;
+			sim->m_next_hh_id = object.m_new_household_id + 1;
+
+			// TODO remove debug output
+			// std::cout << "Traveller: id(home)=" << object.m_home_sim_index <<
+			// 	", disease_counter=" << object.m_disease_counter << std::endl;
+		}
+
+	} catch (DataSetIException e) {
+		// The dataset does not exist, no traveller information was stored.
+		return;
+	}
 }
 
 
 void Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
-	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/PersonTD"));
+	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/person_time_dependent"));
 	unsigned long dims[1] = {sim->m_population.get()->m_original.size()};
 	CompType type_person_TD = PersonTDDataType::getCompType();
 
+	// for (unsigned int i = 0; i < sim->m_population->m_original.size(); i++) {
 	for (unsigned int i = 0; i < dims[0]; i++) {
 		PersonTDDataType person[1];
 		hsize_t dim_sub[1] = {1};
@@ -160,9 +240,9 @@ void Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<Simu
 		DataSpace dataspace = dataset.getSpace();
 		dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
 		dataset.read(person, type_person_TD, memspace, dataspace);
-		sim->m_population->m_original.at(i).m_is_participant = person[0].participant;
-		sim->m_population->m_original.at(i).m_health.m_status = HealthStatus(person[0].health_status);
-		sim->m_population->m_original.at(i).m_health.m_disease_counter = person[0].disease_counter;
+		sim->m_population->m_original.at(i).m_is_participant = person[0].m_participant;
+		sim->m_population->m_original.at(i).m_health.m_status = HealthStatus(person[0].m_health_status);
+		sim->m_population->m_original.at(i).m_health.m_disease_counter = person[0].m_disease_counter;
 		memspace.close();
 		dataspace.close();
 	}
@@ -180,7 +260,9 @@ void Loader::loadRngState(H5File& file, string dataset_name, shared_ptr<Simulato
 }
 
 
-void Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Population> pop) const {
+void Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Simulator> sim) const {
+	std::shared_ptr<Population> pop = sim->m_population;
+
 	DataSet dataset = DataSet(file.openDataSet(full_dataset_name));
 	DataSpace dataspace = dataset.getSpace();
 	hsize_t dims_clusters[1];
@@ -194,11 +276,35 @@ void Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vect
 	dataset.read(cluster_data, PredType::NATIVE_UINT);
 	dataset.close();
 
+	// TODO adjust position/.. if non multi region run is desired
+	// Collect all the travellers in a single vector for convenience
+	vector<Simulator::PersonType*> travellers;
+	for (auto&& day : sim->m_planner.getAgenda()) {
+		for (auto&& traveller : *(day)) {
+			travellers.push_back(traveller->getNewPerson());
+		}
+	}
+
 	for(unsigned int i = 0; i < cluster.size(); i++) {
 		for(unsigned int j = 0; j < cluster.at(i).getSize(); j++) {
 			unsigned int id = cluster_data[index++];
-			Simulator::PersonType* person = &pop->m_original.at(id);
-			cluster.at(i).m_members.at(j).first = person;
+
+			if (id < pop->m_original.size()) {
+				Simulator::PersonType* person = &pop->m_original.at(id);
+				cluster.at(i).m_members.at(j).first = person;
+			} else if (id >= pop->m_original.size()) {
+				// Get the pointer to the person via the travel planner
+				auto traveller = std::find_if(
+					travellers.begin(),
+					travellers.end(),
+					[&id](Simulator::PersonType* traveller)->bool {
+						return (traveller)->getId() == id;
+				});
+				cluster.at(i).m_members.at(j).first = (*traveller);
+			} else {
+				// TODO here for later, when loading a multi region checkpointed file into a single region run/simulation
+			}
+
 		}
 	}
 }
@@ -218,9 +324,9 @@ void Loader::extractConfigs(string filename) {
 
 	H5File file(filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 
-	DataSet dataset = DataSet(file.openDataSet("configuration/configuration"));
-	ConfDataType configData[1];
-	dataset.read(configData, ConfDataType::getCompType());
+	DataSet dataset = DataSet(file.openDataSet("Configuration/configuration"));
+	ConfigDataType configData[1];
+	dataset.read(configData, ConfigDataType::getCompType());
 	dataset.close();
 	file.close();
 
@@ -231,10 +337,10 @@ void Loader::extractConfigs(string filename) {
 		file.close();
 	};
 
-	writeToFile(filename + "_config.xml", configData[0].conf_content);
-	writeToFile(filename + "_disease.xml", configData[0].disease_content);
-	writeToFile(filename + "_contact.xml", configData[0].age_contact_content);
-	writeToFile(filename + "_holidays.json", configData[0].holidays_content);
+	writeToFile(filename + "_config.xml", configData[0].m_config_content);
+	writeToFile(filename + "_disease.xml", configData[0].m_disease_content);
+	writeToFile(filename + "_contact.xml", configData[0].m_age_contact_content);
+	writeToFile(filename + "_holidays.json", configData[0].m_holidays_content);
 }
 
 

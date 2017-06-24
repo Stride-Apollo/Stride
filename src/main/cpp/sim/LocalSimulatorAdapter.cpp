@@ -18,7 +18,6 @@ LocalSimulatorAdapter::LocalSimulatorAdapter(Simulator* sim)
 future<bool> LocalSimulatorAdapter::timeStep() {
 	return async([&](){
 			m_sim->timeStep();
-			this->notify(*this);
 			return true;
 		});
 }
