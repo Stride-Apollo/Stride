@@ -95,14 +95,14 @@ void run_stride(bool track_index_case,
 
 	shared_ptr<Simulator> sim = setup.getSimulator();
 	// auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	auto local_sim = make_shared<RemoteSimulatorSender>("name",world_rank);
+	auto local_sim = make_shared<RemoteSimulatorSender>("coordinator",world_rank);
 	// Initialize remote simulators
 	std::vector<RemoteSimulatorSender*> remoteSenders;
 	// remoteSenders.push_back(local_sim.get());
 	for (int i = 1; i < world_size; i++){
 		// shared_ptr<RemoteSimulatorSender> remoteSender(new RemoteSimulatorSender(i));
 		// remoteSenders.push_back(remoteSender.get());
-		remoteSenders.push_back(new RemoteSimulatorSender("name",i)); // TODO fix this with shared ptrs
+		remoteSenders.push_back(new RemoteSimulatorSender("simulator"+to_string(i),i)); // TODO fix this with shared ptrs
 	}
 	remoteSenders.push_back(local_sim.get());
 	Coordinator coord({remoteSenders});
@@ -229,10 +229,11 @@ void run_stride(bool track_index_case,
 		if (world_rank == 0){
 			// Send MPI message to terminate all systems
 			for (int i = 0; i < world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
+			local_receiver.stopListening();
 		}
-		cout << "Before joining thread@" << world_rank << endl;;
+		cout << "Before joining thread@" << world_rank << endl;
 		listenThread.join(); // Join and terminate listening thread
-		cout << "After joining thread\n";
+		cout << "After joining thread@" << world_rank << endl;
 		MPI_Finalize();
 	}
 }

@@ -28,8 +28,7 @@ public:
 
   virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) override;
 
-  /// The hosting is done @Receiver side
-  virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, const string& destination_district, const string& destination_facility) override {};
+  virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, const string& destination_district, const string& destination_facility) override;
 
   /// Send travellers to the destination region
   /// Returns a vector of indices (in the Population of the simulator), these indices are from the people that were sent (debugging purposes)

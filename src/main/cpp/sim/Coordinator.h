@@ -27,12 +27,10 @@ public:
 			initializeSimulators();}
 
 	void initializeSimulators() {
-		// TODO: also give the simulators a name
-		// uint id = 0;
-		// for (auto sim: m_sims) {
-		// 	sim->setId(id);
-		// 	++id;
-		// }
+		string id = "Simulator";
+		for (int i = 0; i<m_sims.size(); i++){
+			m_sims.at(i)->setId(id+to_string(i));
+		}
 	}
 
 	void timeStep();

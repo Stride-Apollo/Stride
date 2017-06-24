@@ -10,10 +10,13 @@ using namespace util;
 void RemoteSimulatorReceiver::listen(){
   cout << "Listening\n";
   MPI_Status status;
-  MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+  int flag = 0;
+  while (!flag && m_listening){
+    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+  }
   cout << "Tag: " << status.MPI_TAG << endl;
-  // // Message received
-  if (status.MPI_TAG == 1){
+  // Message received
+  if (status.MPI_TAG == 1 or status.MPI_TAG == 7){
     cout << "Received travellers " << status.MPI_TAG << endl;
     // Tag 1 means travellers from another region (sendNewTravellers @ RemoteSimulatorSender)
     TravelData data;
@@ -50,7 +53,6 @@ void RemoteSimulatorReceiver::listen(){
     std::cout << "No more messages\n";
     return;
   }
-
   // After message is received and processed, start listening again
   this->listen();
 }

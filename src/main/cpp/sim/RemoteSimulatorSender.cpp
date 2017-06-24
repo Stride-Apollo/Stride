@@ -26,10 +26,18 @@ void RemoteSimulatorSender::welcomeHomeTravellers(const pair<vector<uint>, vecto
   MPI_Send(&data, m_count, MPI_INT, m_id_mpi, tag, MPI_COMM_WORLD);
 }
 
+void RemoteSimulatorSender::hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, const string& destination_district, const string& destination_facility){
+  int tag = 7;
+  uint amount = travellers.size();
+  TravelData data {travellers, amount, days, m_id, destination_district, destination_facility};
+  MPI_Send(&data, m_count, MPI_INT, m_id_mpi, tag, MPI_COMM_WORLD);
+}
+
 // usually called by the Coordinator
 void RemoteSimulatorSender::sendNewTravellers(uint amount, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility){
   int tag = 3;    // Tag of the message (Tag 3 = travellers going to a region issued by the Coordinator)
   std::vector<Simulator::TravellerType> travellers; // Empty vector
+  // TODO replace m_id with destination_sim_id?
   TravelData data {travellers, amount, days, m_id, destination_district, destination_facility};
   MPI_Send(&data, m_count, MPI_INT, m_id_mpi, tag, MPI_COMM_WORLD);
 }
@@ -43,8 +51,8 @@ void RemoteSimulatorSender::returnForeignTravellers(){
 void RemoteSimulatorSender::sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility){
   int tag = 1;    // Tag of the message (Tag 1 = new travellers going to a region)
   uint amount = travellers.size();
+  // TODO replace m_id with destination_sim_id?
   TravelData data {travellers, amount, days, m_id, destination_district, destination_facility};
-  // TODO maybe not destination_sim_id as destination for MPI related messages?
   MPI_Send(&data, m_count, MPI_INT, m_id_mpi, tag, MPI_COMM_WORLD);
 }
 
