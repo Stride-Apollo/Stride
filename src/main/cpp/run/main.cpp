@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 				return EXIT_FAILURE;
 			}
 
-			// TODO: where to write
+			// TODO: where to write this?
 			Hdf5Loader::extractConfigs(hdf5_file_Arg.getValue());
 		} else {
 			Runner runner(overrides_Arg.getValue(), config_file_Arg.getValue(),

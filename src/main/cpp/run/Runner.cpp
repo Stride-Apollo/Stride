@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <exception>
+#include <util/InstallDirs.h>
 #include "sim/LocalSimulatorAdapter.h"
 
 /*#ifdef HDF5_USED
@@ -21,6 +22,7 @@ using namespace run;
 using namespace std;
 
 namespace pt = boost::property_tree;
+namespace fs = boost::filesystem;
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 			   const RunMode& mode, int timestep)
@@ -35,6 +37,8 @@ Runner::Runner(const vector<string>& overrides_list, const string& config_file,
         key = StringUtils::replace(key, "@", "<xmlattr>.");
         m_overrides[key] = StringUtils::trim(parts[1]);
     }
+	fs::path base_dir = InstallDirs::getOutputDir();
+	m_output_dir = base_dir / m_name;
 	parseConfig();
 }
 
@@ -97,6 +101,24 @@ void Runner::initSimulators() {
 			// TODO: DO MPI STUFF
 		}
 	}
+
+	// Also set up the Coordinator
+	m_coord = make_shared<Coordinator>(m_async_simulators, m_config.get_value("run.regions.<xmlattr>.travel_schedule"));
+}
+
+void Runner::initOutputs() {
+	auto base_dir = InstallDirs::getOutputDir();
+	auto output_dir = base_dir / m_name;
+	bool fresh = fs::create_directory(output_dir);
+	if (fresh) {
+		cout << "Created new output directory at '" << output_dir << "'." << endl;
+	} else {
+		cout << "Using existing output directory at '" << output_dir << "', will overwrite." << endl;
+	}
+
+	// There is a difference between the outputs per Simulator and the ones for everything
+	// So far, we only have output per Simulator
+
 }
 
 void Runner::run() {
@@ -119,6 +141,10 @@ pt::ptree Runner::getRegionsConfig(const std::vector<string>& names) {
 
 void Runner::write(std::ostream& out, const pt::ptree& tree) {
 	pt::write_xml(out, tree, g_xml_settings);
+}
+
+fs::path Runner::hdf5Path(const string& name) {
+	return fs::system_complete(m_output_dir / (string("cp_") + name + ".hdf5"));
 }
 
 pt::xml_writer_settings<string> Runner::g_xml_settings = pt::xml_writer_make_settings<string>('\t', 1);

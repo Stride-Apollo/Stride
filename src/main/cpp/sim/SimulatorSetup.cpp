@@ -31,8 +31,10 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 
 		Hdf5Loader loader(m_hdf5_file.c_str());
 
+		string name = m_pt_config.get_value("run.regions.region.<xmlattr>.name");
 		if (loader.getConfig() != m_pt_config) {
-			std::cerr << "WARNING: The configuration in the HDF5 file differs from the one given." << endl;
+			std::cerr << "WARNING: While setting up simulator for the region '" << name << "':" << endl;
+			std::cerr << "         The configuration in the HDF5 file differs from the one given." << endl;
 			std::cerr << "         Use the extract mode to get the configuration saved in the HDF5 file." << endl;
 			std::cerr << "         Proceeding with the given configuration (not from HDF5)." << endl;
 		}

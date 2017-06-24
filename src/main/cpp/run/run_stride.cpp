@@ -18,7 +18,7 @@
  * Actually run the simulator.
  */
 
-/* TODO: put functionality in Runner
+// TODO: put functionality in Runner
 
 #include "run_stride.h"
 
@@ -36,7 +36,7 @@
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
-#include "checkpointing/Saver.h"
+#include "checkpointing/Hdf5Saver.h"
 #include <util/async.h>
 
 #include "vis/ClusterSaver.h"
@@ -66,57 +66,10 @@ void run_stride(bool track_index_case,
 				const unsigned int timestamp_replay,
 				RunMode run_mode) {
 
-	if (run_mode == RunMode::Extract) {
-		Loader::extractConfigs(hdf5_file_name);
-		exit(EXIT_SUCCESS);
-	}
-
-	cout << "Loading configuration" << endl;
-
-	ProcessConfig processed_config = ProcessConfig(config_file_name);
-	auto config_forest = processed_config.getConfigForest();
-	auto coordinator_config = processed_config.getCoordinatorConfig();
-
-	string start_date = coordinator_config.get<string>("coordination.start_date");
-	unsigned int num_days = coordinator_config.get<unsigned int>("coordination.num_days");
-	string output_prefix = coordinator_config.get<string>("coordination.output_prefix", TimeStamp().toTag());
-	string traveller_file = coordinator_config.get<string>("coordination.traveller_file", "");
-	if (traveller_file != "") {
-		traveller_file = "data/" + traveller_file;
-	}
-
 	cout << "Building the simulators." << endl << endl;
-
-	vector<shared_ptr<Simulator> > simulators;
-	vector<std::shared_ptr<LocalSimulatorAdapter>> local_simulators;
-	vector<LocalSimulatorAdapter*> raw_simulators;
-
-
-	unsigned int start_day = 0;
-	for (auto& config_tree: config_forest) {
-		config_tree.put("run.start_date", start_date);
-
-		SimulatorSetup setup = SimulatorSetup(config_tree, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
-		shared_ptr<Simulator> sim = setup.getSimulator();
-
-		start_day = setup.getStartDay();
-
-		simulators.push_back(sim);
-		shared_ptr<LocalSimulatorAdapter> local_sim (new LocalSimulatorAdapter(sim.get()));
-		local_simulators.push_back(local_sim);
-		raw_simulators.push_back(local_sim.get());
-	}
-
-	Coordinator coord(raw_simulators, traveller_file);
 
 	cout << "Done building the simulators. " << endl << endl;
 
-	// Set output path prefix.
-	string output_prefix = pt_config.get<string>("run.output_prefix", TimeStamp().toTag());
-	cout << "Project output tag:  " << output_prefix << endl << endl;
-
-	// Track index case setting.
-	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
 
 	// Create logger
 	// Transmissions:     [TRANSMISSION] <infecterID> <infectedID> <clusterID> <day>
@@ -236,4 +189,4 @@ void run_stride(bool track_index_case,
 
 }
 
- */
+ // */

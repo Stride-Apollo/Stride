@@ -5,6 +5,9 @@
 #include <memory>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/filesystem/path.hpp>
+#include "sim/Coordinator.h"
+#include "checkpointing/Hdf5Saver.h"
 #include "sim/SimulatorRunMode.h"
 #include "sim/Simulator.h"
 #include "sim/AsyncSimulator.h"
@@ -20,6 +23,7 @@ public:
            const RunMode& mode, int timestep);
 	void printInfo();
 	void initSimulators();
+	void initOutputs();
     void run();
 
 	boost::property_tree::ptree getConfig();
@@ -30,6 +34,8 @@ public:
 
 private:
 	void parseConfig();  // done by constructor
+
+	boost::filesystem::path hdf5Path(const string& name);
 
 	std::map<std::string, std::string> m_overrides;
 	std::string m_config_file;
@@ -42,10 +48,24 @@ private:
 	std::map<std::string, shared_ptr<Simulator>> m_local_simulators;
 	//std::map<std::string, shared_ptr<RemoteSimulatorSender>> m_remote_senders;
 	std::map<std::string, shared_ptr<AsyncSimulator>> m_async_simulators;
+	std::shared_ptr<Coordinator> m_coord;
 
 	// Some important configuration keys, used a lot
 	std::string m_name;
+	boost::filesystem::path m_output_dir;
 };
+
+/// Manages HDF5 etc
+/*
+class SimulatorRunner {
+public:
+	SimulatorRunner(const shared_ptr<Simulator>& sim, const shared_ptr<Hdf5Saver>& saver):
+		m_sim(sim), m_saver(saver) {}
+
+	shared_ptr<Simulator> m_sim;
+	shared_ptr<Hdf5Saver> m_saver;
+};
+ */
 
 }
 }
