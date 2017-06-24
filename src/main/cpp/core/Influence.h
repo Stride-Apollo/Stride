@@ -7,6 +7,8 @@
 
 #include <deque>
 #include <cmath>
+#include <algorithm>
+#include <string>
 
 using namespace std;
 
@@ -16,7 +18,11 @@ using uint = unsigned int;
 
 class Influence {
 public:
-	Influence(uint size, double speed): m_deque(deque<uint>(size, 0)), m_speed(speed) {}
+	Influence(uint size, double speed, double minimum): m_deque(deque<uint>(size, 0)), m_speed(speed), m_minimum(minimum) {
+		if (minimum <= 0.0) {
+			throw runtime_error(string(__func__) + string("Influence minimum <= 0.0"));
+		}
+	}
 
 	void addRecord(uint record) {
 		m_deque.push_front(record);
@@ -35,9 +41,9 @@ public:
 		}
 
 		if (score <= 1)
-			return 0.0;
+			return m_minimum;
 		else
-			return m_speed * log10(score);
+			return max(m_speed * log10(score), m_minimum);
 	}
 
 	uint getScore() const {
@@ -55,6 +61,7 @@ private:
 
 	deque<uint> m_deque;
 	double m_speed;
+	double m_minimum;
 };
 
 }

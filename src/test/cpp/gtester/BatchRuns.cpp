@@ -60,8 +60,6 @@ protected:
 	const string         m_disease_config_file_adapted = "disease_measles.xml";
 	const double         m_transmission_rate_measles   = 16U;
 	const double         m_transmission_rate_maximum   = 100U;
-	const string         m_population_file_flanders    = "pop_flanders.csv";
-	const string         m_cluster_file_flanders       = "clusters_flanders.csv";
 
 	static const map<string, unsigned int>   g_results;
 };
@@ -72,7 +70,6 @@ const map<string, unsigned int> Scenarios__BatchDemos::g_results {
 	make_pair("immunity_rate", 6),
 	make_pair("measles", 135000),
 	make_pair("maximum", 700000),
-	make_pair("flanders", 10000)	// TODO reliable estimation (currently I based myself on pop_oklahoma.csv and assumed a linear correlation between population size and infected count)
 };
 
 TEST_P( Scenarios__BatchDemos, Run ) {
@@ -115,9 +112,6 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 		pt_config.put("run.r0", m_transmission_rate_measles);
 	} else if (test_tag == "maximum") {
 		pt_config.put("run.r0", m_transmission_rate_maximum);
-	} else if (test_tag == "flanders") {
-		pt_config.put("run.population_file", m_population_file_flanders);
-		pt_config.put("run.cluster_location_file", m_cluster_file_flanders);
 	} else {
 		FAIL() << "test_tag has an unexpected value: " << test_tag;
 	}
@@ -173,8 +167,4 @@ INSTANTIATE_TEST_CASE_P(Run_measles, Scenarios__BatchDemos,
 
 INSTANTIATE_TEST_CASE_P(Run_maximum, Scenarios__BatchDemos,
         ::testing::Combine(::testing::Values(string("maximum")), ::testing::ValuesIn(threads)));
-
-INSTANTIATE_TEST_CASE_P(Run_flanders, Scenarios__BatchDemos,
-        ::testing::Combine(::testing::Values(string("flanders")), ::testing::ValuesIn(threads)));
-
 }

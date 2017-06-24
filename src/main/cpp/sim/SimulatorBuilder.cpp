@@ -251,6 +251,7 @@ void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boos
 	if(districts_config) {
 		string district_filename = pt_config.get<string>("run.district_file");
 		double influence_speed = pt_config.get<double>("run.sphere_of_influence.speed");
+		double influence_minimum = pt_config.get<double>("run.sphere_of_influence.minimum");
 		unsigned int influence_size = pt_config.get<unsigned int>("run.sphere_of_influence.size");
 
 		// Check for the correctness of the file
@@ -285,6 +286,7 @@ void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boos
 				sim->m_districts.push_back(District(values[1],
 												influence_size,
 												influence_speed,
+												influence_minimum,
 												GeoCoordinate(StringUtils::fromString<double>(values[6]),
 																StringUtils::fromString<double>(values[7]))));
 			}
