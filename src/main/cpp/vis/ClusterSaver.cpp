@@ -322,6 +322,9 @@ void ClusterSaver::saveTransportationFacilities(const LocalSimulatorAdapter& loc
 			facility_config.put("location.lat", district.getLocation().m_latitude);
 			facility_config.put("location.lon", district.getLocation().m_longitude);
 			facility_config.put("influence", facility.second.getInfluence());
+			facility_config.put("passengers_today", facility.second.m_deque.front());
+			facility_config.put("passengers_x_days", facility.second.getScore());
+			facility_config.put("x_days", facility.second.m_deque.size());
 			result.add_child("facility", facility_config);
 		}
 	}
