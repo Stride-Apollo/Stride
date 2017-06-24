@@ -6,6 +6,7 @@
 */
 
 #include "H5Cpp.h"
+#include "checkpointing/customDataTypes/TravellerDataType.h"
 #include "util/Observer.h"
 #include "sim/Simulator.h"
 #include <boost/property_tree/xml_parser.hpp>
@@ -20,6 +21,8 @@ using std::string;
 namespace stride {
 
 class Loader {
+public:
+
 public:
 	Loader(const char* filename, unsigned int num_threads);
 
@@ -54,7 +57,7 @@ private:
 	void updateClusterImmuneIndices(shared_ptr<Simulator> sim) const;
 
 	/// Reoders the cluster member positions according to the loaded timestep data.
-	void loadClusters(H5::H5File& file, string full_dataset_name, std::vector<Cluster>& cluster, shared_ptr<Population> pop) const;
+	void loadClusters(H5::H5File& file, string full_dataset_name, std::vector<Cluster>& cluster, shared_ptr<Simulator> sim) const;
 
 	/// Loads the calendar data.
 	void loadCalendar(H5::H5File& file, string dataset_name, shared_ptr<Simulator> sim) const;
@@ -65,11 +68,15 @@ private:
 	/// Load the rng state (NOTE only happens when stride runs without parallelisation).
 	void loadRngState(H5::H5File& file, string dataset_name, shared_ptr<Simulator> sim) const;
 
+	/// Loads the travellers if present.
+	void loadTravellers(H5::H5File& file, string dataset_name, shared_ptr<Simulator> sim) const;
+
 	/// Loads the configuration files from the hdf5 file (stored as class attributes).
 	void loadConfigs();
 
 	/// Loads the track index case from the hdf5 file (stored as class attribute).
 	void loadTrackIndexCase();
+
 
 private:
 	const char* m_filename;
@@ -78,7 +85,6 @@ private:
 	ptree m_pt_config;
 	ptree m_pt_disease;
 	ptree m_pt_contact;
-
 };
 
 }

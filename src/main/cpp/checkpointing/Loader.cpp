@@ -17,6 +17,7 @@
 #include "sim/SimulatorBuilder.h"
 #include "pop/PopulationBuilder.h"
 #include "core/Cluster.h"
+#include "util/etc.h"
 
 #include <algorithm>
 #include <vector>
@@ -86,16 +87,16 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 
 	this->loadCalendar(file, dataset_name, sim);
 	this->loadPersonTDData(file, dataset_name, sim);
-
+	this->loadTravellers(file, dataset_name, sim);
 	// Sort the population by id first, in order to increase the speed of cluster reordening
 	auto sortByID = [](const Simulator::PersonType& lhs, const Simulator::PersonType& rhs) { return lhs.getId() < rhs.getId(); };
 	std::sort(sim->m_population->m_original.begin(), sim->m_population->m_original.end(), sortByID);
 
-	this->loadClusters(file, ss.str() + "/household_clusters", sim->m_households, sim.get()->m_population);
-	this->loadClusters(file, ss.str() + "/school_clusters", sim->m_school_clusters, sim.get()->m_population);
-	this->loadClusters(file, ss.str() + "/work_clusters", sim->m_work_clusters, sim.get()->m_population);
-	this->loadClusters(file, ss.str() + "/primary_community_clusters", sim->m_primary_community, sim.get()->m_population);
-	this->loadClusters(file, ss.str() + "/secondary_community_clusters", sim->m_secondary_community, sim.get()->m_population);
+	this->loadClusters(file, dataset_name + "/household_clusters", sim->m_households, sim);
+	this->loadClusters(file, dataset_name + "/school_clusters", sim->m_school_clusters, sim);
+	this->loadClusters(file, dataset_name + "/work_clusters", sim->m_work_clusters, sim);
+	this->loadClusters(file, dataset_name + "/primary_community_clusters", sim->m_primary_community, sim);
+	this->loadClusters(file, dataset_name + "/secondary_community_clusters", sim->m_secondary_community, sim);
 
 	this->updateClusterImmuneIndices(sim);
 
@@ -156,11 +157,89 @@ void Loader::loadCalendar(H5File& file, string dataset_name, shared_ptr<Simulato
 }
 
 
+void Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
+	try {
+		DataSet dataset = DataSet(file.openDataSet(dataset_name + "/travellers"));
+		DataSpace dataspace = dataset.getSpace();
+		hsize_t dims_travellers[1];
+		dataspace.getSimpleExtentDims(dims_travellers, NULL);
+		const unsigned int amt_travellers = dims_travellers[0];
+		dataspace.close();
+
+		auto travellers = make_unique<std::vector<TravellerDataType>>(amt_travellers);
+
+		dataset.read(travellers->data(), TravellerDataType::getCompType());
+
+		// TODO if necessary, count the travellers for each day, reserve in the planner
+
+		// The travellers are saved in order of their index in the new simulator
+		// Therefore, we can just iterate over them and add them without worrying about changing the original order
+		for (auto object : *travellers) {
+
+			// First of all, add the person to the population (visitors)
+			Simulator::PersonType person = Simulator::PersonType(
+				object.m_new_ID, object.m_age,
+				object.m_new_household_ID, object.m_new_school_ID, object.m_new_work_ID,
+				object.m_new_prim_comm_ID, object.m_new_sec_comm_ID,
+				object.m_start_infectiousness, object.m_start_symptomatic,
+				object.m_time_infectiousness, object.m_time_symptomatic
+			);
+			person.m_health.m_status = HealthStatus(object.m_health_status);
+			person.m_health.m_disease_counter = object.m_disease_counter;
+			person.m_is_participant = object.m_participant;
+
+			sim->m_population->m_visitors.add(object.m_days_left, person);
+
+			// Secondly, add the traveller to the planner in the simulator
+
+			// Construct the person from the original simulator (his health does not matter, since his new one is used and returned eventually)
+			Simulator::PersonType original_person = Simulator::PersonType(
+				object.m_orig_ID, object.m_age,
+				object.m_orig_household_ID, object.m_orig_school_ID, object.m_orig_work_ID,
+				object.m_orig_prim_comm_ID, object.m_orig_sec_comm_ID,
+				object.m_start_infectiousness, object.m_start_symptomatic,
+				object.m_time_infectiousness, object.m_time_symptomatic
+			);
+
+			Simulator::TravellerType traveller = Simulator::TravellerType(
+				original_person, sim->m_population->m_visitors.getModifiableDay(object.m_days_left)->back().get(),
+				object.m_home_sim_id, object.m_dest_sim_id, object.m_home_sim_index
+			);
+
+			traveller.getNewPerson()->setOnVacation(false);
+			sim->m_planner.add(object.m_days_left, traveller);
+
+
+			// Finally, add the traveller to clusters
+			Simulator::PersonType* added_person = sim->m_population->m_visitors.getModifiableDay(object.m_days_left)->back().get();
+
+			sim->m_work_clusters.at(object.m_new_work_ID).addPerson(added_person);
+			sim->m_primary_community.at(object.m_new_prim_comm_ID).addPerson(added_person);
+			sim->m_secondary_community.at(object.m_new_sec_comm_ID).addPerson(added_person);
+
+
+			// Since the travellers are ordered, it is safe to set these values every iteration
+			sim->m_next_id = object.m_new_ID + 1;
+			sim->m_next_hh_id = object.m_new_household_ID + 1;
+
+			// TODO remove debug output
+			// std::cout << "Traveller: id(home)=" << object.m_home_sim_index <<
+			// 	", disease_counter=" << object.m_disease_counter << std::endl;
+		}
+
+	} catch (DataSetIException e) {
+		// The dataset does not exist, no traveller information was stored.
+		return;
+	}
+}
+
+
 void Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
 	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/PersonTD"));
 	unsigned long dims[1] = {sim->m_population.get()->m_original.size()};
 	CompType type_person_TD = PersonTDDataType::getCompType();
 
+	// for (unsigned int i = 0; i < sim->m_population->m_original.size(); i++) {
 	for (unsigned int i = 0; i < dims[0]; i++) {
 		PersonTDDataType person[1];
 		hsize_t dim_sub[1] = {1};
@@ -195,7 +274,9 @@ void Loader::loadRngState(H5File& file, string dataset_name, shared_ptr<Simulato
 }
 
 
-void Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Population> pop) const {
+void Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Simulator> sim) const {
+	std::shared_ptr<Population> pop = sim->m_population;
+
 	DataSet dataset = DataSet(file.openDataSet(full_dataset_name));
 	DataSpace dataspace = dataset.getSpace();
 	hsize_t dims_clusters[1];
@@ -209,11 +290,35 @@ void Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vect
 	dataset.read(cluster_data, PredType::NATIVE_UINT);
 	dataset.close();
 
+	// TODO adjust position/.. if non multi region run is desired
+	// Collect all the travellers in a single vector for convenience
+	vector<Simulator::PersonType*> travellers;
+	for (auto&& day : sim->m_planner.getAgenda()) {
+		for (auto&& traveller : *(day)) {
+			travellers.push_back(traveller->getNewPerson());
+		}
+	}
+
 	for(unsigned int i = 0; i < cluster.size(); i++) {
 		for(unsigned int j = 0; j < cluster.at(i).getSize(); j++) {
 			unsigned int id = cluster_data[index++];
-			Simulator::PersonType* person = &pop->m_original.at(id);
-			cluster.at(i).m_members.at(j).first = person;
+
+			if (id < pop->m_original.size()) {
+				Simulator::PersonType* person = &pop->m_original.at(id);
+				cluster.at(i).m_members.at(j).first = person;
+			} else if (id >= pop->m_original.size()) {
+				// Get the pointer to the person via the travel planner
+				auto traveller = std::find_if(
+					travellers.begin(),
+					travellers.end(),
+					[&id](Simulator::PersonType* traveller)->bool {
+						return (traveller)->getId() == id;
+				});
+				cluster.at(i).m_members.at(j).first = (*traveller);
+			} else {
+				// TODO here for later, when loading a multi region checkpointed file into a single region run/simulation
+			}
+
 		}
 	}
 }

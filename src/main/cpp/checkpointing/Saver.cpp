@@ -286,7 +286,7 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	CompType type_traveller = TravellerDataType::getCompType();
 
 	DataSpace dataspace = DataSpace(1, dims);
-	DataSet dataset = DataSet(group.createDataSet("Travellers", type_traveller, dataspace));
+	DataSet dataset = DataSet(group.createDataSet("travellers", type_traveller, dataspace));
 	auto traveller_data = make_unique<std::vector<TravellerDataType>>(dims[0]);
 
 
@@ -317,14 +317,14 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 
 			PersonType original_person = person->getHomePerson();
 			#define setAttributeTraveller(attr_lhs, attr_rhs) traveller.attr_lhs = original_person.attr_rhs
-			setAttributeTraveller(m_ID, m_id);
+			setAttributeTraveller(m_orig_ID, m_id);
 			setAttributeTraveller(m_age, m_age);
 			setAttributeTraveller(m_gender, m_gender);
-			setAttributeTraveller(m_household_ID, m_household_id);
-			setAttributeTraveller(m_school_ID, m_school_id);
-			setAttributeTraveller(m_work_ID, m_work_id);
-			setAttributeTraveller(m_prim_comm_ID, m_primary_community_id);
-			setAttributeTraveller(m_sec_comm_ID, m_secondary_community_id);
+			setAttributeTraveller(m_orig_household_ID, m_household_id);
+			setAttributeTraveller(m_orig_school_ID, m_school_id);
+			setAttributeTraveller(m_orig_work_ID, m_work_id);
+			setAttributeTraveller(m_orig_prim_comm_ID, m_primary_community_id);
+			setAttributeTraveller(m_orig_sec_comm_ID, m_secondary_community_id);
 			setAttributeTraveller(m_start_infectiousness, m_health.getStartInfectiousness());
 			setAttributeTraveller(m_start_symptomatic, m_health.getStartSymptomatic());
 			traveller.m_time_infectiousness = original_person.m_health.getEndInfectiousness() -
@@ -336,6 +336,13 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 			traveller.m_participant = current_person.m_is_participant;
 			traveller.m_health_status = (unsigned int) current_person.m_health.getHealthStatus();;
 			traveller.m_disease_counter = (unsigned int) current_person.m_health.getDiseaseCounter();;
+			traveller.m_new_ID = current_person.m_id;
+			traveller.m_new_household_ID = current_person.m_household_id;
+			traveller.m_new_school_ID = current_person.m_school_id;
+			traveller.m_new_work_ID = current_person.m_work_id;
+			traveller.m_new_prim_comm_ID = current_person.m_primary_community_id;
+			traveller.m_new_sec_comm_ID = current_person.m_secondary_community_id;
+
 
 			(*traveller_data)[current_index++] = traveller;
 		}
