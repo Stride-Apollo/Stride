@@ -109,7 +109,7 @@ Restrictions / options
 Some min-max pairs should not overlap. E.g. min-max pairs of villages or the maximum age of a young employee should be smaller than the minimum age of an "old"
  employee.
  Also, the ``factor`` in ``population.commutingdata`` should be greater than 1.0.
- Cities aren't required to have airports, and they can have as many airports as you'd like. The only restriction here, is that airport names should be unique as well as city names.
+ Cities aren't required to have airports, and they can have as many airports as you'd like.
 Family configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
