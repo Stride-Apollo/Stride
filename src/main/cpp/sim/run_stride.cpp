@@ -95,14 +95,14 @@ void run_stride(bool track_index_case,
 
 	shared_ptr<Simulator> sim = setup.getSimulator();
 	// auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	auto local_sim = make_shared<RemoteSimulatorSender>(world_rank);
+	auto local_sim = make_shared<RemoteSimulatorSender>("name",world_rank);
 	// Initialize remote simulators
 	std::vector<RemoteSimulatorSender*> remoteSenders;
 	// remoteSenders.push_back(local_sim.get());
 	for (int i = 1; i < world_size; i++){
 		// shared_ptr<RemoteSimulatorSender> remoteSender(new RemoteSimulatorSender(i));
 		// remoteSenders.push_back(remoteSender.get());
-		remoteSenders.push_back(new RemoteSimulatorSender(i)); // TODO fix this with shared ptrs
+		remoteSenders.push_back(new RemoteSimulatorSender("name",i)); // TODO fix this with shared ptrs
 	}
 	remoteSenders.push_back(local_sim.get());
 	Coordinator coord({remoteSenders});

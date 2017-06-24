@@ -302,15 +302,9 @@ void Simulator::returnForeignTravellers() {
 	// Get the people that return home today (according to the planner in the population of this simulator)
 	SimplePlanner<Simulator::TravellerType>::Block* returning_people = m_planner.getModifiableDay(0);
 
-	uint max_sim_id = 0;
-	for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
-		max_sim_id = std::max(uint(max_sim_id), uint((**it).getHomeSimulatorId()));
-	}
-	++max_sim_id;
+  map<string, pair<vector<uint>, vector<Health>> > result;
 
-	vector<pair<vector<uint>, vector<Health> > > result (max_sim_id, pair<vector<uint>, vector<Health> >());
-
-	for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
+  for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
 		auto& traveller = **it;
 
 		Simulator::PersonType* returning_person = traveller.getNewPerson();
@@ -325,7 +319,7 @@ void Simulator::returnForeignTravellers() {
 		m_primary_community.at(prim_comm_index).removePerson(returning_person->getId());
 		m_secondary_community.at(sec_comm_index).removePerson(returning_person->getId());
 
-		uint destination_sim_id = traveller.getHomeSimulatorId();
+		string destination_sim_id = traveller.getHomeSimulatorId();
 
 		// Make the output
 		result.at(destination_sim_id).first.push_back(traveller.getHomePerson().getId());
@@ -335,15 +329,15 @@ void Simulator::returnForeignTravellers() {
 	m_planner.nextDay();
 	m_population->m_visitors.nextDay();
 
-	// Give the data to the senders
-	for (int i = 0; i < result.size(); ++i) {
-		if (result.at(i).second.size() != 0) {
-			m_async_sim->returnForeignTravellers(result.at(i), i);
-		}
-	}
+  // Give the data to the senders
+  for (auto it = result.begin(); it != result.end(); ++it) {
+  	if (it->second.second.size() != 0) {
+  		m_async_sim->returnForeignTravellers(it->second, it->first);
+  	}
+  }
 }
 
-void Simulator::sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility) {
+void Simulator::sendNewTravellers(uint amount, uint days, const string& destination_sim_id, string destination_district, string destination_facility) {
 	list<Simulator::PersonType*> working_people;
 
 	// Get the working people

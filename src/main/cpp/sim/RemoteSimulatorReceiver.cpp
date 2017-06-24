@@ -30,7 +30,7 @@ void RemoteSimulatorReceiver::listen(){
     // Tag 3 means travellers from another region (issued by the Coordinator)
     TravelData data;
     MPI_Recv(&data, m_count, MPI_INT, MPI_ANY_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    m_sim->sendNewTravellers(data.m_amount, data.m_days, status.MPI_SOURCE, data.m_destination_district, data.m_destination_facility);
+    m_sim->sendNewTravellers(data.m_amount, data.m_days, data.m_destination_simulator, data.m_destination_district, data.m_destination_facility);
   }
   if (status.MPI_TAG == 4){
     // Tag 4 means that this simulator must execute a timestep

@@ -14,7 +14,7 @@ template <class PersonType>
 class Traveller {
 public:
 	using uint = unsigned int;
-	Traveller(const PersonType& home_person, PersonType* new_person, uint home_sim_id, uint destination_sim_id, uint home_simulator_index)
+	Traveller(const PersonType& home_person, PersonType* new_person, const string& home_sim_id, const string& destination_sim_id, uint home_simulator_index)
 		: m_home_simulator_id(home_sim_id), m_destination_simulator_id (destination_sim_id),
 		m_home_simulator_index(home_simulator_index),
 		m_home_person(home_person), m_new_person(new_person) {}
@@ -32,7 +32,7 @@ public:
 		return m_new_person;
 	}
 
-	uint getHomeSimulatorId() const {
+	string getHomeSimulatorId() const {
 		return m_home_simulator_id;
 	}
 
@@ -40,14 +40,14 @@ public:
 		return m_home_simulator_index;
 	}
 
-	uint getDestinationSimulatorId() const {
+	string getDestinationSimulatorId() const {
 		return m_destination_simulator_id;
 	}
 
 private:
-	uint m_home_simulator_id;			///< The id of the home simulator
-	uint m_destination_simulator_id;	///< The id of the destination simulator
-	uint m_home_simulator_index;		///< The index of the person in the home simulator
+	string m_home_simulator_id;				///< The id of the home simulator
+	string m_destination_simulator_id;	///< The id of the destination simulator
+	uint m_home_simulator_index;			///< The index of the person in the home simulator
 
 	PersonType m_home_person;			///< The person in the region of origin
 	PersonType* m_new_person;			///< The person when he travelled to the other region

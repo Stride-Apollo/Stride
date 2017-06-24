@@ -65,9 +65,9 @@ public:
 	/// Change track_index_case setting.
 	void setTrackIndexCase(bool track_index_case);
 
-	void setId(uint id) {m_id = id;}
+	void setId(const string& id) {m_id = id;}
 
-	uint getId() const {return m_id;}
+	string getId() const {return m_id;}
 
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
@@ -109,7 +109,7 @@ public:
 	/// Return people that are here FROM abroad
 	void returnForeignTravellers();
 
-	void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility);
+	void sendNewTravellers(uint amount, uint days, const string& destination_sim_id, string destination_district, string destination_facility);
 
 	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
 
@@ -157,9 +157,9 @@ public:	// TODO write getters or set friend class for ClusterSaver
 
 	bool m_track_index_case;     ///< General simulation or tracking index case.
 
-	uint m_next_id;		///< The ID of the next traveller that arrives.
+	uint m_next_id;			///< The ID of the next traveller that arrives.
 	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
-	uint m_id;	///< ID of the simulator.
+	string m_id;				///< ID of the simulator.
 
 	AsyncSimulator* m_async_sim;
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
