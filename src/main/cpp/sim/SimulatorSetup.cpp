@@ -1,7 +1,7 @@
 
 #include "sim/SimulatorSetup.h"
 #include "sim/SimulatorBuilder.h"
-#include "checkpointing/Loader.h"
+#include "checkpointing/Hdf5Loader.h"
 #include "sim/Simulator.h"
 #include <boost/filesystem.hpp>
 
@@ -36,7 +36,7 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 				"' is not a regular file. Aborting");
 		}
 
-		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
+		Hdf5Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
 		m_pt_config = loader.getConfig();
 		auto sim = SimulatorBuilder::build(loader.getConfig(), loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
 		if (m_run_mode == RunMode::Extend) {

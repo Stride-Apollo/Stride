@@ -164,8 +164,8 @@ public:	// TODO write getters or set friend class for ClusterSaver
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 	friend class SimulatorBuilder;
-	friend class Saver;
-	friend class Loader;
+	friend class Hdf5Saver;
+	friend class Hdf5Loader;
 };
 
 

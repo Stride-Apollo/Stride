@@ -8,7 +8,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>
 #include <iomanip>
-#include "Saver.h"
+#include "Hdf5Saver.h"
 #include "util/InstallDirs.h"
 #include "calendar/Calendar.h"
 #include "pop/Population.h"
@@ -35,7 +35,7 @@ using std::ostringstream;
 
 namespace stride {
 
-Saver::Saver(string filename, const ptree& pt_config, int frequency, bool track_index_case, RunMode run_mode, int start_timestep)
+Hdf5Saver::Hdf5Saver(string filename, const ptree& pt_config, int frequency, bool track_index_case, RunMode run_mode, int start_timestep)
 	: m_filename(filename), m_frequency(frequency),
 	  m_current_step(start_timestep - 1), m_timestep(start_timestep),
 	  m_save_count(0) {
@@ -70,14 +70,14 @@ Saver::Saver(string filename, const ptree& pt_config, int frequency, bool track_
 	}
 }
 
-void Saver::update(const Simulator& sim) {
+void Hdf5Saver::update(const Simulator& sim) {
 	m_current_step++;
 	if (m_frequency != 0 && m_current_step % m_frequency == 0) {
 		this->saveTimestep(sim);
 	}
 }
 
-void Saver::forceSave(const Simulator& sim, int timestep) {
+void Hdf5Saver::forceSave(const Simulator& sim, int timestep) {
 	m_current_step++;
 
 	if (timestep != -1) {
@@ -87,7 +87,7 @@ void Saver::forceSave(const Simulator& sim, int timestep) {
 }
 
 
-void Saver::saveTimestep(const Simulator& sim) {
+void Hdf5Saver::saveTimestep(const Simulator& sim) {
 	try {
 		m_save_count++;
 		H5File file(m_filename.c_str(), H5F_ACC_RDWR);
@@ -143,7 +143,7 @@ void Saver::saveTimestep(const Simulator& sim) {
 	return;
 }
 
-void Saver::saveClusters(Group& group, string dataset_name, const vector<Cluster>& clusters) const {
+void Hdf5Saver::saveClusters(Group& group, string dataset_name, const vector<Cluster>& clusters) const {
 	auto getAmtIds = [&]() {
 		unsigned int amt = 0;
 		for (unsigned int i = 0; i < clusters.size(); i++) amt += clusters.at(i).getSize();
@@ -169,7 +169,7 @@ void Saver::saveClusters(Group& group, string dataset_name, const vector<Cluster
 }
 
 
-void Saver::savePersonTIData(H5File& file, const Simulator& sim) const {
+void Hdf5Saver::savePersonTIData(H5File& file, const Simulator& sim) const {
 	hsize_t dims[1] {sim.getPopulation().get()->m_original.size()};
 	DataSpace dataspace = DataSpace(1, dims);
 
@@ -222,7 +222,7 @@ void Saver::savePersonTIData(H5File& file, const Simulator& sim) const {
 }
 
 
-void Saver::savePersonTDData(Group& group, const Simulator& sim) const {
+void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 	hsize_t dims[1] { sim.getPopulation().get()->m_original.size() };
 	CompType type_person_TD = PersonTDDataType::getCompType();
 
@@ -275,7 +275,7 @@ void Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 }
 
 
-void Saver::saveTravellers(Group& group, const Simulator& sim) const {
+void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	using PersonType = Simulator::PersonType;
 	using Block = SimplePlanner<Simulator::TravellerType>::Block;
 	using Agenda = SimplePlanner<Simulator::TravellerType>::Agenda;
@@ -352,7 +352,7 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 }
 
 
-void Saver::saveTimestepMetadata(H5File& file, unsigned int total_amt, unsigned int current, bool create) const {
+void Hdf5Saver::saveTimestepMetadata(H5File& file, unsigned int total_amt, unsigned int current, bool create) const {
 	DataSet dataset_amt;
 	if (create == true) {
 		hsize_t dims[1] {1};
@@ -380,7 +380,7 @@ void Saver::saveTimestepMetadata(H5File& file, unsigned int total_amt, unsigned 
 }
 
 
-void Saver::saveRngState(Group& group, const Simulator& sim) const {
+void Hdf5Saver::saveRngState(Group& group, const Simulator& sim) const {
 	hsize_t dims[1] {1};
 	DataSpace dataspace = DataSpace(1, dims);
 	DataSet dataset = DataSet(group.createDataSet("randomgen", StrType(0, H5T_VARIABLE), dataspace));
@@ -395,7 +395,7 @@ void Saver::saveRngState(Group& group, const Simulator& sim) const {
 }
 
 
-void Saver::saveCalendar(Group& group, const Simulator& sim) const {
+void Hdf5Saver::saveCalendar(Group& group, const Simulator& sim) const {
 	hsize_t dims[1] {1};
 	CompType typeCalendar = CalendarDataType::getCompType();
 	DataSpace dataspace = DataSpace(1, dims);
@@ -415,7 +415,7 @@ void Saver::saveCalendar(Group& group, const Simulator& sim) const {
 }
 
 
-void Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
+void Hdf5Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 	hsize_t dims[1] {1};
 	Group group(file.createGroup("/Configuration"));
 	DataSpace dataspace = DataSpace(1, dims);
@@ -467,7 +467,7 @@ void Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 	group.close();
 }
 
-void Saver::saveTrackIndexCase(H5File& file, bool track_index_case) const {
+void Hdf5Saver::saveTrackIndexCase(H5File& file, bool track_index_case) const {
 	hsize_t dims[1] = {1};
 	DataSpace dataspace = DataSpace(1, dims);
 	DataSet dataset = DataSet(file.createDataSet("track_index_case", PredType::NATIVE_INT, dataspace));

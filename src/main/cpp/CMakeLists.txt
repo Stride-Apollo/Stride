@@ -66,12 +66,12 @@ set(LIB_SRC
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
 #---
-	checkpointing/Saver.cpp
-	checkpointing/Loader.cpp
+	checkpointing/Hdf5Saver.cpp
+	checkpointing/Hdf5Loader.cpp
 #---
  	vis/ClusterSaver.cpp
 #---
-    
+
 )
 
 set(POPGEN_SRC

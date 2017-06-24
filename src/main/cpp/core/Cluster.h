@@ -26,7 +26,7 @@
 #include "pop/PopulationBuilder.h"
 #include "sim/Simulator.h"
 #include "util/GeoCoordinate.h"
-#include "checkpointing/Loader.h"
+#include "checkpointing/Hdf5Loader.h"
 
 #include <array>
 #include <cstddef>
@@ -106,8 +106,8 @@ private:
 private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
 private:
-	friend class Loader;
-	friend class Saver;
+	friend class Hdf5Loader;
+	friend class Hdf5Saver;
 };
 
 }

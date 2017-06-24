@@ -37,7 +37,6 @@ TEST_P(UnitTests__HDF5, AmtCheckpoints) {
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
-	// auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
 	auto saverInstance = std::make_shared<Hdf5Saver>
 		(Hdf5Saver(h5filename.c_str(), pt_config, checkpointing_frequency, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, saverInstance, std::placeholders::_1);
@@ -46,9 +45,6 @@ TEST_P(UnitTests__HDF5, AmtCheckpoints) {
 	saverInstance->forceSave(*sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
-		// vector<future<bool>> fut_results;
-		// fut_results.push_back(local_sim->timeStep());
-		// future_pool(fut_results);
 		sim->timeStep();
 	}
 
@@ -133,7 +129,6 @@ TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
-	// auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
 	auto classInstance = std::make_shared<Hdf5Saver>
 		(Hdf5Saver(h5filename.c_str(), pt_config, 1, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, classInstance, std::placeholders::_1);
@@ -141,9 +136,6 @@ TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 	sim->notify(*sim);
 
 	sim->timeStep();
-	// vector<future<bool>> fut_results;
-	// fut_results.push_back(local_sim->timeStep());
-	// future_pool(fut_results);
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 
 	DataSet dataset = DataSet(h5file.openDataSet("person_time_independent"));

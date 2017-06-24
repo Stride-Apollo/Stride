@@ -38,7 +38,6 @@ TEST_P(Scenarios__HDF5, StartFromCheckpoints) {
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
-	// auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
 	auto classInstance = std::make_shared<Hdf5Saver>
 		(Hdf5Saver(h5filename.c_str(), pt_config, 1, false));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, classInstance, std::placeholders::_1);
@@ -50,9 +49,6 @@ TEST_P(Scenarios__HDF5, StartFromCheckpoints) {
 
 	for (unsigned int i = 0; i < NUM_DAYS; i++) {
 		sim->timeStep();
-		// vector<future<bool>> fut_results;
-		// fut_results.push_back(sim->timeStep());
-		// future_pool(fut_results);
 		cases_original.push_back(sim->getPopulation()->getInfectedCount());
 	}
 

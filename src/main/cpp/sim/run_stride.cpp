@@ -34,7 +34,7 @@
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
-#include "checkpointing/Saver.h"
+#include "checkpointing/Hdf5Saver.h"
 #include <util/async.h>
 
 #include "vis/ClusterSaver.h"
@@ -65,7 +65,7 @@ void run_stride(bool track_index_case,
 				RunMode run_mode) {
 
 	if (run_mode == RunMode::Extract) {
-		Loader::extractConfigs(hdf5_file_name);
+		Hdf5Loader::extractConfigs(hdf5_file_name);
 		exit(EXIT_SUCCESS);
 	}
 
@@ -133,7 +133,7 @@ void run_stride(bool track_index_case,
 
 	cout << "Adding observers to the simulator." << endl;
 
-	std::vector<std::shared_ptr<Saver>> savers(simulators.size());
+	std::vector<std::shared_ptr<Hdf5Saver>> hdf5_savers(simulators.size());
 
 	for (unsigned int i = 0; i < config_forest.size(); i++) {
 		auto& config_tree = config_forest.at(i);
@@ -150,13 +150,13 @@ void run_stride(bool track_index_case,
 				output_file = config_hdf5_file;
 			}
 
-			savers.at(i) = std::make_shared<Saver>
-					(Saver(output_file.c_str(), config_tree, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
-			std::function<void(const Simulator&)> fnCaller = std::bind(&Saver::update, savers.at(i), std::placeholders::_1);
-			simulator->registerObserver(savers.at(i), fnCaller);
+			hdf5_savers.at(i) = std::make_shared<Hdf5Saver>
+					(Hdf5Saver(output_file.c_str(), config_tree, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
+			std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, hdf5_savers.at(i), std::placeholders::_1);
+			simulator->registerObserver(hdf5_savers.at(i), fnCaller);
 			// initial save
 			if (!(run_mode == RunMode::Extend && start_day != 0)) {
-				savers.at(i)->forceSave(*simulator);
+				hdf5_savers.at(i)->forceSave(*simulator);
 			}
 		}
 
@@ -195,13 +195,13 @@ void run_stride(bool track_index_case,
 		cout << endl << endl;
 	}
 
-	for (unsigned int i = 0; i < savers.size(); i++) {
-		auto saver = savers.at(i);
+	for (unsigned int i = 0; i < hdf5_savers.size(); i++) {
+		auto hdf5_saver = hdf5_savers.at(i);
 		auto simulator = simulators.at(i);
 
 		// Force save the last timestep in case of frequency 0
-		if (saver != nullptr && checkpointing_frequency == 0) {
-			saver->forceSave(*simulator, num_days + start_day);
+		if (hdf5_saver != nullptr && checkpointing_frequency == 0) {
+			hdf5_saver->forceSave(*simulator, num_days + start_day);
 		}
 	}
 

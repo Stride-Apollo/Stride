@@ -130,8 +130,8 @@ private:
 	bool m_is_on_vacation;  ///< Is currently on a vacation and should be included in calculations
 	                        ///< Note: Population already filters these people out when iterating
 
-	friend class Saver;
-	friend class Loader;
+	friend class Hdf5Saver;
+	friend class Hdf5Loader;
 
 	friend class Traveller<Person<BehaviourPolicy, BeliefPolicy>>;
 };

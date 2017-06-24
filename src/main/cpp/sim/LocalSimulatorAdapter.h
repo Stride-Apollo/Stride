@@ -66,8 +66,8 @@ private:
 	friend class Simulator;
 	friend class Coordinator;
 	friend class ClusterSaver;
-	friend class Saver;
-	friend class Loader;
+	friend class Hdf5Saver;
+	friend class Hdf5Loader;
 };
 
 }
