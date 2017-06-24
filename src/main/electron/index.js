@@ -15,7 +15,8 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	$scope.save = function() {
 		console.log("Saving");
 		var saveString = "{\"directory\": \"" + config.directory.toString()
-			+ "\",\"population_directory\": \"" + $scope.population_directory + "\",\"color_no_infected\": \""
+			+ "\",\"population_directory\": \"" + $scope.population_directory
+			+ "\",\"airport_directory\": \"" + $scope.airport_directory + "\",\"color_no_infected\": \""
 			+ getHexColor($scope.no_infected_color).toString() + "\",\"color_min_infected\": \""
 			+ getHexColor($scope.min_infected_color).toString() + "\",\"color_max_infected\": \""
 			+ getHexColor($scope.max_infected_color).toString() + "\",\"circle_opacity\": "
@@ -29,23 +30,30 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	var config;
 	var loaded = false;
 	var block = false;
+	var airport_files = [];
+	var airport_filenames = [];
 	fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
 		if (err) return console.log(err);
 		config = setupConfig(data);
-		fs.readdir(__dirname + "/" + config.directory, function(err, content){
-			if (err) {
-				return console.error(err);
-			}
+		var dircontent = fs.readdirsync(__dirname + "/" + config.directory);
 
-			content.forEach( function (file){
-				var data = fs.readFileSync(__dirname + "/" + config.directory + "/" + file, 'utf8');
-				files.push(data);
-				filenames.push(file);
-			});
-			map.on('load', function() {
-				makeClusters(parseCSVFile(files[$scope.currentDay]));
-				loaded = true;
-			});
+		dircontent.forEach( function (file){
+			var data = fs.readFileSync(__dirname + "/" + config.directory + "/" + file, 'utf8');
+			files.push(data);
+			filenames.push(file);
+		});
+
+		dircontent = fs.readdirsync(__dirname + "/" + config.airport_directory);
+
+		dircontent.forEach( function (file){
+			var data = fs.readFileSync(__dirname + "/" + config.airport_directory + "/" + file, 'utf8');
+			airport_files.push(data);
+			airport_filenames.push(file);
+		});
+		map.on('load', function() {
+			drawAirports(parseCSVFile(airport_files[$scope.currentDay]));
+			makeClusters(parseCSVFile(files[$scope.currentDay]));
+			loaded = true;
 		});
 
 	});
@@ -53,6 +61,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	function setupConfig(data) {
 		config = JSON.parse(data);
 		$scope.population_directory = config.population_directory;
+		$scope.airport_directory = config.airport_directory;
 		$scope.no_infected_color = config.color_no_infected;
 		$scope.min_infected_color = config.color_min_infected;
 		$scope.max_infected_color = config.color_max_infected;
@@ -247,6 +256,62 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 
 	$scope.changeBox = function() {
 		updateMap(parseCSVFile(files[$scope.currentDay]));
+	}
+
+
+	function drawAirports() {
+		map.addLayer({
+			"id": "airports",
+			"type": "symbol",
+			"source": {
+				"type": "geojson",
+				"data": {
+					"type": "FeatureCollection",
+					"features": [{
+						"type": "Feature",
+						"geometry": {
+							"type": "Point",
+							"coordinates": [4.460739,51.188514]
+						},
+						"properties": {
+							"title": "Antwerp Airport",
+							"icon": "airport"
+						}
+					}]
+				}
+			},
+			"layout": {
+				"icon-image": "{icon}-15",
+				"icon-size": 3.5,
+				"text-field": "{title}",
+				"text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+				"text-offset": [0, 0.6],
+				"text-anchor": "top"
+			}
+		});
+
+		var popup = new mapboxgl.Popup({
+			closeButton: false,
+			closeOnClick: false
+		});
+
+		map.on('mouseenter', 'airports', function(e) {
+			// Change the cursor style as a UI indicator.
+
+			var coords = e.features[0].geometry.coordinates;
+			map.getCanvas().style.cursor = 'pointer';
+
+			var htmlText = "Airport " /* + e.features[0].properties.id.toString()
+			 + "<br>Size: " + e.features[0].properties.size.toString()
+			 + "<br>Infected: " + e.features[0].properties.infected.toString()
+			 + "<br>Coordinates: (" + coords[0] + ", " + coords[1] + ")"*/;
+
+			// Populate the popup and set its coordinates
+			// based on the feature found.
+			popup.setLngLat(coords)
+				.setHTML(htmlText)
+				.addTo(map);
+		});
 	}
 
 	function makeClusters(cluster_data) {
