@@ -36,9 +36,9 @@ TEST_P(UnitTests__HDF5, AmtCheckpoints) {
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
-	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config);
 	auto saverInstance = std::make_shared<Hdf5Saver>
-		(Hdf5Saver(h5filename.c_str(), pt_config, checkpointing_frequency, false));
+		(Hdf5Saver(h5filename.c_str(), pt_config, checkpointing_frequency));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, saverInstance, std::placeholders::_1);
 	sim->registerObserver(saverInstance, fnCaller);
 
@@ -79,7 +79,7 @@ TEST_F(UnitTests__HDF5, CheckConfigTree) {
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
-	Hdf5Saver hdf5_saver = Hdf5Saver(h5filename.c_str(), pt_config, 1, false);
+	Hdf5Saver hdf5_saver = Hdf5Saver(h5filename.c_str(), pt_config, 1);
 
 	/// Retrieve the configuration settings from the Hdf5 file.
 	StrType h5_str (0, H5T_VARIABLE);
@@ -117,7 +117,7 @@ TEST_F(UnitTests__HDF5, CheckConfigTree) {
 TEST_F(UnitTests__HDF5, CreateSaver) {
 	auto pt_config = getConfigTree();
 	const string h5filename = "testOutput.h5";
-	Hdf5Saver hdf5_saver = Hdf5Saver(h5filename.c_str(), pt_config, 1, false);
+	Hdf5Saver hdf5_saver = Hdf5Saver(h5filename.c_str(), pt_config, 1);
 }
 
 
@@ -128,9 +128,9 @@ TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
-	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config);
 	auto classInstance = std::make_shared<Hdf5Saver>
-		(Hdf5Saver(h5filename.c_str(), pt_config, 1, false));
+		(Hdf5Saver(h5filename.c_str(), pt_config, 1));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 	sim->notify(*sim);

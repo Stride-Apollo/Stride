@@ -27,7 +27,7 @@ using namespace util;
 class LocalSimulatorAdapter : public AsyncSimulator {
 public:
 	/// The constructor, this adapter will control one simulator
-	LocalSimulatorAdapter(Simulator* sim);
+	LocalSimulatorAdapter(shared_ptr<Simulator> sim);
 
 	void setCommunicationMap(const std::map<uint, AsyncSimulator*>& adapters) {m_adapters = adapters;}
 
@@ -69,11 +69,6 @@ private:
 
 	friend class Simulator;
 	friend class Coordinator;
-	#ifdef HDF5_USED
-		friend class Hdf5Saver;
-		friend class Hdf5Loader;
-	#endif
-	friend class ClusterSaver;
 
 	template<ClusterType clusterType>
 	friend class ClusterCalculator;

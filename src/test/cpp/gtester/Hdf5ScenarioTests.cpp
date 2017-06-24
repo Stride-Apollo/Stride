@@ -36,10 +36,11 @@ TEST_P(Scenarios__HDF5, StartFromCheckpoints) {
 
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
+	pt_config.put("run.num_threads", num_threads);
 
-	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config);
 	auto classInstance = std::make_shared<Hdf5Saver>
-		(Hdf5Saver(h5filename.c_str(), pt_config, 1, false));
+		(Hdf5Saver(h5filename.c_str(), pt_config, 1));
 	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, classInstance, std::placeholders::_1);
 	sim->registerObserver(classInstance, fnCaller);
 
@@ -55,8 +56,8 @@ TEST_P(Scenarios__HDF5, StartFromCheckpoints) {
 	const unsigned int num_cases_original = cases_original.at(NUM_DAYS);
 
 	for (unsigned int i = 1; i < NUM_DAYS; i++) {
-		Hdf5Loader hdf5_loader(h5filename.c_str(), num_threads);
-		auto sim_checkpointed = SimulatorBuilder::build(hdf5_loader.getConfig(), hdf5_loader.getDisease(), hdf5_loader.getContact(), num_threads, false);
+		Hdf5Loader hdf5_loader(h5filename.c_str());
+		auto sim_checkpointed = SimulatorBuilder::build(hdf5_loader.getConfig(), hdf5_loader.getDisease(), hdf5_loader.getContact());
 		hdf5_loader.loadFromTimestep(i, sim_checkpointed);
 
 		ASSERT_EQ(cases_original.at(i), sim_checkpointed->getPopulation()->getInfectedCount());

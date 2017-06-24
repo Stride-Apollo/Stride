@@ -25,6 +25,7 @@
 
 #include "Runner.h"
 #include "sim/SimulatorRunMode.h"
+#include "checkpointing/Hdf5Loader.h"
 
 using namespace std;
 using namespace stride;
@@ -59,6 +60,9 @@ int main(int argc, char** argv) {
 				cout << "'extract' mode requires a file (-f flag)" << endl;
 				return EXIT_FAILURE;
 			}
+
+			// TODO: where to write
+			Hdf5Loader::extractConfigs(hdf5_file_Arg.getValue());
 		} else {
 			Runner runner(overrides_Arg.getValue(), config_file_Arg.getValue(),
 						  run_mode, timestamp_replay_Arg.getValue());

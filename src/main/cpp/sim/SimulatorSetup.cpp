@@ -18,13 +18,10 @@ SimulatorSetup::SimulatorSetup(const ptree& config, string hdf5_file, RunMode ru
 	: m_pt_config(config), m_hdf5_file(hdf5_file),
 	  m_timestamp_replay(timestamp_replay), m_run_mode(run_mode) {
 
-
 	m_hdf5_file_exists = fileExists(m_hdf5_file);
 
 	this->constructConfigTree();
 }
-
-// TODO: Use HDF5_USED
 
 shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 	if (m_run_mode == RunMode::Initial) {
@@ -37,6 +34,7 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 		if (loader.getConfig() != m_pt_config) {
 			std::cerr << "WARNING: The configuration in the HDF5 file differs from the one given." << endl;
 			std::cerr << "         Use the extract mode to get the configuration saved in the HDF5 file." << endl;
+			std::cerr << "         Proceeding with the given configuration (not from HDF5)." << endl;
 		}
 
 		auto sim = SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact());

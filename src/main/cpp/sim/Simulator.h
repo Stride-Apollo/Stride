@@ -19,7 +19,7 @@
  * Header for the Simulator class.
  */
 
-#include "behaviour/InformationPolicy.h"
+#include "behaviour/information_policies/InformationPolicy.h"
 #include "behaviour/behaviour_policies/Vaccination.h"
 #include "behaviour/information_policies/NoLocalInformation.h"
 #include "behaviour/information_policies/NoGlobalInformation.h"

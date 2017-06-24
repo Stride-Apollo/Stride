@@ -79,8 +79,8 @@ protected:
 		// Create simulators
 		m_sim1 = SimulatorBuilder::build(pt_config);
 		m_sim2 = SimulatorBuilder::build(pt_config);
-		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1.get());
-		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2.get());
+		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1);
+		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2);
 
 		m_l1->setId(1);
 		m_l2->setId(2);

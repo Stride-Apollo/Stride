@@ -38,7 +38,6 @@ Hdf5Loader::Hdf5Loader(const char *filename) :
 
 	try {
 		this->loadConfigs();
-		this->loadTrackIndexCase();
 	} catch(FileIException error) {
 		error.printError();
 	}

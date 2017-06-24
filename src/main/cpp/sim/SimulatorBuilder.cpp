@@ -30,6 +30,7 @@
 #include "util/TransportFacilityReader.h"
 #include "core/Cluster.h"
 #include "core/ClusterType.h"
+#include "behaviour/information_policies/InformationPolicy.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/optional/optional.hpp>
@@ -94,11 +95,6 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	const string l = pt_config.get<string>("run.outputs.log.<xmlattr>.level", "None");
 	sim->m_log_level = isLogMode(l) ? toLogMode(l) : throw runtime_error(
 			string(__func__) + "> Invalid input for LogMode.");
-
-	// Get information policy.
-	const string p = pt_config.get<string>("run.information_policy", "Global");
-	sim->m_information_policy = IsInformationPolicy(p) ? ToInformationPolicy(p) :
-			throw runtime_error(string(__func__) + "> Invalid input for Information Policy.");
 
 	// Rng's.
 	int seed = pt_config.get<double>("run.regions.region.rng_seed");
@@ -234,6 +230,7 @@ void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boos
 	if(districts_config) {
 		string district_filename = pt_config.get<string>("run.district_file");
 		double influence_speed = pt_config.get<double>("run.sphere_of_influence.speed");
+		double influence_minimum = pt_config.get<double>("run.sphere_of_influence.minimum");
 		unsigned int influence_size = pt_config.get<unsigned int>("run.sphere_of_influence.size");
 
 		// Check for the correctness of the file

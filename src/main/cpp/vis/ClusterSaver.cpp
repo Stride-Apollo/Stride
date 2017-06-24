@@ -31,7 +31,8 @@ using std::to_string;
 
 namespace stride {
 
-ClusterSaver::ClusterSaver(string file_name, string pop_file_name) : m_sim_day(0), m_file_name(file_name), m_pop_file_name(pop_file_name)  {
+ClusterSaver::ClusterSaver(string file_name, string pop_file_name)
+		: m_sim_day(0), m_file_name(file_name), m_pop_file_name(pop_file_name)  {
 	#if defined(__linux__)
 		m_file_dir = "vis/resources/app/data";
 	#elif defined(__APPLE__)
@@ -75,11 +76,11 @@ void ClusterSaver::saveClustersCSV(const Simulator& sim) const {
 	for (const auto& cluster : sim.m_primary_community) {
 		this->saveClusterCSV(cluster, csv_file);
 	}
-	for (const auto& cluster : local_sim.m_sim->m_secondary_community) {
+	for (const auto& cluster : sim.m_secondary_community) {
 		this->saveClusterCSV(cluster, csv_file);
 	}
 
-	this->saveAggrClustersCSV(local_sim.m_sim->m_households, csv_file);
+	this->saveAggrClustersCSV(sim.m_households, csv_file);
 
 	csv_file.close();
 }
@@ -230,7 +231,7 @@ pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster) const {
 	cluster_sizes.add_child(toString(cluster_type), specific_cluster_map); \
 }
 
-void ClusterSaver::savePopDataJSON(const LocalSimulatorAdapter& local_sim) const {
+void ClusterSaver::savePopDataJSON(const Simulator& local_sim) const {
 	stringstream ss;
 	ss << setfill('0') << setw(5) << m_sim_day;
 	string file_name = m_pop_file_dir + "/" + m_pop_file_name + "_" + ss.str() + ".json";
@@ -275,28 +276,27 @@ void ClusterSaver::savePopDataJSON(const LocalSimulatorAdapter& local_sim) const
 	write_json(file_name.c_str(), pop_data);
 }
 
-double ClusterSaver::getPopCount(const LocalSimulatorAdapter& local_sim) const {
+double ClusterSaver::getPopCount(const Simulator& local_sim) const {
 	// TODO only people that are not on vacation
 	uint total = 0;
 
-	for (const auto& cluster: local_sim.m_sim->m_primary_community) {
+	for (const auto& cluster: local_sim.m_primary_community) {
 		total += cluster.getSize();
 	}
 
 	return total;
 }
 
-map<uint, uint> ClusterSaver::getAgeMap(const LocalSimulatorAdapter& local_sim) const {
+map<uint, uint> ClusterSaver::getAgeMap(const Simulator& local_sim) const {
 	map<uint, uint> result;
 
-	for (const auto& cluster: local_sim.m_sim->m_primary_community) {
+	for (const auto& cluster: local_sim.m_primary_community) {
 		for (const auto& person: cluster.getMembers()) {
 			if (result.find(person.first->getAge()) == result.end()) {
 				result[person.first->getAge()] = 0;
 			} else {
 				++result[person.first->getAge()];
 			}
-
 		}
 	}
 
