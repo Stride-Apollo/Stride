@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <exception>
+#include "sim/LocalSimulatorAdapter.h"
 #include "sim/SimulatorSetup.h"
 #include "util/StringUtils.h"
 
@@ -79,6 +80,7 @@ void Runner::initSimulators() {
 			auto sim = SimulatorSetup(sim_config, string("hdf5_") + m_name,
 									  m_mode, m_timestep).getSimulator();
 			m_local_simulators[it.first] = sim;
+			m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
 		} else {
 			// TODO: DO MPI STUFF
 		}

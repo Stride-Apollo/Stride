@@ -7,6 +7,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include "sim/SimulatorRunMode.h"
 #include "sim/Simulator.h"
+#include "sim/AsyncSimulator.h"
 
 namespace stride {
 namespace run {
@@ -39,6 +40,8 @@ private:
 	std::vector<std::string> m_region_order;
 
 	std::map<std::string, shared_ptr<Simulator>> m_local_simulators;
+	//std::map<std::string, shared_ptr<RemoteSimulatorSender>> m_remote_senders;
+	std::map<std::string, shared_ptr<AsyncSimulator>> m_async_simulators;
 
 	// Some important configuration keys, used a lot
 	std::string m_name;
