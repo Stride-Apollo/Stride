@@ -662,7 +662,7 @@ void PopulationGenerator<U>::makeSchools() {
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	uint cluster_size = education_config.get<uint>("MANDATORY.<xmlattr>.cluster_size");
 
-	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools, "schools", ClusterType::School);
+	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools, "schools", ClusterType::School, false);
 
 	// Split the schools in clusters
 	m_next_id = 1;
@@ -678,6 +678,7 @@ void PopulationGenerator<U>::makeSchools() {
 			m_next_id++;
 			new_cluster.m_coord = cluster.m_coord;
 			m_mandatory_schools_clusters.back().push_back(new_cluster);
+			m_locations[make_pair(ClusterType::School, new_cluster.m_id)] = new_cluster.m_coord;
 		}
 	}
 }

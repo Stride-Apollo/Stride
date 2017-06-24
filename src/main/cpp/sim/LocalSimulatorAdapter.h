@@ -10,6 +10,7 @@
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
+#include "core/ClusterType.h"
 // #include "checkpointing/Saver.h"
 // #include "checkpointing/Loader.h"
 
@@ -17,6 +18,9 @@ namespace stride {
 
 class Coordinator;
 class ClusterSaver;
+
+template<ClusterType clusterType>
+class ClusterCalculator;
 
 using namespace std;
 using namespace util;
@@ -69,6 +73,8 @@ private:
 	friend class ClusterSaver;
 	friend class Saver;
 	friend class Loader;
+	template<ClusterType clusterType>
+	friend class ClusterCalculator;
 };
 
 }
