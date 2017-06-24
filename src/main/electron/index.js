@@ -326,7 +326,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		overview_day = $scope.currentDay;
 		overview.webContents.on('did-finish-load', ()=>{
 			overview.show();
-			//overview.webContents.openDevTools();
+			overview.webContents.openDevTools();
 			overview.focus();
 		});
 		overview.on('closed', function () {

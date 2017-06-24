@@ -117,12 +117,12 @@
 			<div class="pane">
 				<form action="#">
 					<div class="mdl-textfield mdl-js-textfield">
-						<input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="inputID">
-						<label class="mdl-textfield__label" for="sample2">Cluster ID...</label>
+						<input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="inputID" ng-model="inputID">
+						<label class="mdl-textfield__label" for="inputID">Cluster ID...</label>
 						<span class="mdl-textfield__error">Input is not a number!</span>
 					</div>
 				</form>
-				<button id="btnChooseCluster" class="mdl-button mdl-js-button mdl-button--raised fullWidthBtn center" ng-click="TODO()">
+				<button id="btnChooseCluster" class="mdl-button mdl-js-button mdl-button--raised fullWidthBtn center" ng-click="loadFromInput()">
 					Open Cluster
 				</button>
 			</div>
