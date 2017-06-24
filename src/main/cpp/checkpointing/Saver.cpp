@@ -290,17 +290,13 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	auto traveller_data = make_unique<std::vector<TravellerDataType>>(dims[0]);
 
 
-	// TODO optimize this
-	auto searchIndex = [&](PersonType* person) {
-		int i = sim.m_population->size();
-		for (auto iter = sim.m_population->begin(); iter != sim.m_population->end(); iter++) {
-			if (person->m_id == (*iter).m_id) {
-				return i;
-			}
-			i++;
+	// TODO optimize further?
+	vector<Simulator::PersonType*> travellers_seq;
+	for (auto&& day : sim.m_planner.getAgenda()) {
+		for (auto&& traveller : *(day)) {
+			travellers_seq.push_back(traveller->getNewPerson());
 		}
-		return -1;
-	};
+	}
 
 	unsigned int current_index = 0;
 	unsigned int list_index = 0;
@@ -313,7 +309,7 @@ void Saver::saveTravellers(Group& group, const Simulator& sim) const {
 			traveller.m_home_sim_id = person->getHomeSimulatorId();
 			traveller.m_dest_sim_id = person->getDestinationSimulatorId();
 			traveller.m_home_sim_index = person->getHomeSimulatorIndex();
-			traveller.m_dest_sim_index = searchIndex(person->getNewPerson());
+			traveller.m_dest_sim_index = sim.m_population->m_original.size() + (std::find(travellers_seq.begin(), travellers_seq.end(), person->getNewPerson()) - travellers_seq.begin());
 
 			PersonType original_person = person->getHomePerson();
 			#define setAttributeTraveller(attr_lhs, attr_rhs) traveller.attr_lhs = original_person.attr_rhs
