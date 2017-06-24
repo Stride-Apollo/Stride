@@ -27,7 +27,6 @@ namespace stride {
 
 using namespace std;
 
-
 template<class BehaviourPolicy, class BeliefPolicy>
 unsigned int Person<BehaviourPolicy, BeliefPolicy>::getClusterId(ClusterType cluster_type) const {
 	switch (cluster_type) {
@@ -68,7 +67,16 @@ template<class BehaviourPolicy, class BeliefPolicy>
 void Person<BehaviourPolicy, BeliefPolicy>::update(bool is_work_off, bool is_school_off, double fraction_infected) {
 	m_health.update();
 
-	// update presence in clusters.
+	// Vaccination behavior
+	// As long as people are susceptible to a disease
+	// (or think they are: they have been infected but are not yet symptomatic) they can choose to get vaccinated
+	if (m_health.isSusceptible() || (m_health.isInfected() && (! m_health.isSymptomatic()))) {
+		if (BehaviourPolicy::practicesVaccination(m_belief_data)) {
+			m_health.setImmune();
+		}
+	}
+
+	// Update presence in clusters.
 	if (is_work_off || (m_age <= minAdultAge() && is_school_off)) {
 		m_at_school = false;
 		m_at_work = false;
@@ -93,10 +101,10 @@ void Person<BehaviourPolicy, BeliefPolicy>::update(const Person* p) {
 //--------------------------------------------------------------------------
 // All explicit instantiations.
 //--------------------------------------------------------------------------
-template class Person<NoBehaviour, NoBelief>;
+template class Person<NoBehaviour<NoBelief>, NoBelief>;
 
-template class Person<AlwaysFollowBeliefs, Threshold<true, false>>;
-template class Person<AlwaysFollowBeliefs, Threshold<false, true>>;
-template class Person<AlwaysFollowBeliefs, Threshold<true, true>>;
+template class Person<Vaccination<Threshold<true, false> >, Threshold<true, false>>;
+template class Person<Vaccination<Threshold<true, false> >, Threshold<false, true>>;
+template class Person<Vaccination<Threshold<true, false> >, Threshold<true, true>>;
 
 }

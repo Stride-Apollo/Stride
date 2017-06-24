@@ -7,7 +7,8 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>
-#include <iomanip>
+#include <iostream>
+#include <vector>
 #include "Saver.h"
 #include "util/InstallDirs.h"
 #include "calendar/Calendar.h"
@@ -21,6 +22,7 @@
 // #include "checkpointing/customDataTypes/TravellerDataType.h"
 
 #include <vector>
+#include <util/etc.h>
 
 using namespace H5;
 using namespace stride::util;
@@ -154,14 +156,14 @@ void Saver::saveClusters(Group& group, string dataset_name, const vector<Cluster
 	DataSpace dataspace_clusters = DataSpace(ndims_clusters, dims_clusters);
 	DataSet dataset_clusters = DataSet(group.createDataSet(H5std_string(dataset_name), PredType::NATIVE_UINT, dataspace_clusters));
 
-	unsigned int cluster_data[amtIds];
+	auto cluster_data = make_unique<vector<unsigned int>>(amtIds);
 	unsigned int index = 0;
 	for (unsigned int i = 0; i < clusters.size(); i++) {
 		for (unsigned int j = 0; j < clusters.at(i).getSize(); j++) {
-			cluster_data[index++] = clusters.at(i).m_members.at(j).first->m_id;
+			(*cluster_data)[index++] = clusters.at(i).m_members.at(j).first->m_id;
 		}
 	}
-	dataset_clusters.write(cluster_data, PredType::NATIVE_UINT);
+	dataset_clusters.write(cluster_data->data(), PredType::NATIVE_UINT);
 	dataspace_clusters.close();
 	dataset_clusters.close();
 }

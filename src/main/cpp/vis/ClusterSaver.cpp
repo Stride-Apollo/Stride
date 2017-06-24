@@ -53,7 +53,7 @@ ClusterSaver::ClusterSaver(string file_name, string pop_file_name) : m_sim_day(0
 	if (!boost::filesystem::exists(boost::filesystem::path(m_file_dir))) {
 		boost::filesystem::create_directory(boost::filesystem::path(m_file_dir));
 	}
-
+  
 	// Create the subdirectory if it does not exist.
 	if (!boost::filesystem::exists(boost::filesystem::path(m_pop_file_dir))) {
 		boost::filesystem::create_directory(boost::filesystem::path(m_pop_file_dir));
