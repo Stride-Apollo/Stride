@@ -1,7 +1,7 @@
 #############################################################################
 #  This is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by 
-#  the Free Software Foundation, either version 3 of the License, or any 
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or any
 #  later version.
 #  The software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,6 +28,9 @@ set( SRC
 		TransportFacilityTest.cpp
 		InfluenceTests.cpp
 		DistrictTests.cpp
+		Hdf5Base.cpp
+		Hdf5UnitTests.cpp
+		Hdf5ScenarioTests.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp
