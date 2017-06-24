@@ -5,11 +5,13 @@
 #include <exception>
 #include "sim/LocalSimulatorAdapter.h"
 
-#ifdef HDF5_USED
+/*#ifdef HDF5_USED
 	#include "sim/SimulatorSetup.h"
 #else
 	#include "sim/SimulatorBuilder.h"
-#endif
+#endif*/
+#include "sim/SimulatorSetup.h"
+#include "sim/SimulatorBuilder.h"
 
 #include "util/StringUtils.h"
 
@@ -87,7 +89,7 @@ void Runner::initSimulators() {
 			auto sim = SimulatorSetup(sim_config, string("hdf5_") + m_name,
 									  m_mode, m_timestep).getSimulator();
 			#else
-		  	auto sim = SimulatorBuilder(sim_config).build();
+		  	auto sim = SimulatorBuilder::build(sim_config);
 			#endif
 			m_local_simulators[it.first] = sim;
 			m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);

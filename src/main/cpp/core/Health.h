@@ -14,11 +14,6 @@
  *  Copyright 2017, Willem L, Kuylen E, Stijven S & Broeckhove J
  */
 
-#ifdef USE_HDF5
-#include "checkpointing/Hdf5Loader.h"
-#include "checkpointing/Hdf5Saver.h"
-#endif
-
 namespace stride {
 
 enum class HealthStatus {
@@ -109,10 +104,8 @@ private:
 	unsigned int m_end_symptomatic;              ///< Days after infection to end symptomatic state.
 
 private:
-	#ifdef HDF5_USED
-		friend class Hdf5Loader;
-		friend class Hdf5Saver;
-	#endif
+	friend class Hdf5Loader;
+	friend class Hdf5Saver;
 };
 
 }

@@ -5,7 +5,9 @@
 * Header file for the Loader class for the checkpointing functionality
 */
 
-#include "H5Cpp.h"
+#ifdef HDF5_USED
+	#include "H5Cpp.h"
+#endif
 #include "util/Observer.h"
 #include "sim/Simulator.h"
 #include <boost/property_tree/xml_parser.hpp>
@@ -20,8 +22,7 @@ using std::string;
 namespace stride {
 
 class Hdf5Loader {
-public:
-
+#ifdef HDF5_USED
 public:
 	Hdf5Loader(const char* filename);
 
@@ -79,6 +80,31 @@ private:
 	ptree m_pt_config;
 	ptree m_pt_disease;
 	ptree m_pt_contact;
+#endif
+#ifndef HDF5_USED
+// These dummy headers are used as an interface for when no hdf5 is included, but everything still needs to compile.
+public:
+	Hdf5Loader(const char* filename) {}
+
+	/// Load from timestep, if the specified timestep is present in the hdf5 file.
+	void loadFromTimestep(unsigned int timestep, shared_ptr<Simulator> sim) const {}
+
+	/// Extend the simulation at the last saved timestep.
+	void extendSimulation(shared_ptr<Simulator> sim) const {}
+
+
+public:
+	ptree getConfig() const { ptree result; return result; }
+	ptree getDisease() const { ptree result; return result; }
+	ptree getContact() const { ptree result; return result; }
+
+	/// Retrieves the last saved timestep index in the hdf5 file.
+	unsigned int getLastSavedTimestep() const { return 0; }
+
+public:
+	/// Extract the configuration files saved in the hdf5 file.
+	static void extractConfigs(string filename) {}
+#endif
 };
 
 }

@@ -22,13 +22,13 @@
 using namespace std;
 using namespace stride;
 using namespace ::testing;
+#ifdef HDF5_USED
 using namespace H5;
-
+#endif
 namespace Tests {
 
 
 class Scenarios__HDF5 : public Hdf5Base {};
-
 const unsigned int NUM_DAYS = 50;
 
 TEST_P(Scenarios__HDF5, StartFromCheckpoints) {
@@ -83,5 +83,4 @@ TEST_P(Scenarios__HDF5, StartFromCheckpoints) {
 #endif
 
 INSTANTIATE_TEST_CASE_P(StartFromCheckpoints, Scenarios__HDF5, ::testing::ValuesIn(threads_hdf5scenarios));
-
 }

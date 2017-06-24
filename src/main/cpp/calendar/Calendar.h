@@ -78,9 +78,7 @@ private:
 	std::vector<boost::gregorian::date> m_school_holidays;         ///< Vector of school holidays
 
 private:
-	#ifdef HDF5_USED
-		friend class Hdf5Loader;
-	#endif
+	friend class Hdf5Loader;
 };
 
 }

@@ -131,10 +131,8 @@ private:
 	                        ///< Note: Population already filters these people out when iterating
 
 private:
-	#ifdef HDF5_USED
-		friend class Hdf5Saver;
-		friend class Hdf5Loader;
-	#endif
+	friend class Hdf5Saver;
+	friend class Hdf5Loader;
 
 	friend class Traveller<Person<BehaviourPolicy, BeliefPolicy>>;
 };

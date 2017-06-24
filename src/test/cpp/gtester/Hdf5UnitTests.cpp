@@ -1,3 +1,4 @@
+#ifdef HDF5_USED
 #include "checkpointing/Hdf5Saver.h"
 #include "sim/SimulatorBuilder.h"
 #include "sim/Simulator.h"
@@ -24,7 +25,6 @@ using namespace H5;
 namespace Tests {
 
 class UnitTests__HDF5 : public Hdf5Base {};
-
 /**
  *	Test case that checks the amount of timestaps created in the H5 file.
  */
@@ -157,5 +157,5 @@ TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 unsigned int checkpointing_frequencies[] { 1U, 2U, 0U };
 
 INSTANTIATE_TEST_CASE_P(HDF5UnitTestsAmtCheckpoints, UnitTests__HDF5, ::testing::ValuesIn(checkpointing_frequencies));
-
 }
+#endif
