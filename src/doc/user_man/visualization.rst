@@ -54,7 +54,7 @@ The color of the circles represents the percentage of infected people in the clu
 Hovering over a cluster displays some useful information, namely the cluster size,
 the infected count, the cluster ID and its coordinates.
 
-..image:: _static/vis1.png
+.. image:: _static/vis1.png
 
 
 Cluster panel
@@ -64,7 +64,7 @@ The cluster panel can be opened by clicking on a cluster. The cluster panels
 display a graph showing the evolution of infected persons in that specific cluster,
 over the simulation. It also displays general information of the cluster.
 
-..image:: _static/vis2.png
+.. image:: _static/vis2.png
 
 *If multiple clusters are located on the same coordinates,
 multiple panels get opened with all the overlapping clusters.*
@@ -90,7 +90,7 @@ The configuration options include:
 You can save the configuration options after adjusting them, by clicking ``SAVE CONFIGURATION``.
 The saved options will be reused for further uses of the tool.
 
-..image:: _static/vis3.png
+.. image:: _static/vis3.png
 
 
 Overview
@@ -101,6 +101,6 @@ specific cluster information, as well as view general information about the popu
 The general information includes graphs of the age distribution, graphs of the cluster sizes,
 population density, ...
 
-..image:: _static/vis4.png
+.. image:: _static/vis4.png
 
 
