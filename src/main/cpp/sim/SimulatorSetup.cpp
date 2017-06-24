@@ -2,9 +2,7 @@
 #include "sim/SimulatorSetup.h"
 #include "sim/SimulatorBuilder.h"
 
-#ifdef HDF5_USED
-	#include "checkpointing/Loader.h"
-#endif
+#include "checkpointing/Loader.h"
 
 #include "sim/Simulator.h"
 #include <boost/filesystem.hpp>
@@ -20,6 +18,7 @@ SimulatorSetup::SimulatorSetup(const ptree& config, string hdf5_file, RunMode ru
 							   const unsigned int timestamp_replay)
 	: m_pt_config(config), m_hdf5_file(hdf5_file),
 	  m_timestamp_replay(timestamp_replay), m_run_mode(run_mode) {
+
 
 	m_hdf5_file_exists = fileExists(m_hdf5_file);
 
@@ -50,7 +49,6 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 		}
 		return sim;
 	}
-
 	return nullptr;
 }
 

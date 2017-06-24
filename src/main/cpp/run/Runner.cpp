@@ -4,7 +4,13 @@
 #include <iostream>
 #include <exception>
 #include "sim/LocalSimulatorAdapter.h"
-#include "sim/SimulatorSetup.h"
+
+#ifdef HDF5_USED
+	#include "sim/SimulatorSetup.h"
+#else
+	#include "sim/SimulatorBuilder.h"
+#endif
+
 #include "util/StringUtils.h"
 
 using namespace stride;
@@ -77,8 +83,12 @@ void Runner::initSimulators() {
 		pt::ptree sim_config = getRegionsConfig({it.first});
 		if (not remote) {
 			// build a Simulator...
+			#ifdef HDF5_USED
 			auto sim = SimulatorSetup(sim_config, string("hdf5_") + m_name,
 									  m_mode, m_timestep).getSimulator();
+			#else
+		  	auto sim = SimulatorBuilder(sim_config).build();
+			#endif
 			m_local_simulators[it.first] = sim;
 			m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
 		} else {
