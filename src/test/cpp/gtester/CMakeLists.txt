@@ -23,6 +23,8 @@ set( SRC
 		BatchRuns.cpp
 		UtilTests.cpp
 		PopulationTests.cpp
+		# Segfault, pls fix
+		#LocalSimulatorAdapterTests.cpp
 		AsyncSimulatorTests.cpp
 		TravelSchedulerTest.cpp
 		TransportFacilityTest.cpp
@@ -35,6 +37,9 @@ set( SRC
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp
 		PopGen/AliasDistributionTest.cpp
+		Hdf5UnitTests.cpp
+		Hdf5ScenarioTests.cpp
+		Hdf5Base.cpp
 )
 if( NOT STRIDE_FORCE_NO_HDF5 )
 	set(SRC ${SRC} Hdf5Base.cpp Hdf5UnitTests.cpp Hdf5ScenarioTests.cpp)

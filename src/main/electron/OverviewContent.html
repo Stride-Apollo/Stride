@@ -17,9 +17,26 @@
 	<base href="/">
 </head>
 <body>
-<p class="title">Overview</p>
+	<p class="title">Overview</p>
 
-<div id="graphInfected"></div>
+	<div class="paneBody">
+		<div class="paneContainer">
+			<div class="pane">
+				<button id="btnPreviousGraph" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="previousGraph()">
+					<i class="material-icons">navigate_before</i>
+				</button>
+			</div>
+			<div class="centerPane pane">
+				<div id="graphInfected"></div>
+			</div>
+			<div class="pane">
+				<button id="btnNextGraph" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" ng-click="nextGraph()">
+					<i class="material-icons">navigate_next</i>
+				</button>
+			</div>
+		</div>
+	</div>
+
 	<p class="subtitle">Information for current day: {{currentDay}}</p>
 	<ul class="demo-list-item mdl-list questions" id="current_data">
 		<li class="mdl-list__item">
@@ -30,6 +47,21 @@
 		</li>
 		<li class="mdl-list__item">
 			<span class="mdl-list__item-primary-content">Amount of clusters:</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Household population density:</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Work population density:</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">School population density:</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Primary Community population density:</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">Secondary Community population density:</span>
 		</li>
 	</ul>
 
@@ -42,6 +74,21 @@
 		</li>
 		<li class="mdl-list__item">
 			<span class="mdl-list__item-primary-content">{{total_cluster}}</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{household_density}} / km²</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{school_density}} / km²</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{work_density}} / km²</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{primary_community_density}} / km²</span>
+		</li>
+		<li class="mdl-list__item">
+			<span class="mdl-list__item-primary-content">{{secondary_community_density}} / km²</span>
 		</li>
 	</ul>
 
@@ -70,12 +117,12 @@
 			<div class="pane">
 				<form action="#">
 					<div class="mdl-textfield mdl-js-textfield">
-						<input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="inputID">
-						<label class="mdl-textfield__label" for="sample2">Cluster ID...</label>
+						<input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="inputID" ng-model="inputID">
+						<label class="mdl-textfield__label" for="inputID">Cluster ID...</label>
 						<span class="mdl-textfield__error">Input is not a number!</span>
 					</div>
 				</form>
-				<button id="btnChooseCluster" class="mdl-button mdl-js-button mdl-button--raised fullWidthBtn center" ng-click="TODO()">
+				<button id="btnChooseCluster" class="mdl-button mdl-js-button mdl-button--raised fullWidthBtn center" ng-click="loadFromInput()">
 					Open Cluster
 				</button>
 			</div>

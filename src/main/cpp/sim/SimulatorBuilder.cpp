@@ -268,6 +268,7 @@ void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boos
 				sim->m_districts.push_back(District(values[1],
 												influence_size,
 												influence_speed,
+												influence_minimum,
 												GeoCoordinate(StringUtils::fromString<double>(values[6]),
 																StringUtils::fromString<double>(values[7]))));
 			}

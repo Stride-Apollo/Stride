@@ -76,20 +76,8 @@ void run_stride(bool track_index_case,
 	SimulatorSetup setup = SimulatorSetup(config_file_name, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
 
-	cout << "Building the simulator." << endl << endl;
-
-	shared_ptr<Simulator> sim = setup.getSimulator();
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	Coordinator coord({local_sim.get()});
-
-	cout << "Done building the simulator. " << endl << endl;
-	unsigned int start_day = setup.getStartDay();
-
 	// Set output path prefix.
 	cout << "Project output tag:  " << output_prefix << endl << endl;
-
-	// Track index case setting.
-	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
 
 	// Create logger
 	// Transmissions:     [TRANSMISSION] <infecterID> <infectedID> <clusterID> <day>
@@ -101,6 +89,18 @@ void run_stride(bool track_index_case,
 												  std::numeric_limits<size_t>::max(),
 												  std::numeric_limits<size_t>::max());
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
+
+	cout << "Building the simulator." << endl << endl;
+
+	shared_ptr<Simulator> sim = setup.getSimulator();
+	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
+	Coordinator coord({local_sim.get()});
+
+	cout << "Done building the simulator. " << endl << endl;
+	unsigned int start_day = setup.getStartDay();
+
+	// Track index case setting.
+	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
 
 	// Create simulator.
 	Stopwatch<> total_clock("total_clock", true);
@@ -147,7 +147,8 @@ void run_stride(bool track_index_case,
 		cout << "     Done, infected count: ";
 		cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
 		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
-		cout << setw(7) << cases.at(i-start_day) << "     Adopters count: " << setw(7) << adopters << endl;
+		unsigned int total = sim->getPopulation()->size();
+		cout << setw(7) << cases.at(i-start_day)  << "     Adopters count: " << setw(7) << adopters << endl;
 	}
 
 	#ifdef HDF5_USED

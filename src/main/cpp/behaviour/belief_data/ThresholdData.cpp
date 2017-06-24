@@ -22,9 +22,9 @@ void ThresholdData::contact(const Person<BehaviourPolicy, BeliefPolicy>* p) {
 	}
 }
 
-template void ThresholdData::contact<AlwaysFollowBeliefs, Threshold<true, false> >(const Person<AlwaysFollowBeliefs, Threshold<true, false> >* p);
-template void ThresholdData::contact<AlwaysFollowBeliefs, Threshold<false, true> >(const Person<AlwaysFollowBeliefs, Threshold<false, true> >* p);
-template void ThresholdData::contact<AlwaysFollowBeliefs, Threshold<true, true> >(const Person<AlwaysFollowBeliefs, Threshold<true, true> >* p);
+template void ThresholdData::contact<Vaccination<Threshold<true, false> >, Threshold<true, false> >(const Person<Vaccination<Threshold<true, false> >, Threshold<true, false> >* p);
+template void ThresholdData::contact<Vaccination<Threshold<true, false> >, Threshold<false, true> >(const Person<Vaccination<Threshold<true, false> >, Threshold<false, true> >* p);
+template void ThresholdData::contact<Vaccination<Threshold<true, false> >, Threshold<true, true> >(const Person<Vaccination<Threshold<true, false> >, Threshold<true, true> >* p);
 
 
 }

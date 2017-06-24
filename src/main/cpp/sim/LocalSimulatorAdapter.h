@@ -8,7 +8,6 @@
 #include "Simulator.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
-#include "pop/TravellerData.h"
 
 #include "util/Subject.h"
 #include "core/ClusterType.h"

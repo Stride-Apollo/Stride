@@ -8,8 +8,9 @@
     <cluster_location_file>clusters_flanders.csv</cluster_location_file>
     <district_file>districts_flanders.csv</district_file>
     <sphere_of_influence>
-        <speed>100</speed>
+        <speed>100.0</speed>
         <size>7</size>
+        <minimum>20.0</minimum>
     </sphere_of_influence>
     <facility_file>transportation_facilities.csv</facility_file>
     <num_days>50</num_days>

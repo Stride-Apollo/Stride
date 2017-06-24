@@ -24,16 +24,17 @@ using namespace std;
 class District {
 public:
 	/// Constructor
-	District(string district_name, uint influence_size, double influence_speed, GeoCoordinate location = GeoCoordinate(0,0)):
+	District(string district_name, uint influence_size, double influence_speed, double influence_minimum, GeoCoordinate location = GeoCoordinate(0,0)):
 		m_name(district_name),
 		m_location(location),
 		m_influence_size(influence_size),
-		m_influence_speed(influence_speed) {}
+		m_influence_speed(influence_speed),
+		m_influence_minimum(influence_minimum) {}
 
 	/// Add a transportation facility to this district
 	void addFacility(string facility_name) {
 		if (! hasFacility(facility_name)) {
-			m_transportations_facilities.push_back(make_pair(facility_name, Influence(m_influence_size, m_influence_speed)));
+			m_transportations_facilities.push_back(make_pair(facility_name, Influence(m_influence_size, m_influence_speed, m_influence_minimum)));
 		}
 	}
 
@@ -78,6 +79,7 @@ private:
 	const GeoCoordinate m_location;		///< The geographic location of the district
 	const uint m_influence_size;		///< All Influences of facilities will get this size
 	const uint m_influence_speed;		///< All Influences of facilities will get this speed
+	const uint m_influence_minimum;		///< All Influences of facilities will get this minimum
 
 	vector<pair<string, Influence> >::const_iterator getFacility(string facility_name) const {
 		auto same_name = [&] (const pair<string, Influence>& facility) {return facility.first == facility_name;};
