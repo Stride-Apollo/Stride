@@ -44,7 +44,6 @@ set(LIB_SRC
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
-	sim/Coordinator.cpp
 	sim/SimulatorRunMode.cpp
 	sim/SimulatorSetup.cpp
 	sim/ProcessConfig.cpp
