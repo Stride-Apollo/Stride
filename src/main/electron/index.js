@@ -232,7 +232,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	}
 
 	$scope.previousDay = function() {
-		if (--$scope.currentDay <= 0) {
+		if (--$scope.currentDay < 0) {
 			$scope.currentDay = 0;
 			$interval.cancel($scope.simulation_rewind);
 			$scope.simulation_rewind = undefined
@@ -353,7 +353,8 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 				"type": "symbol",
 				"source": "airport_data",
 				"layout": {
-					"icon-image": "{icon}-15",
+					"icon-image": "/images/airplane-512.png",
+					"icon-size": 1.5,
 					"text-field": "{name}",
 					"text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
 					"text-offset": [0, 0.6],
@@ -423,7 +424,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			"type": "symbol",
 			"source": "airport_data",
 			"layout": {
-				"icon-image": "{icon}-15",
+				"icon-image": "/images/airplane-512.png",
 				"text-field": "{name}",
 				"text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
 				"text-offset": [0, 0.6],
