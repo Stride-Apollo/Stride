@@ -5,8 +5,7 @@
  *      Author: elise
  */
 
-#ifndef SRC_MAIN_CPP_BEHAVIOUR_BELIEF_POLICIES_HBM_H_
-#define SRC_MAIN_CPP_BEHAVIOUR_BELIEF_POLICIES_HBM_H_
+#pragma once
 
 #include "core/Health.h"
 #include "util/RNG.h"
@@ -57,7 +56,5 @@ private:
 	static const double m_odds_ratio_barriers = -0.4;
 };
 
-} /* namespace stride */
+}
 
-
-#endif /* SRC_MAIN_CPP_BEHAVIOUR_BELIEF_POLICIES_HBM_H_ */

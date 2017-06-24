@@ -5,8 +5,7 @@
  *      Author: elise
  */
 
-#ifndef SRC_MAIN_CPP_BEHAVIOUR_BELIEF_DATA_HBMDATA_H_
-#define SRC_MAIN_CPP_BEHAVIOUR_BELIEF_DATA_HBMDATA_H_
+#pragma once
 
 namespace stride {
 
@@ -19,19 +18,19 @@ public:
 		m_perceived_severity(0), m_perceived_susceptibility(0),
 		m_perceived_benefit(1), m_perceived_barriers(1) {}
 
-	VariableState GetPerceivedSeverity() const {
+	VariableState getPerceivedSeverity() const {
 		return m_perceived_severity;
 	}
 
-	VariableState GetPerceivedSusceptibility() const {
+	VariableState getPerceivedSusceptibility() const {
 		return m_perceived_susceptibility;
 	}
 
-	VariableState GetPerceivedBenefit() const {
+	VariableState getPerceivedBenefit() const {
 		return m_perceived_benefit;
 	}
 
-	VariableState GetPerceivedBarriers() const {
+	VariableState getPerceivedBarriers() const {
 		return m_perceived_barriers;
 	}
 
@@ -63,4 +62,3 @@ private:
 
 }
 
-#endif /* SRC_MAIN_CPP_BEHAVIOUR_BELIEF_DATA_HBMDATA_H_ */
