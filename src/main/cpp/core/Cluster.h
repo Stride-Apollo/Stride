@@ -27,7 +27,7 @@
 #include "sim/Simulator.h"
 #include "util/GeoCoordinate.h"
 #ifdef HDF5_USED
-	#include "checkpointing/Loader.h"
+	#include "checkpointing/Hdf5Loader.h"
 #endif
 
 #include <array>
@@ -113,8 +113,8 @@ private:
 
 private:
 	#ifdef HDF5_USED
-		friend class Loader;
-		friend class Saver;
+		friend class Hdf5Loader;
+		friend class Hdf5Saver;
 	#endif
 };
 

@@ -79,11 +79,9 @@ private:
 
 private:
 	#ifdef HDF5_USED
-		friend class Loader;
+		friend class Hdf5Loader;
 	#endif
 };
 
 }
-
-
 

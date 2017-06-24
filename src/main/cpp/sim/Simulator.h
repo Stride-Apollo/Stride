@@ -166,8 +166,8 @@ public:	// TODO write getters or set friend class for ClusterSaver
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;
 	#ifdef HDF5_USED
-		friend class Saver;
-		friend class Loader;
+		friend class Hdf5Saver;
+		friend class Hdf5Loader;
 	#endif
 };
 

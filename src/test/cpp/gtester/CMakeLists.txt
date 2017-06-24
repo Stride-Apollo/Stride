@@ -28,6 +28,9 @@ set( SRC
 		TransportFacilityTest.cpp
 		InfluenceTests.cpp
 		DistrictTests.cpp
+		Hdf5Base.cpp
+		Hdf5UnitTests.cpp
+		Hdf5ScenarioTests.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp

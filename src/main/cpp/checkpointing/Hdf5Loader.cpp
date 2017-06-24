@@ -6,7 +6,7 @@
 #include <boost/date_time/gregorian/greg_date.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <iomanip>
-#include "Loader.h"
+#include "Hdf5Loader.h"
 #include "calendar/Calendar.h"
 #include "util/InstallDirs.h"
 #include "pop/Population.h"
@@ -33,17 +33,18 @@ using namespace stride::util;
 namespace stride {
 
 
-Loader::Loader(const char *filename) :
+Hdf5Loader::Hdf5Loader(const char *filename) :
  	m_filename(filename) {
 
 	try {
 		this->loadConfigs();
+		this->loadTrackIndexCase();
 	} catch(FileIException error) {
 		error.printError();
 	}
 }
 
-void Loader::loadConfigs() {
+void Hdf5Loader::loadConfigs() {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 
 	DataSet dataset = DataSet(file.openDataSet("Configuration/configuration"));
@@ -64,7 +65,7 @@ void Loader::loadConfigs() {
 }
 
 
-void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> sim) const {
+void Hdf5Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> sim) const {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 
 	stringstream ss;
@@ -95,7 +96,7 @@ void Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulator> 
 }
 
 
-unsigned int Loader::getLastSavedTimestep() const {
+unsigned int Hdf5Loader::getLastSavedTimestep() const {
 	H5File file(m_filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);
 	DataSet dataset = DataSet(file.openDataSet("last_timestep"));
 	unsigned int data[1];
@@ -106,7 +107,7 @@ unsigned int Loader::getLastSavedTimestep() const {
 }
 
 
-void Loader::setupPopulation(std::shared_ptr<Simulator> sim) const {
+void Hdf5Loader::setupPopulation(std::shared_ptr<Simulator> sim) const {
 	const auto seed = m_pt_config.get<double>("run.rng_seed");
 	Random rng(seed);
 
@@ -114,7 +115,7 @@ void Loader::setupPopulation(std::shared_ptr<Simulator> sim) const {
 }
 
 
-void Loader::updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const {
+void Hdf5Loader::updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const {
 	for (auto cluster : sim->m_households) {
 		cluster.m_index_immune = cluster.m_members.size()-1;
 	}
@@ -132,7 +133,7 @@ void Loader::updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const {
 	}
 }
 
-void Loader::loadCalendar(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
+void Hdf5Loader::loadCalendar(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
 	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/calendar"));
 	CalendarDataType calendar[1];
 	dataset.read(calendar, CalendarDataType::getCompType());
@@ -143,7 +144,7 @@ void Loader::loadCalendar(H5File& file, string dataset_name, shared_ptr<Simulato
 }
 
 
-void Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
+void Hdf5Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
 	try {
 		DataSet dataset = DataSet(file.openDataSet(dataset_name + "/travellers"));
 		DataSpace dataspace = dataset.getSpace();
@@ -220,7 +221,7 @@ void Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Simula
 }
 
 
-void Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
+void Hdf5Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
 	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/person_time_dependent"));
 	unsigned long dims[1] = {sim->m_population.get()->m_original.size()};
 	CompType type_person_TD = PersonTDDataType::getCompType();
@@ -250,7 +251,7 @@ void Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<Simu
 }
 
 
-void Loader::loadRngState(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
+void Hdf5Loader::loadRngState(H5File& file, string dataset_name, shared_ptr<Simulator> sim) const {
 	DataSet dataset = DataSet(file.openDataSet(dataset_name + "/randomgen"));
 	std::string rng_state;
 	dataset.read(rng_state, StrType(0, H5T_VARIABLE));
@@ -260,7 +261,7 @@ void Loader::loadRngState(H5File& file, string dataset_name, shared_ptr<Simulato
 }
 
 
-void Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Simulator> sim) const {
+void Hdf5Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Simulator> sim) const {
 	std::shared_ptr<Population> pop = sim->m_population;
 
 	DataSet dataset = DataSet(file.openDataSet(full_dataset_name));
@@ -309,7 +310,7 @@ void Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vect
 	}
 }
 
-void Loader::extractConfigs(string filename) {
+void Hdf5Loader::extractConfigs(string filename) {
 	// Check for the existence/validity of the hdf5 file.
 	bool hdf5_file_exists = exists(system_complete(filename));
 	if (!hdf5_file_exists) {

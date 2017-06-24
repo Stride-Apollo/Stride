@@ -2,8 +2,7 @@
 #include "sim/SimulatorSetup.h"
 #include "sim/SimulatorBuilder.h"
 
-#include "checkpointing/Loader.h"
-
+#include "checkpointing/Hdf5Loader.h"
 #include "sim/Simulator.h"
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -33,7 +32,7 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 	} else if (m_run_mode == RunMode::Extend || m_run_mode == RunMode::Replay) {
 		// Build the simulator and adjust it to the most recent/specified saved checkpoint in the hdf5 file.
 
-		Loader loader(m_hdf5_file.c_str());
+		Hdf5Loader loader(m_hdf5_file.c_str());
 
 		if (loader.getConfig() != m_pt_config) {
 			std::cerr << "WARNING: The configuration in the HDF5 file differs from the one given." << endl;

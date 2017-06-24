@@ -1,8 +1,8 @@
-#include "checkpointing/Saver.h"
+#include "checkpointing/Hdf5Saver.h"
 #include "sim/SimulatorBuilder.h"
 #include "sim/Simulator.h"
 #include "pop/Population.h"
-#include "checkpointing/customDataTypes/ConfDataType.h"
+#include "checkpointing/datatypes/ConfigDataType.h"
 #include "util/InstallDirs.h"
 #include "util/async.h"
 #include "util/etc.h"
@@ -37,22 +37,19 @@ TEST_P(UnitTests__HDF5, AmtCheckpoints) {
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	auto saverInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, checkpointing_frequency, false));
-	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saverInstance, std::placeholders::_1);
-	local_sim->registerObserver(saverInstance, fnCaller);
+	auto saverInstance = std::make_shared<Hdf5Saver>
+		(Hdf5Saver(h5filename.c_str(), pt_config, checkpointing_frequency, false));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, saverInstance, std::placeholders::_1);
+	sim->registerObserver(saverInstance, fnCaller);
 
-	saverInstance->forceSave(*local_sim);
+	saverInstance->forceSave(*sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
-		vector<future<bool>> fut_results;
-		fut_results.push_back(local_sim->timeStep());
-		future_pool(fut_results);
+		sim->timeStep();
 	}
 
 	if (checkpointing_frequency == 0) {
-		saverInstance->forceSave(*local_sim, num_days);
+		saverInstance->forceSave(*sim, num_days);
 	}
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
@@ -82,16 +79,16 @@ TEST_F(UnitTests__HDF5, CheckConfigTree) {
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
-	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
+	Hdf5Saver hdf5_saver = Hdf5Saver(h5filename.c_str(), pt_config, 1, false);
 
 	/// Retrieve the configuration settings from the Hdf5 file.
 	StrType h5_str (0, H5T_VARIABLE);
-	ConfDataType configData[1];
+	ConfigDataType configData[1];
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
-	DataSet dataset = h5file.openDataSet("configuration/configuration");
-	dataset.read(configData, ConfDataType::getCompType());
-	istringstream iss(configData[0].conf_content);
+	DataSet dataset = h5file.openDataSet("Configuration/configuration");
+	dataset.read(configData, ConfigDataType::getCompType());
+	istringstream iss(configData[0].m_config_content);
 	ptree pt_config_hdf5;
 	xml_parser::read_xml(iss, pt_config_hdf5);
 
@@ -120,7 +117,7 @@ TEST_F(UnitTests__HDF5, CheckConfigTree) {
 TEST_F(UnitTests__HDF5, CreateSaver) {
 	auto pt_config = getConfigTree();
 	const string h5filename = "testOutput.h5";
-	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
+	Hdf5Saver hdf5_saver = Hdf5Saver(h5filename.c_str(), pt_config, 1, false);
 }
 
 
@@ -132,19 +129,16 @@ TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 1, false));
-	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	local_sim->registerObserver(classInstance, fnCaller);
-	local_sim->notify(*local_sim);
+	auto classInstance = std::make_shared<Hdf5Saver>
+		(Hdf5Saver(h5filename.c_str(), pt_config, 1, false));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, classInstance, std::placeholders::_1);
+	sim->registerObserver(classInstance, fnCaller);
+	sim->notify(*sim);
 
-	vector<future<bool>> fut_results;
-	fut_results.push_back(local_sim->timeStep());
-	future_pool(fut_results);
+	sim->timeStep();
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 
-	DataSet dataset = DataSet(h5file.openDataSet("personsTI"));
+	DataSet dataset = DataSet(h5file.openDataSet("person_time_independent"));
 	DataSpace dataspace = dataset.getSpace();
 	const int amt_dims = dataspace.getSimpleExtentNdims();
 

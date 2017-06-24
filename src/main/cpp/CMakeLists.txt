@@ -64,17 +64,14 @@ set(LIB_SRC
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
 #---
-	checkpointing/Saver.cpp
-	checkpointing/Loader.cpp
-#---
  	vis/ClusterSaver.cpp
 #---
-	run/Runner.cpp
+    run/Runner.cpp
 	run/run_stride.cpp
 )
 
 if ( NOT STRIDE_FORCE_NO_HDF5 )
-	list(APPEND LIB_SRC checkpointing/Saver.cpp checkpointing/Loader.cpp)
+	list(APPEND LIB_SRC checkpointing/Hdf5Saver.cpp checkpointing/Hdf5Loader.cpp)
 endif()
 
 set(POPGEN_SRC

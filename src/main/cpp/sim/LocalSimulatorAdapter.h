@@ -10,10 +10,6 @@
 #include "pop/Traveller.h"
 #include "pop/TravellerData.h"
 
-#ifdef HDF5_USED
-	#include "checkpointing/Saver.h"
-	#include "checkpointing/Loader.h"
-#endif
 #include "util/Subject.h"
 #include "core/ClusterType.h"
 
@@ -75,8 +71,8 @@ private:
 	friend class Simulator;
 	friend class Coordinator;
 	#ifdef HDF5_USED
-		friend class Saver;
-		friend class Loader;
+		friend class Hdf5Saver;
+		friend class Hdf5Loader;
 	#endif
 	friend class ClusterSaver;
 

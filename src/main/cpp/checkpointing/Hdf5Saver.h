@@ -25,9 +25,9 @@ using H5::Group;
 
 namespace stride {
 
-class Saver : public util::Observer<Simulator> {
+class Hdf5Saver : public util::Observer<Simulator> {
 public:
-	Saver(string filename, const ptree& pt_config, int frequency,
+	Hdf5Saver(string filename, const ptree& pt_config, int frequency,
 		  RunMode run_mode = RunMode::Initial, int start_timestep = 0);
 
 	/// Update function which is called by the subject.

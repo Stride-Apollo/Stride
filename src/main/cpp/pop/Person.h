@@ -132,8 +132,8 @@ private:
 
 private:
 	#ifdef HDF5_USED
-		friend class Saver;
-		friend class Loader;
+		friend class Hdf5Saver;
+		friend class Hdf5Loader;
 	#endif
 
 	friend class Traveller<Person<BehaviourPolicy, BeliefPolicy>>;

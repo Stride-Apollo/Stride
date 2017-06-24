@@ -1,8 +1,8 @@
 
 #include "util/async.h"
 #include "util/InstallDirs.h"
-#include "checkpointing/Saver.h"
-#include "checkpointing/Loader.h"
+#include "checkpointing/Hdf5Saver.h"
+#include "checkpointing/Hdf5Loader.h"
 #include "pop/Population.h"
 #include "pop/Person.h"
 #include "core/Health.h"
@@ -38,29 +38,26 @@ TEST_P(Scenarios__HDF5, StartFromCheckpoints) {
 	auto pt_config = getConfigTree();
 
 	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, num_threads, false);
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 1, false));
-	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	local_sim->registerObserver(classInstance, fnCaller);
+	auto classInstance = std::make_shared<Hdf5Saver>
+		(Hdf5Saver(h5filename.c_str(), pt_config, 1, false));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, classInstance, std::placeholders::_1);
+	sim->registerObserver(classInstance, fnCaller);
 
-	local_sim->notify(*local_sim);
+	sim->notify(*sim);
 	vector<unsigned int> cases_original;
 	cases_original.push_back(sim->getPopulation()->getInfectedCount());
 
 	for (unsigned int i = 0; i < NUM_DAYS; i++) {
-		vector<future<bool>> fut_results;
-		fut_results.push_back(local_sim->timeStep());
-		future_pool(fut_results);
+		sim->timeStep();
 		cases_original.push_back(sim->getPopulation()->getInfectedCount());
 	}
 
 	const unsigned int num_cases_original = cases_original.at(NUM_DAYS);
 
 	for (unsigned int i = 1; i < NUM_DAYS; i++) {
-		Loader loader(h5filename.c_str(), num_threads);
-		auto sim_checkpointed = SimulatorBuilder::build(loader.getConfig(), loader.getDisease(), loader.getContact(), num_threads, false);
-		loader.loadFromTimestep(i, sim_checkpointed);
+		Hdf5Loader hdf5_loader(h5filename.c_str(), num_threads);
+		auto sim_checkpointed = SimulatorBuilder::build(hdf5_loader.getConfig(), hdf5_loader.getDisease(), hdf5_loader.getContact(), num_threads, false);
+		hdf5_loader.loadFromTimestep(i, sim_checkpointed);
 
 		ASSERT_EQ(cases_original.at(i), sim_checkpointed->getPopulation()->getInfectedCount());
 

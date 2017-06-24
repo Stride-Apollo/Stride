@@ -19,9 +19,11 @@ using std::string;
 
 namespace stride {
 
-class Loader {
+class Hdf5Loader {
 public:
-	Loader(const char* filename);
+
+public:
+	Hdf5Loader(const char* filename);
 
 	/// Load from timestep, if the specified timestep is present in the hdf5 file.
 	void loadFromTimestep(unsigned int timestep, shared_ptr<Simulator> sim) const;

@@ -29,14 +29,17 @@
 #include "sim/Simulator.h"
 #include "sim/SimulatorBuilder.h"
 #include "sim/SimulatorSetup.h"
-#include "sim/AsyncSimulator.h"
 #include "sim/LocalSimulatorAdapter.h"
 #include "sim/Coordinator.h"
+#include "sim/ProcessConfig.h"
 #include "util/ConfigInfo.h"
 #include "util/InstallDirs.h"
 #include "util/Stopwatch.h"
 #include "util/TimeStamp.h"
+#include "checkpointing/Hdf5Saver.h"
+#include <util/async.h>
 
+#include "vis/ClusterSaver.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <spdlog/spdlog.h>
 #include <memory>
@@ -63,12 +66,10 @@ void run_stride(bool track_index_case,
 				RunMode run_mode) {
 
 	#ifdef HDF5_USED
-		// Special case for extract mode -> don't run the simulator, just extract the config file.
-		if (run_mode == RunMode::Extract) {
-			Loader::extractConfigs(hdf5_file_name);
-			exit(EXIT_SUCCESS);
-		}
-	#endif
+		// Special case for extract mode -> don't run the simulator, just extract the config file.if (run_mode == RunMode::Extract) {
+		Hdf5Loader::extractConfigs(hdf5_file_name);
+		exit(EXIT_SUCCESS);
+	}#endif
 
 	cout << "Loading configuration" << endl;
 
@@ -85,7 +86,6 @@ void run_stride(bool track_index_case,
 	unsigned int start_day = setup.getStartDay();
 
 	// Set output path prefix.
-	string output_prefix = pt_config.get<string>("run.output_prefix", TimeStamp().toTag());
 	cout << "Project output tag:  " << output_prefix << endl << endl;
 
 	// Track index case setting.
@@ -154,6 +154,13 @@ void run_stride(bool track_index_case,
 		if (saver != nullptr && checkpointing_frequency == 0) {
 			// Force save the last timestep in case of frequency 0
 			saver->forceSave(*local_sim, num_days + start_day);
+	for (unsigned int i = 0; i < hdf5_savers.size(); i++) {
+		auto hdf5_saver = hdf5_savers.at(i);
+		auto simulator = simulators.at(i);
+
+		// Force save the last timestep in case of frequency 0
+		if (hdf5_saver != nullptr && checkpointing_frequency == 0) {
+			hdf5_saver->forceSave(*simulator, num_days + start_day);
 		}
 	#endif
 
