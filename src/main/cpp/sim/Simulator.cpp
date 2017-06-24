@@ -27,6 +27,7 @@
 #include "pop/Population.h"
 #include "core/Cluster.h"
 #include "util/unipar.h"
+#include "util/GeoCoordCalculator.h"
 #include "util/etc.h"
 
 #include <random>
@@ -74,6 +75,11 @@ void Simulator::updateClusters() {
 }
 
 void Simulator::timeStep() {
+	// Advance the "calendar" of the districts (for the sphere of influence)
+	for (auto& district: m_districts) {
+		district.advanceInfluencesRecords();
+	}
+
 	shared_ptr<DaysOffInterface> days_off {nullptr};
 
 	// Logic where you compute (on the basis of input/config for initial day
@@ -146,35 +152,49 @@ void Simulator::setRngStates(vector<string> states) {
 	m_rng->setState(states.at(0));
 }
 
-uint Simulator::chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters) {
+uint Simulator::chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters, double influence) {
 	// TODO extend with sphere of influence
-	vector<uint> available_clusters;
-	for (uint i = 1; i < clusters.size(); ++i) {
+	double current_influence = influence;
 
-		const auto& cluster = clusters.at(i);
-
-		if (coordinate == cluster.getLocation()) {
-			available_clusters.push_back(i);
-		}
+	if (clusters.size() == 0) {
+		throw runtime_error(string(__func__) + string("> Empty cluster vector."));
 	}
 
-	if (available_clusters.size() != 0) {
-		uint chosen_index = m_rng->operator() (available_clusters.size());
-		return available_clusters[chosen_index];
+	while (true) {
+		vector<uint> available_clusters;
+		const auto& calc = GeoCoordCalculator::getInstance();
 
-	} else {
-		return clusters.size();
+		for (uint i = 1; i < clusters.size(); ++i) {
+
+			const auto& cluster = clusters.at(i);
+
+			if (calc.getDistance(coordinate, cluster.getLocation()) <= current_influence) {
+				available_clusters.push_back(i);
+			}
+		}
+
+		if (available_clusters.size() != 0) {
+			uint chosen_index = m_rng->operator() (available_clusters.size());
+			return available_clusters[chosen_index];
+
+		} else {
+			// Couldn't find cluster within influence range
+			current_influence *= 2.0;
+		}
 	}
 }
 
 bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) {
 	GeoCoordinate facility_location;
+	double influence = 0.0;
 	bool found_airport = false;
 
 	for (auto& district: this->m_districts) {
 		if (district.getName() == destination_district && district.hasFacility(destination_facility)) {
 			found_airport = true;
 			facility_location = district.getLocation();
+			influence = district.getFacilityInfluence(destination_facility);
+			district.visitFacility(destination_facility, travellers.size());
 			break;
 		}
 	}
@@ -190,16 +210,15 @@ bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& tr
 	for (const Simulator::TravellerType& traveller: travellers) {
 
 		// Choose the clusters the traveller will reside in
-		uint work_index = this->chooseCluster(facility_location, this->m_work_clusters);
-		uint prim_comm_index = this->chooseCluster(facility_location, this->m_primary_community);
-		uint sec_comm_index = this->chooseCluster(facility_location, this->m_secondary_community);
+		uint work_index = this->chooseCluster(facility_location, this->m_work_clusters, influence);
+		uint prim_comm_index = this->chooseCluster(facility_location, this->m_primary_community, influence);
+		uint sec_comm_index = this->chooseCluster(facility_location, this->m_secondary_community, influence);
 
 		if (work_index == this->m_work_clusters.size()
 			|| prim_comm_index == this->m_primary_community.size()
 			|| sec_comm_index == this->m_secondary_community.size()) {
 
-			// TODO exception
-			cerr << "Failed to find cluster for traveller\n";
+			throw runtime_error("Failed to find cluster for traveller");
 		}
 
 		// Make the person
@@ -214,7 +233,7 @@ bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& tr
 																	traveller.getHomePerson().getHealth().getEndSymptomatic() - start_symptomatic);
 		new_person.getHealth() = traveller.getHomePerson().getHealth();
 
-		// Add the person to the planner and set him on "vacation mode" in his home region
+		// Add the person to the planner
 		this->m_population->m_visitors.add(days, new_person);
 
 		// Note: the ID of a non-traveller is always the same as his index in m_population->m_original
