@@ -319,6 +319,8 @@ void ClusterSaver::saveTransportationFacilities(const LocalSimulatorAdapter& loc
 	for (const auto& district: sim->m_districts) {
 		for (const auto& facility: district.m_transportations_facilities) {
 			ptree facility_config;
+			facility_config.put("city", district.getName());
+			facility_config.put("name", facility.first);
 			facility_config.put("location.lat", district.getLocation().m_latitude);
 			facility_config.put("location.lon", district.getLocation().m_longitude);
 			facility_config.put("influence", facility.second.getInfluence());
