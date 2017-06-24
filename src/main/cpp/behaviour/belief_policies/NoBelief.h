@@ -15,6 +15,7 @@
  */
 
 #include "behaviour/belief_data/Nothing.h"
+#include "core/Health.h"
 
 namespace stride {
 

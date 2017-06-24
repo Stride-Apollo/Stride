@@ -5,7 +5,6 @@ app.config(['$locationProvider', function($locationProvider) {
 }]);
 
 app.controller('OverViewController', ['$scope', '$location', function($scope, $location) {
-
 	console.log($location.url());
 	console.log($location.search().data);
 
@@ -37,6 +36,16 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 		var dir = $location.search().directory;
 		var config = {directory: dir.slice(__dirname.length)};
 		loadCluster(ID, config, filenames, $location.search().currentDay);
+	}
+
+	$scope.loadFromInput = function() {
+		var dir = $location.search().directory;
+		var config = {directory: dir.slice(__dirname.length)};
+		for (var i in $scope.clusters) {
+			if ($scope.clusters[i].ID == $scope.inputID) {
+				loadCluster($scope.inputID, config, filenames, $location.search().currentDay);
+			}
+		}
 	}
 
 	var files = [];
@@ -191,4 +200,11 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 	$scope.work_density = Number((parseFloat(popDataJSON.densities.work)).toFixed(2));
 	$scope.primary_community_density = Number((parseFloat(popDataJSON.densities.primary_community)).toFixed(2));
 	$scope.secondary_community_density = Number((parseFloat(popDataJSON.densities.secondary_community)).toFixed(2));
+
+	document.getElementById('inputID').addEventListener('keypress', function(e) {
+		if(e.keyCode === 13) {
+			e.preventDefault();
+			$scope.loadFromInput();
+		}
+	})
 }]);
