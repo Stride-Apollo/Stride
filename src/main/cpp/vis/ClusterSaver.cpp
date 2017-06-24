@@ -315,6 +315,7 @@ void ClusterSaver::saveTransportationFacilities(const LocalSimulatorAdapter& loc
 	auto sim = local_sim.m_sim;
 
 	ptree result;
+	ptree children;
 
 	for (const auto& district: sim->m_districts) {
 		for (const auto& facility: district.m_transportations_facilities) {
@@ -327,9 +328,12 @@ void ClusterSaver::saveTransportationFacilities(const LocalSimulatorAdapter& loc
 			facility_config.put("passengers_today", facility.second.m_deque.front());
 			facility_config.put("passengers_x_days", facility.second.getScore());
 			facility_config.put("x_days", facility.second.m_deque.size());
-			result.add_child("facility", facility_config);
+
+			children.push_back(make_pair("", facility_config));
 		}
 	}
+
+	result.add_child("facilities", children);
 
 	stringstream ss;
 	ss << setfill('0') << setw(5) << m_sim_day;

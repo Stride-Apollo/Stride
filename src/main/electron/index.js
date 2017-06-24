@@ -8,6 +8,36 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		container: 'map',
 		style: 'mapbox://styles/mapbox/streets-v9'
 	});
+
+	function formatFacilityData(data) {
+		var facFeatures = [];
+
+		for (var i = 0; i < data.facilities.length; ++i) {
+			var facility = data.facilities[i];
+
+			var decoratedFacility = {
+				type: "Feature",
+				geometry: {
+					type: "Point",
+					coordinates: [facility.location.lat, facility.location.lon]
+				},
+				properties: {
+					title: facility.name,
+					"City": facility.city,
+					"Passengers_today": facility.passengers_today,
+					"Passengers_past ": facility.passengers_x_days
+				}
+			};
+
+			facFeatures.push(decoratedFacility);
+		}
+
+		return {
+			"type": "FeatureCollection",
+			"features":  facFeatures
+		};
+	}
+
 	var files = [];	// file-text_of_file pairs
 	var filenames = [];
 	$scope.currentDay = 0;
