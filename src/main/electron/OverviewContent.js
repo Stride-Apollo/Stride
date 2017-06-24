@@ -78,7 +78,7 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 	var titles = ['Evolution Of Population Illness', 'Age distribution', 'Household cluster sizes',
 					'School cluster sizes', 'Work cluster sizes', 'Primary community cluster sizes', 'Secondary community cluster sizes'];
 
-	function drawGraph() {
+	function drawGraph(resize = false) {
 		var plotWidth = 800;
 		var plotHeight = 450;
 
@@ -105,7 +105,10 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 		Plotly.newPlot('graphInfected', graphs[currentGraph], layout).then(function() {
 			window.requestAnimationFrame(function() {
 				window.requestAnimationFrame(function() {
-					resizeWindow();
+
+					if (resize) {
+						resizeWindow();
+					}
 
 					document.getElementById("graphInfected").style="margin: auto; width: " + plotWidth + "px; height: " + plotHeight + "px;";
 				});
@@ -189,7 +192,7 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 		graphs.push(makeBarChart(graphData[i]));
 	}
 
-	drawGraph();
+	drawGraph(true);
 
 	$scope.population_size = clusterEvolution[$scope.currentDay].size;
 	$scope.infected = clusterEvolution[$scope.currentDay].infected;
