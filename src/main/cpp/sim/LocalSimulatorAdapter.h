@@ -8,10 +8,15 @@
 #include "Simulator.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
+#include "pop/TravellerData.h"
+
+#ifdef HDF5_USED
+	#include "checkpointing/Saver.h"
+	#include "checkpointing/Loader.h"
+#endif
 #include "util/Subject.h"
 #include "core/ClusterType.h"
-// #include "checkpointing/Saver.h"
-// #include "checkpointing/Loader.h"
+
 
 namespace stride {
 
@@ -69,9 +74,12 @@ private:
 
 	friend class Simulator;
 	friend class Coordinator;
+	#ifdef HDF5_USED
+		friend class Saver;
+		friend class Loader;
+	#endif
 	friend class ClusterSaver;
-	friend class Saver;
-	friend class Loader;
+
 	template<ClusterType clusterType>
 	friend class ClusterCalculator;
 };

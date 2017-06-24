@@ -18,9 +18,14 @@ map<string, RunMode> SimulatorRunMode::g_name_run_mode {
 
 vector<string> SimulatorRunMode::getAcceptedModes() {
 	vector<string> modes;
-	for (auto map_entry : SimulatorRunMode::g_name_run_mode) {
-		modes.push_back(map_entry.first);
-	}
+	#ifdef HDF5_USED
+		for (auto map_entry : SimulatorRunMode::g_name_run_mode) {
+			modes.push_back(map_entry.first);
+		}
+	#else
+		// Only allow initial mode when hdf5 is disabled
+		modes.push_back("initial");
+	#endif
 	return modes;
 }
 
@@ -30,11 +35,20 @@ RunMode SimulatorRunMode::getRunMode(string run_mode) {
 	if (SimulatorRunMode::g_name_run_mode.count(run_mode) != 1) {
 		string error_string = "\033[0;31mError: \033[0;35m'" +
 			run_mode + "'" + "\033[0m" + " is not a valid run mode." +
-		 	"\nAccepted run modes:\n";
+		 	"\nAccepted run mode(s):\n";
 		for (auto mode : SimulatorRunMode::getAcceptedModes())
 			error_string += "\t* " + mode + '\n';
 		throw std::runtime_error(error_string);
 	}
+
+	// Exception when HDF5 is forced off -> only Initial mode is valid.
+	#ifndef HDF5_USED
+	if (SimulatorRunMode::g_name_run_mode[run_mode] != RunMode::Initial) {
+		throw std::runtime_error(string("\033[0;31m") + "Error: " + string("\033[0m") + "Only run mode " +
+	 		string("\033[0;35m") + "'Initial'" + string("\033[0m") + " is allowed when running without HDF5.\n");
+	}
+	#endif
+
 	return SimulatorRunMode::g_name_run_mode[run_mode];
 }
 

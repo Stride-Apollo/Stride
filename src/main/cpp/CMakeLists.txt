@@ -73,6 +73,10 @@ set(LIB_SRC
 	run/run_stride.cpp
 )
 
+if ( NOT STRIDE_FORCE_NO_HDF5 )
+	list(APPEND LIB_SRC checkpointing/Saver.cpp checkpointing/Loader.cpp)
+endif()
+
 set(POPGEN_SRC
 #---
 	util/InstallDirs.cpp

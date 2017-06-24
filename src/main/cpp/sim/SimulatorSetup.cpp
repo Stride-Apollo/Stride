@@ -1,7 +1,11 @@
 
 #include "sim/SimulatorSetup.h"
 #include "sim/SimulatorBuilder.h"
-#include "checkpointing/Loader.h"
+
+#ifdef HDF5_USED
+	#include "checkpointing/Loader.h"
+#endif
+
 #include "sim/Simulator.h"
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -22,6 +26,7 @@ SimulatorSetup::SimulatorSetup(const ptree& config, string hdf5_file, RunMode ru
 	this->constructConfigTree();
 }
 
+// TODO: Use HDF5_USED
 
 shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 	if (m_run_mode == RunMode::Initial) {
