@@ -121,6 +121,8 @@ void Simulator::timeStep() {
 	}
 
 	m_calendar->advanceDay();
+	m_planner.nextDay();
+	this->notify(*this);
 }
 
 const vector<Cluster>& Simulator::getClusters(ClusterType cluster_type) const {
@@ -208,7 +210,6 @@ bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& tr
 	this->m_population.get()->m_visitors.getModifiableDay(days)->reserve(travellers.size());
 
 	for (const Simulator::TravellerType& traveller: travellers) {
-
 		// Choose the clusters the traveller will reside in
 		uint work_index = this->chooseCluster(facility_location, this->m_work_clusters, influence);
 		uint prim_comm_index = this->chooseCluster(facility_location, this->m_primary_community, influence);

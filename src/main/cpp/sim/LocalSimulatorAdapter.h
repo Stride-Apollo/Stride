@@ -6,25 +6,28 @@
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
-#include "util/Subject.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
+
 #include "util/Subject.h"
-// #include "checkpointing/Saver.h"
-// #include "checkpointing/Loader.h"
+#include "core/ClusterType.h"
+
 
 namespace stride {
 
 class Coordinator;
 class ClusterSaver;
 
+template<ClusterType clusterType>
+class ClusterCalculator;
+
 using namespace std;
 using namespace util;
 
-class LocalSimulatorAdapter : public AsyncSimulator, public Subject<LocalSimulatorAdapter> {
+class LocalSimulatorAdapter : public AsyncSimulator {
 public:
 	/// The constructor, this adapter will control one simulator
-	LocalSimulatorAdapter(Simulator* sim);
+	LocalSimulatorAdapter(shared_ptr<Simulator> sim);
 
 	void setCommunicationMap(const std::map<uint, AsyncSimulator*>& adapters) {m_adapters = adapters;}
 
@@ -66,9 +69,9 @@ private:
 
 	friend class Simulator;
 	friend class Coordinator;
-	friend class ClusterSaver;
-	friend class Saver;
-	friend class Loader;
+
+	template<ClusterType clusterType>
+	friend class ClusterCalculator;
 };
 
 }

@@ -40,15 +40,14 @@ set(LIB_SRC
 	pop/Person.cpp
 	pop/PopulationBuilder.cpp
 	pop/Population.cpp
-
 #---
-	sim/run_stride.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
 	sim/Coordinator.cpp
 	sim/SimulatorRunMode.cpp
 	sim/SimulatorSetup.cpp
+	sim/ProcessConfig.cpp
 #---
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
@@ -63,13 +62,15 @@ set(LIB_SRC
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
 #---
-	checkpointing/Saver.cpp
-	checkpointing/Loader.cpp
-#---
  	vis/ClusterSaver.cpp
 #---
-    
+    run/Runner.cpp
+	run/run_stride.cpp
 )
+
+if ( NOT STRIDE_FORCE_NO_HDF5 )
+	list(APPEND LIB_SRC checkpointing/Hdf5Saver.cpp checkpointing/Hdf5Loader.cpp)
+endif()
 
 set(POPGEN_SRC
 #---
@@ -86,7 +87,7 @@ set(POPGEN_SRC
 )
 
 set(MAIN_SRC
-	sim/main.cpp
+	run/main.cpp
 )
 
 set(POPGEN_MAIN_SRC

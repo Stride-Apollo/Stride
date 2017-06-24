@@ -19,6 +19,7 @@
  * Header for the Simulator class.
  */
 
+#include "behaviour/information_policies/InformationPolicy.h"
 #include "behaviour/behaviour_policies/Vaccination.h"
 #include "behaviour/information_policies/NoLocalInformation.h"
 #include "behaviour/information_policies/NoGlobalInformation.h"
@@ -53,7 +54,7 @@ using uint = unsigned int;
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator {
+class Simulator : public Subject<Simulator> {
 public:
 	using GlobalInformationPolicy = NoGlobalInformation;
 	using LocalInformationPolicy = NoLocalInformation;
@@ -174,8 +175,11 @@ public:	// TODO write getters or set friend class for ClusterSaver
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 	friend class SimulatorBuilder;
-	friend class Saver;
-	friend class Loader;
+	friend class LocalSimulatorAdapter;
+	#ifdef HDF5_USED
+		friend class Hdf5Saver;
+		friend class Hdf5Loader;
+	#endif
 };
 
 

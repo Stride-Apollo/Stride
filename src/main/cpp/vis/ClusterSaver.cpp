@@ -14,6 +14,8 @@
 
 #include "vis/ClusterSaver.h"
 #include "util/InstallDirs.h"
+#include "util/GeoCoordCalculator.h"
+#include "core/ClusterType.h"
 
 using boost::property_tree::ptree;
 using boost::property_tree::write_json;
@@ -24,11 +26,13 @@ using std::setfill;
 using std::string;
 using std::stringstream;
 using std::vector;
+using std::to_string;
 
 
 namespace stride {
 
-ClusterSaver::ClusterSaver(string file_name) : m_sim_day(0), m_file_name(file_name) {
+ClusterSaver::ClusterSaver(string file_name, string pop_file_name)
+		: m_sim_day(0), m_file_name(file_name), m_pop_file_name(pop_file_name)  {
 	#if defined(__linux__)
 		m_file_dir = "vis/resources/app/data";
 	#elif defined(__APPLE__)
@@ -44,16 +48,22 @@ ClusterSaver::ClusterSaver(string file_name) : m_sim_day(0), m_file_name(file_na
 			"\033[0;35m'make install_vis'\033[0m" + " command.\n");
 	}
 
+	m_pop_file_dir = m_file_dir + "/populationData";
 	m_file_dir = m_file_dir + "/clusterData";
 	// Create the subdirectory if it does not exist.
 	if (!boost::filesystem::exists(boost::filesystem::path(m_file_dir))) {
 		boost::filesystem::create_directory(boost::filesystem::path(m_file_dir));
 	}
+  
+	// Create the subdirectory if it does not exist.
+	if (!boost::filesystem::exists(boost::filesystem::path(m_pop_file_dir))) {
+		boost::filesystem::create_directory(boost::filesystem::path(m_pop_file_dir));
+	}
 }
 
 
 
-void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const {
+void ClusterSaver::saveClustersCSV(const Simulator& sim) const {
 	ofstream csv_file;
 	stringstream ss;
 	ss << setfill('0') << setw(5) << m_sim_day;
@@ -63,14 +73,14 @@ void ClusterSaver::saveClustersCSV(const LocalSimulatorAdapter& local_sim) const
 	// Format of the csv file
 	csv_file << "id,size,infected,infected_percent,lat,lon,type" << endl;
 
-	for (const auto& cluster : local_sim.m_sim->m_primary_community) {
+	for (const auto& cluster : sim.m_primary_community) {
 		this->saveClusterCSV(cluster, csv_file);
 	}
-	for (const auto& cluster : local_sim.m_sim->m_secondary_community) {
+	for (const auto& cluster : sim.m_secondary_community) {
 		this->saveClusterCSV(cluster, csv_file);
 	}
 
-	this->saveAggrClustersCSV(local_sim.m_sim->m_households, csv_file);
+	this->saveAggrClustersCSV(sim.m_households, csv_file);
 
 	csv_file.close();
 }
@@ -130,14 +140,14 @@ void ClusterSaver::saveClusterGroup(const vector<Cluster>& households, const vec
 
 
 
-void ClusterSaver::saveClustersJSON(const LocalSimulatorAdapter& local_sim) const {
+void ClusterSaver::saveClustersJSON(const Simulator& sim) const {
 	ptree clusters;
 	clusters.put("type", "FeatureCollection");
 	{
 		ptree clusters_primaries;
 		// First cluster is always empty
-		for (unsigned int i = 1; i < local_sim.m_sim->m_primary_community.size(); i++) {
-			pair<ptree, ptree> cluster_pair = this->getClusterJSON(local_sim.m_sim->m_primary_community.at(i));
+		for (unsigned int i = 1; i < sim.m_primary_community.size(); i++) {
+			pair<ptree, ptree> cluster_pair = this->getClusterJSON(sim.m_primary_community.at(i));
 			ptree cluster_primary;
 			cluster_primary.put("type", "Feature");
 			cluster_primary.push_back(std::make_pair("geometry", cluster_pair.first));
@@ -149,11 +159,11 @@ void ClusterSaver::saveClustersJSON(const LocalSimulatorAdapter& local_sim) cons
 	}
 	// {
 	// 	ptree clusters_secondaries;
-	// 	for (unsigned int i = 0; i < local_sim.m_sim->m_secondary_community.size(); i++) {
-	// 		pair<ptree, ptree> cluster_pair = this->getClusterJSON(local_sim.m_sim->m_secondary_community.at(i), i);
+	// 	for (unsigned int i = 0; i < sim.m_secondary_community.size(); i++) {
+	// 		pair<ptree, ptree> cluster_pair = this->getClusterJSON(sim.m_secondary_community.at(i), i);
 	// 		ptree cluster_secondary;
 	// 		cluster_secondary.put("type", "Feature");
-	// 		cluster_secondary.push_back(std::make_pair("geometry", cluster_pair.first));
+	// 		cluster_secondary.push_back(std::make_pair("geometry", cluster_pair.first));m_pop_file_name
 	// 		cluster_secondary.push_back(std::make_pair("properties", cluster_pair.second));
 	//
 	// 		clusters_secondaries.push_back(std::make_pair("", cluster_secondary));
@@ -198,6 +208,99 @@ pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster) const {
 	cluster_properties.put("type", cluster_type);
 
 	return std::make_pair(cluster_geometry, cluster_properties);
+}
+
+#define SET_CLUSTER_SURFACE(cluster_type) \
+{ \
+	surface = ClusterCalculator<cluster_type>::calculateSurface(local_sim); \
+	if (surface == 0.0) \
+		densities.put(toString(cluster_type), 0.0); \
+	else \
+		densities.put(toString(cluster_type), double(pop_count) / surface); \
+}
+
+#define SET_CLUSTER_MAP(cluster_type) \
+{ \
+	ptree specific_cluster_map; \
+	auto cluster_map = ClusterCalculator<cluster_type>::getClusterMap(local_sim); \
+	for (auto it = cluster_map.begin(); it != cluster_map.end(); ++it) { \
+		if (it->first != 0) { \
+			specific_cluster_map.put(to_string(it->first), it->second); \
+		} \
+	} \
+	cluster_sizes.add_child(toString(cluster_type), specific_cluster_map); \
+}
+
+void ClusterSaver::savePopDataJSON(const Simulator& local_sim) const {
+	stringstream ss;
+	ss << setfill('0') << setw(5) << m_sim_day;
+	string file_name = m_pop_file_dir + "/" + m_pop_file_name + "_" + ss.str() + ".json";
+
+	ptree pop_data;
+	{
+		uint pop_count = getPopCount(local_sim);
+
+		ptree densities;
+
+		// Set population densities
+		double surface;
+		SET_CLUSTER_SURFACE(ClusterType::Household)
+		SET_CLUSTER_SURFACE(ClusterType::School)
+		SET_CLUSTER_SURFACE(ClusterType::Work)
+		SET_CLUSTER_SURFACE(ClusterType::PrimaryCommunity)
+		SET_CLUSTER_SURFACE(ClusterType::SecondaryCommunity)
+
+		pop_data.add_child("densities", densities);
+
+		ptree ages;
+		// Set ages
+		auto age_map = getAgeMap(local_sim);
+		for (auto it = age_map.begin(); it != age_map.end(); ++it) {
+			ages.put(to_string(it->first), it->second);
+		}
+
+		pop_data.add_child("age_map", ages);
+
+		ptree cluster_sizes;
+
+		// Set cluster sizes
+		SET_CLUSTER_MAP(ClusterType::Household)
+		SET_CLUSTER_MAP(ClusterType::School)
+		SET_CLUSTER_MAP(ClusterType::Work)
+		SET_CLUSTER_MAP(ClusterType::PrimaryCommunity)
+		SET_CLUSTER_MAP(ClusterType::SecondaryCommunity)
+
+		pop_data.add_child("cluster_sizes", cluster_sizes);
+	}
+
+	write_json(file_name.c_str(), pop_data);
+}
+
+double ClusterSaver::getPopCount(const Simulator& local_sim) const {
+	// TODO only people that are not on vacation
+	uint total = 0;
+
+	for (const auto& cluster: local_sim.m_primary_community) {
+		total += cluster.getSize();
+	}
+
+	return total;
+}
+
+map<uint, uint> ClusterSaver::getAgeMap(const Simulator& local_sim) const {
+	map<uint, uint> result;
+
+	for (const auto& cluster: local_sim.m_primary_community) {
+		for (const auto& person: cluster.getMembers()) {
+			if (result.find(person.first->getAge()) == result.end()) {
+				result[person.first->getAge()] = 0;
+			} else {
+				++result[person.first->getAge()];
+			}
+		}
+	}
+
+	return result;
 }
 
 }

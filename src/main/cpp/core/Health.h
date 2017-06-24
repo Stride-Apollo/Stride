@@ -14,22 +14,20 @@
  *  Copyright 2017, Willem L, Kuylen E, Stijven S & Broeckhove J
  */
 
+#ifdef USE_HDF5
+#include "checkpointing/Hdf5Loader.h"
+#include "checkpointing/Hdf5Saver.h"
+#endif
+
 namespace stride {
 
-/*
- *
- */
 enum class HealthStatus {
 	Susceptible = 0U, Exposed = 1U, Infectious = 2U,
 	Symptomatic = 3U, InfectiousAndSymptomatic = 4U, Recovered = 5U, Immune = 6U, Null
 };
 
-/*
- *
- */
+
 class Health {
-friend class Loader;
-friend class Saver;
 public:
 	///
 	Health(unsigned int start_infectiousness, unsigned int start_symptomatic,
@@ -110,7 +108,11 @@ private:
 	unsigned int m_end_infectiousness;           ///< Days after infection to end infectious state.
 	unsigned int m_end_symptomatic;              ///< Days after infection to end symptomatic state.
 
+private:
+	#ifdef HDF5_USED
+		friend class Hdf5Loader;
+		friend class Hdf5Saver;
+	#endif
 };
 
 }
-

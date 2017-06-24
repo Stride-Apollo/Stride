@@ -37,7 +37,7 @@ public:
 
 	/// Generates a population, writes the result to the files found in the data directory
 	/// Output files are respectively formatted according to the following template files: belgium_population.csv, pop_miami.csv, pop_miami_geo.csv
-	void generate(const string& target_cities, const string& target_pop, const string& target_households, const string& target_clusters);
+	void generate(const string& prefix);
 
 private:
 	/// Writes the cities to the file, see PopulationGenerator::generate, recently, the villages have been added to this
@@ -49,7 +49,7 @@ private:
 	/// Writes the households to the file, see PopulationGenerator::generate
 	void writeHouseholds(const string& target_households) const;
 
-	/// Writes the clusters to the file (tŷpe, ID and coordinates), see PopulationGenerator::generate
+	/// Writes the clusters to the file (type, ID and coordinates), see PopulationGenerator::generate
 	void writeClusters(const string& target_clusters) const;
 
 	/// Checks the xml on correctness, this includes only semantic errors, no syntax errors
@@ -240,7 +240,7 @@ private:
 	/// size: the size of each cluster
 	/// min_age and max_age: the category of people that belongs to these clusters (e.g. schools an work have a minimum/maximum age)
 	template<typename C>
-	void placeClusters(uint size, uint min_age, uint max_age, double fraction, C& clusters, string cluster_name, ClusterType cluster_type) {
+	void placeClusters(uint size, uint min_age, uint max_age, double fraction, C& clusters, string cluster_name, ClusterType cluster_type, bool add_location = true) {
 		uint people = 0;
 
 		if (min_age == 0 && max_age == 0) {
@@ -281,7 +281,9 @@ private:
 				m_next_id++;
 				clusters.push_back(new_cluster);
 
-				m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
+				if (add_location) {
+					m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
+				}
 			} else {
 				/// Add to a village
 				SimpleCluster new_cluster;
@@ -291,7 +293,9 @@ private:
 				m_next_id++;
 				clusters.push_back(new_cluster);
 
-				m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
+				if (add_location) {
+					m_locations[make_pair(cluster_type, new_cluster.m_id)] = new_cluster.m_coord;
+				}
 			}
 		}
 		if (m_output) cerr << "\rPlacing " << cluster_name << " [100%]...\n";

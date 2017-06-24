@@ -24,7 +24,7 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, const int& s
 	try {
 		read_xml((InstallDirs::getDataDir() /= filename).string(), m_props, trim_whitespace | no_comments);
 	} catch (exception& e) {
-		throw invalid_argument("Invalid file");
+		throw invalid_argument(string("Invalid file: ") + (InstallDirs::getDataDir() /= filename).string());
 	}
 
 	try {
@@ -49,7 +49,7 @@ PopulationGenerator<U>::PopulationGenerator(const string& filename, const int& s
 }
 
 template <class U>
-void PopulationGenerator<U>::generate(const string& target_cities, const string& target_pop, const string& target_households, const string& target_clusters) {
+void PopulationGenerator<U>::generate(const string& prefix) {
 
 	if (m_output) cerr << "Generating " << m_total << " people...\n";
 
@@ -77,10 +77,27 @@ void PopulationGenerator<U>::generate(const string& target_cities, const string&
 
 	if (m_output) cerr << "Generated " << m_people.size() << " people\n";
 
+	string target_cities = prefix + "_cities.csv";
+	string target_pop = prefix + "_people.csv";
+	string target_households = prefix + "_households.csv";
+	string target_clusters = prefix + "_clusters.csv";
+	string target_summary = prefix + ".xml";
+
 	writeCities(target_cities);
 	writePop(target_pop);
 	writeHouseholds(target_households);
 	writeClusters(target_clusters);
+
+	// Now write a summary
+	ptree config;
+	config.put("population.people", target_pop);
+	config.put("population.districts", target_cities);
+	config.put("population.clusters", target_clusters);
+	config.put("population.households", target_households);
+	config.add_child("population.cities", m_props.get_child("POPULATION.CITIES"));
+	write_xml((InstallDirs::getDataDir() /= target_summary).string(), config,
+			  std::locale(), xml_writer_make_settings<string>('\t', 1));
+	cout << "Written summary " << target_summary << endl;
 }
 
 template <class U>
@@ -138,6 +155,7 @@ void PopulationGenerator<U>::writeCities(const string& target_cities){
 		}
 
 		my_file.close();
+		cout << "Written " << target_cities << endl;
 	} else {
 		throw invalid_argument("In PopulationGenerator: Invalid file.");
 	}
@@ -161,6 +179,7 @@ void PopulationGenerator<U>::writePop(const string& target_pop) const {
 		}
 
 		my_file.close();
+		cout << "Written " << target_pop << endl;
 	} else {
 		throw invalid_argument("In PopulationGenerator: Invalid file.");
 	}
@@ -181,6 +200,7 @@ void PopulationGenerator<U>::writeHouseholds(const string& target_households) co
 		}
 
 		my_file.close();
+		cout << "Written " << target_households << endl;
 	} else {
 		throw invalid_argument("In PopulationGenerator: Invalid file.");
 	}
@@ -214,6 +234,7 @@ void PopulationGenerator<U>::writeClusters(const string& target_clusters) const 
 		}
 
 		my_file.close();
+		cout << "Written " << target_clusters << endl;
 	} else {
 		throw invalid_argument("In PopulationGenerator: Invalid file.");
 	}
@@ -662,7 +683,7 @@ void PopulationGenerator<U>::makeSchools() {
 	uint max_age = school_work_config.get<uint>("<xmlattr>.max");
 	uint cluster_size = education_config.get<uint>("MANDATORY.<xmlattr>.cluster_size");
 
-	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools, "schools", ClusterType::School);
+	placeClusters(school_size, min_age, max_age, 1.0, m_mandatory_schools, "schools", ClusterType::School, false);
 
 	// Split the schools in clusters
 	m_next_id = 1;
@@ -678,6 +699,7 @@ void PopulationGenerator<U>::makeSchools() {
 			m_next_id++;
 			new_cluster.m_coord = cluster.m_coord;
 			m_mandatory_schools_clusters.back().push_back(new_cluster);
+			m_locations[make_pair(ClusterType::School, new_cluster.m_id)] = new_cluster.m_coord;
 		}
 	}
 }

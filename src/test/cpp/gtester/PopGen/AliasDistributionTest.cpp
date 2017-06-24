@@ -2,7 +2,6 @@
 #include "util/AliasDistribution.h"
 
 #include <gtest/gtest.h>
-#include <spdlog/spdlog.h>
 #include <boost/math/distributions/chi_squared.hpp>
 
 #include <vector>

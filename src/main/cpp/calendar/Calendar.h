@@ -34,7 +34,6 @@ namespace stride {
  * E.g. what day it is, holidays, quarantines, ...
  */
 class Calendar {
-friend class Loader;
 public:
 	/// Constructor
 	Calendar(const boost::property_tree::ptree& pt_config);
@@ -77,6 +76,11 @@ private:
 	boost::gregorian::date m_date;                    ///< The current simulated day
 	std::vector<boost::gregorian::date> m_holidays;                ///< Vector of general holidays
 	std::vector<boost::gregorian::date> m_school_holidays;         ///< Vector of school holidays
+
+private:
+	#ifdef HDF5_USED
+		friend class Hdf5Loader;
+	#endif
 };
 
 }

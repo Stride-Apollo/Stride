@@ -10,15 +10,14 @@ using namespace stride;
 using namespace std;
 using namespace util;
 
-LocalSimulatorAdapter::LocalSimulatorAdapter(Simulator* sim)
-	: AsyncSimulator(sim) {
+LocalSimulatorAdapter::LocalSimulatorAdapter(shared_ptr<Simulator> sim)
+	: AsyncSimulator(sim.get()) {
 		m_sim->setAsyncSimulator(this);
 	}
 
 future<bool> LocalSimulatorAdapter::timeStep() {
 	return async([&](){
 			m_sim->timeStep();
-			this->notify(*this);
 			return true;
 		});
 }
