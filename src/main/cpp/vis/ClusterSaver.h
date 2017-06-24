@@ -23,7 +23,6 @@ public:
 
 	virtual void update(const Simulator& sim) {
 		saveClustersCSV(sim);
-		// saveClustersJSON(sim);
 		m_sim_day++;
 	}
 

@@ -47,9 +47,6 @@ public:
 
 
 private:
-	/// Creates and sets the population for the simulator.
-	void setupPopulation(shared_ptr<Simulator> sim) const;
-
 	/// Sets the cluster immune indices to their maximum, so that sortCluster will definitely sort all members.
 	void updateClusterImmuneIndices(shared_ptr<Simulator> sim) const;
 

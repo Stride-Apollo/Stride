@@ -184,7 +184,7 @@ public:
 template<typename BeliefPolicy>
 unsigned int Population::getAdoptedCount() const {
 	unsigned int total {0U};
-	//for (const_iterator& it = this->begin(); not it.isEnd(); it++) {
+
 	for (const auto& p: *this) {
 		auto belief_data = p.getBeliefData();
 		bool adopted = BeliefPolicy::hasAdopted(belief_data);

@@ -9,8 +9,6 @@
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 #include "util/Subject.h"
-// #include "checkpointing/Saver.h"
-// #include "checkpointing/Loader.h"
 
 namespace stride {
 
@@ -65,9 +63,6 @@ private:
 
 	friend class Simulator;
 	friend class Coordinator;
-	friend class ClusterSaver;
-	friend class Hdf5Saver;
-	friend class Hdf5Loader;
 };
 
 }

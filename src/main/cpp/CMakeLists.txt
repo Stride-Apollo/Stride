@@ -20,7 +20,6 @@
 #============================================================================
 set(LIB_SRC
 #---
-	calendar/Calendar.cpp
 	behaviour/belief_data/ThresholdData.cpp
 	behaviour/belief_policies/Threshold.cpp
 	behaviour/InformationPolicy.cpp
@@ -59,8 +58,6 @@ set(LIB_SRC
 	util/GeoCoordCalculator.cpp
 	util/TravellerScheduleReader.cpp
 	util/TransportFacilityReader.cpp
-#---
-	patterns/Publisher.cpp
 #---
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp

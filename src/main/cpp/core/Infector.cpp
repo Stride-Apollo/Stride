@@ -162,7 +162,6 @@ void Infector<log_level, track_index_case, InformationPolicy::Local>::execute(
 	const auto c_type      = cluster.m_cluster_type;
 	const auto& c_members  = cluster.m_members;
 	const auto transmission_rate = disease_profile.getTransmissionRate();
-	//const auto c_size      = cluster.getSize();
 
 	// check all contacts
 	for (size_t i_person1 = 0; i_person1 < cluster.m_members.size(); i_person1++) {
@@ -215,7 +214,6 @@ void Infector<LogMode::Contacts, track_index_case, InformationPolicy::Global>::e
 	const auto c_type      = cluster.m_cluster_type;
 	const auto& c_members  = cluster.m_members;
 	const auto transmission_rate = disease_profile.getTransmissionRate();
-	//const autoc_size      = cluster.getSize();
 
 	// check all contacts
 	for (size_t i_person1 = 0; i_person1 < cluster.m_members.size(); i_person1++) {

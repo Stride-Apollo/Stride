@@ -10,7 +10,6 @@
 #include "util/Observer.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorRunMode.h"
-// #include "sim/LocalSimulatorAdapter.h"
 #include "core/Cluster.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <string>

@@ -704,7 +704,7 @@ void PopulationGenerator<U>::makeUniversities() {
 		if (m_output) cerr << "\rPlacing Universities [" << min(uint(double(needed_universities) / placed_universities * 100), 100U) << "%]";
 
 		/// Add a university to the list
-		/// Note,:a university is a vector of clusters
+		/// NOTE: a university is a vector of clusters
 		vector<SimpleCluster> univ;
 		for (uint i = 0; i < clusters_per_univ; i++) {
 			SimpleCluster univ_cluster;
@@ -1110,7 +1110,7 @@ void PopulationGenerator<U>::assignToCommunities() {
 				/// Search was unsuccessful, try again
 				current_radius *= factor;
 			} else {
-				/// Search was successfull, uniformly choose a community
+				/// Search was successful, uniformly choose a community
 				AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
 				uint index = closest_clusters_indices.at(dist(m_rng));
 				SimpleCluster& community = m_primary_communities.at(index);
@@ -1146,7 +1146,7 @@ void PopulationGenerator<U>::assignToCommunities() {
 				/// Search was unsuccessful, try again
 				current_radius *= factor;
 			} else {
-				/// Search was successfull, uniformly choose a community
+				/// Search was successful, uniformly choose a community
 				AliasDistribution dist { vector<double>(closest_clusters_indices.size(), 1.0 / double(closest_clusters_indices.size())) };
 				uint index = closest_clusters_indices.at(dist(m_rng));
 				SimpleCluster& community = m_secondary_communities.at(index);

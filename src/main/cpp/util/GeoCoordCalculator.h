@@ -16,7 +16,7 @@ public:
 	static const GeoCoordCalculator& getInstance();
 
 	double getDistance(const GeoCoordinate& coord1, const GeoCoordinate& coord2) const;
-	/// Result is in kilometres
+	/// Result is in kilometers
 	/// Uses the haversine formula
 	/// See: http://www.movable-type.co.uk/scripts/latlong.html
 
@@ -25,7 +25,7 @@ public:
 			const GeoCoordinate& coord,
 			double radius,
 			T rng) const {
-		/// Partially the inverse of GeoCoordCalculator::getDistance, therefore i use the same variable names
+		/// Partially the inverse of GeoCoordCalculator::getDistance, therefore I use the same variable names
 		/// For future improvements, use this: http://gis.stackexchange.com/questions/25877/generating-random-locations-nearby
 		double temp2 = radius / 6371;
 		double temp1 = sin(temp2 / 2.0) * sin(temp2 / 2.0);
@@ -38,8 +38,6 @@ public:
 
 		std::uniform_real_distribution<double> dist_longitude(-max_delta_longitude, max_delta_longitude);
 		std::uniform_real_distribution<double> dist_latitude(-max_delta_latitude, max_delta_latitude);
-		// trng::uniform_dist<double> dist_longitude(-max_delta_longitude, max_delta_longitude);
-		// trng::uniform_dist<double> dist_latitude(-max_delta_latitude, max_delta_latitude);
 		GeoCoordinate random_coordinate;
 
 		do {

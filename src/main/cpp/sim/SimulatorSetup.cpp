@@ -17,8 +17,6 @@ SimulatorSetup::SimulatorSetup(const ptree& pt_config, string hdf5_file, RunMode
 	: m_pt_config(pt_config), m_hdf5_file(hdf5_file), m_num_threads(num_threads),
 	  m_timestamp_replay(timestamp_replay), m_track_index_case(track_index_case), m_run_mode(run_mode) {
 
-	// TODO m_conf_file_exists not initialized because this no longer requires a file (replaced by ptree)
-
 	m_hdf5_file_exists = fileExists(m_hdf5_file);
 }
 

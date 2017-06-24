@@ -100,7 +100,6 @@ void Hdf5Saver::saveTimestep(const Simulator& sim) {
 		ss << "/Timestep_" << std::setfill('0') << std::setw(6) << m_timestep;
 		Group group(file.createGroup(ss.str()));
 
-		// Only save when unipar dummy implementation is used, otherwise sim.m_rng == nullptr
 		if (sim.m_rng != nullptr) {
 			saveRngState(group, sim);
 		}
@@ -226,7 +225,7 @@ void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 	hsize_t dims[1] { sim.getPopulation().get()->m_original.size() };
 	CompType type_person_TD = PersonTDDataType::getCompType();
 
-	// Dataspace can fit all persons but is chunked in parts of 100 persons
+	// Dataspace can fit all persons but is chunked in parts of 10000 persons
 	DataSpace dataspace = DataSpace(1, dims);
 	DSetCreatPropList plist = DSetCreatPropList();
 	hsize_t chunk_dims[1] = {10000};
@@ -280,7 +279,6 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	using Block = SimplePlanner<Simulator::TravellerType>::Block;
 	using Agenda = SimplePlanner<Simulator::TravellerType>::Agenda;
 
-	// const auto& travellers = sim.m_population->m_visitors.getAgenda();
 	const Agenda& travellers = sim.m_planner.getAgenda();
 	hsize_t dims[1] { sim.m_planner.size() };
 	CompType type_traveller = TravellerDataType::getCompType();
@@ -290,7 +288,7 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	auto traveller_data = make_unique<std::vector<TravellerDataType>>(dims[0]);
 
 
-	// TODO optimize further?
+	// Obtain the travellers in a single vector, more convenient for index calculations
 	vector<Simulator::PersonType*> travellers_seq;
 	for (auto&& day : sim.m_planner.getAgenda()) {
 		for (auto&& traveller : *(day)) {
@@ -338,7 +336,6 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 			traveller.m_new_work_id = current_person.m_work_id;
 			traveller.m_new_prim_comm_id = current_person.m_primary_community_id;
 			traveller.m_new_sec_comm_id = current_person.m_secondary_community_id;
-
 
 			(*traveller_data)[current_index++] = traveller;
 		}
