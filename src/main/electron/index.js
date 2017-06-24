@@ -460,7 +460,7 @@ function loadCluster(id, config, filenames, currentDay) {
 	var windows = JSON.parse(fs.readFileSync(os.tmpdir() + "/visualization_data")).windows;
 	if (!containsWin(windows, id)) {
 		var win = new BrowserWindow({ width: 800, height: 600 });
-		windows.push({id: id, window: win.id});
+		windows.push({id: id, window: win.id, day: currentDay});
 
 		win.webContents.on('did-finish-load', ()=>{
 			win.show();
@@ -478,9 +478,12 @@ function loadCluster(id, config, filenames, currentDay) {
 		var content = "{\"windows\": " + JSON.stringify(windows) + "}";
 		fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
 	} else {
-		for (var i in windows) {
+		for (var i = windows.length-1; i >= 0; i--) {
 			if (windows[i].id == id) {
-				if (BrowserWindow.fromId(windows[i].window) == null) {
+				if (BrowserWindow.fromId(windows[i].window) == null || currentDay != windows[i].day) {
+					if (currentDay != windows[i].day && BrowserWindow.fromId(windows[i].window) != null) {
+						BrowserWindow.fromId(windows[i].window).close();
+					}
 					windows.splice(i, 1);
 					var content = "{\"windows\": " + JSON.stringify(windows) + "}";
 					fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
