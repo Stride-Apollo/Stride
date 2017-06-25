@@ -354,6 +354,7 @@ void Runner::run() {
 			// Assumes same order!
 			vector<SimulatorStatus> results = m_coord->timeStep();
 			int i = 0;
+
 			for (auto& it: m_async_simulators) {
 				cout << setw(7) << results[i].infected << " " << setw(7) << results[i].adopted << " | ";
 				cases[it.first].push_back(results[i].infected);
