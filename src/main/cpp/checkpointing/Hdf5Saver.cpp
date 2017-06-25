@@ -280,6 +280,7 @@ void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 
 
 void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
+
 	using PersonType = Simulator::PersonType;
 	using Block = SimplePlanner<Simulator::TravellerType>::Block;
 	using Agenda = SimplePlanner<Simulator::TravellerType>::Agenda;
@@ -352,7 +353,8 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	}
 	#undef setAttributeTraveller
 
-	dataset.write(traveller_data->data(), TravellerDataType::getCompType());
+	if (sim.m_planner.size() != 0)
+		dataset.write(traveller_data->data(), TravellerDataType::getCompType());
 	dataset.close();
 	dataspace.close();
 }
