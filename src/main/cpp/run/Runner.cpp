@@ -110,41 +110,20 @@ void Runner::initSimulators() {
 				addRemoteSimulator(sim_name, sim_config);
 			}
 		} else {
-// <<<<<<< HEAD
-// 			// Call MPI environment initialization once (setup, initialize m_world_rank, m_world_size and m_provided_threads)
-// 			if (m_distributed_run == false) {
-// 				MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &m_provided_threads);
-// 				MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
-// 				MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
-// 				m_distributed_run = true;
-// 			}
-// 			// If this is the local region => setup local simulator
-// 			if (m_world_rank == stoi(remote.get())){
-// 				auto sim = SimulatorBuilder::build(sim_config);
-// 				sim->m_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
-// 				m_local_simulators[it.first] = sim;
-// 				m_local_receiver = make_shared<RemoteSimulatorReceiver>(sim.get());
-// 				m_listen_thread = thread(&RemoteSimulatorReceiver::listen, m_local_receiver.get());
-// 				// m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
-// 			}
-// 			// TODO is the remote id specified in config file the same as the world_rank?
-// 			m_async_simulators[it.first] = make_shared<RemoteSimulatorSender>(sim_config.get<string>("run.regions.region.<xmlattr>.name"), stoi(remote.get()));
-// =======
-// 			if (not remote) {
-// 				// This is a simulator running at the master
-// 				// TODO: get Master's contact info?
-// 				// Then, do MPI stuff
-// 				addRemoteSimulator(sim_name, sim_config);
-// 			} else {
-// 				if (sim_name == m_slave) {
-// 					// This is our (unique) local simulator
-// 					addLocalSimulator(sim_name, sim_config);
-// 				} else {
-// 					// This is just another remote simulator
-// 					addRemoteSimulator(sim_name, sim_config);
-// 				}
-// 			}
-// >>>>>>> 4b113796acf1826ba38b6d68633ba737cae89a83
+ 			if (not remote) {
+ 				// This is a simulator running at the master
+ 				// TODO: get Master's contact info?
+ 				// Then, do MPI stuff
+ 				addRemoteSimulator(sim_name, sim_config);
+ 			} else {
+ 				if (sim_name == m_slave) {
+ 					// This is our (unique) local simulator
+ 					addLocalSimulator(sim_name, sim_config);
+ 				} else {
+ 					// This is just another remote simulator
+ 					addRemoteSimulator(sim_name, sim_config);
+ 				}
+ 			}
 		}
 	}
 
@@ -177,8 +156,19 @@ shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost:
 	return sim;
 }
 
+void Runner::initMpi() {
+	if (not m_uses_mpi) {
+		int provided;
+		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+		if (provided != MPI_THREAD_MULTIPLE) throw runtime_error("We need multiple thread support in MPI");
+		MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
+		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
+		m_uses_mpi = true;
+	}
+}
+
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
-	m_uses_mpi = true;
+	initMpi();
 	// TODO: DO MPI STUFF
 }
 

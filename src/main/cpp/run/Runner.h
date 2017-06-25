@@ -41,12 +41,14 @@ private:
 	void initOutputs(Simulator& sim);
 	std::shared_ptr<Simulator> addLocalSimulator(const string& name, const boost::property_tree::ptree& config);
 	std::shared_ptr<AsyncSimulator> addRemoteSimulator(const string& name, const boost::property_tree::ptree& config);
+	void initMpi();
 
 	boost::filesystem::path hdf5Path(const string& name);
 
 	std::map<std::string, std::string> m_overrides;
 	std::string m_config_file;
 	RunMode m_mode;
+	bool m_uses_mpi;
 	int m_timestep;
 
 	// MPI related attributes
