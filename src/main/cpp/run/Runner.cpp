@@ -95,9 +95,9 @@ void Runner::initSimulators() {
 	auto output_dir = base_dir / m_name;
 	bool fresh = fs::create_directory(output_dir);
 	if (fresh) {
-		cout << "Created new output directory at " << output_dir << "." << endl << endl;
+		cout << "--> Created new output directory at " << output_dir << "." << endl;
 	} else {
-		cout << "Using existing output directory at " << output_dir << ", will overwrite." << endl << endl;
+		cout << "--> Using existing output directory at " << output_dir << ", will overwrite." << endl;
 	}
 
 	for (auto& it: m_region_configs) {
@@ -113,7 +113,7 @@ void Runner::initSimulators() {
 	}
 
 	for (auto& it: m_region_configs) {
-		cout << "\rInitializing simulators [" << i << "/" << m_region_configs.size() << "]";
+		cout << "\r--> Initializing simulators [" << i << "/" << m_region_configs.size() << "]";
 		i++;
 		cout.flush();
 
@@ -143,6 +143,8 @@ void Runner::initSimulators() {
  			}
 		}
 	}
+	
+	cout << endl;
 
 	if (m_uses_mpi and m_local_simulators.size() > 1) {
 		throw runtime_error("You can't have multiple simulators in one system when working with MPI");
@@ -178,8 +180,6 @@ void Runner::initMpi() {
 	if (not m_uses_mpi) {
 		int provided = 0;
 		MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
-		std::cout << "Provided " << provided << std::endl;
-		std::cout << "Required " << MPI_THREAD_SERIALIZED << std::endl;
 		if (provided != MPI_THREAD_SERIALIZED) throw runtime_error("We need serialized thread support in MPI");
 		MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
@@ -282,32 +282,36 @@ void Runner::initOutputs(Simulator& sim) {
 
 void Runner::run() {
 	if (m_is_master) {
-		std::cout << m_processor_name << " is running, printing infected/adopted." << endl;
+		if (m_uses_mpi)
+			cout << m_processor_name << " is running,";
+		else
+			cout << "We are running locally,";
+		cout << " printing infected/adopted." << endl;
 		int num_days = m_config.get<int>("run.num_days");
-		std::cout << endl << "day  | ";
+		cout << endl << "day  | ";
 		int total = 0;
 		for (auto& it: m_region_configs) {
-			std::cout << it.first;
-			for (int i=15 - it.first.size(); i>0; i--) std::cout << ' ';
-			std::cout << " | ";
+			cout << it.first;
+			for (int i=15 - it.first.size(); i>0; i--) cout << ' ';
+			cout << " | ";
 		}
 
-		std::cout << endl << "-----+";
+		cout << endl << "-----+";
 		for (auto& it: m_region_configs) {
-			std::cout << "-----------------+";
+			cout << "-----------------+";
 		}
-		std::cout << endl;
+		cout << endl;
 
 		for (int day = 0; day < m_timestep + num_days; day++) {
-			std::cout << setw(4) << day << " | ";
+			cout << setw(4) << day << " | ";
 			vector<SimulatorStatus> results = m_coord->timeStep();
 			for (auto& ss: results) {
-				std::cout << setw(7) << ss.infected << " " << setw(7) << ss.adopted << " | ";
+				cout << setw(7) << ss.infected << " " << setw(7) << ss.adopted << " | ";
 			}
-			std::cout << endl;
+			cout << endl;
 		}
 	} else {
-		std::cout << m_processor_name << " awaits messages." << endl;
+		cout << m_processor_name << " awaits messages." << endl;
 	}
 
 	// TODO only save at last timestep if freq == 0
@@ -318,7 +322,7 @@ void Runner::run() {
 
 #ifdef MPI_USED
 	// Close the MPI environment properly
-	if (m_uses_mpi){
+	if (m_uses_mpi) {
 		if (m_world_rank == 0){
 			// Send message from system 0 (coordinator) to all other systems to terminate their listening thread
 			for (int i = 0; i < m_world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
