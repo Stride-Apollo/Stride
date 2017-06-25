@@ -23,7 +23,7 @@
         <config>disease_measles.xml</config>
     </disease>
 
-    <regions travel_schedule="schedule_file_todo.xml">
+    <regions travel_schedule="traveller_schedule_new_config.xml">
         <region name="Belgium">
             <rng_seed>123</rng_seed>
             <population>bigpop.xml</population>

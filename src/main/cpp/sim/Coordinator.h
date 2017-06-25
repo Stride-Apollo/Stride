@@ -20,7 +20,7 @@ public:
 			: m_sims(sims), m_calendar(config) {
 		if (schedule != "") {
 			// TODO Fix traveller schedule
-			//m_traveller_schedule = TravellerScheduleReader().readSchedule(filename);
+			m_traveller_schedule = TravellerScheduleReader().readSchedule(schedule);
 		}
 	}
 

@@ -1,7 +1,10 @@
 #include "util/TravellerScheduleReader.h"
+#include "util/InstallDirs.h"
 
 #include <fstream>
 #include <stdexcept>
+#include <iostream>
+#include <iostream>
 
 using namespace stride;
 using namespace util;
@@ -16,8 +19,10 @@ bool stride::util::operator==(const Flight& flight1, const Flight& flight2) {
 }
 
 Schedule TravellerScheduleReader::readSchedule(string filename) {
+	string complete_filename = (InstallDirs::getDataDir() /= filename).string();
+
 	// Read the file
-	parseTree(filename);
+	parseTree(complete_filename);
 
 	Schedule schedule;
 	auto schedule_config = m_pt.get_child("travel_schedule");
