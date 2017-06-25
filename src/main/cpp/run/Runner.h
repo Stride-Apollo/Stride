@@ -24,7 +24,7 @@ public:
 	// The different steps we do:
 	static void setup();
 	Runner(const std::vector<std::string>& overrides_list, const std::string& config_file,
-           const RunMode& mode, int timestep);
+           const RunMode& mode, const string& slave, int timestep);
 	void printInfo();
 	void initSimulators();
     void run();
@@ -39,6 +39,8 @@ public:
 private:
 	void parseConfig();  // done by constructor
 	void initOutputs(Simulator& sim);
+	std::shared_ptr<Simulator> addLocalSimulator(const string& name, const boost::property_tree::ptree& config);
+	std::shared_ptr<AsyncSimulator> addRemoteSimulator(const string& name, const boost::property_tree::ptree& config);
 
 	boost::filesystem::path hdf5Path(const string& name);
 

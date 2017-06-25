@@ -103,7 +103,15 @@ void Hdf5Saver::saveTimestep(const Simulator& sim) {
 		}
 
 		this->saveCalendar(group, sim);
+
+		// try {
 		this->savePersonTDData(group, sim);
+		// } catch (Exception& e) {
+		// 	cout << endl << "I haz Exception" << endl;
+		// 	// cout << endl << e << endl;
+		// 	// nothing
+		// }
+
 		this->saveTravellers(group, sim);
 
 		this->saveClusters(group, "household_clusters", sim.m_households);
@@ -228,7 +236,9 @@ void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 	DSetCreatPropList plist = DSetCreatPropList();
 	hsize_t chunk_dims[1] = {10000};
 	plist.setChunk(1, chunk_dims);
-	DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace, plist));
+	// DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace, plist));
+	// TODO verify (stijn)
+	DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace));
 
 	using PersonType = Simulator::PersonType;
 	const std::vector<PersonType>& population = sim.getPopulation()->m_original;
@@ -301,10 +311,13 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 		const Block& current_day = *(day);
 		for (auto&& person: current_day) {
 			TravellerDataType traveller;
+
+			string home_sim_name = person->getHomeSimulatorId();
+			string dest_sim_name = person->getDestinationSimulatorId();
+
 			traveller.m_days_left = list_index;
-			// TODO replace by actual strings! (See also Hdf5Loader.cpp:190)
-			traveller.m_home_sim_id = 0xDEADBEEF; //person->getHomeSimulatorId();
-			traveller.m_dest_sim_id = 0xDEADBEEF; //person->getDestinationSimulatorId();
+			traveller.m_home_sim_name = home_sim_name.c_str();
+			traveller.m_dest_sim_name = dest_sim_name.c_str();
 			traveller.m_home_sim_index = person->getHomeSimulatorIndex();
 			traveller.m_dest_sim_index = sim.m_population->m_original.size() + (std::find(travellers_seq.begin(), travellers_seq.end(), person->getNewPerson()) - travellers_seq.begin());
 

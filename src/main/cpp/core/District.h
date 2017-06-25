@@ -18,6 +18,8 @@ namespace stride {
 using namespace util;
 using namespace std;
 
+class ClusterSaver;
+
 /**
  * A district is either a city or a village (currently, there is no difference between city and village)
  */
@@ -71,7 +73,7 @@ public:
 	/// Return the name of the district
 	string getName() const {return m_name;}
 
-	GeoCoordinate getLocation() {return m_location;}
+	GeoCoordinate getLocation() const {return m_location;}
 
 private:
 	vector<pair<string, Influence> > m_transportations_facilities;		///< The transportation facilities have a name (string) and a sphere of influence
@@ -90,6 +92,8 @@ private:
 		auto same_name = [&] (const pair<string, Influence>& facility) {return facility.first == facility_name;};
 		return find_if(m_transportations_facilities.begin(), m_transportations_facilities.end(), same_name);
 	}
+
+	friend class ClusterSaver;
 };
 
 }

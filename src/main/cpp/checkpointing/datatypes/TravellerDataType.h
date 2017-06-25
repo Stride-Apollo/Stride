@@ -8,11 +8,12 @@ using namespace H5;
  */
 struct TravellerDataType {
 	static CompType getCompType() {
+		StrType str_type(0, H5T_VARIABLE);
 		CompType type_traveller_data(sizeof(TravellerDataType));
 
 		#define insertMemberTraveller(name, attribute, type) type_traveller_data.insertMember(H5std_string(name), HOFFSET(TravellerDataType, attribute), type)
-		insertMemberTraveller("home_sim_id", m_home_sim_id, PredType::NATIVE_UINT);
-		insertMemberTraveller("dest_sim_id", m_dest_sim_id, PredType::NATIVE_UINT);
+		insertMemberTraveller("home_sim_name", m_home_sim_name, str_type);
+		insertMemberTraveller("dest_sim_name", m_dest_sim_name, str_type);
 		insertMemberTraveller("home_sim_index", m_home_sim_index, PredType::NATIVE_UINT);
 		insertMemberTraveller("dest_sim_index", m_dest_sim_index, PredType::NATIVE_UINT);
 		insertMemberTraveller("days_left", m_days_left, PredType::NATIVE_UINT);
@@ -44,10 +45,8 @@ struct TravellerDataType {
 		return type_traveller_data;
 	}
 
-	// TODO no more ids, use strings instead
-	// IMPORTANT: also see Hdf5Loader.cpp:190
-	unsigned int m_home_sim_id;
-	unsigned int m_dest_sim_id;
+	const char* m_home_sim_name;
+	const char* m_dest_sim_name;
 	unsigned int m_home_sim_index;
 	unsigned int m_dest_sim_index;
 

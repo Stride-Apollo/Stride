@@ -49,6 +49,7 @@ namespace stride {
 class Population;
 class Calendar;
 class Cluster;
+class AsyncSimulator;
 using uint = unsigned int;
 namespace run { class Runner; }
 
@@ -79,6 +80,8 @@ public:
 	void setName(string name) { m_name = name; }
 
 	string getName() const { return m_name; }
+
+	void steCommunicationMap(const std::map<string, AsyncSimulator*>& comm_map) {m_communication_map = comm_map;}
 
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
@@ -160,6 +163,8 @@ public:	// TODO write getters or set friend class for ClusterSaver
 	std::vector<Cluster> m_secondary_community;  ///< Container with secondary community Clusters.
 
 	std::vector<District> m_districts;    ///< Container with districts (villages and cities).
+
+	std::map<string, AsyncSimulator*> m_communication_map	;    ///< Communication between the simulator and the senders
 
 	DiseaseProfile m_disease_profile;      ///< Profile of disease.
 

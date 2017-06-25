@@ -63,7 +63,6 @@ set(LIB_SRC
  	vis/ClusterSaver.cpp
 #---
     run/Runner.cpp
-	run/run_stride.cpp
 )
 
 if ( NOT STRIDE_FORCE_NO_HDF5 )
