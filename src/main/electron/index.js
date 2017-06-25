@@ -2,7 +2,12 @@ const os = require('os')
 const fs = require('fs')
 var app = angular.module('VisualizationApp', []);
 
+const random_seed = parseInt(Math.floor(Math.random()*100000+1).toFixed(6));
+const random_temp_file = os.tmpdir() + "/visualization_data_" + random_seed;
 app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope, $timeout, $interval) {
+	console.log(random_temp_file);
+	var tmpdata = "{\"windows\":[]}"
+	fs.writeFileSync(random_temp_file, tmpdata)
 	mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
 	var map = new mapboxgl.Map({
 		container: 'map',
@@ -696,7 +701,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 function loadCluster(id, config, filenames, currentDay) {
 	var electron = require('electron').remote;
 	const BrowserWindow = electron.BrowserWindow;
-	var windows = JSON.parse(fs.readFileSync(os.tmpdir() + "/visualization_data")).windows;
+	var windows = JSON.parse(fs.readFileSync(random_temp_file)).windows;
 	if (!containsWin(windows, id)) {
 		var win = new BrowserWindow({ width: 800, height: 600 });
 		windows.push({id: id, window: win.id, day: currentDay});
@@ -715,7 +720,7 @@ function loadCluster(id, config, filenames, currentDay) {
 		win.loadURL(url);
 
 		var content = "{\"windows\": " + JSON.stringify(windows) + "}";
-		fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
+		fs.writeFileSync(random_temp_file, content);
 	} else {
 		for (var i = windows.length-1; i >= 0; i--) {
 			if (windows[i].id == id) {
@@ -725,7 +730,7 @@ function loadCluster(id, config, filenames, currentDay) {
 					}
 					windows.splice(i, 1);
 					var content = "{\"windows\": " + JSON.stringify(windows) + "}";
-					fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
+					fs.writeFileSync(random_temp_file, content);
 					loadCluster(id, config, filenames, currentDay);
 				} else {
 					BrowserWindow.fromId(windows[i].window).focus();
