@@ -10,6 +10,7 @@
 #include "util/SimplePlanner.h"
 #include "core/Cluster.h"
 #include "Simulator.h"
+#include "SimulatorStatus.h"
 
 namespace stride {
 
@@ -20,9 +21,7 @@ class AsyncSimulator {
 public:
 	virtual string getName() const = 0;
 
-	/// The bool doesn't matter, C++ can't handle void
-	/// We just need to wait until it is done
-	virtual future<bool> timeStep() = 0;
+	virtual future<SimulatorStatus> timeStep() = 0;
 
 	virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) = 0;
 	/// Receive travellers

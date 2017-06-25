@@ -24,7 +24,7 @@ public:
 
   /// The bool doesn't matter, C++ can't handle void
 	/// We just need to wait until it is done
-  virtual future<bool> timeStep() override;
+  virtual future<SimulatorStatus> timeStep() override;
 
   virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) override;
 
@@ -62,7 +62,7 @@ private:
   ~RemoteSimulatorSender() = default;
 
   virtual string getName() const override { return ""; };
-  virtual future<bool> timeStep() override {return async([&](){return true;});}
+  virtual future<SimulatorStatus> timeStep() override {return async([&](){return SimulatorStatus(0, 0);});}
   virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) override {}
   virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, const string& destination_district, const string& destination_facility) override {}
   virtual void sendNewTravellers(uint amount, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility) override {}

@@ -26,6 +26,7 @@
 #include "behaviour/belief_policies/NoBelief.h"
 #include "behaviour/behaviour_policies/NoBehaviour.h"
 
+#include "sim/SimulatorStatus.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/District.h"
@@ -84,7 +85,7 @@ public:
 	void setCommunicationMap(const std::map<string, AsyncSimulator*>& comm_map) {m_communication_map = comm_map;}
 
 	/// Run one time step, computing full simulation (default) or only index case.
-	void timeStep();
+	SimulatorStatus timeStep();
 
 	/// Return the calendar of this simulator
 	const Calendar& getCalendar() const {return *m_calendar;}
