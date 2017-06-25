@@ -5,7 +5,7 @@
     <num_days>50</num_days>
     <holidays>holidays_none.json</holidays>
     <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
-    <track_index_case>1</track_index_case>
+    <track_index_case>0</track_index_case>
     <num_threads>1</num_threads>
     <information_policy>Global</information_policy>
 
@@ -14,7 +14,7 @@
         <person_file/>
         <participants_survey num="10"/>
         <visualization/>
-        <!-- <checkpointing frequency="1"/> -->
+        <checkpointing frequency="1"/>
     </outputs>
 
     <disease>
