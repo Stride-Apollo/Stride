@@ -11,10 +11,11 @@
 
     <outputs>
         <log level="Transmissions"/>
-        <person_file/>
+        <persons/>
         <participants_survey num="10"/>
         <visualization/>
         <!-- <checkpointing frequency="1"/> -->
+        <cases/>
     </outputs>
 
     <disease>
