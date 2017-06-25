@@ -49,7 +49,8 @@ private:
 	std::string m_config_file;
 	std::string m_slave;
 	RunMode m_mode;
-	bool m_uses_mpi;
+	bool m_uses_mpi = false;
+	bool m_is_master = true;
 	int m_timestep;
 
 	// MPI related attributes
