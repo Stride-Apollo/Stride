@@ -150,6 +150,7 @@ private:
 	std::shared_ptr<util::Random> 		m_rng;
 	LogMode                             m_log_level;            ///< Specifies logging mode.
 	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
+
 public:	// TODO write getters or set friend class for ClusterSaver
 
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
