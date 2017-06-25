@@ -43,7 +43,7 @@ void RemoteSimulatorReceiver::listen(){
     std::cout << "After timestep @ " << status.MPI_SOURCE << std::endl;
     MPI_Send(nullptr, 0, MPI_INT, 0, 4, MPI_COMM_WORLD);
   }
-  if (status.MPI_TAG == 6){
+  if (status.MPI_TAG == 6){ 
     // Tag 6 means travellers returning home
     MPI_Recv(nullptr, 0, MPI_INT, MPI_ANY_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     m_sim->returnForeignTravellers();
