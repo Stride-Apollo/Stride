@@ -141,11 +141,11 @@ template<>
 class ClusterCalculator<ClusterType::Household> {
 public:
 	static double calculateSurface(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.m_households);
+		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.getHouseholds());
 	}
 
 	static map<uint, uint> getClusterMap(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.m_households);
+		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.getHouseholds());
 	}
 };
 
@@ -153,11 +153,11 @@ template<>
 class ClusterCalculator<ClusterType::School> {
 public:
 	static double calculateSurface(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.m_school_clusters);
+		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.getSchoolClusters());
 	}
 
 	static map<uint, uint> getClusterMap(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.m_school_clusters);
+		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.getSchoolClusters());
 	}
 };
 
@@ -165,11 +165,11 @@ template<>
 class ClusterCalculator<ClusterType::Work> {
 public:
 	static double calculateSurface(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.m_work_clusters);
+		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.getWorkClusters());
 	}
 
 	static map<uint, uint> getClusterMap(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.m_work_clusters);
+		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.getWorkClusters());
 	}
 };
 
@@ -177,11 +177,11 @@ template<>
 class ClusterCalculator<ClusterType::PrimaryCommunity> {
 public:
 	static double calculateSurface(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.m_primary_community);
+		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.getPrimaryCommunities());
 	}
 
 	static map<uint, uint> getClusterMap(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.m_primary_community);
+		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.getPrimaryCommunities());
 	}
 };
 
@@ -189,11 +189,11 @@ template<>
 class ClusterCalculator<ClusterType::SecondaryCommunity> {
 public:
 	static double calculateSurface(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.m_secondary_community);
+		return ClusterCalculator<ClusterType::Null>::calcSurface(local_sim.getSecondaryCommunities());
 	}
 
 	static map<uint, uint> getClusterMap(const Simulator& local_sim) {
-		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.m_secondary_community);
+		return ClusterCalculator<ClusterType::Null>::getClMap(local_sim.getSecondaryCommunities());
 	}
 };
 

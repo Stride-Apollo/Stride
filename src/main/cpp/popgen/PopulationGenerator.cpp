@@ -95,8 +95,7 @@ void PopulationGenerator<U>::generate(const string& prefix) {
 	config.put("population.clusters", target_clusters);
 	config.put("population.households", target_households);
 	config.add_child("population.cities", m_props.get_child("population.cities"));
-	write_xml((InstallDirs::getDataDir() /= target_summary).string(), config,
-			  std::locale(), xml_writer_make_settings<string>('\t', 1));
+	write_xml((InstallDirs::getDataDir() /= target_summary).string(), config);
 	if (m_output) cout << "Written summary " << target_summary << endl;
 }
 
