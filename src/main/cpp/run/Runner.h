@@ -59,7 +59,6 @@ private:
 	int m_provided_threads;
 	shared_ptr<RemoteSimulatorReceiver> m_local_receiver;
 	thread m_listen_thread;
-	string m_slave;
 
 	boost::property_tree::ptree m_config;
 	std::map<std::string, boost::property_tree::ptree> m_region_configs;
