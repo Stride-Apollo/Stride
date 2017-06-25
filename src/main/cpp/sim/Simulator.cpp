@@ -41,7 +41,7 @@ using namespace boost::property_tree;
 using namespace stride::util;
 
 Simulator::Simulator()
-        : m_config_pt(), m_num_threads(1U), m_log_level(LogMode::Null), m_population(nullptr),
+        : m_num_threads(1U), m_log_level(LogMode::Null), m_config_pt(), m_population(nullptr),
           m_disease_profile(), m_track_index_case(false), m_next_id(0), m_next_hh_id(0) {
 	m_parallel.resources().setFunc([&](){
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
