@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <thread>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/filesystem/path.hpp>
@@ -12,6 +13,7 @@
 #include "sim/SimulatorRunMode.h"
 #include "sim/Simulator.h"
 #include "sim/AsyncSimulator.h"
+#include "sim/RemoteSimulatorReceiver.h"
 
 namespace stride {
 namespace run {
@@ -44,6 +46,15 @@ private:
 	std::string m_config_file;
 	RunMode m_mode;
 	int m_timestep;
+
+	// MPI related attributes
+	bool m_distributed_run;
+	int m_world_rank;
+	int m_world_size;
+	int m_provided_threads;
+	shared_ptr<RemoteSimulatorReceiver> m_local_receiver;
+	thread m_listen_thread;
+
 	boost::property_tree::ptree m_config;
 	std::map<std::string, boost::property_tree::ptree> m_region_configs;
 	std::vector<std::string> m_region_order;
