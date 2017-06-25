@@ -12,6 +12,9 @@
 #include "sim/SimulatorSetup.h"
 #include "sim/SimulatorBuilder.h"
 #include "util/StringUtils.h"
+#include "util/Stopwatch.h"
+#include "output/CasesFile.h"
+#include "output/PersonFile.h"
 
 using namespace stride;
 using namespace util;
@@ -144,7 +147,7 @@ void Runner::initSimulators() {
  			}
 		}
 	}
-	
+
 	cout << endl;
 
 	if (m_uses_mpi and m_local_simulators.size() > 1) {
@@ -162,12 +165,14 @@ shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost:
 
 	if (m_mode == RunMode::Replay || m_mode == RunMode::Extend) {
 		// adjust the state of the simulator
-		Hdf5Loader loader = Hdf5Loader(hdf5Path(name).string().c_str());
+		std::string pathStr = hdf5Path(name).string();
+		Hdf5Loader loader = Hdf5Loader(pathStr.c_str());
 
 		int timestep = m_mode == RunMode::Extend ?
 					   loader.getLastSavedTimestep() : m_timestep;
 
 		loader.loadFromTimestep(timestep, sim);
+		std::cout << "Done" << std::endl;
 	}
 
 	initOutputs(*sim.get());
@@ -197,9 +202,8 @@ void Runner::initMpi() {
 			boost::optional<string> remote = it.second.get_optional<string>("remote");
 			if (remote) {
 				if (remote.get() == m_processor_name) {
-					// TODO Anthony: send the SimulatorWorldrank!
 					SimulatorWorldrank setup {it.second.get<string>("<xmlattr>.name"), m_world_rank};
-					MPI_Send(&setup, 1, MPI_INT, 0, 20, MPI_COMM_WORLD); // Tag 20 = setup related MPI message
+					MPI_Send(&setup, 1, MPI_INT, 0, 30, MPI_COMM_WORLD); // Tag 30 = setup related MPI message
 				}
 			} else if (m_is_master) {
 				worldranks.emplace_back(it.second.get<string>("<xmlattr>.name"), 0);
@@ -210,7 +214,7 @@ void Runner::initMpi() {
 			// TODO Anthony: collect all SimulatorWorldranks into worldranks
 			for (int i=1; i<m_world_size; i++){
 				SimulatorWorldrank data {"",0};
-				MPI_Recv(&data, 1, MPI_INT, i, 20, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				MPI_Recv(&data, 21, m_setup_message, i, 30, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 				worldranks.push_back(data);
 			}
 			for (SimulatorWorldrank& swr: worldranks) {
@@ -219,7 +223,7 @@ void Runner::initMpi() {
 				bool unique_name = m_worldranks.left.find(name) == m_worldranks.left.end();
 				bool unique_rank = m_worldranks.right.find(rank) == m_worldranks.right.end();
 				if (unique_name and unique_rank) {
-					m_worldranks.insert(decltype(m_worldranks)::value_type(name, rank));
+					m_worldranks.insert(decltype(m_worldranks)::value_type(std::string(name), rank));
 				}
 			}
 
@@ -228,9 +232,18 @@ void Runner::initMpi() {
 									+ to_string(m_region_configs.size()) + " regions.");
 			}
 
-			// TODO Anthony: send m_worldranks to every other node
+			for (int i=0; i<m_world_size; i++){
+					for (auto iter = m_worldranks.begin(), iend = m_worldranks.end(); iter != iend; ++iter){
+							SimulatorWorldrank data{iter->left, iter->right};
+							MPI_Send(&data, 21, m_setup_message, i, 31, MPI_COMM_WORLD); // Tag 31 = send worldranks to each node
+					}
+			}
 		} else {
-			// TODO Anthony: collect m_worldranks and set it accordingly
+			for (int i = 0; i<m_world_size; i++){
+				if (i == m_world_size) continue;
+				SimulatorWorldrank data {"",0};
+				MPI_Recv(&data, 21, m_setup_message, i, 31, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			}
 		}
 	}
 #endif
@@ -238,7 +251,6 @@ void Runner::initMpi() {
 
 void Runner::makeSetupStruct(){
 #ifdef MPI_USED
-		// TODO fix string, now its a single char
 		MPI_Datatype type[2] = {MPI_CHAR, MPI_INT};
 		/** Number of occurence of each type */
 		int blocklen[2] = {20, 1};
@@ -255,7 +267,6 @@ void Runner::makeSetupStruct(){
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
 	// TODO: DO MPI STUFF
 	boost::optional<string> remote = config.get_optional<string>("run.regions.region.remote");
-	cout << "Remote:" << remote << endl;
 	m_async_simulators[name] = make_shared<RemoteSimulatorSender>(name, stoi(remote.get()));
 }
 
@@ -300,16 +311,17 @@ void Runner::initOutputs(Simulator& sim) {
 		vis_saver->update(sim);
 		m_vis_savers[sim.m_name] = vis_saver;
 	}
-
-	// TODO other output files (cases, summary, persons, participants survey?)
 }
 
 void Runner::run() {
+	map<string, vector<unsigned int>> cases;
 	if (m_is_master) {
+		Stopwatch<> run_clock("run_clock");
+
 		if (m_uses_mpi)
-			cout << m_processor_name << " is running,";
+			cout << "--> " << m_processor_name << " is running,";
 		else
-			cout << "We are running locally,";
+			cout << "--> We are running locally,";
 		cout << " printing infected/adopted." << endl;
 		int num_days = m_config.get<int>("run.num_days");
 		cout << endl << "day  | ";
@@ -328,21 +340,19 @@ void Runner::run() {
 
 		for (int day = 0; day < m_timestep + num_days; day++) {
 			cout << setw(4) << day << " | ";
+			// Assumes same order!
 			vector<SimulatorStatus> results = m_coord->timeStep();
-			for (auto& ss: results) {
-				cout << setw(7) << ss.infected << " " << setw(7) << ss.adopted << " | ";
+			int i = 0;
+			for (auto& it: m_async_simulators) {
+				cout << setw(7) << results[i].infected << " " << setw(7) << results[i].adopted << " | ";
+				cases[it.first].push_back(results[i].infected);
+				i++;
 			}
 			cout << endl;
 		}
 	} else {
 		cout << m_processor_name << " awaits messages." << endl;
 	}
-
-	// TODO only save at last timestep if freq == 0
-	// for (auto& it: m_hdf5_savers) {
-	// 	Simulator& sim = *m_local_simulators[it.first];
-	// 	it.second->forceSave(sim, m_timestep + num_days);
-	// }
 
 #ifdef MPI_USED
 	// Close the MPI environment properly
@@ -355,6 +365,28 @@ void Runner::run() {
 		MPI_Finalize();
 	}
 #endif
+
+	// More output!
+	// TODO only save at last timestep if freq == 0
+	// for (auto& it: m_hdf5_savers) {
+	// 	Simulator& sim = *m_local_simulators[it.first];
+	// 	it.second->forceSave(sim, m_timestep + num_days);
+	// }
+
+	auto cases_conf = m_config.get_child_optional("run.outputs.cases");
+	auto person_conf = m_config.get_child_optional("run.outputs.persons");
+
+	for (auto& it: m_local_simulators) {
+		if (cases_conf) {
+			output::CasesFile((m_output_dir / (string("cases_") + it.first)).string())
+					.print(cases[it.first]);
+		}
+
+		if (person_conf) {
+			output::PersonFile((m_output_dir / (string("persons_") + it.first)).string())
+					.print(it.second->getPopulation());
+		}
+	}
 }
 
 pt::ptree Runner::getConfig() {
