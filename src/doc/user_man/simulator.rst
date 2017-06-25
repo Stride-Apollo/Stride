@@ -16,7 +16,7 @@ Binaries in directory ``<project_dir>/bin``
 
 -  ``gtester``: regression tests for the sequential code.
 
--  ``wrapper_sim.py``: Python simulation wrapper
+-  ``wrapper_sim.py``: Python simulation wrapper, this wrapper is not updated and will not work with the current configuration setup of the project.
 
 Configuration files (xml and json) in directory ``<project_dir>/config``
 
