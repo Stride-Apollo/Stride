@@ -104,7 +104,6 @@ void Runner::initSimulators() {
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		if (remote) {
 			#ifdef MPI_USED
-				makeSetupStruct();
 				initMpi();
 			#else
 				throw runtime_error("MPI support is not enabled in this build");
@@ -185,6 +184,7 @@ void Runner::initMpi() {
 		MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
 		m_uses_mpi = true;
+		makeSetupStruct();
 		m_is_master = (m_world_rank == 0);
 
 		char processor_name[MPI_MAX_PROCESSOR_NAME];
