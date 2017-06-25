@@ -88,7 +88,7 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 	pt_config.put("run.r0", m_r0);
 	pt_config.put("run.disease.seeding_rate", m_seeding_rate);
 	pt_config.put("run.disease.immunity_rate", m_immunity_rate);
-	pt_config.put("run.regions.region.population", m_population_file);  // TODO make population xmls
+	pt_config.put("run.regions.region.raw_population", m_population_file); 
 	pt_config.put("run.num_days", m_num_days);
 	pt_config.put("run.<xmlattr>.name", m_name);
 	pt_config.put("run.disease.config", m_disease_config_file);

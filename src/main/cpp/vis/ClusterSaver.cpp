@@ -31,23 +31,19 @@ using std::to_string;
 
 namespace stride {
 
-ClusterSaver::ClusterSaver(string file_name, string pop_file_name, string facility_file_name) :
+ClusterSaver::ClusterSaver(string file_name, string pop_file_name, string facility_file_name, string output_dir) :
 		m_sim_day(0), m_file_name(file_name), m_pop_file_name(pop_file_name), m_facility_file_name(facility_file_name)  {
 
-	#if defined(__linux__)
+	/*#if defined(__linux__)
 		m_file_dir = "vis/resources/app/data";
 	#elif defined(__APPLE__)
 		m_file_dir = "vis/visualization.app/Contents/Resources/app/data";
 	#endif
-	// Sorry windows
+	// Sorry windows*/
 
-	boost::filesystem::path file_path(m_file_dir);
-	if (!boost::filesystem::exists(file_path)) {
-		throw runtime_error(string("\n\033[0;31mError: \033[0m") +
-			"The folder used to store the cluster data is not present.\n" +
-			"Make sure you have installed the visualization app by invoking the " +
-			"\033[0;35m'make install_vis'\033[0m" + " command.\n");
-	}
+	m_file_dir = output_dir;
+
+	boost::filesystem::create_directory(boost::filesystem::path(m_file_dir));
 
 	m_pop_file_dir = m_file_dir + "/populationData";
 	m_facility_file_dir = m_file_dir + "/transportFacilityData";
@@ -88,6 +84,8 @@ void ClusterSaver::saveClustersCSV(const Simulator& sim) const {
 	}
 
 	this->saveAggrClustersCSV(sim.m_households, csv_file);
+	this->saveAggrClustersCSV(sim.m_work_clusters, csv_file);
+	this->saveAggrClustersCSV(sim.m_school_clusters, csv_file);
 
 	csv_file.close();
 }

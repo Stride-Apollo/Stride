@@ -24,7 +24,7 @@ using std::pair;
 
 class ClusterSaver : public util::Observer<Simulator> {
 public:
-	ClusterSaver(string file_name, string pop_file_name, string facility_file_name);
+	ClusterSaver(string file_name, string pop_file_name, string facility_file_name, string output_dir);
 
 	virtual void update(const Simulator& sim) {
 		saveClustersCSV(sim);

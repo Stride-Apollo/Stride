@@ -13,7 +13,7 @@
         <log level="Transmissions"/>
         <person_file/>
         <participants_survey num="10"/>
-        <!-- <visualization/> -->
+        <visualization/>
         <!-- <checkpointing frequency="1"/> -->
     </outputs>
 

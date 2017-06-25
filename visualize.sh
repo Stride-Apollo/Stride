@@ -1,3 +1,3 @@
 make install_vis
 cd build/installed
-./vis/visualization
+./vis/visualization output/default/vis_Belgium

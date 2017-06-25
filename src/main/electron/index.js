@@ -2,7 +2,11 @@ const os = require('os')
 const fs = require('fs')
 var app = angular.module('VisualizationApp', []);
 
+const random_seed = parseInt(Math.floor(Math.random()*100000+1).toFixed(6));
+const random_temp_file = os.tmpdir() + "/visualization_data_" + random_seed;
 app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope, $timeout, $interval) {
+	var tmpdata = "{\"windows\":[]}"
+	fs.writeFileSync(random_temp_file, tmpdata)
 	mapboxgl.accessToken = 'pk.eyJ1Ijoid29la2lraSIsImEiOiJjajJnNnhnOTcwMDBtNDBuMDltc3BreGZpIn0.kPsej_9LZ3cEaggCD8py9w';
 	var map = new mapboxgl.Map({
 		container: 'map',
@@ -46,19 +50,6 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 
 		for (var i = 0; i < data.facilities.length; ++i) {
 			var facility = data.facilities[i];
-
-			/*var decoratedFacility = {
-				type: "Feature",
-				geometry: {
-					type: "Point",
-					coordinates: [facility.location.lon, facility.location.lat]
-				},
-				properties: {
-					"radius": facility.influence
-				}
-			};
-
-			facFeatures.push(decoratedFacility);*/
 			facFeatures.push(createGeoJSONCircle(facility.location, facility.influence, 512));
 		}
 		result = {
@@ -127,21 +118,24 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	var block = false;
 	var airport_files = [];
 	var airport_filenames = [];
+	var output_dir = global.location.search.substr(5);
+	console.log(output_dir);
+
 	fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
 		if (err) return console.log(err);
 		config = setupConfig(data);
-		var dircontent = fs.readdirSync(__dirname + "/" + config.directory);
+		var dircontent = fs.readdirSync(output_dir + "/" + config.directory);
 
 		dircontent.forEach( function (file){
-			var data = fs.readFileSync(__dirname + "/" + config.directory + "/" + file, 'utf8');
+			var data = fs.readFileSync(output_dir + "/" + config.directory + "/" + file, 'utf8');
 			files.push(data);
 			filenames.push(file);
 		});
 
-		dircontent = fs.readdirSync(__dirname + "/" + config.airport_directory);
+		dircontent = fs.readdirSync(output_dir + "/" + config.airport_directory);
 
 		dircontent.forEach( function (file){
-			var data = fs.readFileSync(__dirname + "/" + config.airport_directory + "/" + file, 'utf8');
+			var data = fs.readFileSync(output_dir + "/" + config.airport_directory + "/" + file, 'utf8');
 			airport_files.push(data);
 			airport_filenames.push(file);
 		});
@@ -440,17 +434,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			"layout": {},
 			"paint": {
 				"line-color": "blue",
-				"line-opacity": 1/*
-				"circle-radius": {
-				stops: [
-					[0, 0],
-					//[20, metersToPixelsAtMaxZoom({"size"}, 51.122999999999998)]
-				],
-				base: 2
-				},
-				"circle-opacity": 0,
-				"circle-stroke-width": 1,
-				"circle-stroke-color": "#000"*/
+				"line-opacity": 1
 			}
 		});
 
@@ -696,7 +680,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 function loadCluster(id, config, filenames, currentDay) {
 	var electron = require('electron').remote;
 	const BrowserWindow = electron.BrowserWindow;
-	var windows = JSON.parse(fs.readFileSync(os.tmpdir() + "/visualization_data")).windows;
+	var windows = JSON.parse(fs.readFileSync(random_temp_file)).windows;
 	if (!containsWin(windows, id)) {
 		var win = new BrowserWindow({ width: 800, height: 600 });
 		windows.push({id: id, window: win.id, day: currentDay});
@@ -715,7 +699,7 @@ function loadCluster(id, config, filenames, currentDay) {
 		win.loadURL(url);
 
 		var content = "{\"windows\": " + JSON.stringify(windows) + "}";
-		fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
+		fs.writeFileSync(random_temp_file, content);
 	} else {
 		for (var i = windows.length-1; i >= 0; i--) {
 			if (windows[i].id == id) {
@@ -725,7 +709,7 @@ function loadCluster(id, config, filenames, currentDay) {
 					}
 					windows.splice(i, 1);
 					var content = "{\"windows\": " + JSON.stringify(windows) + "}";
-					fs.writeFileSync(os.tmpdir() + "/visualization_data", content);
+					fs.writeFileSync(random_temp_file, content);
 					loadCluster(id, config, filenames, currentDay);
 				} else {
 					BrowserWindow.fromId(windows[i].window).focus();

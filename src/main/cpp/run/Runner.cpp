@@ -27,7 +27,7 @@ void Runner::setup() {
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 			   const RunMode& mode, const string& slave, int timestep)
-        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0) {
+        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_uses_mpi(false), m_world_rank(0) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -49,19 +49,25 @@ void Runner::parseConfig() {
 	for (auto& override: m_overrides) {
 		m_config.put(override.first, override.second);
 	}
-
+	bool has_raw_population = false;
 	for (auto& it: m_config.get_child("run.regions")) {
 		if (it.first == "region") {
 			pt::ptree& region_config = it.second;
 			string name = region_config.get<string>("<xmlattr>.name");
 			m_region_configs[name] = region_config;
 			m_region_order.push_back(name);
+
+			if (region_config.count("raw_population") != 0) {
+				has_raw_population = true;
+			}
 		}
 	}
 	if (m_region_configs.size() == 0) {
 		throw runtime_error("You need at least one region");
+	} else if (m_region_configs.size() > 1 && has_raw_population) {
+		throw runtime_error("One of the regions does not contain the necessary information to work in a multi region environment (districts, cities, ...)");
 	}
-	m_travel_schedule = m_config.get<string>("run.regions.<xmlattr>.travel_schedule");
+	m_travel_schedule = m_config.get<string>("run.regions.<xmlattr>.travel_schedule", "");
 	m_config.get_child("run").erase("regions");
 
 	m_name = m_config.get<string>("run.<xmlattr>.name");
@@ -157,19 +163,26 @@ shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost:
 }
 
 void Runner::initMpi() {
+#ifdef MPI_USED
 	if (not m_uses_mpi) {
-		int provided;
-		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
-		if (provided != MPI_THREAD_MULTIPLE) throw runtime_error("We need multiple thread support in MPI");
+		int provided = 0;
+		MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
+		std::cout << "Provided " << provided << std::endl;
+		std::cout << "Required " << MPI_THREAD_SERIALIZED << std::endl;
+		if (provided != MPI_THREAD_SERIALIZED) throw runtime_error("We need serialized thread support in MPI");
 		MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
 		m_uses_mpi = true;
 	}
+#endif
 }
 
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
 	initMpi();
 	// TODO: DO MPI STUFF
+	boost::optional<string> remote = config.get_optional<string>("run.regions.region.remote");
+	cout << "Remote:" << remote << endl;
+	m_async_simulators[name] = make_shared<RemoteSimulatorSender>(name, stoi(remote.get()));
 }
 
 void Runner::initOutputs(Simulator& sim) {
@@ -207,7 +220,8 @@ void Runner::initOutputs(Simulator& sim) {
 		// We need to save to m_output_dir / ...<something that makes sense in the context of visualisation>...
 		// See hdf5Path for inspiration, but since we only consider output (whereas hdf5 is also input) there's
 		// no need to write a separate method for it.
-		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output");
+		std::string vis_output_dir = fs::system_complete(m_output_dir / (string("vis_") + sim.m_name)).string();
+		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output", vis_output_dir);
 		auto fn = bind(&ClusterSaver::update, vis_saver, std::placeholders::_1);
 		sim.registerObserver(vis_saver, fn);
 		vis_saver->update(sim);
@@ -231,8 +245,9 @@ void Runner::run() {
 // 	it.second->forceSave(sim, m_timestep + num_days);
 // }
 
+#ifdef MPI_USED
 	// Close the MPI environment properly
-	if (m_distributed_run){
+	if (m_uses_mpi){
 		if (m_world_rank == 0){
 			// Send message from system 0 (coordinator) to all other systems to terminate their listening thread
 			for (int i = 0; i < m_world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
@@ -240,6 +255,7 @@ void Runner::run() {
 		m_listen_thread.join(); // Join and terminate listening thread
 		MPI_Finalize();
 	}
+#endif
 }
 
 pt::ptree Runner::getConfig() {
