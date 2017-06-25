@@ -126,6 +126,14 @@ public:
 
 	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
 
+public:
+	const std::vector<Cluster>& getHouseholds() const { return m_households; }
+	const std::vector<Cluster>& getSchoolClusters() const { return m_school_clusters; }
+	const std::vector<Cluster>& getWorkClusters() const { return m_work_clusters; }
+	const std::vector<Cluster>& getPrimaryCommunities() const { return m_primary_community; }
+	const std::vector<Cluster>& getSecondaryCommunities() const { return m_secondary_community; }
+	const std::vector<District>& getDistricts() const { return m_districts; }
+
 private:
 	// Information about travellers
 	std::map<unsigned int, Simulator::TravellerType> m_trav_elsewhere;
@@ -150,8 +158,8 @@ private:
 	std::shared_ptr<util::Random> 		m_rng;
 	LogMode                             m_log_level;            ///< Specifies logging mode.
 	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
-public:	// TODO write getters or set friend class for ClusterSaver
 
+private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 	boost::property_tree::ptree m_config_pop;
 	std::shared_ptr<spdlog::logger>		m_logger;
@@ -177,11 +185,12 @@ public:	// TODO write getters or set friend class for ClusterSaver
 
 	SimplePlanner<Traveller<Simulator::PersonType>> m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
+public:
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;
 	friend class Hdf5Saver;
 	friend class Hdf5Loader;
-	friend class Runner;
+	friend class run::Runner;
 };
 
 }

@@ -166,7 +166,7 @@ void Runner::initSimulators() {
 
 shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost::property_tree::ptree& config) {
 	auto sim = SimulatorBuilder::build(config);
-	sim->m_name = config.get<string>("run.regions.region.<xmlattr>.name");
+	sim->setName(config.get<string>("run.regions.region.<xmlattr>.name"));
 
 	if (m_mode == RunMode::Replay || m_mode == RunMode::Extend) {
 		// adjust the state of the simulator
@@ -281,8 +281,8 @@ void Runner::initOutputs(Simulator& sim) {
 	// So far, we only have output per Simulator
 
 	// Logs (we had to refactor some stuff for this)
-	sim.m_logger = spdlog::rotating_logger_mt(sim.m_name + "_logger",
-											  (m_output_dir / (sim.m_name + "_log")).string(),
+	sim.m_logger = spdlog::rotating_logger_mt(sim.getName() + "_logger",
+											  (m_output_dir / (sim.getName() + "_log.txt")).string(),
 											  std::numeric_limits<size_t>::max(),
 											  std::numeric_limits<size_t>::max());
 
@@ -292,11 +292,11 @@ void Runner::initOutputs(Simulator& sim) {
 	auto checkpointing = m_config.get_child_optional("run.outputs.checkpointing");
 	if (checkpointing) {
 		int freq = checkpointing.get().get<int>("<xmlattr>.frequency");
-		auto saver = make_shared<Hdf5Saver>(hdf5Path(sim.m_name).string().c_str(), sim.m_config_pt,
+		auto saver = make_shared<Hdf5Saver>(hdf5Path(sim.getName()).string().c_str(), sim.m_config_pt,
 											freq, m_mode, m_timestep);
 		auto fn = std::bind(&Hdf5Saver::update, saver, std::placeholders::_1);
 		sim.registerObserver(saver, fn);
-		m_hdf5_savers[sim.m_name] = saver;
+		m_hdf5_savers[sim.getName()] = saver;
 
 		// initial save
 		if (!(m_mode == RunMode::Extend && m_timestep != 0)) {
@@ -310,12 +310,12 @@ void Runner::initOutputs(Simulator& sim) {
 		// We need to save to m_output_dir / ...<something that makes sense in the context of visualisation>...
 		// See hdf5Path for inspiration, but since we only consider output (whereas hdf5 is also input) there's
 		// no need to write a separate method for it.
-		std::string vis_output_dir = fs::system_complete(m_output_dir / (string("vis_") + sim.m_name)).string();
+		std::string vis_output_dir = fs::system_complete(m_output_dir / (string("vis_") + sim.getName())).string();
 		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output", vis_output_dir);
 		auto fn = bind(&ClusterSaver::update, vis_saver, std::placeholders::_1);
 		sim.registerObserver(vis_saver, fn);
 		vis_saver->update(sim);
-		m_vis_savers[sim.m_name] = vis_saver;
+		m_vis_savers[sim.getName()] = vis_saver;
 	}
 }
 
