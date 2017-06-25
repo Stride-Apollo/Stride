@@ -3,9 +3,12 @@
 
 #include <iostream>
 #include <exception>
+#include <mpi.h>
+#include <thread>
 #include <spdlog/spdlog.h>
 #include "util/InstallDirs.h"
 #include "sim/LocalSimulatorAdapter.h"
+#include "sim/RemoteSimulatorSender.h"
 #include "sim/SimulatorSetup.h"
 #include "sim/SimulatorBuilder.h"
 #include "util/StringUtils.h"
@@ -24,7 +27,7 @@ void Runner::setup() {
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 			   const RunMode& mode, int timestep)
-        : m_config_file(config_file), m_mode(mode), m_timestep(timestep) {
+        : m_config_file(config_file), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -93,6 +96,7 @@ void Runner::initSimulators() {
 
 	for (auto& it: m_region_configs) {
 		cout << "\rInitializing simulators [" << i << "/" << m_region_configs.size() << "]";
+		i++;
 		cout.flush();
 
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
@@ -111,13 +115,30 @@ void Runner::initSimulators() {
 			m_local_simulators[it.first] = sim;
 			m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
 		} else {
-			// TODO: DO MPI STUFF
+			// Call MPI environment initialization once (setup, initialize m_world_rank, m_world_size and m_provided_threads)
+			if (m_distributed_run == false) {
+				MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &m_provided_threads);
+				MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
+				MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
+				m_distributed_run = true;
+			}
+			// If this is the local region => setup local simulator
+			if (m_world_rank == stoi(remote.get())){
+				auto sim = SimulatorBuilder::build(sim_config);
+				sim->m_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
+				m_local_simulators[it.first] = sim;
+				m_local_receiver = make_shared<RemoteSimulatorReceiver>(sim.get());
+				m_listen_thread = thread(&RemoteSimulatorReceiver::listen, m_local_receiver.get());
+				// m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
+			}
+			// TODO is the remote id specified in config file the same as the world_rank?
+			m_async_simulators[it.first] = make_shared<RemoteSimulatorSender>(sim_config.get<string>("run.regions.region.<xmlattr>.name"), stoi(remote.get()));
 		}
 	}
 
 	// Also set up the Coordinator
 	// TODO allow a single simulator without schedule
-	m_coord = make_shared<Coordinator>(m_async_simulators, m_travel_schedule, m_config);
+	if (m_world_rank == 0) m_coord = make_shared<Coordinator>(m_async_simulators, m_travel_schedule, m_config);
 }
 
 void Runner::initOutputs(Simulator& sim) {
@@ -169,13 +190,23 @@ void Runner::run() {
 	int num_days = m_config.get<int>("run.num_days");
 	for (int day=0; day < m_timestep + num_days; day++) {
 		std::cout << "Simulating day: " << setw(5) << day;
-		m_coord->timeStep();
+		if (m_world_rank == 0) m_coord->timeStep();
 		std::cout << "\tDone, infected count: TODO" << endl;
 	}
 
 	for (auto& it: m_hdf5_savers) {
 		Simulator& sim = *m_local_simulators[it.first];
 		it.second->forceSave(sim, m_timestep + num_days);
+	}
+
+	// Close the MPI environment properly
+	if (m_distributed_run){
+		if (m_world_rank == 0){
+			// Send message from system 0 (coordinator) to all other systems to terminate their listening thread
+			for (int i = 0; i < m_world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
+		}
+		m_listen_thread.join(); // Join and terminate listening thread
+		MPI_Finalize();
 	}
 }
 
