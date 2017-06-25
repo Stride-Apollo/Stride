@@ -102,8 +102,12 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 
 	// Build population.
 	ptree pt_pop;
-	read_xml((InstallDirs::getDataDir() / pt_config.get<string>("run.regions.region.population")).string(),
-			 pt_pop, xml_parser::trim_whitespace);
+	if (pt_config.get("run.regions.region.population", "") == "") {
+		pt_pop.put("population.people", pt_config.get<string>("run.regions.region.raw_population"));
+	} else {
+		read_xml((InstallDirs::getDataDir() / pt_config.get<string>("run.regions.region.population")).string(),
+		pt_pop, xml_parser::trim_whitespace);
+	}
 	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, pt_pop, *sim->m_rng);
 	sim->m_config_pop = pt_pop;
 

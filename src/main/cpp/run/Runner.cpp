@@ -27,7 +27,7 @@ void Runner::setup() {
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 			   const RunMode& mode, const string& slave, int timestep)
-        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0) {
+        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0), m_uses_mpi(false) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -49,19 +49,25 @@ void Runner::parseConfig() {
 	for (auto& override: m_overrides) {
 		m_config.put(override.first, override.second);
 	}
-
+	bool has_raw_population = false;
 	for (auto& it: m_config.get_child("run.regions")) {
 		if (it.first == "region") {
 			pt::ptree& region_config = it.second;
 			string name = region_config.get<string>("<xmlattr>.name");
 			m_region_configs[name] = region_config;
 			m_region_order.push_back(name);
+
+			if (region_config.count("raw_population") != 0) {
+				has_raw_population = true;
+			}
 		}
 	}
 	if (m_region_configs.size() == 0) {
 		throw runtime_error("You need at least one region");
+	} else if (m_region_configs.size() > 1 && has_raw_population) {
+		throw runtime_error("One of the regions does not contain the necessary information to work in a multi region environment (districts, cities, ...)");
 	}
-	m_travel_schedule = m_config.get<string>("run.regions.<xmlattr>.travel_schedule");
+	m_travel_schedule = m_config.get<string>("run.regions.<xmlattr>.travel_schedule", "");
 	m_config.get_child("run").erase("regions");
 
 	m_name = m_config.get<string>("run.<xmlattr>.name");

@@ -47,6 +47,7 @@ private:
 
 	std::map<std::string, std::string> m_overrides;
 	std::string m_config_file;
+	std::string m_slave;
 	RunMode m_mode;
 	bool m_uses_mpi;
 	int m_timestep;
@@ -58,6 +59,7 @@ private:
 	int m_provided_threads;
 	shared_ptr<RemoteSimulatorReceiver> m_local_receiver;
 	thread m_listen_thread;
+	string m_slave;
 
 	boost::property_tree::ptree m_config;
 	std::map<std::string, boost::property_tree::ptree> m_region_configs;
