@@ -3,6 +3,7 @@
 #include <future>
 #include <string>
 #include <map>
+#include <mpi.h>
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
@@ -42,9 +43,11 @@ public:
   virtual void returnForeignTravellers() override;
 
 private:
-  int m_count;    // The count of elements in the databuffer (default = 1)
+  int m_count;      // The count of elements in the databuffer (default = 1)
   int m_id_mpi;     // The id which will be used for MPI communication
   string m_name;    // The standard name (string)
+  MPI_Datatype m_simulator_status;
+  MPI_Datatype m_returning_travellers;
 
   /// Send travellers to the destination region
   /// This function is used by the Simulator to give the signal to send people
@@ -54,6 +57,8 @@ private:
   /// This function is used by the Simulator to give the signal to send people
   virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health>>& travellers, const string& home_sim_id) override;
 
+  void makeSimulatorStatus();
+  void makeTravellersReturningStruct();
   friend class Simulator;
   friend class Coordinator;
 #endif
