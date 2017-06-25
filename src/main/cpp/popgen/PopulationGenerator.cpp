@@ -935,7 +935,11 @@ void PopulationGenerator<U>::removeFromUniMap(vector<pair<GeoCoordinate, map<dou
 				auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
 
 				if (cluster_iterator != index_vector.end()) {
-					index_vector.erase(cluster_iterator, ++cluster_iterator);
+					index_vector.erase(cluster_iterator, cluster_iterator + 1);
+
+					removeFromUniMap(distance_map, index);
+
+					return;
 				}
 
 			}
@@ -945,7 +949,6 @@ void PopulationGenerator<U>::removeFromUniMap(vector<pair<GeoCoordinate, map<dou
 
 template <class U>
 bool PopulationGenerator<U>::removeFromMap(vector<pair<GeoCoordinate, map<double, vector<uint> > > >& distance_map, uint index) const {
-	bool deleted = false;
 
 	// Remove this cluster from the distance map
 	for (auto& coord_map_pair: distance_map) {
@@ -955,13 +958,15 @@ bool PopulationGenerator<U>::removeFromMap(vector<pair<GeoCoordinate, map<double
 			auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
 
 			if (cluster_iterator != index_vector.end()) {
-				index_vector.erase(cluster_iterator, ++cluster_iterator);
-				deleted = true;
+				index_vector.erase(cluster_iterator, cluster_iterator + 1);
+
+				removeFromMap(distance_map, index);
+				return true;
 			}
 		}
 	}
 
-	return deleted;
+	return false;
 }
 
 template <class U>
@@ -1088,7 +1093,6 @@ bool PopulationGenerator<U>::assignCommutingEmployee(SimplePerson& person, vecto
 	/// TODO ask question: it states that a full workplace has to be ignored
 		/// but workplaces can be in cities and villages where commuting is only in cities  => possible problems with over-employing in cities
 	/// Behavior on that topic is currently as follows: do the thing that is requested, if all cities are full, it just adds to the first village in the list
-
 	for (uint i = 0; i < m_workplaces.size(); ++i) {
 		SimpleCluster& workplace = m_workplaces.at(i);
 

@@ -81,7 +81,7 @@ public:
 
 	string getName() const { return m_name; }
 
-	void steCommunicationMap(const std::map<string, AsyncSimulator*>& comm_map) {m_communication_map = comm_map;}
+	void setCommunicationMap(const std::map<string, AsyncSimulator*>& comm_map) {m_communication_map = comm_map;}
 
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
