@@ -49,8 +49,6 @@ int main(int argc, char** argv) {
 		                               "", "filename", cmd);
 		MultiArg<string> overrides_Arg("o", "override", "Override the configuration", false,
 		                               "string", cmd);
-		ValueArg<string> slave_Arg("s", "slave", "Name of region I should be", false,
-								   "", "name", cmd);
 		cmd.parse(argc, argv);
 
 		auto run_mode = SimulatorRunMode::getRunMode(simulator_mode_Arg.getValue());

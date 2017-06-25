@@ -7,6 +7,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/bimap.hpp>
 #include "sim/Coordinator.h"
 #include "checkpointing/Hdf5Saver.h"
 #include "vis/ClusterSaver.h"
@@ -18,13 +19,19 @@
 namespace stride {
 namespace run {
 
+struct SimulatorWorldrank {
+	SimulatorWorldrank(const std::string& name, int rank): simulator_name(name), world_rank(rank) {}
+	std::string simulator_name;
+	int world_rank;
+};
+
 /// Helper for parsing the config, and starting the simulators
 class Runner {
 public:
 	// The different steps we do:
 	static void setup();
 	Runner(const std::vector<std::string>& overrides_list, const std::string& config_file,
-           const RunMode& mode, const string& slave, int timestep);
+           const RunMode& mode, int timestep);
 	void printInfo();
 	void initSimulators();
     void run();
@@ -47,7 +54,6 @@ private:
 
 	std::map<std::string, std::string> m_overrides;
 	std::string m_config_file;
-	std::string m_slave;
 	RunMode m_mode;
 	bool m_uses_mpi = false;
 	bool m_is_master = true;
@@ -58,6 +64,8 @@ private:
 	int m_world_size;
 	shared_ptr<RemoteSimulatorReceiver> m_local_receiver;
 	thread m_listen_thread;
+	string m_processor_name;
+	boost::bimap<string, int> m_worldranks;
 
 	boost::property_tree::ptree m_config;
 	std::map<std::string, boost::property_tree::ptree> m_region_configs;

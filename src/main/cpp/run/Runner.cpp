@@ -101,6 +101,19 @@ void Runner::initSimulators() {
 		cout << "Using existing output directory at " << output_dir << ", will overwrite." << endl << endl;
 	}
 
+	bool has_remote = false
+	for (auto& it: m_region_configs) {
+		boost::optional<string> remote = it.second.get_optional<string>("remote");
+		if (remote) {
+			#ifdef MPI_USED
+				initMpi();
+			#else
+				throw runtime_error("MPI support is not enabled in this build");
+			#endif
+			break;
+		}
+	}
+
 	for (auto& it: m_region_configs) {
 		cout << "\rInitializing simulators [" << i << "/" << m_region_configs.size() << "]";
 		i++;
@@ -109,7 +122,7 @@ void Runner::initSimulators() {
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		pt::ptree sim_config = getRegionsConfig({it.first});
 		string sim_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
-		if (m_slave == "") {
+		if (m_is_master) {
 			if (not remote) {
 				addLocalSimulator(sim_name, sim_config);
 			} else {
@@ -122,7 +135,7 @@ void Runner::initSimulators() {
  				// Then, do MPI stuff
  				addRemoteSimulator(sim_name, sim_config);
  			} else {
- 				if (sim_name == m_slave) {
+ 				if (sim_name == "TODO get process ID") {
  					// This is our (unique) local simulator
  					addLocalSimulator(sim_name, sim_config);
  				} else {
@@ -173,12 +186,51 @@ void Runner::initMpi() {
 		MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
 		m_uses_mpi = true;
+		m_is_master = (m_world_rank == 0);
+
+		char processor_name[MPI_MAX_PROCESSOR_NAME];
+		int name_len;
+		MPI_Get_processor_name(processor_name, &name_len);
+		m_processor_name = std::string(processor_name);
+
+		vector<SimulatorWorldrank> worldranks;
+		for (auto& it: m_region_configs) {
+			boost::optional<string> remote = it.second.get_optional<string>("remote");
+			if (remote) {
+				if (remote.get() == m_processor_name) {
+					// TODO Anthony: send the SimulatorWorldrank!
+				}
+			} else if (m_is_master) {
+				worldranks.emplace_back(it.second.get<string>("<xmlattr>.name"), 0);
+			}
+		}
+
+		if (m_is_master) {
+			// TODO Anthony: collect all SimulatorWorldranks into worldranks
+			for (SimulatorWorldrank& swr: worldranks) {
+				string& name = swr.simulator_name;
+				int rank = swr.world_rank;
+				bool unique_name = m_worldranks.left.find(name) == m_worldranks.left.end();
+				bool unique_rank = m_worldranks.right.find(rank) == m_worldranks.right.end();
+				if (unique_name and unique_rank) {
+					m_worldranks.insert(decltype(m_worldranks)::value_type(name, rank));
+				}
+			}
+
+			if (m_worldranks.size() != m_region_configs.size()) {
+				throw runtime_error(to_string(m_worldranks.size()) + " simulators but "
+									+ to_string(m_region_configs.size()) + " regions.");
+			}
+
+			// TODO Anthony: send m_worldranks to every other node
+		} else {
+			// TODO Anthony: collect m_worldranks and set it accordingly
+		}
 	}
 #endif
 }
 
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
-	initMpi();
 	// TODO: DO MPI STUFF
 	boost::optional<string> remote = config.get_optional<string>("run.regions.region.remote");
 	cout << "Remote:" << remote << endl;
