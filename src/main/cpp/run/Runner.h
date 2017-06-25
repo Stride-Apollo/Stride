@@ -49,14 +49,13 @@ private:
 	std::string m_config_file;
 	std::string m_slave;
 	RunMode m_mode;
-	bool m_uses_mpi;
+	bool m_uses_mpi = false;
+	bool m_is_master = true;
 	int m_timestep;
 
 	// MPI related attributes
-	bool m_distributed_run;
 	int m_world_rank;
 	int m_world_size;
-	int m_provided_threads;
 	shared_ptr<RemoteSimulatorReceiver> m_local_receiver;
 	thread m_listen_thread;
 

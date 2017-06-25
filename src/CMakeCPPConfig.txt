@@ -65,8 +65,11 @@ include_directories( SYSTEM ${CMAKE_HOME_DIRECTORY}/main/resources/lib/tclap/inc
 #----------------------------------------------------------------------------
 # MPI Library (message passing interface)
 #----------------------------------------------------------------------------
-find_package(MPI REQUIRED)
-include_directories(MPI_INCLUDE_PATH)
+if ( NOT STRIDE_FORCE_NO_MPI )
+    find_package(MPI REQUIRED)
+    include_directories(MPI_INCLUDE_PATH)
+    add_definitions( -DMPI_USED )
+endif()
 
 #----------------------------------------------------------------------------
 # Spdlog Library (logging)

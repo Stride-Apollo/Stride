@@ -27,7 +27,7 @@ void Runner::setup() {
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 			   const RunMode& mode, const string& slave, int timestep)
-        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0), m_uses_mpi(false) {
+        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_uses_mpi(false), m_world_rank(0) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -163,19 +163,26 @@ shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost:
 }
 
 void Runner::initMpi() {
+#ifdef MPI_USED
 	if (not m_uses_mpi) {
-		int provided;
-		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
-		if (provided != MPI_THREAD_MULTIPLE) throw runtime_error("We need multiple thread support in MPI");
+		int provided = 0;
+		MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
+		std::cout << "Provided " << provided << std::endl;
+		std::cout << "Required " << MPI_THREAD_SERIALIZED << std::endl;
+		if (provided != MPI_THREAD_SERIALIZED) throw runtime_error("We need serialized thread support in MPI");
 		MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
 		m_uses_mpi = true;
 	}
+#endif
 }
 
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
 	initMpi();
 	// TODO: DO MPI STUFF
+	boost::optional<string> remote = config.get_optional<string>("run.regions.region.remote");
+	cout << "Remote:" << remote << endl;
+	m_async_simulators[name] = make_shared<RemoteSimulatorSender>(name, stoi(remote.get()));
 }
 
 void Runner::initOutputs(Simulator& sim) {
@@ -238,8 +245,9 @@ void Runner::run() {
 // 	it.second->forceSave(sim, m_timestep + num_days);
 // }
 
+#ifdef MPI_USED
 	// Close the MPI environment properly
-	if (m_distributed_run){
+	if (m_uses_mpi){
 		if (m_world_rank == 0){
 			// Send message from system 0 (coordinator) to all other systems to terminate their listening thread
 			for (int i = 0; i < m_world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
@@ -247,6 +255,7 @@ void Runner::run() {
 		m_listen_thread.join(); // Join and terminate listening thread
 		MPI_Finalize();
 	}
+#endif
 }
 
 pt::ptree Runner::getConfig() {
