@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <exception>
-#include <mpi.h>
 #include <thread>
+#include <cstddef>
 #include <spdlog/spdlog.h>
 #include "util/InstallDirs.h"
 #include "sim/LocalSimulatorAdapter.h"
@@ -107,6 +107,7 @@ void Runner::initSimulators() {
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		if (remote) {
 			#ifdef MPI_USED
+				makeSetupStruct();
 				initMpi();
 			#else
 				throw runtime_error("MPI support is not enabled in this build");
@@ -146,7 +147,7 @@ void Runner::initSimulators() {
  			}
 		}
 	}
-	
+
 	cout << endl;
 
 	if (m_uses_mpi and m_local_simulators.size() > 1) {
@@ -164,12 +165,14 @@ shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost:
 
 	if (m_mode == RunMode::Replay || m_mode == RunMode::Extend) {
 		// adjust the state of the simulator
-		Hdf5Loader loader = Hdf5Loader(hdf5Path(name).string().c_str());
+		std::string pathStr = hdf5Path(name).string();
+		Hdf5Loader loader = Hdf5Loader(pathStr.c_str());
 
 		int timestep = m_mode == RunMode::Extend ?
 					   loader.getLastSavedTimestep() : m_timestep;
 
 		loader.loadFromTimestep(timestep, sim);
+		std::cout << "Done" << std::endl;
 	}
 
 	initOutputs(*sim.get());
@@ -199,7 +202,8 @@ void Runner::initMpi() {
 			boost::optional<string> remote = it.second.get_optional<string>("remote");
 			if (remote) {
 				if (remote.get() == m_processor_name) {
-					// TODO Anthony: send the SimulatorWorldrank!
+					SimulatorWorldrank setup {it.second.get<string>("<xmlattr>.name"), m_world_rank};
+					MPI_Send(&setup, 1, MPI_INT, 0, 30, MPI_COMM_WORLD); // Tag 30 = setup related MPI message
 				}
 			} else if (m_is_master) {
 				worldranks.emplace_back(it.second.get<string>("<xmlattr>.name"), 0);
@@ -208,13 +212,18 @@ void Runner::initMpi() {
 
 		if (m_is_master) {
 			// TODO Anthony: collect all SimulatorWorldranks into worldranks
+			for (int i=1; i<m_world_size; i++){
+				SimulatorWorldrank data {"",0};
+				MPI_Recv(&data, 21, m_setup_message, i, 30, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				worldranks.push_back(data);
+			}
 			for (SimulatorWorldrank& swr: worldranks) {
-				string& name = swr.simulator_name;
+				char* name = swr.simulator_name;
 				int rank = swr.world_rank;
 				bool unique_name = m_worldranks.left.find(name) == m_worldranks.left.end();
 				bool unique_rank = m_worldranks.right.find(rank) == m_worldranks.right.end();
 				if (unique_name and unique_rank) {
-					m_worldranks.insert(decltype(m_worldranks)::value_type(name, rank));
+					m_worldranks.insert(decltype(m_worldranks)::value_type(std::string(name), rank));
 				}
 			}
 
@@ -223,18 +232,41 @@ void Runner::initMpi() {
 									+ to_string(m_region_configs.size()) + " regions.");
 			}
 
-			// TODO Anthony: send m_worldranks to every other node
+			for (int i=0; i<m_world_size; i++){
+					for (auto iter = m_worldranks.begin(), iend = m_worldranks.end(); iter != iend; ++iter){
+							SimulatorWorldrank data{iter->left, iter->right};
+							MPI_Send(&data, 21, m_setup_message, i, 31, MPI_COMM_WORLD); // Tag 31 = send worldranks to each node
+					}
+			}
 		} else {
-			// TODO Anthony: collect m_worldranks and set it accordingly
+			for (int i = 0; i<m_world_size; i++){
+				if (i == m_world_size) continue;
+				SimulatorWorldrank data {"",0};
+				MPI_Recv(&data, 21, m_setup_message, i, 31, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			}
 		}
 	}
+#endif
+}
+
+void Runner::makeSetupStruct(){
+#ifdef MPI_USED
+		MPI_Datatype type[2] = {MPI_CHAR, MPI_INT};
+		/** Number of occurence of each type */
+		int blocklen[2] = {20, 1};
+		/** Position offset from struct starting address */
+		MPI_Aint disp[2];
+		disp[0] = offsetof(SimulatorWorldrank, simulator_name);
+		disp[1] = offsetof(SimulatorWorldrank, world_rank);
+		/** Create the type */
+		MPI_Type_create_struct(2, blocklen, disp, type, &m_setup_message);
+		MPI_Type_commit(&m_setup_message);
 #endif
 }
 
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
 	// TODO: DO MPI STUFF
 	boost::optional<string> remote = config.get_optional<string>("run.regions.region.remote");
-	cout << "Remote:" << remote << endl;
 	m_async_simulators[name] = make_shared<RemoteSimulatorSender>(name, stoi(remote.get()));
 }
 

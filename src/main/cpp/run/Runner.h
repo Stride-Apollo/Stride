@@ -15,13 +15,19 @@
 #include "sim/Simulator.h"
 #include "sim/AsyncSimulator.h"
 #include "sim/RemoteSimulatorReceiver.h"
+#ifdef MPI_USED
+#include <mpi.h>
+#endif
+
 
 namespace stride {
 namespace run {
 
 struct SimulatorWorldrank {
-	SimulatorWorldrank(const std::string& name, int rank): simulator_name(name), world_rank(rank) {}
-	std::string simulator_name;
+	SimulatorWorldrank(const std::string& name, int rank): world_rank(rank) {
+		strcpy(simulator_name, name.c_str());
+	}
+	char simulator_name[20];
 	int world_rank;
 };
 
@@ -49,6 +55,7 @@ private:
 	std::shared_ptr<Simulator> addLocalSimulator(const string& name, const boost::property_tree::ptree& config);
 	std::shared_ptr<AsyncSimulator> addRemoteSimulator(const string& name, const boost::property_tree::ptree& config);
 	void initMpi();
+	void makeSetupStruct();
 
 	boost::filesystem::path hdf5Path(const string& name);
 
@@ -66,6 +73,9 @@ private:
 	thread m_listen_thread;
 	string m_processor_name;
 	boost::bimap<string, int> m_worldranks;
+	#ifdef MPI_USED
+	MPI_Datatype m_setup_message;
+	#endif
 
 	boost::property_tree::ptree m_config;
 	std::map<std::string, boost::property_tree::ptree> m_region_configs;
