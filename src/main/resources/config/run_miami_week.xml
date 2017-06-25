@@ -1,19 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<run>
-    <rng_seed>1</rng_seed>
+<run name="run_miami_week">
     <r0>3</r0>
-    <seeding_rate>0.002</seeding_rate>
-    <immunity_rate>0.0</immunity_rate>
-    <population_file>pop_miami.csv</population_file>
-    <num_days>100</num_days>
-    <output_prefix>miami_stride</output_prefix>
-    <disease_config_file>disease_influenza.xml</disease_config_file>
-    <generate_person_file>1</generate_person_file>
-    <num_participants_survey>0</num_participants_survey>
     <start_date>2017-01-01</start_date>
-    <holidays_file>holidays_none.json</holidays_file>
+    <num_days>100</num_days>
+    <holidays>holidays_none.json</holidays>
     <age_contact_matrix_file>contact_matrix_week_week.xml</age_contact_matrix_file>
-    <log_level>None</log_level>
-    <checkpointing_frequency>1</checkpointing_frequency>
-    <checkpointing_file>simulator_save.h5</checkpointing_file>
+    <track_index_case>0</track_index_case>
+    <num_threads>1</num_threads>
+    <information_policy>Global</information_policy>
+
+    <outputs>
+        <log level="Transmissions"/>
+        <person_file/>
+        <participants_survey num="0"/>
+        <!-- <visualization/>
+        <checkpointing frequency="1"/> -->
+    </outputs>
+
+    <disease>
+        <seeding_rate>0.002</seeding_rate>
+        <immunity_rate>0.0</immunity_rate>
+        <config>disease_influenza.xml</config>
+    </disease>
+
+    <regions>
+        <region name="Miami">
+            <rng_seed>1</rng_seed>
+            <raw_population>pop_miami.csv</raw_population>
+        </region>
+    </regions>
 </run>

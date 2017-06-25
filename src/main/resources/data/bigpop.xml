@@ -2,7 +2,7 @@
 <population>
 	<people>bigpop_people.csv</people>
 	<districts>bigpop_cities.csv</districts>
-	<sphere_of_influence speed="100" size="20" min="5"/>
+	<sphere_of_influence speed="10" size="20" min="5"/>
 	<clusters>bigpop_clusters.csv</clusters>
 	<households>bigpop_households.csv</households>
 	<cities>
