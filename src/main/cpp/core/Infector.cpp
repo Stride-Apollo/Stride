@@ -203,6 +203,7 @@ void Infector<log_level, track_index_case, NoLocalInformation>::execute(
 	}
 }
 
+
 //-------------------------------------------------------------------------------------------
 // Definition of partial specialization for LogMode::Contacts and NoLocalInformation policy.
 //-------------------------------------------------------------------------------------------

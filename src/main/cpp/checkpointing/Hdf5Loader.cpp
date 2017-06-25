@@ -75,6 +75,7 @@ void Hdf5Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulat
 	this->loadCalendar(file, dataset_name, sim);
 	this->loadPersonTDData(file, dataset_name, sim);
 	this->loadTravellers(file, dataset_name, sim);
+
 	// Sort the population by id first, in order to increase the speed of cluster reordening
 	auto sortByID = [](const Simulator::PersonType& lhs, const Simulator::PersonType& rhs) { return lhs.getId() < rhs.getId(); };
 	std::sort(sim->m_population->m_original.begin(), sim->m_population->m_original.end(), sortByID);
@@ -103,14 +104,6 @@ unsigned int Hdf5Loader::getLastSavedTimestep() const {
 	dataset.close();
 	file.close();
 	return data[0];
-}
-
-
-void Hdf5Loader::setupPopulation(std::shared_ptr<Simulator> sim) const {
-	const auto seed = m_pt_config.get<double>("run.rng_seed");
-	Random rng(seed);
-
-	sim = SimulatorBuilder::build(m_pt_config, m_pt_disease, m_pt_contact);
 }
 
 
@@ -208,9 +201,6 @@ void Hdf5Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Si
 			sim->m_next_id = object.m_new_id + 1;
 			sim->m_next_hh_id = object.m_new_household_id + 1;
 
-			// TODO remove debug output
-			// std::cout << "Traveller: id(home)=" << object.m_home_sim_index <<
-			// 	", disease_counter=" << object.m_disease_counter << std::endl;
 		}
 
 	} catch (DataSetIException e) {
@@ -225,7 +215,6 @@ void Hdf5Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<
 	unsigned long dims[1] = {sim->m_population.get()->m_original.size()};
 	CompType type_person_TD = PersonTDDataType::getCompType();
 
-	// for (unsigned int i = 0; i < sim->m_population->m_original.size(); i++) {
 	for (unsigned int i = 0; i < dims[0]; i++) {
 		PersonTDDataType person[1];
 		hsize_t dim_sub[1] = {1};
@@ -276,7 +265,6 @@ void Hdf5Loader::loadClusters(H5File& file, std::string full_dataset_name, std::
 	dataset.read(cluster_data, PredType::NATIVE_UINT);
 	dataset.close();
 
-	// TODO adjust position/.. if non multi region run is desired
 	// Collect all the travellers in a single vector for convenience
 	vector<Simulator::PersonType*> travellers;
 	for (auto&& day : sim->m_planner.getAgenda()) {
@@ -292,7 +280,7 @@ void Hdf5Loader::loadClusters(H5File& file, std::string full_dataset_name, std::
 			if (id < pop->m_original.size()) {
 				Simulator::PersonType* person = &pop->m_original.at(id);
 				cluster.at(i).m_members.at(j).first = person;
-			} else if (id >= pop->m_original.size()) {
+			} else {
 				// Get the pointer to the person via the travel planner
 				auto traveller = std::find_if(
 					travellers.begin(),
@@ -301,8 +289,6 @@ void Hdf5Loader::loadClusters(H5File& file, std::string full_dataset_name, std::
 						return (traveller)->getId() == id;
 				});
 				cluster.at(i).m_members.at(j).first = (*traveller);
-			} else {
-				// TODO here for later, when loading a multi region checkpointed file into a single region run/simulation
 			}
 
 		}

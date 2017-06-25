@@ -33,7 +33,7 @@ public:
 
 private:
 	using uint = unsigned int;
-  
+
 	/// Saves cluster information for Households (aggregated), Primary Communities and Secondary Communities.
 	void saveClustersCSV(const Simulator& sim) const;
 

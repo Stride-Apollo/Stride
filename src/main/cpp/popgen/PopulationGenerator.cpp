@@ -64,7 +64,7 @@ void PopulationGenerator<U>::generate(const string& prefix) {
 	assignToSchools();
 	assignToUniversities();
 	assignToWork();
-	
+
 	double start_radius = m_props.get<double>("population.commutingdata.<xmlattr>.start_radius");
 	double factor = m_props.get<double>("population.commutingdata.<xmlattr>.factor");
 
@@ -721,7 +721,7 @@ void PopulationGenerator<U>::makeUniversities() {
 		if (m_output) cerr << "\rPlacing Universities [" << min(uint(double(needed_universities) / placed_universities * 100), 100U) << "%]";
 
 		/// Add a university to the list
-		/// Note,:a university is a vector of clusters
+		/// NOTE: a university is a vector of clusters
 		vector<SimpleCluster> univ;
 		for (uint i = 0; i < clusters_per_univ; i++) {
 			SimpleCluster univ_cluster;
@@ -937,7 +937,7 @@ void PopulationGenerator<U>::removeFromUniMap(vector<pair<GeoCoordinate, map<dou
 				if (cluster_iterator != index_vector.end()) {
 					index_vector.erase(cluster_iterator, ++cluster_iterator);
 				}
-				
+
 			}
 		}
 	}
@@ -953,7 +953,7 @@ bool PopulationGenerator<U>::removeFromMap(vector<pair<GeoCoordinate, map<double
 			auto& index_vector = it->second;
 
 			auto cluster_iterator = std::find(index_vector.begin(), index_vector.end(), index);
-			
+
 			if (cluster_iterator != index_vector.end()) {
 				index_vector.erase(cluster_iterator, ++cluster_iterator);
 				deleted = true;
@@ -1155,6 +1155,7 @@ void PopulationGenerator<U>::assignToCommunities(vector<pair<GeoCoordinate, map<
 		double current_radius = start_radius;
 		vector<uint> closest_clusters_indices;
 
+		// TODO make sure merge didn't screw this up
 		while (closest_clusters_indices.size() == 0) {
 			closest_clusters_indices = getClustersWithinRange(current_radius, distance_map, m_people.at(household.m_indices.back()).m_coord);
 			current_radius *= factor;
