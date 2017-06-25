@@ -162,12 +162,14 @@ shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost:
 
 	if (m_mode == RunMode::Replay || m_mode == RunMode::Extend) {
 		// adjust the state of the simulator
-		Hdf5Loader loader = Hdf5Loader(hdf5Path(name).string().c_str());
+		std::string pathStr = hdf5Path(name).string();
+		Hdf5Loader loader = Hdf5Loader(pathStr.c_str());
 
 		int timestep = m_mode == RunMode::Extend ?
 					   loader.getLastSavedTimestep() : m_timestep;
 
 		loader.loadFromTimestep(timestep, sim);
+		std::cout << "Done" << std::endl;
 	}
 
 	initOutputs(*sim.get());
