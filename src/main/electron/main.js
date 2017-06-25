@@ -16,6 +16,12 @@ let mainWindow
 const os = require('os')
 const fs = require('fs')
 
+if (process.argv[1] == undefined) {
+	console.log("No output directory specified\nPlease specify a directory where the visualization data is located\nrelative from the installed dir");
+	electronapp.quit();
+}
+
+const output_dir = __dirname.substr(0, __dirname.indexOf("vis") - 1) + "/" + process.argv[1];
 
 function createWindow() {
 	// Create the browser window.
@@ -23,11 +29,9 @@ function createWindow() {
 	mainWindow = new BrowserWindow({width, height})
 
 	// and load the index.html of the app.
-	mainWindow.loadURL(url.format({
-		pathname: path.join(__dirname, 'index.html'),
-		protocol: 'file:',
-		slashes: true
-	}))
+	var url = "file://" + __dirname + '/index.html?dir=' + output_dir;
+	console.log(url)
+	mainWindow.loadURL(url);
 
 	// Open the DevTools.
 	 mainWindow.webContents.openDevTools()
