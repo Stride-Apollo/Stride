@@ -126,6 +126,9 @@ TEST_F(UnitTests__MR_SimulatorTest, returnHome) {
 
 		m_sim1->timeStep();
 		m_sim2->timeStep();
+		
+		m_sim1->returnForeignTravellers();
+		m_sim2->returnForeignTravellers();
 
 		for (unsigned int j = 0; j < m_sim1->getPlanner().getAgenda().size(); ++j) {
 			auto it = m_sim2->getPlanner().getAgenda().begin();

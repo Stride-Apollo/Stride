@@ -121,7 +121,6 @@ SimulatorStatus Simulator::timeStep() {
 	}
 
 	m_calendar->advanceDay();
-	returnForeignTravellers();
 	this->notify(*this);
 	return SimulatorStatus(m_population->getInfectedCount(),
 						   m_population->getAdoptedCount<Simulator::BeliefPolicy>());
