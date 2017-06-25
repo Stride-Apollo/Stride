@@ -6,12 +6,13 @@ using namespace H5;
 /**
  * Traveller data (multi region extension)
  */
+namespace stride {
 struct TravellerDataType {
 	static CompType getCompType() {
 		StrType str_type(0, H5T_VARIABLE);
 		CompType type_traveller_data(sizeof(TravellerDataType));
 
-		#define insertMemberTraveller(name, attribute, type) type_traveller_data.insertMember(H5std_string(name), HOFFSET(TravellerDataType, attribute), type)
+#define insertMemberTraveller(name, attribute, type) type_traveller_data.insertMember(H5std_string(name), HOFFSET(TravellerDataType, attribute), type)
 		insertMemberTraveller("home_sim_name", m_home_sim_name, str_type);
 		insertMemberTraveller("dest_sim_name", m_dest_sim_name, str_type);
 		insertMemberTraveller("home_sim_index", m_home_sim_index, PredType::NATIVE_UINT);
@@ -40,7 +41,7 @@ struct TravellerDataType {
 		insertMemberTraveller("new_work_id", m_new_work_id, PredType::NATIVE_UINT);
 		insertMemberTraveller("new_prim_comm_id", m_new_prim_comm_id, PredType::NATIVE_UINT);
 		insertMemberTraveller("new_sec_comm_id", m_new_sec_comm_id, PredType::NATIVE_UINT);
-		#undef insertMemberTraveller
+#undef insertMemberTraveller
 
 		return type_traveller_data;
 	}
@@ -53,8 +54,8 @@ struct TravellerDataType {
 	unsigned int m_days_left;
 
 	unsigned int m_orig_id;
-	double 		 m_age;
-	char 		 m_gender;
+	double m_age;
+	char m_gender;
 	unsigned int m_orig_household_id;
 	unsigned int m_orig_school_id;
 	unsigned int m_orig_work_id;
@@ -65,7 +66,7 @@ struct TravellerDataType {
 	unsigned int m_start_symptomatic;
 	unsigned int m_time_symptomatic;
 
-	int 		 m_participant;
+	int m_participant;
 	unsigned int m_health_status;
 	unsigned int m_disease_counter;
 	unsigned int m_new_id;
@@ -76,3 +77,4 @@ struct TravellerDataType {
 	unsigned int m_new_sec_comm_id;
 
 };
+}
