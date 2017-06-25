@@ -19,8 +19,6 @@ SimulatorSetup::SimulatorSetup(const ptree& config, string hdf5_file, RunMode ru
 	  m_timestamp_replay(timestamp_replay), m_run_mode(run_mode) {
 
 	m_hdf5_file_exists = fileExists(m_hdf5_file);
-
-	this->constructConfigTree();
 }
 
 shared_ptr<Simulator> SimulatorSetup::getSimulator() {
@@ -49,17 +47,6 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 		return sim;
 	}
 	return nullptr;
-}
-
-void SimulatorSetup::constructConfigTree() {
-	if (not m_hdf5_file_exists) {
-		throw runtime_error("valid Hdf5 file '" + m_hdf5_file + "' not present.");
-	}
-
-	// Additional run configurations.
-	if (m_pt_config.get_optional<bool>("run.num_participants_survey") == false) {
-		m_pt_config.put("run.num_participants_survey", 1);
-	}
 }
 
 bool SimulatorSetup::fileExists(string filename) const {

@@ -101,7 +101,11 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	sim->m_rng = make_shared<util::Random>(seed);
 
 	// Build population.
-	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, *sim->m_rng);
+	ptree pt_pop;
+	read_xml((InstallDirs::getDataDir() / pt_config.get<string>("run.regions.region.population")).string(),
+			 pt_pop, xml_parser::trim_whitespace);
+	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, pt_pop, *sim->m_rng);
+	sim->m_config_pop = pt_pop;
 
 	// Get the next id for new travellers
 	unsigned int max_id = 0;

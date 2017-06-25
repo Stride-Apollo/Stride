@@ -304,8 +304,9 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 		for (auto&& person: current_day) {
 			TravellerDataType traveller;
 			traveller.m_days_left = list_index;
-			traveller.m_home_sim_id = person->getHomeSimulatorId();
-			traveller.m_dest_sim_id = person->getDestinationSimulatorId();
+			// TODO replace by actual strings! (See also Hdf5Loader.cpp:190)
+			traveller.m_home_sim_id = 0xDEADBEEF; //person->getHomeSimulatorId();
+			traveller.m_dest_sim_id = 0xDEADBEEF; //person->getDestinationSimulatorId();
 			traveller.m_home_sim_index = person->getHomeSimulatorIndex();
 			traveller.m_dest_sim_index = sim.m_population->m_original.size() + (std::find(travellers_seq.begin(), travellers_seq.end(), person->getNewPerson()) - travellers_seq.begin());
 

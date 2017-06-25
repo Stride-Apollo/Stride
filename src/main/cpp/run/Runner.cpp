@@ -85,9 +85,9 @@ void Runner::initSimulators() {
 	auto output_dir = base_dir / m_name;
 	bool fresh = fs::create_directory(output_dir);
 	if (fresh) {
-		cout << "Created new output directory at '" << output_dir << "'." << endl;
+		cout << "Created new output directory at " << output_dir << "." << endl << endl;
 	} else {
-		cout << "Using existing output directory at '" << output_dir << "', will overwrite." << endl;
+		cout << "Using existing output directory at " << output_dir << ", will overwrite." << endl << endl;
 	}
 
 	for (auto& it: m_region_configs) {
@@ -104,7 +104,7 @@ void Runner::initSimulators() {
 			#else
 		  	auto sim = SimulatorBuilder::build(sim_config);
 			#endif
-			initOutputs(sim);
+			initOutputs(*sim.get());
 			m_local_simulators[it.first] = sim;
 			m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
 		} else {
@@ -113,7 +113,8 @@ void Runner::initSimulators() {
 	}
 
 	// Also set up the Coordinator
-	m_coord = make_shared<Coordinator>(m_async_simulators, m_config.get_value("run.regions.<xmlattr>.travel_schedule"));
+	// TODO allow a single simulator without schedule
+	m_coord = make_shared<Coordinator>(m_async_simulators, m_config.get<string>("run.regions.<xmlattr>.travel_schedule"));
 }
 
 void Runner::initOutputs(Simulator& sim) {
@@ -129,9 +130,9 @@ void Runner::initOutputs(Simulator& sim) {
 	sim.m_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 	// Log level already set
 
-	boost::optional<pt::ptree> checkpointing = m_config.get_optional("run.outputs.checkpointing");
+	auto checkpointing = m_config.get_child_optional("run.outputs.checkpointing");
 	if (checkpointing) {
-		int freq = checkpointing.get().get_value<int>("frequency");
+		int freq = checkpointing.get().get<int>("frequency");
 		auto saver = make_shared<Hdf5Saver>(hdf5Path(sim.m_name).string().c_str(), sim.m_config_pt,
 											freq, m_mode, m_timestep);
 		auto fn = std::bind(&Hdf5Saver::update, saver, std::placeholders::_1);
@@ -144,20 +145,24 @@ void Runner::initOutputs(Simulator& sim) {
 		}
 	}
 
-	boost::optional<pt::ptree> visualization = m_config.get_optional("run.outputs.visualization");
+	auto visualization = m_config.get_child_optional("run.outputs.visualization");
 	if (visualization) {
-		auto vis_saver = make_shared<ClusterSaver>("cluster_output");
+		// TODO Vis output, how does it work?
+		// We need to save to m_output_dir / ...<something that makes sense in the context of visualisation>...
+		// See hdf5Path for inspiration, but since we only consider output (whereas hdf5 is also input) there's
+		// no need to write a separate method for it.
+		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output");
 		auto fn = bind(&ClusterSaver::update, vis_saver, std::placeholders::_1);
 		sim.registerObserver(vis_saver, fn);
 		vis_saver->update(sim);
 		m_vis_savers[sim.m_name] = vis_saver;
 	}
 
-	// TODO other output files (cases, summary, persons)
+	// TODO other output files (cases, summary, persons, participants survey?)
 }
 
 void Runner::run() {
-	int num_days = m_config.get_value<int>("run.num_days")
+	int num_days = m_config.get<int>("run.num_days");
 	for (int day=0; day < m_timestep + num_days; day++) {
 		std::cout << "Simulating day: " << setw(5) << day;
 		m_coord->timeStep();

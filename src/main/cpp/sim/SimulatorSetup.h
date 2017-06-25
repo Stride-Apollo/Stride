@@ -18,6 +18,7 @@ using namespace std;
 
 namespace stride {
 
+// TODO: At this point SimulatorSetup is so small it could be made into one function
 class SimulatorSetup {
 public:
 	SimulatorSetup(const ptree& config, string hdf5_file, RunMode run_mode,
@@ -30,8 +31,6 @@ public:
 	}
 
 private:
-	void constructConfigTree();
-
 	/// Helper function to check if the file with filename actually exists.
 	bool fileExists(string filename) const;
 

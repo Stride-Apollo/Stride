@@ -4,7 +4,8 @@
 using namespace stride;
 using namespace std;
 
-RemoteSimulatorSender::RemoteSimulatorSender(const string& id, const int remote_id): m_count(1), m_id_mpi(remote_id), m_id(id){}
+RemoteSimulatorSender::RemoteSimulatorSender(const string& name, const int remote_id)
+        : m_count(1), m_id_mpi(remote_id), m_name(name) {}
 
 // TODO
 // https://stackoverflow.com/questions/14836560/thread-safety-of-mpi-send-using-threads-created-with-stdasync
@@ -29,7 +30,7 @@ void RemoteSimulatorSender::welcomeHomeTravellers(const pair<vector<uint>, vecto
 void RemoteSimulatorSender::hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, const string& destination_district, const string& destination_facility){
   int tag = 7;
   uint amount = travellers.size();
-  TravelData data {travellers, amount, days, m_id, destination_district, destination_facility};
+  TravelData data {travellers, amount, days, m_name, destination_district, destination_facility};
   MPI_Send(&data, m_count, MPI_INT, m_id_mpi, tag, MPI_COMM_WORLD);
 }
 
@@ -38,7 +39,7 @@ void RemoteSimulatorSender::sendNewTravellers(uint amount, uint days, const stri
   int tag = 3;    // Tag of the message (Tag 3 = travellers going to a region issued by the Coordinator)
   std::vector<Simulator::TravellerType> travellers; // Empty vector
   // TODO replace m_id with destination_sim_id?
-  TravelData data {travellers, amount, days, m_id, destination_district, destination_facility};
+  TravelData data {travellers, amount, days, m_name, destination_district, destination_facility};
   MPI_Send(&data, m_count, MPI_INT, m_id_mpi, tag, MPI_COMM_WORLD);
 }
 
@@ -52,7 +53,7 @@ void RemoteSimulatorSender::sendNewTravellers(const vector<Simulator::TravellerT
   int tag = 1;    // Tag of the message (Tag 1 = new travellers going to a region)
   uint amount = travellers.size();
   // TODO replace m_id with destination_sim_id?
-  TravelData data {travellers, amount, days, m_id, destination_district, destination_facility};
+  TravelData data {travellers, amount, days, m_name, destination_district, destination_facility};
   MPI_Send(&data, m_count, MPI_INT, m_id_mpi, tag, MPI_COMM_WORLD);
 }
 

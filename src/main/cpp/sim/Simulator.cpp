@@ -69,7 +69,7 @@ void Simulator::updateClusters() {
 						 &m_primary_community, &m_secondary_community}) {
 		m_parallel.for_(0, clusters->size(), [&](RandomRef& rng, size_t i) {
 			Infector<log_level, track_index_case, LocalInformationPolicy>::execute(
-					(*clusters)[i], m_disease_profile, *rng, m_calendar);
+					(*clusters)[i], m_disease_profile, *rng, m_calendar, *m_logger);
 		});
 	}
 }
@@ -307,7 +307,8 @@ void Simulator::returnForeignTravellers() {
   // Give the data to the senders
   for (auto it = result.begin(); it != result.end(); ++it) {
   	if (it->second.second.size() != 0) {
-  		m_async_sim->returnForeignTravellers(it->second, it->first);
+		// TODO: Again, what the actual fuck
+  		//m_async_sim->returnForeignTravellers(it->second, it->first);
   	}
   }
 }
@@ -341,13 +342,14 @@ void Simulator::sendNewTravellers(uint amount, uint days, const string& destinat
 		person->setOnVacation(true);
 
 		// Make the traveller and make sure he can't be sent twice
-		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, m_id, destination_sim_id, person->getId());
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, m_name, destination_sim_id, person->getId());
 		chosen_people.push_back(new_traveller);
 		working_people.erase(next(working_people.begin(), index));
 
 	}
 
-	m_async_sim->sendNewTravellers(chosen_people, days, destination_sim_id, destination_district, destination_facility);
+	// TODO wtf was the meaning of this?
+	//m_async_sim->sendNewTravellers(chosen_people, days, destination_sim_id, destination_district, destination_facility);
 }
 
 }

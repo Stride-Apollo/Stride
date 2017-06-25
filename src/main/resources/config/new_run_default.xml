@@ -24,16 +24,14 @@
     </disease>
 
     <regions travel_schedule="schedule_file_todo.xml">
-        <region name="Antwerp">
+        <region name="Belgium">
             <rng_seed>123</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9001</remote>
+            <population>bigpop.xml</population>
         </region>
 
-        <region name="Brussels">
+        <region name="NotBelgium">
             <rng_seed>456</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9002</remote>
+            <population>smallpop.xml</population>
         </region>
     </regions>
 </run>

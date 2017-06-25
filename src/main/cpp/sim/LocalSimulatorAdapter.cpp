@@ -37,9 +37,11 @@ void LocalSimulatorAdapter::returnForeignTravellers() {
 }
 
 void LocalSimulatorAdapter::sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility) {
-	m_adapters.at(destination_sim_id)->hostForeignTravellers(travellers, days, destination_district, destination_facility);
+	// TODO wtf?
+	//m_adapters.at(destination_sim_id)->hostForeignTravellers(travellers, days, destination_district, destination_facility);
 }
 
 void LocalSimulatorAdapter::returnForeignTravellers(const pair<vector<uint>, vector<Health>>& travellers, const string& home_sim_id) {
-	m_adapters.at(home_sim_id)->welcomeHomeTravellers(travellers);
+	// TODO wtf?
+	//m_adapters.at(home_sim_id)->welcomeHomeTravellers(travellers);
 }

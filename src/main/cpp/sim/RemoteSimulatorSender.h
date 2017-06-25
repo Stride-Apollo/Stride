@@ -16,11 +16,10 @@ using namespace util;
 
 class RemoteSimulatorSender: public AsyncSimulator{
 public:
-  RemoteSimulatorSender(const string& m_id, const int mpi_id);
+  RemoteSimulatorSender(const string& m_name, const int mpi_id);
   ~RemoteSimulatorSender() = default;
 
-  virtual void setId(const string& id) override {m_id = id;};
-  virtual string getId() const override {return m_id;};
+  virtual string getName() const override { return m_name; };
 
   /// The bool doesn't matter, C++ can't handle void
 	/// We just need to wait until it is done
@@ -44,17 +43,18 @@ public:
 private:
   int m_count;    // The count of elements in the databuffer (default = 1)
   int m_id_mpi;     // The id which will be used for MPI communication
-  string m_id;    // The standard id (string)
+  string m_name;    // The standard name (string)
 
   /// Send travellers to the destination region
-	/// This function is used by the Simulator to give the signal to send people
-	virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility) override;
+  /// This function is used by the Simulator to give the signal to send people
+  virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility) override;
 
   /// Send foreign travellers to the original region
-	/// This function is used by the Simulator to give the signal to send people
-	virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health>>& travellers, const string& home_sim_id) override;
+  /// This function is used by the Simulator to give the signal to send people
+  virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health>>& travellers, const string& home_sim_id) override;
 
   friend class Simulator;
   friend class Coordinator;
 };
+
 }

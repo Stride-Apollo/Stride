@@ -30,10 +30,7 @@ public:
 	/// The constructor, this adapter will control one simulator
 	LocalSimulatorAdapter(shared_ptr<Simulator> sim);
 
-	virtual void setId(const string& id) override {m_id = id;};
-	virtual string getId() const override {return m_id;};
-
-	void setCommunicationMap(const std::map<string, AsyncSimulator*>& adapters) {m_adapters = adapters;}
+	virtual string getName() const override { return m_sim->getName(); };
 
 	virtual future<bool> timeStep() override;
 
@@ -61,9 +58,7 @@ public:
 	const Simulator& getSimulator() const {return *m_sim;}
 
 private:
-	std::map<string, AsyncSimulator*> m_adapters;	///< A map that contains the interfaces of the other simulators
 	Simulator* m_sim = nullptr;
-	string m_id;
 
 	/// Send travellers to the destination region
 	/// This function is used by the Simulator to give the signal to send people

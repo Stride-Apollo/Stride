@@ -23,9 +23,12 @@ set( SRC
 		BatchRuns.cpp
 		UtilTests.cpp
 		PopulationTests.cpp
-		# Segfault, pls fix
+		# TODO Segfault, pls fix
 		#LocalSimulatorAdapterTests.cpp
-		AsyncSimulatorTests.cpp
+		# TODO Commented AsyncSimulatorTests, an interface needs no testing
+		# Either rewrite it to test the actual class that's responsible
+		# For whatever is happening in these tests, or throw them away
+		#AsyncSimulatorTests.cpp
 		TravelSchedulerTest.cpp
 		TransportFacilityTest.cpp
 		InfluenceTests.cpp

@@ -44,6 +44,8 @@ struct TravellerDataType {
 		return type_traveller_data;
 	}
 
+	// TODO no more ids, use strings instead
+	// IMPORTANT: also see Hdf5Loader.cpp:190
 	unsigned int m_home_sim_id;
 	unsigned int m_dest_sim_id;
 	unsigned int m_home_sim_index;

@@ -187,10 +187,10 @@ void Hdf5Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Si
 				object.m_time_infectiousness, object.m_time_symptomatic
 			);
 
+			// TODO: Replace integers with strings (see also TravellerDataType.h:48, Hdf5Saver.cpp:307)
 			Simulator::TravellerType traveller = Simulator::TravellerType(
 				original_person, sim->m_population->m_visitors.getModifiableDay(object.m_days_left)->back().get(),
-				object.m_home_sim_id, object.m_dest_sim_id, object.m_home_sim_index
-			);
+				"home_sim_todo", "dest_sim_todo", object.m_home_sim_index);
 
 			traveller.getNewPerson()->setOnVacation(false);
 			sim->m_planner.add(object.m_days_left, traveller);

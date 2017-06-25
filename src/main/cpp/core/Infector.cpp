@@ -61,7 +61,7 @@ public:
 template<LogMode log_level = LogMode::None>
 class LOG_POLICY {
 public:
-	static void execute(shared_ptr<spdlog::logger> logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
+	static void execute(spdlog::logger& logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
 						ClusterType cluster_type, shared_ptr<const Calendar> environ) {}
 };
 
@@ -71,9 +71,9 @@ public:
 template<>
 class LOG_POLICY<LogMode::Transmissions> {
 public:
-	static void execute(shared_ptr<spdlog::logger> logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
+	static void execute(spdlog::logger& logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
 						ClusterType cluster_type, shared_ptr<const Calendar> environ) {
-		logger->info("[TRAN] {} {} {} {}",
+		logger.info("[TRAN] {} {} {} {}",
 					 p1->getId(), p2->getId(), toString(cluster_type), environ->getSimulationDay());
 	}
 };
@@ -84,7 +84,7 @@ public:
 template<>
 class LOG_POLICY<LogMode::Contacts> {
 public:
-	static void execute(shared_ptr<spdlog::logger> logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
+	static void execute(spdlog::logger& logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
 						ClusterType cluster_type, shared_ptr<const Calendar> calendar) {
 		unsigned int home = (cluster_type == ClusterType::Household);
 		unsigned int work = (cluster_type == ClusterType::Work);
@@ -92,7 +92,7 @@ public:
 		unsigned int primary_community = (cluster_type == ClusterType::PrimaryCommunity);
 		unsigned int secundary_community = (cluster_type == ClusterType::SecondaryCommunity);
 
-		logger->info("[CONT] {} {} {} {} {} {} {} {} {}",
+		logger.info("[CONT] {} {} {} {} {} {} {} {} {}",
 					 p1->getId(), p1->getAge(), p2->getAge(), home, school, work, primary_community,
 					 secundary_community,
 					 calendar->getSimulationDay());
