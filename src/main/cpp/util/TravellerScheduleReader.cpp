@@ -12,10 +12,10 @@ using namespace std;
 
 bool stride::util::operator==(const Flight& flight1, const Flight& flight2) {
 	return flight1.m_source_sim == flight2.m_source_sim
-				&& flight1.m_destination_sim == flight2.m_destination_sim
-				&& flight1.m_amount == flight2.m_amount
-				&& flight1.m_duration == flight2.m_duration
-				&& flight1.m_day_of_the_week == flight2.m_day_of_the_week;
+		   && flight1.m_destination_sim == flight2.m_destination_sim
+		   && flight1.m_amount == flight2.m_amount
+		   && flight1.m_duration == flight2.m_duration
+		   && flight1.m_day_of_the_week == flight2.m_day_of_the_week;
 }
 
 Schedule TravellerScheduleReader::readSchedule(string filename) {
@@ -40,7 +40,7 @@ void TravellerScheduleReader::parseTree(string filename) {
 	// Parse the file
 	try {
 		boost::property_tree::read_xml(filename, m_pt);
-	} catch(...) {
+	} catch (...) {
 		throw invalid_argument("In TravellerScheduleReader: Error while parsing.");
 	}
 }

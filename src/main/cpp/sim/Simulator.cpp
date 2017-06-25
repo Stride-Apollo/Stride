@@ -41,14 +41,14 @@ using namespace boost::property_tree;
 using namespace stride::util;
 
 Simulator::Simulator()
-        : m_num_threads(1U), m_log_level(LogMode::Null), m_config_pt(), m_population(nullptr),
-          m_disease_profile(), m_track_index_case(false), m_next_id(0), m_next_hh_id(0) {
-	m_parallel.resources().setFunc([&](){
+		: m_num_threads(1U), m_log_level(LogMode::Null), m_config_pt(), m_population(nullptr),
+		  m_disease_profile(), m_track_index_case(false), m_next_id(0), m_next_hh_id(0) {
+	m_parallel.resources().setFunc([&]() {
 		#if UNIPAR_IMPL == UNIPAR_DUMMY
-			return m_rng.get();
+		return m_rng.get();
 		#else
-			std::random_device rd;
-			return make_unique<Random>(rd());
+		std::random_device rd;
+		return make_unique<Random>(rd());
 		#endif
 	});
 }
@@ -98,25 +98,31 @@ SimulatorStatus Simulator::timeStep() {
 
 	if (m_track_index_case) {
 		switch (m_log_level) {
-		case LogMode::Contacts:
-			updateClusters<LogMode::Contacts, true>(); break;
-		case LogMode::Transmissions:
-			updateClusters<LogMode::Transmissions, true>(); break;
-		case LogMode::None:
-			updateClusters<LogMode::None, true>(); break;
-		default:
-			throw runtime_error(std::string(__func__) + "Log mode screwed up!");
+			case LogMode::Contacts:
+				updateClusters<LogMode::Contacts, true>();
+				break;
+			case LogMode::Transmissions:
+				updateClusters<LogMode::Transmissions, true>();
+				break;
+			case LogMode::None:
+				updateClusters<LogMode::None, true>();
+				break;
+			default:
+				throw runtime_error(std::string(__func__) + "Log mode screwed up!");
 		}
 	} else {
 		switch (m_log_level) {
-		case LogMode::Contacts:
-			updateClusters<LogMode::Contacts, false>(); break;
-		case LogMode::Transmissions:
-			updateClusters<LogMode::Transmissions, false>(); break;
-		case LogMode::None:
-			updateClusters<LogMode::None, false>(); break;
-		default:
-			throw runtime_error(std::string(__func__) + "Log mode screwed up!");
+			case LogMode::Contacts:
+				updateClusters<LogMode::Contacts, false>();
+				break;
+			case LogMode::Transmissions:
+				updateClusters<LogMode::Transmissions, false>();
+				break;
+			case LogMode::None:
+				updateClusters<LogMode::None, false>();
+				break;
+			default:
+				throw runtime_error(std::string(__func__) + "Log mode screwed up!");
 		}
 	}
 
@@ -176,7 +182,7 @@ uint Simulator::chooseCluster(const GeoCoordinate& coordinate, const vector<Clus
 		}
 
 		if (available_clusters.size() != 0) {
-			uint chosen_index = m_rng->operator() (available_clusters.size());
+			uint chosen_index = m_rng->operator()(available_clusters.size());
 			return available_clusters[chosen_index];
 
 		} else {
@@ -186,7 +192,8 @@ uint Simulator::chooseCluster(const GeoCoordinate& coordinate, const vector<Clus
 	}
 }
 
-bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility) {
+bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& travellers, uint days,
+									  string destination_district, string destination_facility) {
 	GeoCoordinate facility_location;
 	double influence = 0.0;
 	bool found_airport = false;
@@ -202,7 +209,8 @@ bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& tr
 	}
 
 	if (!found_airport) {
-		cerr << "\nWarning: facility " << destination_facility << " not found in district " << destination_district << endl;
+		cerr << "\nWarning: facility " << destination_facility << " not found in district " << destination_district
+			 << endl;
 		return false;
 	}
 
@@ -228,11 +236,14 @@ bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& tr
 		uint start_symptomatic = traveller.getHomePerson().getHealth().getStartSymptomatic();
 
 		// Note: the "ID" given to the constructor of a person is actually an index!
-		Simulator::PersonType new_person = Simulator::PersonType(m_next_id, traveller.getHomePerson().getAge(), m_next_hh_id, 0,
-																	work_index, prim_comm_index, sec_comm_index,
-																	start_infectiousness, start_symptomatic,
-																	traveller.getHomePerson().getHealth().getEndInfectiousness() - start_infectiousness,
-																	traveller.getHomePerson().getHealth().getEndSymptomatic() - start_symptomatic);
+		Simulator::PersonType new_person = Simulator::PersonType(m_next_id, traveller.getHomePerson().getAge(),
+																 m_next_hh_id, 0,
+																 work_index, prim_comm_index, sec_comm_index,
+																 start_infectiousness, start_symptomatic,
+																 traveller.getHomePerson().getHealth().getEndInfectiousness() -
+																 start_infectiousness,
+																 traveller.getHomePerson().getHealth().getEndSymptomatic() -
+																 start_symptomatic);
 		new_person.getHealth() = traveller.getHomePerson().getHealth();
 
 		// Add the person to the planner
@@ -240,10 +251,11 @@ bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& tr
 
 		// Note: the ID of a non-traveller is always the same as his index in m_population->m_original
 		Simulator::TravellerType new_traveller = Simulator::TravellerType(traveller.getHomePerson(),
-																			this->m_population->m_visitors.getModifiableDay(days)->back().get(),
-																			traveller.getHomeSimulatorId(),
-																			traveller.getDestinationSimulatorId(),
-																			traveller.getHomePerson().getId());
+																		  this->m_population->m_visitors.getModifiableDay(
+																				  days)->back().get(),
+																		  traveller.getHomeSimulatorId(),
+																		  traveller.getDestinationSimulatorId(),
+																		  traveller.getHomePerson().getId());
 
 		new_traveller.getNewPerson()->setOnVacation(false);
 		m_planner.add(days, new_traveller);
@@ -278,7 +290,7 @@ void Simulator::returnForeignTravellers() {
 	// Get the people that return home today (according to the planner in the population of this simulator)
 	SimplePlanner<Simulator::TravellerType>::Block* returning_people = m_planner.getModifiableDay(0);
 
-	map<string, pair<vector<uint>, vector<Health>> > result;
+	map<string, pair<vector<uint>, vector<Health>>> result;
 
 	for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
 		auto& traveller = **it;
@@ -313,8 +325,9 @@ void Simulator::returnForeignTravellers() {
 	}
 }
 
-void Simulator::sendNewTravellers(uint amount, uint days, const string& destination_sim, string destination_district, string destination_facility) {
-	list<Simulator::PersonType*> working_people;
+void Simulator::sendNewTravellers(uint amount, uint days, const string& destination_sim, string destination_district,
+								  string destination_facility) {
+	list < Simulator::PersonType * > working_people;
 
 	// Get the working people
 	Population& population = *(m_population.get());
@@ -335,20 +348,22 @@ void Simulator::sendNewTravellers(uint amount, uint days, const string& destinat
 
 	while (chosen_people.size() != amount) {
 		// Randomly generate an index in working_people
-		unsigned int index = m_rng->operator() (working_people.size());
+		unsigned int index = m_rng->operator()(working_people.size());
 
 		// Get the person to be sent
 		Simulator::PersonType* person = *(next(working_people.begin(), index));
 		person->setOnVacation(true);
 
 		// Make the traveller and make sure he can't be sent twice
-		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, m_name, destination_sim, person->getId());
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, m_name, destination_sim,
+																		  person->getId());
 		chosen_people.push_back(new_traveller);
 		working_people.erase(next(working_people.begin(), index));
 
 	}
 
-	m_communication_map[destination_sim]->hostForeignTravellers(chosen_people, days, destination_district, destination_facility);
+	m_communication_map[destination_sim]->hostForeignTravellers(chosen_people, days, destination_district,
+																destination_facility);
 }
 
 }

@@ -19,14 +19,15 @@ void run(T generator, const string& prefix) {
 }
 
 int main(int argc, char** argv) {
-	try{
+	try {
 		// TCLAP commandline interface
 		CmdLine cmd("Commandline interface of the PopulationGenerator", ' ', "Beta");
-		
-		ValueArg<string> sourceArg("i", "input", "Input xml file for the configuration of the generator", true, "data/happy_day.xml", "string", cmd);
+
+		ValueArg<string> sourceArg("i", "input", "Input xml file for the configuration of the generator", true,
+								   "data/happy_day.xml", "string", cmd);
 		ValueArg<string> outputPrefixArg("o", "output", "Output prefix", true, "pop", "string", cmd);
 		string options = "The random generator (one of the following): ";
- 		options += "default_random_engine - mt19937 - mt19937_64 - minstd_rand0 - minstd_rand - ranlux24_base - ranlux48_base - ranlux24 - ranlux48 - knuth_b";
+		options += "default_random_engine - mt19937 - mt19937_64 - minstd_rand0 - minstd_rand - ranlux24_base - ranlux48_base - ranlux24 - ranlux48 - knuth_b";
 		ValueArg<string> rngArg("r", "randomgenerator", options, false, "mt19937", "string", cmd);
 
 		// The seed argument
@@ -72,8 +73,9 @@ int main(int argc, char** argv) {
 			run(generator, prefix);
 		} else if (rng == "knuth_b") {
 			PopulationGenerator<knuth_b> generator {sourceXml, seed};
-			run(generator, prefix);}
-	} catch (ArgException &exc) {
+			run(generator, prefix);
+		}
+	} catch (ArgException& exc) {
 		cerr << "Error: " << exc.error() << " for argument " << exc.argId() << endl;
 	}
 }

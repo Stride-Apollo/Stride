@@ -34,15 +34,16 @@
 namespace stride {
 
 class Calendar;
+
 enum class ClusterType;
 
-template <typename T>
+template<typename T>
 class Traveller;
 
 /**
  * Store and handle person data.
  */
-template <class BehaviourPolicy, class BeliefPolicy>
+template<class BehaviourPolicy, class BeliefPolicy>
 class Person {
 public:
 	/// Constructor: set the person data.
@@ -102,9 +103,11 @@ public:
 	void update(const Person* p);
 
 	bool isOnVacation() const { return m_is_on_vacation; }
+
 	void setOnVacation(bool is_on_vacation) { m_is_on_vacation = is_on_vacation; }
 
-	template<class PersonType> friend class Traveller;
+	template<class PersonType> friend
+	class Traveller;
 
 private:
 	unsigned int m_id;  ///< The id.
@@ -128,20 +131,28 @@ private:
 
 	bool m_is_participant;  ///< Is participating in the social contact study
 	bool m_is_on_vacation;  ///< Is currently on a vacation and should be included in calculations
-	                        ///< Note: Population already filters these people out when iterating
+	///< Note: Population already filters these people out when iterating
 
 private:
 	friend class Hdf5Saver;
+
 	friend class Hdf5Loader;
 
 	friend class Traveller<Person<BehaviourPolicy, BeliefPolicy>>;
 };
 
 /// Explicit instantiations in .cpp file
-extern template class Person<NoBehaviour<NoBelief>, NoBelief>;
-extern template class Person<Vaccination<Threshold<true, false> >, Threshold<true, false>>;
-extern template class Person<Vaccination<Threshold<true, false> >, Threshold<false, true>>;
-extern template class Person<Vaccination<Threshold<true, false> >, Threshold<true, true>>;
+extern template
+class Person<NoBehaviour<NoBelief>, NoBelief>;
+
+extern template
+class Person<Vaccination<Threshold<true, false>>, Threshold<true, false>>;
+
+extern template
+class Person<Vaccination<Threshold<true, false>>, Threshold<false, true>>;
+
+extern template
+class Person<Vaccination<Threshold<true, false>>, Threshold<true, true>>;
 
 }
 

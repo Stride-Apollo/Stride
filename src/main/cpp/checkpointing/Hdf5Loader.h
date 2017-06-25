@@ -6,8 +6,11 @@
 */
 
 #ifdef HDF5_USED
-	#include "H5Cpp.h"
+
+#include "H5Cpp.h"
+
 #endif
+
 #include "util/Observer.h"
 #include "sim/Simulator.h"
 #include <boost/property_tree/xml_parser.hpp>
@@ -37,7 +40,9 @@ public:
 
 public:
 	ptree getConfig() const { return m_pt_config; }
+
 	ptree getDisease() const { return m_pt_disease; }
+
 	ptree getContact() const { return m_pt_contact; }
 
 	/// Retrieves the last saved timestep index in the hdf5 file.
@@ -53,7 +58,8 @@ private:
 	void updateClusterImmuneIndices(shared_ptr<Simulator> sim) const;
 
 	/// Reoders the cluster member positions according to the loaded timestep data.
-	void loadClusters(H5::H5File& file, string full_dataset_name, std::vector<Cluster>& cluster, shared_ptr<Simulator> sim) const;
+	void loadClusters(H5::H5File& file, string full_dataset_name, std::vector<Cluster>& cluster,
+					  shared_ptr<Simulator> sim) const;
 
 	/// Loads the calendar data.
 	void loadCalendar(H5::H5File& file, string dataset_name, shared_ptr<Simulator> sim) const;
@@ -79,28 +85,28 @@ private:
 	ptree m_pt_contact;
 #endif
 #ifndef HDF5_USED
-// These dummy headers are used as an interface for when no hdf5 is included, but everything still needs to compile.
-public:
-	Hdf5Loader(const char* filename) {}
+	// These dummy headers are used as an interface for when no hdf5 is included, but everything still needs to compile.
+	public:
+		Hdf5Loader(const char* filename) {}
 
-	/// Load from timestep, if the specified timestep is present in the hdf5 file.
-	void loadFromTimestep(unsigned int timestep, shared_ptr<Simulator> sim) const {}
+		/// Load from timestep, if the specified timestep is present in the hdf5 file.
+		void loadFromTimestep(unsigned int timestep, shared_ptr<Simulator> sim) const {}
 
-	/// Extend the simulation at the last saved timestep.
-	void extendSimulation(shared_ptr<Simulator> sim) const {}
+		/// Extend the simulation at the last saved timestep.
+		void extendSimulation(shared_ptr<Simulator> sim) const {}
 
 
-public:
-	ptree getConfig() const { ptree result; return result; }
-	ptree getDisease() const { ptree result; return result; }
-	ptree getContact() const { ptree result; return result; }
+	public:
+		ptree getConfig() const { ptree result; return result; }
+		ptree getDisease() const { ptree result; return result; }
+		ptree getContact() const { ptree result; return result; }
 
-	/// Retrieves the last saved timestep index in the hdf5 file.
-	unsigned int getLastSavedTimestep() const { return 0; }
+		/// Retrieves the last saved timestep index in the hdf5 file.
+		unsigned int getLastSavedTimestep() const { return 0; }
 
-public:
-	/// Extract the configuration files saved in the hdf5 file.
-	static void extractConfigs(string filename) {}
+	public:
+		/// Extract the configuration files saved in the hdf5 file.
+		static void extractConfigs(string filename) {}
 #endif
 };
 

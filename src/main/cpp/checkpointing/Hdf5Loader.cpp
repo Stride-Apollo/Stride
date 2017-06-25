@@ -33,12 +33,12 @@ using namespace stride::util;
 namespace stride {
 
 
-Hdf5Loader::Hdf5Loader(const char *filename) :
- 	m_filename(filename) {
+Hdf5Loader::Hdf5Loader(const char* filename) :
+		m_filename(filename) {
 
 	try {
 		this->loadConfigs();
-	} catch(FileIException error) {
+	} catch (FileIException error) {
 		error.printError();
 	}
 }
@@ -77,7 +77,9 @@ void Hdf5Loader::loadFromTimestep(unsigned int timestep, std::shared_ptr<Simulat
 	this->loadTravellers(file, dataset_name, sim);
 
 	// Sort the population by id first, in order to increase the speed of cluster reordening
-	auto sortByID = [](const Simulator::PersonType& lhs, const Simulator::PersonType& rhs) { return lhs.getId() < rhs.getId(); };
+	auto sortByID = [](const Simulator::PersonType& lhs, const Simulator::PersonType& rhs) {
+		return lhs.getId() < rhs.getId();
+	};
 	std::sort(sim->m_population->m_original.begin(), sim->m_population->m_original.end(), sortByID);
 
 	this->loadClusters(file, dataset_name + "/household_clusters", sim->m_households, sim);
@@ -109,19 +111,19 @@ unsigned int Hdf5Loader::getLastSavedTimestep() const {
 
 void Hdf5Loader::updateClusterImmuneIndices(std::shared_ptr<Simulator> sim) const {
 	for (auto cluster : sim->m_households) {
-		cluster.m_index_immune = cluster.m_members.size()-1;
+		cluster.m_index_immune = cluster.m_members.size() - 1;
 	}
 	for (auto cluster : sim->m_school_clusters) {
-		cluster.m_index_immune = cluster.m_members.size()-1;
+		cluster.m_index_immune = cluster.m_members.size() - 1;
 	}
 	for (auto cluster : sim->m_work_clusters) {
-		cluster.m_index_immune = cluster.m_members.size()-1;
+		cluster.m_index_immune = cluster.m_members.size() - 1;
 	}
 	for (auto cluster : sim->m_primary_community) {
-		cluster.m_index_immune = cluster.m_members.size()-1;
+		cluster.m_index_immune = cluster.m_members.size() - 1;
 	}
 	for (auto cluster : sim->m_secondary_community) {
-		cluster.m_index_immune = cluster.m_members.size()-1;
+		cluster.m_index_immune = cluster.m_members.size() - 1;
 	}
 }
 
@@ -162,11 +164,11 @@ void Hdf5Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Si
 
 			// First of all, add the person to the population (visitors)
 			Simulator::PersonType person = Simulator::PersonType(
-				object.m_new_id, object.m_age,
-				object.m_new_household_id, object.m_new_school_id, object.m_new_work_id,
-				object.m_new_prim_comm_id, object.m_new_sec_comm_id,
-				object.m_start_infectiousness, object.m_start_symptomatic,
-				object.m_time_infectiousness, object.m_time_symptomatic
+					object.m_new_id, object.m_age,
+					object.m_new_household_id, object.m_new_school_id, object.m_new_work_id,
+					object.m_new_prim_comm_id, object.m_new_sec_comm_id,
+					object.m_start_infectiousness, object.m_start_symptomatic,
+					object.m_time_infectiousness, object.m_time_symptomatic
 			);
 			person.m_health.m_status = HealthStatus(object.m_health_status);
 			person.m_health.m_disease_counter = object.m_disease_counter;
@@ -178,26 +180,27 @@ void Hdf5Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Si
 
 			// Construct the person from the original simulator (his health does not matter, since his new one is used and returned eventually)
 			Simulator::PersonType original_person = Simulator::PersonType(
-				object.m_orig_id, object.m_age,
-				object.m_orig_household_id, object.m_orig_school_id, object.m_orig_work_id,
-				object.m_orig_prim_comm_id, object.m_orig_sec_comm_id,
-				object.m_start_infectiousness, object.m_start_symptomatic,
-				object.m_time_infectiousness, object.m_time_symptomatic
+					object.m_orig_id, object.m_age,
+					object.m_orig_household_id, object.m_orig_school_id, object.m_orig_work_id,
+					object.m_orig_prim_comm_id, object.m_orig_sec_comm_id,
+					object.m_start_infectiousness, object.m_start_symptomatic,
+					object.m_time_infectiousness, object.m_time_symptomatic
 			);
 
 			string home_sim_name = object.m_home_sim_name;
 			string dest_sim_name = object.m_dest_sim_name;
 
 			Simulator::TravellerType traveller = Simulator::TravellerType(
-				original_person, sim->m_population->m_visitors.getModifiableDay(object.m_days_left)->back().get(),
-				home_sim_name, dest_sim_name, object.m_home_sim_index);
+					original_person, sim->m_population->m_visitors.getModifiableDay(object.m_days_left)->back().get(),
+					home_sim_name, dest_sim_name, object.m_home_sim_index);
 
 			traveller.getNewPerson()->setOnVacation(false);
 			sim->m_planner.add(object.m_days_left, traveller);
 
 
 			// Finally, add the traveller to clusters
-			Simulator::PersonType* added_person = sim->m_population->m_visitors.getModifiableDay(object.m_days_left)->back().get();
+			Simulator::PersonType* added_person = sim->m_population->m_visitors.getModifiableDay(
+					object.m_days_left)->back().get();
 
 			sim->m_work_clusters.at(object.m_new_work_id).addPerson(added_person);
 			sim->m_primary_community.at(object.m_new_prim_comm_id).addPerson(added_person);
@@ -257,7 +260,8 @@ void Hdf5Loader::loadRngState(H5File& file, string dataset_name, shared_ptr<Simu
 }
 
 
-void Hdf5Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vector<Cluster>& cluster, std::shared_ptr<Simulator> sim) const {
+void Hdf5Loader::loadClusters(H5File& file, std::string full_dataset_name, std::vector<Cluster>& cluster,
+							  std::shared_ptr<Simulator> sim) const {
 	std::shared_ptr<Population> pop = sim->m_population;
 
 	DataSet dataset = DataSet(file.openDataSet(full_dataset_name));
@@ -281,8 +285,8 @@ void Hdf5Loader::loadClusters(H5File& file, std::string full_dataset_name, std::
 		}
 	}
 
-	for(unsigned int i = 0; i < cluster.size(); i++) {
-		for(unsigned int j = 0; j < cluster.at(i).getSize(); j++) {
+	for (unsigned int i = 0; i < cluster.size(); i++) {
+		for (unsigned int j = 0; j < cluster.at(i).getSize(); j++) {
 			unsigned int id = cluster_data[index++];
 
 			if (id < pop->m_original.size()) {
@@ -291,11 +295,11 @@ void Hdf5Loader::loadClusters(H5File& file, std::string full_dataset_name, std::
 			} else {
 				// Get the pointer to the person via the travel planner
 				auto traveller = std::find_if(
-					travellers.begin(),
-					travellers.end(),
-					[&id](Simulator::PersonType* traveller)->bool {
-						return (traveller)->getId() == id;
-				});
+						travellers.begin(),
+						travellers.end(),
+						[&id](Simulator::PersonType* traveller) -> bool {
+							return (traveller)->getId() == id;
+						});
 				cluster.at(i).m_members.at(j).first = (*traveller);
 			}
 
@@ -308,12 +312,12 @@ void Hdf5Loader::extractConfigs(string filename) {
 	bool hdf5_file_exists = exists(system_complete(filename));
 	if (!hdf5_file_exists) {
 		throw runtime_error(string(__func__) + "> Hdf5 file " +
-			system_complete(filename).string() + " does not exist.");
+							system_complete(filename).string() + " does not exist.");
 	}
 	const auto file_path_hdf5 = canonical(system_complete(filename));
 	if (!is_regular_file(file_path_hdf5)) {
 		throw runtime_error(string(__func__) + "> Hdf5 file " +
-			system_complete(filename).string() + " is not a regular file.");
+							system_complete(filename).string() + " is not a regular file.");
 	}
 
 	H5File file(filename, H5F_ACC_RDONLY, H5P_DEFAULT, H5P_DEFAULT);

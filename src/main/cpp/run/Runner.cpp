@@ -30,17 +30,17 @@ void Runner::setup() {
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 			   const RunMode& mode, int timestep)
-        : m_config_file(config_file), m_mode(mode), m_uses_mpi(false), m_timestep(timestep), m_world_rank(0) {
-    for (const string& kv: overrides_list) {
-        vector<string> parts = StringUtils::split(kv, "=");
-        if (parts.size() != 2) {
-            throw runtime_error(string("Couldn't parse the override ") + kv);
-        }
+		: m_config_file(config_file), m_mode(mode), m_uses_mpi(false), m_timestep(timestep), m_world_rank(0) {
+	for (const string& kv: overrides_list) {
+		vector<string> parts = StringUtils::split(kv, "=");
+		if (parts.size() != 2) {
+			throw runtime_error(string("Couldn't parse the override ") + kv);
+		}
 
-        string key = string("run.") + StringUtils::trim(parts[0]);
-        key = StringUtils::replace(key, "@", "<xmlattr>.");
-        m_overrides[key] = StringUtils::trim(parts[1]);
-    }
+		string key = string("run.") + StringUtils::trim(parts[0]);
+		key = StringUtils::replace(key, "@", "<xmlattr>.");
+		m_overrides[key] = StringUtils::trim(parts[1]);
+	}
 	fs::path base_dir = InstallDirs::getOutputDir();
 	parseConfig();
 	m_output_dir = base_dir / m_name;
@@ -67,7 +67,8 @@ void Runner::parseConfig() {
 	if (m_region_configs.size() == 0) {
 		throw runtime_error("You need at least one region");
 	} else if (m_region_configs.size() > 1 && has_raw_population) {
-		throw runtime_error("One of the regions does not contain the necessary information to work in a multi region environment (districts, cities, ...)");
+		throw runtime_error(
+				"One of the regions does not contain the necessary information to work in a multi region environment (districts, cities, ...)");
 	}
 	m_travel_schedule = m_config.get<string>("run.regions.<xmlattr>.travel_schedule", "");
 	m_config.get_child("run").erase("regions");
@@ -107,9 +108,9 @@ void Runner::initSimulators() {
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		if (remote) {
 			#ifdef MPI_USED
-				initMpi();
+			initMpi();
 			#else
-				throw runtime_error("MPI support is not enabled in this build");
+			throw runtime_error("MPI support is not enabled in this build");
 			#endif
 			break;
 		}
@@ -130,20 +131,20 @@ void Runner::initSimulators() {
 				addRemoteSimulator(sim_name, sim_config);
 			}
 		} else {
- 			if (not remote) {
- 				// This is a simulator running at the master
- 				// TODO: get Master's contact info?
- 				// Then, do MPI stuff
- 				addRemoteSimulator(sim_name, sim_config);
- 			} else {
- 				if (sim_name == "TODO get process ID") {
- 					// This is our (unique) local simulator
- 					addLocalSimulator(sim_name, sim_config);
- 				} else {
- 					// This is just another remote simulator
- 					addRemoteSimulator(sim_name, sim_config);
- 				}
- 			}
+			if (not remote) {
+				// This is a simulator running at the master
+				// TODO: get Master's contact info?
+				// Then, do MPI stuff
+				addRemoteSimulator(sim_name, sim_config);
+			} else {
+				if (sim_name == "TODO get process ID") {
+					// This is our (unique) local simulator
+					addLocalSimulator(sim_name, sim_config);
+				} else {
+					// This is just another remote simulator
+					addRemoteSimulator(sim_name, sim_config);
+				}
+			}
 		}
 	}
 
@@ -218,8 +219,8 @@ void Runner::initMpi() {
 
 		if (m_is_master) {
 			// TODO Anthony: collect all SimulatorWorldranks into worldranks
-			for (int i=1; i<m_world_size; i++){
-				SimulatorWorldrank data {"",0};
+			for (int i = 1; i < m_world_size; i++) {
+				SimulatorWorldrank data {"", 0};
 				MPI_Recv(&data, 21, m_setup_message, i, 30, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 				worldranks.push_back(data);
 			}
@@ -229,7 +230,8 @@ void Runner::initMpi() {
 				bool unique_name = m_worldranks.left.find(name) == m_worldranks.left.end();
 				bool unique_rank = m_worldranks.right.find(rank) == m_worldranks.right.end();
 				if (unique_name and unique_rank) {
-					m_worldranks.insert(decltype(m_worldranks)::value_type(std::string(name), rank));
+					m_worldranks.insert(decltype(m_worldranks)
+					::value_type(std::string(name), rank));
 				}
 			}
 
@@ -238,16 +240,17 @@ void Runner::initMpi() {
 									+ to_string(m_region_configs.size()) + " regions.");
 			}
 
-			for (int i=0; i<m_world_size; i++){
-					for (auto iter = m_worldranks.begin(), iend = m_worldranks.end(); iter != iend; ++iter){
-							SimulatorWorldrank data{iter->left, iter->right};
-							MPI_Send(&data, 21, m_setup_message, i, 31, MPI_COMM_WORLD); // Tag 31 = send worldranks to each node
-					}
+			for (int i = 0; i < m_world_size; i++) {
+				for (auto iter = m_worldranks.begin(), iend = m_worldranks.end(); iter != iend; ++iter) {
+					SimulatorWorldrank data {iter->left, iter->right};
+					MPI_Send(&data, 21, m_setup_message, i, 31,
+							 MPI_COMM_WORLD); // Tag 31 = send worldranks to each node
+				}
 			}
 		} else {
-			for (int i = 0; i<m_world_size; i++){
+			for (int i = 0; i < m_world_size; i++) {
 				if (i == m_world_size) continue;
-				SimulatorWorldrank data {"",0};
+				SimulatorWorldrank data {"", 0};
 				MPI_Recv(&data, 21, m_setup_message, i, 31, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			}
 		}
@@ -255,18 +258,18 @@ void Runner::initMpi() {
 #endif
 }
 
-void Runner::makeSetupStruct(){
+void Runner::makeSetupStruct() {
 #ifdef MPI_USED
-		MPI_Datatype type[2] = {MPI_CHAR, MPI_INT};
-		/** Number of occurence of each type */
-		int blocklen[2] = {20, 1};
-		/** Position offset from struct starting address */
-		MPI_Aint disp[2];
-		disp[0] = offsetof(SimulatorWorldrank, simulator_name);
-		disp[1] = offsetof(SimulatorWorldrank, world_rank);
-		/** Create the type */
-		MPI_Type_create_struct(2, blocklen, disp, type, &m_setup_message);
-		MPI_Type_commit(&m_setup_message);
+	MPI_Datatype type[2] = {MPI_CHAR, MPI_INT};
+	/** Number of occurence of each type */
+	int blocklen[2] = {20, 1};
+	/** Position offset from struct starting address */
+	MPI_Aint disp[2];
+	disp[0] = offsetof(SimulatorWorldrank, simulator_name);
+	disp[1] = offsetof(SimulatorWorldrank, world_rank);
+	/** Create the type */
+	MPI_Type_create_struct(2, blocklen, disp, type, &m_setup_message);
+	MPI_Type_commit(&m_setup_message);
 #endif
 }
 
@@ -311,7 +314,8 @@ void Runner::initOutputs(Simulator& sim) {
 		// See hdf5Path for inspiration, but since we only consider output (whereas hdf5 is also input) there's
 		// no need to write a separate method for it.
 		std::string vis_output_dir = fs::system_complete(m_output_dir / (string("vis_") + sim.getName())).string();
-		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output", vis_output_dir);
+		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output",
+												   vis_output_dir);
 		auto fn = bind(&ClusterSaver::update, vis_saver, std::placeholders::_1);
 		sim.registerObserver(vis_saver, fn);
 		vis_saver->update(sim);
@@ -334,7 +338,7 @@ void Runner::run() {
 		int total = 0;
 		for (auto& it: m_region_configs) {
 			cout << it.first;
-			for (int i=15 - it.first.size(); i>0; i--) cout << ' ';
+			for (int i = 15 - it.first.size(); i > 0; i--) cout << ' ';
 			cout << " | ";
 		}
 
@@ -369,7 +373,7 @@ void Runner::run() {
 #ifdef MPI_USED
 	// Close the MPI environment properly
 	if (m_uses_mpi) {
-		if (m_world_rank == 0){
+		if (m_world_rank == 0) {
 			// Send message from system 0 (coordinator) to all other systems to terminate their listening thread
 			for (int i = 0; i < m_world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
 		}

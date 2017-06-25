@@ -35,9 +35,9 @@ using std::ostringstream;
 namespace stride {
 
 Hdf5Saver::Hdf5Saver(string filename, const ptree& pt_config, int frequency, RunMode run_mode, int start_timestep)
-	: m_filename(filename), m_frequency(frequency),
-	  m_current_step(start_timestep - 1), m_timestep(start_timestep),
-	  m_save_count(0) {
+		: m_filename(filename), m_frequency(frequency),
+		  m_current_step(start_timestep - 1), m_timestep(start_timestep),
+		  m_save_count(0) {
 
 	// Check if the simulator is run in extend mode and not from timestep 0
 	if (start_timestep != 0 && run_mode == RunMode::Extend) {
@@ -63,7 +63,7 @@ Hdf5Saver::Hdf5Saver(string filename, const ptree& pt_config, int frequency, Run
 		this->saveTimestepMetadata(file, 0, 0, true);
 
 		file.close();
-	} catch(FileIException error) {
+	} catch (FileIException error) {
 		error.printError();
 	}
 }
@@ -151,7 +151,8 @@ void Hdf5Saver::saveClusters(Group& group, string dataset_name, const vector<Clu
 	const unsigned int ndims_clusters = 1;
 	hsize_t dims_clusters[ndims_clusters] {amtIds};
 	DataSpace dataspace_clusters = DataSpace(ndims_clusters, dims_clusters);
-	DataSet dataset_clusters = DataSet(group.createDataSet(H5std_string(dataset_name), PredType::NATIVE_UINT, dataspace_clusters));
+	DataSet dataset_clusters = DataSet(
+			group.createDataSet(H5std_string(dataset_name), PredType::NATIVE_UINT, dataspace_clusters));
 
 	auto cluster_data = make_unique<vector<unsigned int>>(amtIds);
 	unsigned int index = 0;
@@ -197,16 +198,18 @@ void Hdf5Saver::savePersonTIData(H5File& file, const Simulator& sim) const {
 			setAttributePerson(m_sec_comm_id, m_secondary_community_id);
 			setAttributePerson(m_start_infectiousness, m_health.getStartInfectiousness());
 			setAttributePerson(m_start_symptomatic, m_health.getStartSymptomatic());
-			personData[j].m_time_infectiousness = sim.getPopulation().get()->m_original.at(person_index).m_health.getEndInfectiousness() -
-						sim.getPopulation().get()->m_original.at(person_index).m_health.getStartInfectiousness();
-			personData[j].m_time_symptomatic = sim.getPopulation().get()->m_original.at(person_index).m_health.getEndSymptomatic() -
-						sim.getPopulation().get()->m_original.at(person_index).m_health.getStartSymptomatic();
+			personData[j].m_time_infectiousness =
+					sim.getPopulation().get()->m_original.at(person_index).m_health.getEndInfectiousness() -
+					sim.getPopulation().get()->m_original.at(person_index).m_health.getStartInfectiousness();
+			personData[j].m_time_symptomatic =
+					sim.getPopulation().get()->m_original.at(person_index).m_health.getEndSymptomatic() -
+					sim.getPopulation().get()->m_original.at(person_index).m_health.getStartSymptomatic();
 			person_index++;
 		}
 
 		// Select a hyperslab in the dataset.
 		DataSpace filespace = DataSpace(dataset.getSpace());
-		hsize_t offset[1] { person_index - selected_dims[0] };
+		hsize_t offset[1] {person_index - selected_dims[0]};
 		filespace.selectHyperslab(H5S_SELECT_SET, selected_dims, offset);
 
 		// Define memory space.
@@ -220,7 +223,7 @@ void Hdf5Saver::savePersonTIData(H5File& file, const Simulator& sim) const {
 
 
 void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
-	hsize_t dims[1] { sim.getPopulation().get()->m_original.size() };
+	hsize_t dims[1] {sim.getPopulation().get()->m_original.size()};
 	CompType type_person_TD = PersonTDDataType::getCompType();
 	const unsigned int CHUNK_SIZE = 10000;
 
@@ -263,7 +266,7 @@ void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 
 		// Select a hyperslab in the dataset.
 		DataSpace filespace = DataSpace(dataset.getSpace());
-		hsize_t offset[1] = {person_index-selected_dims[0]};
+		hsize_t offset[1] = {person_index - selected_dims[0]};
 		filespace.selectHyperslab(H5S_SELECT_SET, selected_dims, offset);
 
 		// Define memory space.
@@ -287,7 +290,7 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	using Agenda = SimplePlanner<Simulator::TravellerType>::Agenda;
 
 	const Agenda& travellers = sim.m_planner.getAgenda();
-	hsize_t dims[1] { sim.m_planner.size() };
+	hsize_t dims[1] {sim.m_planner.size()};
 	CompType type_traveller = TravellerDataType::getCompType();
 
 	DataSpace dataspace = DataSpace(1, dims);
@@ -318,7 +321,9 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 			traveller.m_home_sim_name = home_sim_name.c_str();
 			traveller.m_dest_sim_name = dest_sim_name.c_str();
 			traveller.m_home_sim_index = person->getHomeSimulatorIndex();
-			traveller.m_dest_sim_index = sim.m_population->m_original.size() + (std::find(travellers_seq.begin(), travellers_seq.end(), person->getNewPerson()) - travellers_seq.begin());
+			traveller.m_dest_sim_index = sim.m_population->m_original.size() +
+										 (std::find(travellers_seq.begin(), travellers_seq.end(),
+													person->getNewPerson()) - travellers_seq.begin());
 
 			PersonType original_person = person->getHomePerson();
 			#define setAttributeTraveller(attr_lhs, attr_rhs) traveller.attr_lhs = original_person.attr_rhs
@@ -333,9 +338,9 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 			setAttributeTraveller(m_start_infectiousness, m_health.getStartInfectiousness());
 			setAttributeTraveller(m_start_symptomatic, m_health.getStartSymptomatic());
 			traveller.m_time_infectiousness = original_person.m_health.getEndInfectiousness() -
-						original_person.m_health.getStartInfectiousness();
+											  original_person.m_health.getStartInfectiousness();
 			traveller.m_time_symptomatic = original_person.m_health.getEndSymptomatic() -
-						original_person.m_health.getStartSymptomatic();
+										   original_person.m_health.getStartSymptomatic();
 
 			PersonType current_person = *person->getNewPerson();
 			traveller.m_participant = current_person.m_is_participant;
@@ -476,7 +481,6 @@ void Hdf5Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 	dataspace.close();
 	group.close();
 }
-
 
 
 }

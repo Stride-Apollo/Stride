@@ -48,9 +48,13 @@
 namespace stride {
 
 class Population;
+
 class Calendar;
+
 class Cluster;
+
 class AsyncSimulator;
+
 using uint = unsigned int;
 namespace run { class Runner; }
 
@@ -82,13 +86,13 @@ public:
 
 	string getName() const { return m_name; }
 
-	void setCommunicationMap(const std::map<string, AsyncSimulator*>& comm_map) {m_communication_map = comm_map;}
+	void setCommunicationMap(const std::map<string, AsyncSimulator*>& comm_map) { m_communication_map = comm_map; }
 
 	/// Run one time step, computing full simulation (default) or only index case.
 	SimulatorStatus timeStep();
 
 	/// Return the calendar of this simulator
-	const Calendar& getCalendar() const {return *m_calendar;}
+	const Calendar& getCalendar() const { return *m_calendar; }
 
 	/// Get the clusters of this simulator based on the cluster type
 	/// This is rather for testing purposes
@@ -111,7 +115,9 @@ public:
 	/// @argument destination_district: The name of the city in which the airport / facility is located e.g. "Antwerp"
 	/// @argument destination_facility: The name of the facility / airport e.g. "ANR"
 	/// TODO: future return value?
-	bool hostForeignTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district, string destination_facility);
+	bool
+	hostForeignTravellers(const vector<Simulator::TravellerType>& travellers, uint days, string destination_district,
+						  string destination_facility);
 
 	/// Return people that were abroad
 	/// @argument travellers_indices: contains the indices (in the m_population->m_original vector) of the returning people
@@ -122,16 +128,22 @@ public:
 	/// Return people that are here FROM abroad
 	void returnForeignTravellers();
 
-	void sendNewTravellers(uint amount, uint days, const string& destination_sim_id, string destination_district, string destination_facility);
+	void sendNewTravellers(uint amount, uint days, const string& destination_sim_id, string destination_district,
+						   string destination_facility);
 
-	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
+	const SimplePlanner<Traveller<Simulator::PersonType>>& getPlanner() const { return m_planner; }
 
 public:
 	const std::vector<Cluster>& getHouseholds() const { return m_households; }
+
 	const std::vector<Cluster>& getSchoolClusters() const { return m_school_clusters; }
+
 	const std::vector<Cluster>& getWorkClusters() const { return m_work_clusters; }
+
 	const std::vector<Cluster>& getPrimaryCommunities() const { return m_primary_community; }
+
 	const std::vector<Cluster>& getSecondaryCommunities() const { return m_secondary_community; }
+
 	const std::vector<District>& getDistricts() const { return m_districts; }
 
 private:
@@ -145,25 +157,25 @@ private:
 	void updateClusters();
 
 private:
-	unsigned int                        m_num_threads;          ///< The number of threads(as a hint)
+	unsigned int m_num_threads;          ///< The number of threads(as a hint)
 
 	#if UNIPAR_IMPL == UNIPAR_DUMMY
-		using RandomRef = util::Random*;
+	using RandomRef = util::Random*;
 	#else
-		using RandomRef = std::unique_ptr<util::Random>;
+	using RandomRef = std::unique_ptr<util::Random>;
 	#endif
 
 	decltype(Parallel().with<RandomRef>()) m_parallel;
 
-	std::shared_ptr<util::Random> 		m_rng;
-	LogMode                             m_log_level;            ///< Specifies logging mode.
-	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
+	std::shared_ptr<util::Random> m_rng;
+	LogMode m_log_level;            ///< Specifies logging mode.
+	std::shared_ptr<Calendar> m_calendar;             ///< Management of calendar.
 
 private:
 	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
 	boost::property_tree::ptree m_config_pop;
-	std::shared_ptr<spdlog::logger>		m_logger;
-	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
+	std::shared_ptr<spdlog::logger> m_logger;
+	std::shared_ptr<Population> m_population;     ///< Pointer to the Population.
 
 	std::vector<Cluster> m_households;           ///< Container with household Clusters.
 	std::vector<Cluster> m_school_clusters;      ///< Container with school Clusters.
@@ -173,23 +185,27 @@ private:
 
 	std::vector<District> m_districts;    ///< Container with districts (villages and cities).
 
-	std::map<string, AsyncSimulator*> m_communication_map	;    ///< Communication between the simulator and the senders
+	std::map<string, AsyncSimulator*> m_communication_map;    ///< Communication between the simulator and the senders
 
 	DiseaseProfile m_disease_profile;      ///< Profile of disease.
 
 	bool m_track_index_case;     ///< General simulation or tracking index case.
 
-	uint m_next_id;		///< The ID of the next traveller that arrives.
-	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
-	string m_name;	///< Name of the simulator (the region it simulates)
+	uint m_next_id;        ///< The ID of the next traveller that arrives.
+	uint m_next_hh_id;    ///< The household ID of the next traveller that arrives.
+	string m_name;    ///< Name of the simulator (the region it simulates)
 
-	SimplePlanner<Traveller<Simulator::PersonType>> m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
+	SimplePlanner<Traveller<Simulator::PersonType>> m_planner;        ///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 public:
 	friend class SimulatorBuilder;
+
 	friend class LocalSimulatorAdapter;
+
 	friend class Hdf5Saver;
+
 	friend class Hdf5Loader;
+
 	friend class run::Runner;
 };
 

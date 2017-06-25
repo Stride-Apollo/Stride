@@ -45,7 +45,6 @@ public:
 			double new_longitude = coord.m_longitude + dist_longitude(rng);
 			double new_latitude = coord.m_latitude + dist_latitude(rng);
 
-			
 
 			random_coordinate.m_longitude = new_longitude;
 			random_coordinate.m_latitude = new_latitude;
@@ -69,7 +68,8 @@ public:
 		double x = cos(lat2_rad) * cos(lon_diff);
 		double y = cos(lat2_rad) * sin(lon_diff);
 
-		double center_lat = atan2( sin(lat1_rad) + sin(lat2_rad), sqrt((cos(lat1_rad) + x) * (cos(lat1_rad) + x) + y * y) );
+		double center_lat = atan2(sin(lat1_rad) + sin(lat2_rad),
+								  sqrt((cos(lat1_rad) + x) * (cos(lat1_rad) + x) + y * y));
 		double center_lon = lon1_rad + atan2(y, cos(lat1_rad) + x);
 
 		return GeoCoordinate(center_lat * 180 / PI, center_lon * 180 / PI);
@@ -78,11 +78,12 @@ public:
 	void convertToRegularCoordinates(double& latitude, double& longitude) const;
 
 private:
-	GeoCoordCalculator(){}
+	GeoCoordCalculator() {}
 
-	~GeoCoordCalculator(){}
+	~GeoCoordCalculator() {}
 
 	GeoCoordCalculator(GeoCoordCalculator const&) = delete;
+
 	void operator=(GeoCoordCalculator const&)  = delete;
 };
 

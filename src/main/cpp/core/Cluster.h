@@ -37,6 +37,7 @@ namespace stride {
 using namespace util;
 
 class RngHandler;
+
 class Calendar;
 
 /**
@@ -66,7 +67,7 @@ public:
 	ClusterType getClusterType() const { return m_cluster_type; }
 
 	/// Return the geo coordinates (latitude-longitude) of the cluster
-	GeoCoordinate getLocation() const {return m_coordinate;}
+	GeoCoordinate getLocation() const { return m_coordinate; }
 
 	/// Get basic contact rate in this cluster.
 	double getContactRate(const Simulator::PersonType* p) const {
@@ -74,11 +75,11 @@ public:
 	}
 
 	/// Get the ID of this cluster
-	std::size_t getId() const {return m_cluster_id;}
+	std::size_t getId() const { return m_cluster_id; }
 
 	/// Get the members of this vector
 	/// Rather for testing purposes
-	const std::vector<std::pair<Simulator::PersonType*, bool>>& getMembers() const {return m_members;}
+	const std::vector<std::pair<Simulator::PersonType*, bool>>& getMembers() const { return m_members; }
 
 public:
 	/// Add contact profile.
@@ -90,7 +91,8 @@ private:
 
 	/// Infector calculates contacts and transmissions.
 	template<LogMode log_level, bool track_index_case, typename local_information_policy>
-	friend class Infector;
+	friend
+	class Infector;
 
 	/// Calculate which members are present in the cluster on the current day.
 	void updateMemberPresence();
@@ -101,12 +103,13 @@ private:
 	std::size_t m_index_immune;   ///< Index of the first immune member in the Cluster.
 	std::vector<std::pair<Simulator::PersonType*, bool>> m_members;  ///< Container with pointers to Cluster members.
 	const ContactProfile& m_profile;
-	const GeoCoordinate m_coordinate;	///< The location of the cluster
+	const GeoCoordinate m_coordinate;    ///< The location of the cluster
 private:
 	static std::array<ContactProfile, numOfClusterTypes()> g_profiles;
 
 private:
 	friend class Hdf5Loader;
+
 	friend class Hdf5Saver;
 };
 

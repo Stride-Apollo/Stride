@@ -105,6 +105,7 @@ private:
 
 private:
 	friend class Hdf5Loader;
+
 	friend class Hdf5Saver;
 };
 

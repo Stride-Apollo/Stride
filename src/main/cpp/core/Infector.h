@@ -31,6 +31,7 @@
 namespace stride {
 
 class Cluster;
+
 class Calendar;
 namespace util { class Random; }
 
@@ -52,8 +53,8 @@ template<LogMode log_level, bool track_index_case>
 class Infector<log_level, track_index_case, NoLocalInformation> {
 public:
 	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
-			util::Random& contact_handler, std::shared_ptr<const Calendar> calendar,
-			spdlog::logger& logger);
+						util::Random& contact_handler, std::shared_ptr<const Calendar> calendar,
+						spdlog::logger& logger);
 };
 
 /**
@@ -63,29 +64,47 @@ template<bool track_index_case>
 class Infector<LogMode::Contacts, track_index_case, NoLocalInformation> {
 public:
 	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
-			util::Random& contact_handler, std::shared_ptr<const Calendar> calendar,
-			spdlog::logger& logger);
+						util::Random& contact_handler, std::shared_ptr<const Calendar> calendar,
+						spdlog::logger& logger);
 };
 
 
 /// Explicit instantiations in cpp file.
-extern template class Infector<LogMode::None, false, NoLocalInformation>;
-extern template class Infector<LogMode::None, false, LocalDiscussion<Simulator::PersonType> >;
+extern template
+class Infector<LogMode::None, false, NoLocalInformation>;
 
-extern template class Infector<LogMode::None, true, NoLocalInformation>;
-extern template class Infector<LogMode::None, true, LocalDiscussion<Simulator::PersonType> >;
+extern template
+class Infector<LogMode::None, false, LocalDiscussion<Simulator::PersonType>>;
 
-extern template class Infector<LogMode::Transmissions, false, NoLocalInformation>;
-extern template class Infector<LogMode::Transmissions, false, LocalDiscussion<Simulator::PersonType> >;
+extern template
+class Infector<LogMode::None, true, NoLocalInformation>;
 
-extern template class Infector<LogMode::Transmissions, true, NoLocalInformation>;
-extern template class Infector<LogMode::Transmissions, true, LocalDiscussion<Simulator::PersonType> >;
+extern template
+class Infector<LogMode::None, true, LocalDiscussion<Simulator::PersonType>>;
 
-extern template class Infector<LogMode::Contacts, false, NoLocalInformation>;
-extern template class Infector<LogMode::Contacts, false, LocalDiscussion<Simulator::PersonType> >;
+extern template
+class Infector<LogMode::Transmissions, false, NoLocalInformation>;
 
-extern template class Infector<LogMode::Contacts, true, NoLocalInformation>;
-extern template class Infector<LogMode::Contacts, true, LocalDiscussion<Simulator::PersonType> >;
+extern template
+class Infector<LogMode::Transmissions, false, LocalDiscussion<Simulator::PersonType>>;
+
+extern template
+class Infector<LogMode::Transmissions, true, NoLocalInformation>;
+
+extern template
+class Infector<LogMode::Transmissions, true, LocalDiscussion<Simulator::PersonType>>;
+
+extern template
+class Infector<LogMode::Contacts, false, NoLocalInformation>;
+
+extern template
+class Infector<LogMode::Contacts, false, LocalDiscussion<Simulator::PersonType>>;
+
+extern template
+class Infector<LogMode::Contacts, true, NoLocalInformation>;
+
+extern template
+class Infector<LogMode::Contacts, true, LocalDiscussion<Simulator::PersonType>>;
 
 
 }

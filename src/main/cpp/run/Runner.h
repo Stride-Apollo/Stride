@@ -15,8 +15,11 @@
 #include "sim/Simulator.h"
 #include "sim/AsyncSimulator.h"
 #include "sim/RemoteSimulatorReceiver.h"
+
 #ifdef MPI_USED
+
 #include <mpi.h>
+
 #endif
 
 
@@ -24,9 +27,10 @@ namespace stride {
 namespace run {
 
 struct SimulatorWorldrank {
-	SimulatorWorldrank(const std::string& name, int rank): world_rank(rank) {
+	SimulatorWorldrank(const std::string& name, int rank) : world_rank(rank) {
 		strcpy(simulator_name, name.c_str());
 	}
+
 	char simulator_name[20];
 	int world_rank;
 };
@@ -36,13 +40,18 @@ class Runner {
 public:
 	// The different steps we do:
 	static void setup();
+
 	Runner(const std::vector<std::string>& overrides_list, const std::string& config_file,
-           const RunMode& mode, int timestep);
+		   const RunMode& mode, int timestep);
+
 	void printInfo();
+
 	void initSimulators();
-    void run();
+
+	void run();
 
 	boost::property_tree::ptree getConfig();
+
 	boost::property_tree::ptree getRegionsConfig(const std::vector<string>& names);
 
 	void write(std::ostream& out, const boost::property_tree::ptree&);
@@ -50,9 +59,13 @@ public:
 private:
 	void parseConfig();  // done by constructor
 	void initOutputs(Simulator& sim);
+
 	std::shared_ptr<Simulator> addLocalSimulator(const string& name, const boost::property_tree::ptree& config);
+
 	std::shared_ptr<AsyncSimulator> addRemoteSimulator(const string& name, const boost::property_tree::ptree& config);
+
 	void initMpi();
+
 	void makeSetupStruct();
 
 	boost::filesystem::path hdf5Path(const string& name);

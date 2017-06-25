@@ -9,14 +9,16 @@
 
 namespace stride {
 
-enum class VariableState {Low = 0U, High = 1U};
+enum class VariableState {
+	Low = 0U, High = 1U
+};
 
 class HBMData {
 
 public:
-	HBMData():
-		m_perceived_severity(0), m_perceived_susceptibility(0),
-		m_perceived_benefit(1), m_perceived_barriers(1) {}
+	HBMData() :
+			m_perceived_severity(0), m_perceived_susceptibility(0),
+			m_perceived_benefit(1), m_perceived_barriers(1) {}
 
 	VariableState getPerceivedSeverity() const {
 		return m_perceived_severity;
@@ -35,18 +37,18 @@ public:
 	}
 
 	void MeetAdopted() {
-		m_num_contacts_adopted ++;
-		m_num_contacts ++;
+		m_num_contacts_adopted++;
+		m_num_contacts++;
 	}
 
 	void MeetInfected() {
-		m_num_contacts_infected ++;
-		m_num_contacts ++;
+		m_num_contacts_infected++;
+		m_num_contacts++;
 	}
 
 	void MeetInfectedAndAdopted() {
-		m_num_contacts_adopted ++;
-		m_num_contacts_infected ++;
+		m_num_contacts_adopted++;
+		m_num_contacts_infected++;
 		m_num_contacts++;
 	}
 

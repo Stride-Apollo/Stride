@@ -15,6 +15,7 @@ using FamilyConfig = vector<uint>;
 class FamilyParser {
 public:
 	FamilyParser() {}
+
 	~FamilyParser() {}
 
 	vector<FamilyConfig> parseFamilies(string filename) const;

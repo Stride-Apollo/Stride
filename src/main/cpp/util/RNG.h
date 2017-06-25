@@ -17,8 +17,11 @@ private:
 	RNG() {
 		m_uniform_dist = trng::uniform01_dist<double>();
 	}
+
 	RNG(const RNG&);
+
 	RNG& operator=(const RNG&);
+
 public:
 	static RNG& getInstance() {
 		static RNG instance;
@@ -30,8 +33,8 @@ public:
 	}
 
 private:
-	trng::mrg2               		m_engine;         ///< The random number engine.
-	trng::uniform01_dist<double>	m_uniform_dist;   ///< The random distribution.
+	trng::mrg2 m_engine;         ///< The random number engine.
+	trng::uniform01_dist<double> m_uniform_dist;   ///< The random distribution.
 };
 
 }

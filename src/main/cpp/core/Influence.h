@@ -20,7 +20,8 @@ class ClusterSaver;
 
 class Influence {
 public:
-	Influence(uint size, double speed, double minimum): m_deque(deque<uint>(size, 0)), m_speed(speed), m_minimum(minimum) {
+	Influence(uint size, double speed, double minimum) : m_deque(deque<uint>(size, 0)), m_speed(speed),
+														 m_minimum(minimum) {
 		if (minimum <= 0.0) {
 			throw runtime_error(string(__func__) + string("Influence minimum <= 0.0"));
 		}

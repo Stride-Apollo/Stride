@@ -7,16 +7,18 @@ namespace util {
 
 // Like golang's 'defer' statement
 
-template <typename Func>
+template<typename Func>
 class Defer {
 public:
-	Defer(const Func& f): m_func(f) {}
+	Defer(const Func& f) : m_func(f) {}
+
 	~Defer() { m_func(); }
+
 private:
 	const Func& m_func;
 };
 
-template <typename Func>
+template<typename Func>
 Defer<Func> _defer(const Func& f) {
 	return Defer<Func>(f);
 }
@@ -33,7 +35,7 @@ Defer<Func> _defer(const Func& f) {
 
 namespace std {
 template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
+std::unique_ptr<T> make_unique(Args&& ... args) {
 	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 }

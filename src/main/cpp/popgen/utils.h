@@ -16,15 +16,18 @@ extern uniform_real_distribution<double> real01;
 
 using uint = unsigned int;
 
-template<class T> class PopulationGenerator;
+template<class T>
+class PopulationGenerator;
 
 class SimplePerson {
 public:
 
-	SimplePerson(uint age=0, uint family_id=0);
+	SimplePerson(uint age = 0, uint family_id = 0);
 
 	friend std::ostream& operator<<(std::ostream& os, const SimplePerson& p);
-	template<class U> friend class PopulationGenerator;
+
+	template<class U> friend
+	class PopulationGenerator;
 
 	uint m_age = 0;
 	uint m_household_id = 0;
@@ -56,7 +59,7 @@ struct SimpleCity {
 		m_name = name;
 		m_coord = coordinate;
 	}
-	
+
 	uint m_current_size = 0;
 	uint m_max_size = 0;
 	uint m_id = 0;
@@ -67,14 +70,16 @@ struct SimpleCity {
 std::ostream& operator<<(std::ostream& os, const SimplePerson& p);
 
 struct MinMax {
-	MinMax(uint _min=0, uint _max=0): min(_min), max(_max) {}
+	MinMax(uint _min = 0, uint _max = 0) : min(_min), max(_max) {}
+
 	uint min;
 	uint max;
 };
 
-struct MinMaxAvg: public MinMax {
-	MinMaxAvg(uint _min=0, uint _max=0, uint _avg=0)
+struct MinMaxAvg : public MinMax {
+	MinMaxAvg(uint _min = 0, uint _max = 0, uint _avg = 0)
 			: MinMax(_min, _max), avg(_avg) {}
+
 	uint avg;
 };
 

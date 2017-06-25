@@ -20,6 +20,7 @@ enum RunMode {
 class SimulatorRunMode {
 public:
 	static RunMode getRunMode(string run_mode);
+
 	static vector<string> getAcceptedModes();
 
 private:

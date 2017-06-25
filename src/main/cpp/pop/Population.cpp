@@ -19,15 +19,15 @@ unsigned int Population::getInfectedCount() const {
 
 #define PopulationBeginEnd(mod, type) \
 type Population::begin() mod { \
-	type it = type(*this, -1); \
-	it++; \
-	return it; \
+    type it = type(*this, -1); \
+    it++; \
+    return it; \
 } \
 type Population::end() mod { \
-	return type(*this, 0, true, m_visitors.days()); \
+    return type(*this, 0, true, m_visitors.days()); \
 }
 
-PopulationBeginEnd( , PopulationIterator)
+PopulationBeginEnd(, PopulationIterator)
 
 PopulationBeginEnd(const, ConstPopulationIterator)
 

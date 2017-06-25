@@ -1,5 +1,6 @@
 
 #pragma once
+
 #include <boost/property_tree/xml_parser.hpp>
 #include <string>
 #include <utility>
@@ -50,6 +51,7 @@ private:
 
 	// Deprecated
 	void saveClustersJSON(const Simulator& sim) const;
+
 	// Deprecated
 	pair<ptree, ptree> getClusterJSON(const Cluster& cluster) const;
 
@@ -129,11 +131,11 @@ public:
 	/// The middle point of cities is calculated, followed by the distance between this point and the furthest city
 	/// The surface is then determined by calculating the surface of the circle determined by the middle and this distance (radius)
 	static double calculateSurface(const Simulator& local_sim) {
-		throw runtime_error (string(__func__) + ">Trying to save unknown cluster type.");
+		throw runtime_error(string(__func__) + ">Trying to save unknown cluster type.");
 	}
 
 	static map<uint, uint> getClusterMap(const Simulator& local_sim) {
-		throw runtime_error (string(__func__) + ">Trying to save unknown cluster type.");
+		throw runtime_error(string(__func__) + ">Trying to save unknown cluster type.");
 	}
 };
 

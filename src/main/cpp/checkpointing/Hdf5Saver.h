@@ -7,8 +7,11 @@
 
 
 #ifdef HDF5_USED
-	#include "H5Cpp.h"
+
+#include "H5Cpp.h"
+
 #endif
+
 #include "util/Observer.h"
 #include "sim/Simulator.h"
 #include "sim/SimulatorRunMode.h"
@@ -32,7 +35,7 @@ class Hdf5Saver : public util::Observer<Simulator> {
 #ifdef HDF5_USED
 public:
 	Hdf5Saver(string filename, const ptree& pt_config, int frequency,
-		  RunMode run_mode = RunMode::Initial, int start_timestep = 0);
+			  RunMode run_mode = RunMode::Initial, int start_timestep = 0);
 
 	/// Update function which is called by the subject.
 	virtual void update(const Simulator& sim);
@@ -68,23 +71,23 @@ private:
 	void saveConfigs(H5File& file, const ptree& pt_config) const;
 
 private:
-	string 		 m_filename;
-	int 		 m_frequency;
-	int 		 m_current_step;
+	string m_filename;
+	int m_frequency;
+	int m_current_step;
 	unsigned int m_timestep;
 	unsigned int m_save_count;
 #endif
 #ifndef HDF5_USED
-// These dummy headers are used as an interface for when no hdf5 is included, but everything still needs to compile.
-public:
-	Hdf5Saver(string filename, const ptree& pt_config, int frequency,
-		  RunMode run_mode = RunMode::Initial, int start_timestep = 0) {}
+	// These dummy headers are used as an interface for when no hdf5 is included, but everything still needs to compile.
+	public:
+		Hdf5Saver(string filename, const ptree& pt_config, int frequency,
+			  RunMode run_mode = RunMode::Initial, int start_timestep = 0) {}
 
-	/// Update function which is called by the subject.
-	virtual void update(const Simulator& sim) {}
+		/// Update function which is called by the subject.
+		virtual void update(const Simulator& sim) {}
 
-	/// Forces a save to the hdf5 file, with an optional timestep argument which specifies a new timestep save index.
-	void forceSave(const Simulator& sim, int timestep = -1) {}
+		/// Forces a save to the hdf5 file, with an optional timestep argument which specifies a new timestep save index.
+		void forceSave(const Simulator& sim, int timestep = -1) {}
 #endif
 };
 

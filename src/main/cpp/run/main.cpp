@@ -24,8 +24,6 @@
 #include <tclap/CmdLine.h>
 
 #include "Runner.h"
-#include "sim/SimulatorRunMode.h"
-#include "checkpointing/Hdf5Loader.h"
 
 using namespace std;
 using namespace stride;
@@ -40,15 +38,15 @@ int main(int argc, char** argv) {
 		// Parse command line.
 		CmdLine cmd("stride", ' ', "2.0", false);
 		ValueArg<string> config_file_Arg("c", "config", "Config File", false,
-										  "", "filename", cmd);
+										 "", "filename", cmd);
 		ValueArg<unsigned int> timestamp_replay_Arg("t", "timestamp", "Replay from Timestamp", false,
 													0, "integer", cmd);
 		ValueArg<string> simulator_mode_Arg("m", "mode", "Simulator Mode (initial/extend/replay/extract)", false,
-											 "initial", "mode", cmd);
+											"initial", "mode", cmd);
 		ValueArg<string> hdf5_file_Arg("f", "hdf5_file", "HDF5 file (only used for mode 'extract')", false,
-		                               "", "filename", cmd);
+									   "", "filename", cmd);
 		MultiArg<string> overrides_Arg("o", "override", "Override the configuration", false,
-		                               "string", cmd);
+									   "string", cmd);
 		cmd.parse(argc, argv);
 
 		auto run_mode = SimulatorRunMode::getRunMode(simulator_mode_Arg.getValue());

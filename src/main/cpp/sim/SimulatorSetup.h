@@ -35,11 +35,11 @@ private:
 	bool fileExists(string filename) const;
 
 private:
-	ptree 					m_pt_config;
-	string					m_hdf5_file;
-	mutable unsigned int	m_timestamp_replay;
-	bool 					m_hdf5_file_exists;
-	RunMode					m_run_mode;
+	ptree m_pt_config;
+	string m_hdf5_file;
+	mutable unsigned int m_timestamp_replay;
+	bool m_hdf5_file_exists;
+	RunMode m_run_mode;
 };
 
 }

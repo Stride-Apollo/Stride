@@ -16,7 +16,7 @@
 
 namespace stride {
 
-template <typename belief_policy>
+template<typename belief_policy>
 class NoBehaviour {
 public:
 	static bool practicesSocialDistancing(const typename belief_policy::Data& belief_data) {

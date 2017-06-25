@@ -32,7 +32,7 @@ using std::to_string;
 namespace stride {
 
 ClusterSaver::ClusterSaver(string file_name, string pop_file_name, string facility_file_name, string output_dir) :
-		m_sim_day(0), m_file_name(file_name), m_pop_file_name(pop_file_name), m_facility_file_name(facility_file_name)  {
+		m_sim_day(0), m_file_name(file_name), m_pop_file_name(pop_file_name), m_facility_file_name(facility_file_name) {
 
 	/*#if defined(__linux__)
 		m_file_dir = "vis/resources/app/data";
@@ -63,7 +63,6 @@ ClusterSaver::ClusterSaver(string file_name, string pop_file_name, string facili
 		boost::filesystem::create_directory(boost::filesystem::path(m_facility_file_dir));
 	}
 }
-
 
 
 void ClusterSaver::saveClustersCSV(const Simulator& sim) const {
@@ -100,12 +99,12 @@ inline void ClusterSaver::saveClusterCSV(const Cluster& cluster, ofstream& csv_f
 	GeoCoordinate coords = cluster.getLocation();
 
 	csv_file << cluster.getId() << ',' <<
-		size << ',' <<
-		infected_count << ',' <<
-		ratio << ',' <<
-		coords.m_latitude << ',' <<
-		coords.m_longitude << ',' <<
-		toString(cluster.getClusterType()) << "\n";
+			 size << ',' <<
+			 infected_count << ',' <<
+			 ratio << ',' <<
+			 coords.m_latitude << ',' <<
+			 coords.m_longitude << ',' <<
+			 toString(cluster.getClusterType()) << "\n";
 }
 
 void ClusterSaver::saveAggrClustersCSV(const vector<Cluster>& households, ofstream& csv_file) const {
@@ -120,7 +119,8 @@ void ClusterSaver::saveAggrClustersCSV(const vector<Cluster>& households, ofstre
 	}
 }
 
-void ClusterSaver::saveClusterGroup(const vector<Cluster>& households, const vector<unsigned int> indices, ofstream& csv_file) const {
+void ClusterSaver::saveClusterGroup(const vector<Cluster>& households, const vector<unsigned int> indices,
+									ofstream& csv_file) const {
 	// Use the first id as cluster id
 	unsigned int id = households[indices[0]].getId();
 	GeoCoordinate coords = households[indices[0]].getLocation();
@@ -135,14 +135,13 @@ void ClusterSaver::saveClusterGroup(const vector<Cluster>& households, const vec
 	double ratio = (total_infected == 0 ? -1 : (double) total_infected / total_size);
 
 	csv_file << id << ',' <<
-		total_size << ',' <<
-		total_infected << ',' <<
-		ratio << ',' <<
-		coords.m_latitude << ',' <<
-		coords.m_longitude << ',' <<
-		cluster_type << "\n";
+			 total_size << ',' <<
+			 total_infected << ',' <<
+			 ratio << ',' <<
+			 coords.m_latitude << ',' <<
+			 coords.m_longitude << ',' <<
+			 cluster_type << "\n";
 }
-
 
 
 void ClusterSaver::saveClustersJSON(const Simulator& sim) const {
@@ -217,23 +216,23 @@ pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster) const {
 
 #define SET_CLUSTER_SURFACE(cluster_type) \
 { \
-	surface = ClusterCalculator<cluster_type>::calculateSurface(local_sim); \
-	if (surface == 0.0) \
-		densities.put(toString(cluster_type), 0.0); \
-	else \
-		densities.put(toString(cluster_type), double(pop_count) / surface); \
+    surface = ClusterCalculator<cluster_type>::calculateSurface(local_sim); \
+    if (surface == 0.0) \
+        densities.put(toString(cluster_type), 0.0); \
+    else \
+        densities.put(toString(cluster_type), double(pop_count) / surface); \
 }
 
 #define SET_CLUSTER_MAP(cluster_type) \
 { \
-	ptree specific_cluster_map; \
-	auto cluster_map = ClusterCalculator<cluster_type>::getClusterMap(local_sim); \
-	for (auto it = cluster_map.begin(); it != cluster_map.end(); ++it) { \
-		if (it->first != 0) { \
-			specific_cluster_map.put(to_string(it->first), it->second); \
-		} \
-	} \
-	cluster_sizes.add_child(toString(cluster_type), specific_cluster_map); \
+    ptree specific_cluster_map; \
+    auto cluster_map = ClusterCalculator<cluster_type>::getClusterMap(local_sim); \
+    for (auto it = cluster_map.begin(); it != cluster_map.end(); ++it) { \
+        if (it->first != 0) { \
+            specific_cluster_map.put(to_string(it->first), it->second); \
+        } \
+    } \
+    cluster_sizes.add_child(toString(cluster_type), specific_cluster_map); \
 }
 
 void ClusterSaver::savePopDataJSON(const Simulator& local_sim) const {

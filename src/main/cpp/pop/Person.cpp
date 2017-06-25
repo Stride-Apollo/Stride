@@ -19,10 +19,6 @@
 
 #include "core/ClusterType.h"
 
-#include <stdexcept>
-#include <string>
-#include <memory>
-
 namespace stride {
 
 using namespace std;
@@ -70,7 +66,7 @@ void Person<BehaviourPolicy, BeliefPolicy>::update(bool is_work_off, bool is_sch
 	// Vaccination behavior
 	// As long as people are susceptible to a disease
 	// (or think they are: they have been infected but are not yet symptomatic) they can choose to get vaccinated
-	if (m_health.isSusceptible() || (m_health.isInfected() && (! m_health.isSymptomatic()))) {
+	if (m_health.isSusceptible() || (m_health.isInfected() && (!m_health.isSymptomatic()))) {
 		if (BehaviourPolicy::practicesVaccination(m_belief_data)) {
 			m_health.setImmune();
 		}
@@ -101,10 +97,16 @@ void Person<BehaviourPolicy, BeliefPolicy>::update(const Person* p) {
 //--------------------------------------------------------------------------
 // All explicit instantiations.
 //--------------------------------------------------------------------------
-template class Person<NoBehaviour<NoBelief>, NoBelief>;
+template
+class Person<NoBehaviour<NoBelief>, NoBelief>;
 
-template class Person<Vaccination<Threshold<true, false> >, Threshold<true, false>>;
-template class Person<Vaccination<Threshold<true, false> >, Threshold<false, true>>;
-template class Person<Vaccination<Threshold<true, false> >, Threshold<true, true>>;
+template
+class Person<Vaccination<Threshold<true, false>>, Threshold<true, false>>;
+
+template
+class Person<Vaccination<Threshold<true, false>>, Threshold<false, true>>;
+
+template
+class Person<Vaccination<Threshold<true, false>>, Threshold<true, true>>;
 
 }

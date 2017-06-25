@@ -47,7 +47,7 @@ protected:
 };
 
 
-class MappedAliasDistribution: public AliasDistribution {
+class MappedAliasDistribution : public AliasDistribution {
 public:
 	MappedAliasDistribution(const map<unsigned int, double>& m);
 

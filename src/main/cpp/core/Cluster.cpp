@@ -70,7 +70,7 @@ void Cluster::removePerson(unsigned int id) {
 std::size_t Cluster::getActiveClusterMembers() const {
 	std::size_t total = 0;
 	for (const auto& person: m_members) {
-		if (! person.first->isOnVacation()) {
+		if (!person.first->isOnVacation()) {
 			++total;
 		}
 	}
@@ -98,7 +98,7 @@ tuple<bool, size_t> Cluster::sortMembers() {
 				}
 			}
 		}
-		// else, if not susceptible, move to front
+			// else, if not susceptible, move to front
 		else if (!m_members[i_member].first->getHealth().isSusceptible()) {
 			if (!infectious_cases && m_members[i_member].first->getHealth().isInfectious()) {
 				infectious_cases = true;

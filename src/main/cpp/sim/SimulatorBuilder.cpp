@@ -106,7 +106,7 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 		pt_pop.put("population.people", pt_config.get<string>("run.regions.region.raw_population"));
 	} else {
 		read_xml((InstallDirs::getDataDir() / pt_config.get<string>("run.regions.region.population")).string(),
-		pt_pop, xml_parser::trim_whitespace);
+				 pt_pop, xml_parser::trim_whitespace);
 	}
 	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, pt_pop, *sim->m_rng);
 	sim->m_config_pop = pt_pop;
@@ -178,30 +178,35 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim, const boost
 
 	// Get the name of the file with the locations of the clusters
 	boost::optional<const ptree&> cluster_locations_config = pt_config.get_child_optional("population.clusters");
-	if(cluster_locations_config) {
+	if (cluster_locations_config) {
 		cluster_filename = pt_config.get<string>("population.clusters");
 	}
 
 	map<pair<ClusterType, uint>, GeoCoordinate> locations = initializeLocations(cluster_filename);
 
 	for (size_t i = 0; i <= max_id_households; i++) {
-		sim->m_households.emplace_back(Cluster(cluster_id, ClusterType::Household, locations[make_pair(ClusterType::Household, i)]));
+		sim->m_households.emplace_back(
+				Cluster(cluster_id, ClusterType::Household, locations[make_pair(ClusterType::Household, i)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_school_clusters; i++) {
-		sim->m_school_clusters.emplace_back(Cluster(cluster_id, ClusterType::School, locations[make_pair(ClusterType::School, i)]));
+		sim->m_school_clusters.emplace_back(
+				Cluster(cluster_id, ClusterType::School, locations[make_pair(ClusterType::School, i)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_work_clusters; i++) {
-		sim->m_work_clusters.emplace_back(Cluster(cluster_id, ClusterType::Work, locations[make_pair(ClusterType::Work, i)]));
+		sim->m_work_clusters.emplace_back(
+				Cluster(cluster_id, ClusterType::Work, locations[make_pair(ClusterType::Work, i)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_primary_community; i++) {
-		sim->m_primary_community.emplace_back(Cluster(cluster_id, ClusterType::PrimaryCommunity, locations[make_pair(ClusterType::PrimaryCommunity, i)]));
+		sim->m_primary_community.emplace_back(Cluster(cluster_id, ClusterType::PrimaryCommunity,
+													  locations[make_pair(ClusterType::PrimaryCommunity, i)]));
 		cluster_id++;
 	}
 	for (size_t i = 0; i <= max_id_secondary_community; i++) {
-		sim->m_secondary_community.emplace_back(Cluster(cluster_id, ClusterType::SecondaryCommunity, locations[make_pair(ClusterType::SecondaryCommunity, i)]));
+		sim->m_secondary_community.emplace_back(Cluster(cluster_id, ClusterType::SecondaryCommunity,
+														locations[make_pair(ClusterType::SecondaryCommunity, i)]));
 		cluster_id++;
 	}
 
@@ -235,11 +240,12 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim, const boost
 void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boost::property_tree::ptree& pt_config) {
 	// Get the name of the file with the locations of the clusters
 	boost::optional<const ptree&> districts_config = pt_config.get_child_optional("population.districts");
-	if(districts_config) {
+	if (districts_config) {
 		string district_filename = pt_config.get<string>("population.districts");
 		double influence_speed = pt_config.get<double>("population.sphere_of_influence.<xmlattr>.speed");
 		double influence_minimum = pt_config.get<double>("population.sphere_of_influence.<xmlattr>.min");
-		unsigned int influence_size = pt_config.get<unsigned int>("population.sphere_of_influence.<xmlattr>.size");
+		unsigned int influence_size = pt_config.get < unsigned
+		int > ("population.sphere_of_influence.<xmlattr>.size");
 
 		// Check for the correctness of the file
 		const auto file_path = InstallDirs::getDataDir() /= district_filename;
@@ -268,14 +274,15 @@ void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boos
 			values[1].erase(values[1].end() - 1);
 
 			// Check for duplicates
-			auto search_duplicate = [&] (const District& district) {return district.getName() == values[1];};
-			if (find_if(sim->m_districts.cbegin(), sim->m_districts.cend(), search_duplicate) == sim->m_districts.cend()) {
+			auto search_duplicate = [&](const District& district) { return district.getName() == values[1]; };
+			if (find_if(sim->m_districts.cbegin(), sim->m_districts.cend(), search_duplicate) ==
+				sim->m_districts.cend()) {
 				sim->m_districts.push_back(District(values[1],
-												influence_size,
-												influence_speed,
-												influence_minimum,
-												GeoCoordinate(StringUtils::fromString<double>(values[6]),
-																StringUtils::fromString<double>(values[7]))));
+													influence_size,
+													influence_speed,
+													influence_minimum,
+													GeoCoordinate(StringUtils::fromString<double>(values[6]),
+																  StringUtils::fromString<double>(values[7]))));
 			}
 		}
 	}
@@ -308,9 +315,10 @@ map<pair<ClusterType, uint>, GeoCoordinate> SimulatorBuilder::initializeLocation
 		while (getline(locations_file, line)) {
 			const auto values = StringUtils::split(line, ",");
 			// NOTE: if the values are invalid, it will be zero/Null due to StringUtils/ClusterType
-			cluster_locations[make_pair(toClusterType(values[1]), StringUtils::fromString<unsigned int>(values[0]))] = GeoCoordinate(
-							StringUtils::fromString<double>(values[2]),
-							StringUtils::fromString<double>(values[3]));
+			cluster_locations[make_pair(toClusterType(values[1]),
+										StringUtils::fromString<unsigned int>(values[0]))] = GeoCoordinate(
+					StringUtils::fromString<double>(values[2]),
+					StringUtils::fromString<double>(values[3]));
 		}
 	}
 	return cluster_locations;
@@ -328,7 +336,10 @@ void SimulatorBuilder::initializeFacilities(shared_ptr<Simulator> sim, const boo
 			for (auto it : city_tree) {
 				if (it.first == "airport") {
 					// Check if the referenced district exists
-					auto find_district = [&] (const District& district) {return district.getName() == pot_city.second.get<string>("<xmlattr>.name");};
+					auto find_district = [&](const District& district) { return district.getName() ==
+																				pot_city.second.get<string>(
+																						"<xmlattr>.name");
+					};
 					auto le_city = find_if(sim->m_districts.begin(), sim->m_districts.end(), find_district);
 
 					// If the district exists, add the facility

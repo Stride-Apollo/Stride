@@ -74,7 +74,7 @@ public:
 	static void execute(spdlog::logger& logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
 						ClusterType cluster_type, shared_ptr<const Calendar> environ) {
 		logger.info("[TRAN] {} {} {} {}",
-					 p1->getId(), p2->getId(), toString(cluster_type), environ->getSimulationDay());
+					p1->getId(), p2->getId(), toString(cluster_type), environ->getSimulationDay());
 	}
 };
 
@@ -93,9 +93,9 @@ public:
 		unsigned int secundary_community = (cluster_type == ClusterType::SecondaryCommunity);
 
 		logger.info("[CONT] {} {} {} {} {} {} {} {} {}",
-					 p1->getId(), p1->getAge(), p2->getAge(), home, school, work, primary_community,
-					 secundary_community,
-					 calendar->getSimulationDay());
+					p1->getId(), p1->getAge(), p2->getAge(), home, school, work, primary_community,
+					secundary_community,
+					calendar->getSimulationDay());
 	}
 };
 
@@ -160,8 +160,8 @@ void Infector<log_level, track_index_case, local_information_policy>::execute(
 //-------------------------------------------------------------------------------------------
 template<LogMode log_level, bool track_index_case>
 void Infector<log_level, track_index_case, NoLocalInformation>::execute(
-        Cluster& cluster, DiseaseProfile disease_profile,
-        util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
+		Cluster& cluster, DiseaseProfile disease_profile,
+		util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
 
 	// check if the cluster has infected members and sort
 	bool infectious_cases;
@@ -209,8 +209,8 @@ void Infector<log_level, track_index_case, NoLocalInformation>::execute(
 //-------------------------------------------------------------------------------------------
 template<bool track_index_case>
 void Infector<LogMode::Contacts, track_index_case, NoLocalInformation>::execute(
-        Cluster& cluster, DiseaseProfile disease_profile,
-        util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
+		Cluster& cluster, DiseaseProfile disease_profile,
+		util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
 
 	cluster.updateMemberPresence();
 
@@ -228,7 +228,7 @@ void Infector<LogMode::Contacts, track_index_case, NoLocalInformation>::execute(
 			// loop over possible contacts
 			for (size_t i_person2 = i_person1 + 1; i_person2 < c_members.size(); i_person2++) {
 				// check if member is present today
-				if ( c_members[i_person2].second) {
+				if (c_members[i_person2].second) {
 					auto p2 = c_members[i_person2].first;
 					// check for contact
 					if (contact_handler.hasContact(contact_rate)) {
@@ -255,22 +255,40 @@ void Infector<LogMode::Contacts, track_index_case, NoLocalInformation>::execute(
 //--------------------------------------------------------------------------
 // All explicit instantiations.
 //--------------------------------------------------------------------------
-template class Infector<LogMode::None, false, NoLocalInformation>;
-template class Infector<LogMode::None, false, LocalDiscussion<Simulator::PersonType> >;
+template
+class Infector<LogMode::None, false, NoLocalInformation>;
 
-template class Infector<LogMode::None, true, NoLocalInformation>;
-template class Infector<LogMode::None, true, LocalDiscussion<Simulator::PersonType> >;
+template
+class Infector<LogMode::None, false, LocalDiscussion<Simulator::PersonType>>;
 
-template class Infector<LogMode::Transmissions, false, NoLocalInformation>;
-template class Infector<LogMode::Transmissions, false, LocalDiscussion<Simulator::PersonType> >;
+template
+class Infector<LogMode::None, true, NoLocalInformation>;
 
-template class Infector<LogMode::Transmissions, true, NoLocalInformation>;
-template class Infector<LogMode::Transmissions, true, LocalDiscussion<Simulator::PersonType> >;
+template
+class Infector<LogMode::None, true, LocalDiscussion<Simulator::PersonType>>;
 
-template class Infector<LogMode::Contacts, false, NoLocalInformation>;
-template class Infector<LogMode::Contacts, false, LocalDiscussion<Simulator::PersonType> >;
+template
+class Infector<LogMode::Transmissions, false, NoLocalInformation>;
 
-template class Infector<LogMode::Contacts, true, NoLocalInformation>;
-template class Infector<LogMode::Contacts, true, LocalDiscussion<Simulator::PersonType> >;
+template
+class Infector<LogMode::Transmissions, false, LocalDiscussion<Simulator::PersonType>>;
+
+template
+class Infector<LogMode::Transmissions, true, NoLocalInformation>;
+
+template
+class Infector<LogMode::Transmissions, true, LocalDiscussion<Simulator::PersonType>>;
+
+template
+class Infector<LogMode::Contacts, false, NoLocalInformation>;
+
+template
+class Infector<LogMode::Contacts, false, LocalDiscussion<Simulator::PersonType>>;
+
+template
+class Infector<LogMode::Contacts, true, NoLocalInformation>;
+
+template
+class Infector<LogMode::Contacts, true, LocalDiscussion<Simulator::PersonType>>;
 
 }

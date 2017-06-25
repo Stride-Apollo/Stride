@@ -13,5 +13,5 @@
 #include "unipar/pick.h"
 
 namespace stride {
-	using Parallel = unipar::Parallel;
+using Parallel = unipar::Parallel;
 }

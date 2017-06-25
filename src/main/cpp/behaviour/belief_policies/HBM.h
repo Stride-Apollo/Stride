@@ -41,9 +41,9 @@ public:
 		int perceived_benefit = belief_data.GetPerceivedBenefit();
 		int perceived_barriers = belief_data.GetPerceivedBarriers();
 		double odds = m_odds_ratio_0 * std::pow(m_odds_ratio_severity, perceived_severity)
-									 * std::pow(m_odds_ratio_susceptibility, perceived_susceptibility)
-									 * std::pow(m_odds_ratio_benefit, perceived_benefit)
-									 * std::pow(m_odds_ratio_benefit, perceived_barriers);
+					  * std::pow(m_odds_ratio_susceptibility, perceived_susceptibility)
+					  * std::pow(m_odds_ratio_benefit, perceived_benefit)
+					  * std::pow(m_odds_ratio_benefit, perceived_barriers);
 		double p_behaviour = odds / (1 + odds);
 		return p_behaviour >= 0.5;
 	}

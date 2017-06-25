@@ -13,9 +13,9 @@ vector<FamilyConfig> FamilyParser::parseFamilies(string filename) const {
 	vector<FamilyConfig> result;
 
 	string line;
-	ifstream myfile ((InstallDirs::getDataDir() /= filename).string());
+	ifstream myfile((InstallDirs::getDataDir() /= filename).string());
 	if (myfile.is_open()) {
-		while (getline(myfile,line)) {
+		while (getline(myfile, line)) {
 			if (line != "") {
 				result.push_back(parseFamily(line));
 			}
@@ -41,7 +41,7 @@ FamilyConfig FamilyParser::parseFamily(string config) const {
 			}
 			encountered_space = true;
 			current_age = 0;
-		} else if(&c == &config.back()) {
+		} else if (&c == &config.back()) {
 			encountered_space = false;
 			current_age *= 10;
 			current_age += uint(c) - uint('0');

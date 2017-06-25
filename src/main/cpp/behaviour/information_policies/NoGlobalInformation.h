@@ -9,7 +9,7 @@
 
 namespace stride {
 
-class NoGlobalInformation{
+class NoGlobalInformation {
 
 };
 

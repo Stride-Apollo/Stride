@@ -8,15 +8,15 @@
 // Sometimes, it's more useful to work with existence of defines rather than their values
 
 #ifdef UNIPAR_IMPL_DUMMY
-	#define UNIPAR_IMPL UNIPAR_DUMMY
+#define UNIPAR_IMPL UNIPAR_DUMMY
 #else
-	#ifdef UNIPAR_IMPL_TBB
-		#define UNIPAR_IMPL UNIPAR_TBB
-	#else
-		#ifdef UNIPAR_IMPL_OPENMP
-			#define UNIPAR_IMPL UNIPAR_OPENMP
-		#endif
-	#endif
+#ifdef UNIPAR_IMPL_TBB
+#define UNIPAR_IMPL UNIPAR_TBB
+#else
+#ifdef UNIPAR_IMPL_OPENMP
+#define UNIPAR_IMPL UNIPAR_OPENMP
+#endif
+#endif
 #endif
 
 
