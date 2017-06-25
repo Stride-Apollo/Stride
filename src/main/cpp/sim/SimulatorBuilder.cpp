@@ -129,13 +129,13 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 	sim->m_next_hh_id = max_id + 1;
 
 	// Initialize districts.
-	initializeDistricts(sim, pt_config);
+	initializeDistricts(sim, pt_pop);
 
 	// Initialize the facilities
-	initializeFacilities(sim, pt_config);
+	initializeFacilities(sim, pt_pop);
 
 	// Initialize clusters.
-	initializeClusters(sim, pt_config);
+	initializeClusters(sim, pt_pop);
 
 	// initialize disease profile.
 	sim->m_disease_profile.initialize(pt_config, pt_disease);
@@ -177,9 +177,9 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim, const boost
 	string cluster_filename = "";
 
 	// Get the name of the file with the locations of the clusters
-	boost::optional<const ptree&> cluster_locations_config = pt_config.get_child_optional("run.cluster_location_file");
+	boost::optional<const ptree&> cluster_locations_config = pt_config.get_child_optional("population.clusters");
 	if(cluster_locations_config) {
-		cluster_filename = pt_config.get<string>("run.cluster_location_file");
+		cluster_filename = pt_config.get<string>("population.clusters");
 	}
 
 	map<pair<ClusterType, uint>, GeoCoordinate> locations = initializeLocations(cluster_filename);
@@ -234,12 +234,12 @@ void SimulatorBuilder::initializeClusters(shared_ptr<Simulator> sim, const boost
 
 void SimulatorBuilder::initializeDistricts(shared_ptr<Simulator> sim, const boost::property_tree::ptree& pt_config) {
 	// Get the name of the file with the locations of the clusters
-	boost::optional<const ptree&> districts_config = pt_config.get_child_optional("run.district_file");
+	boost::optional<const ptree&> districts_config = pt_config.get_child_optional("population.districts");
 	if(districts_config) {
-		string district_filename = pt_config.get<string>("run.district_file");
-		double influence_speed = pt_config.get<double>("run.sphere_of_influence.speed");
-		double influence_minimum = pt_config.get<double>("run.sphere_of_influence.minimum");
-		unsigned int influence_size = pt_config.get<unsigned int>("run.sphere_of_influence.size");
+		string district_filename = pt_config.get<string>("population.districts");
+		double influence_speed = pt_config.get<double>("population.sphere_of_influence.<xmlattr>.speed");
+		double influence_minimum = pt_config.get<double>("population.sphere_of_influence.<xmlattr>.min");
+		unsigned int influence_size = pt_config.get<unsigned int>("population.sphere_of_influence.<xmlattr>.size");
 
 		// Check for the correctness of the file
 		const auto file_path = InstallDirs::getDataDir() /= district_filename;
@@ -318,24 +318,24 @@ map<pair<ClusterType, uint>, GeoCoordinate> SimulatorBuilder::initializeLocation
 
 void SimulatorBuilder::initializeFacilities(shared_ptr<Simulator> sim, const boost::property_tree::ptree& pt_config) {
 	// Get the name of the file with the names of the facilities
-	boost::optional<const ptree&> facilities_config = pt_config.get_child_optional("run.facility_file");
-	if(facilities_config) {
-		string facility_filename = pt_config.get<string>("run.facility_file");
 
-		// Check for the correctness of the file
-		const auto file_path = InstallDirs::getDataDir() /= facility_filename;
+	if (!pt_config.get_child_optional("population.cities"))
+		return;
 
-		TransportFacilityReader reader;
-		auto facilities = reader.readFacilities(file_path.string());
+	for (auto pot_city : pt_config.get_child("population.cities")) {
+		if (pot_city.first == "city") {
+			ptree city_tree = pot_city.second;
+			for (auto it : city_tree) {
+				if (it.first == "airport") {
+					// Check if the referenced district exists
+					auto find_district = [&] (const District& district) {return district.getName() == pot_city.second.get<string>("<xmlattr>.name");};
+					auto le_city = find_if(sim->m_districts.begin(), sim->m_districts.end(), find_district);
 
-		for (auto facility: facilities) {
-			// Check if the referenced district exists
-			auto find_district = [&] (const District& district) {return district.getName() == facility.first;};
-			auto it = find_if(sim->m_districts.begin(), sim->m_districts.end(), find_district);
-
-			// If the district exists, add the facility
-			if (it != sim->m_districts.end()) {
-				it->addFacility(facility.second);
+					// If the district exists, add the facility
+					if (le_city != sim->m_districts.end()) {
+						le_city->addFacility(it.second.get<string>("<xmlattr>.name"));
+					}
+				}
 			}
 		}
 	}

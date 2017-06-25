@@ -2,10 +2,15 @@
 <population>
 	<people>smallpop_people.csv</people>
 	<districts>smallpop_cities.csv</districts>
+	<sphere_of_influence speed="100" size="20" min="5"/>
 	<clusters>smallpop_clusters.csv</clusters>
 	<households>smallpop_households.csv</households>
 	<cities>
-		<city name="Antwerp" pop="5000" lat="51.123" lon="4.567"/>
-		<city name="Brussels" pop="10000" lat="50.850" lon="4.348"/>
+		<city name="Antwerp" pop="5000" lat="51.123" lon="4.567">
+			<airport name="ANR"/>
+		</city>
+		<city name="Brussels" pop="10000" lat="50.850" lon="4.348">
+			<airport name="BRU"/>
+		</city>
 	</cities>
 </population>

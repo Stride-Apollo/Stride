@@ -2,6 +2,7 @@
 <population>
 	<people>bigpop_people.csv</people>
 	<districts>bigpop_cities.csv</districts>
+	<sphere_of_influence speed="100" size="20" min="5"/>
 	<clusters>bigpop_clusters.csv</clusters>
 	<households>bigpop_households.csv</households>
 	<cities>
@@ -10,7 +11,6 @@
 		</city>
 		<city name="Brussels" pop="10000" lat="50.850" lon="4.348">
 			<airport name="BRU"/>
-			<airport name="CRL"/>
 		</city>
 	</cities>
 </population>
