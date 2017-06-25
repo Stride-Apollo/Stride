@@ -26,8 +26,8 @@ void Runner::setup() {
 }
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
-			   const RunMode& mode, const string& slave, int timestep)
-        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_uses_mpi(false), m_world_rank(0) {
+			   const RunMode& mode, int timestep)
+        : m_config_file(config_file), m_mode(mode), m_timestep(timestep), m_uses_mpi(false), m_world_rank(0) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -41,7 +41,6 @@ Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 	fs::path base_dir = InstallDirs::getOutputDir();
 	parseConfig();
 	m_output_dir = base_dir / m_name;
-	if (m_slave != "") m_uses_mpi = true;
 }
 
 void Runner::parseConfig() {
@@ -101,7 +100,6 @@ void Runner::initSimulators() {
 		cout << "Using existing output directory at " << output_dir << ", will overwrite." << endl << endl;
 	}
 
-	bool has_remote = false
 	for (auto& it: m_region_configs) {
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		if (remote) {

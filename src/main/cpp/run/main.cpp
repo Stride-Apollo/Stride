@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
 			Hdf5Loader::extractConfigs(hdf5_file_Arg.getValue());
 		} else {
 			Runner runner(overrides_Arg.getValue(), config_file_Arg.getValue(), run_mode,
-						  slave_Arg.getValue(), timestamp_replay_Arg.getValue());
+						  timestamp_replay_Arg.getValue());
 			runner.printInfo();
 			runner.initSimulators();
 			runner.run();
