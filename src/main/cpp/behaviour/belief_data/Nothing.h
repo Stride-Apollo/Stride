@@ -2,7 +2,8 @@
 
 namespace stride {
 
-class Nothing {};
+class Nothing {
+};
 
 }
 

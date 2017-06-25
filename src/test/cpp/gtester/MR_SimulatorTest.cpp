@@ -31,11 +31,11 @@ using namespace boost::property_tree;
 
 namespace Tests {
 
-class UnitTests__AsyncSimulatorTest: public ::testing::Test {
+class UnitTests__MR_SimulatorTest: public ::testing::Test {
 public:
 	/// TestCase set up.
 	static void SetUpTestCase() {
-		
+
 	}
 
 protected:
@@ -49,53 +49,54 @@ protected:
 
 protected:
 	/// Destructor has to be virtual.
-	virtual ~UnitTests__AsyncSimulatorTest() {}
+	virtual ~UnitTests__MR_SimulatorTest() {}
 
 	/// Set up for the test fixture
 	virtual void SetUp() {
-		ptree pt_config;
-		const auto file_path = InstallDirs::getDataDir() /= string("../config/run_flanders.xml");
+		boost::property_tree::ptree config_tree;
+		config_tree.put("run.<xmlattr>.name", "testHdf5");
 
-		std::ifstream my_file;
-		my_file.open(file_path.string());
+		config_tree.put("run.r0", 11.0);
+		config_tree.put("run.start_date", "2017-01-01");
+		config_tree.put("run.num_days", 50U);
+		config_tree.put("run.holidays", "holidays_none.json");
+		config_tree.put("run.age_contact_matrix_file", "contact_matrix_average.xml");
+		config_tree.put("run.track_index_case", 0);
+		config_tree.put("run.num_threads", 4);
+		config_tree.put("run.information_policy", "Global");
 
-		if (my_file.bad()) {
-			throw runtime_error(string(__func__)
-								+ ">Config file " + file_path.string() + " not present. Aborting.");
-		}
-		read_xml(file_path.string(), pt_config);
+		config_tree.put("run.outputs.log.<xmlattr>.level", "None");
+		config_tree.put("run.outputs.participants_survey.<xmlattr>.num", 10);
+		config_tree.put("run.outputs.checkpointing.<xmlattr>.frequency", 1);
 
-		// TODO Unipar
-		unsigned int num_threads = 1;
+		config_tree.put("run.disease.seeding_rate", 0.002);
+		config_tree.put("run.disease.immunity_rate", 0.8);
+		config_tree.put("run.disease.config", "disease_measles.xml");
 
-		// Set output path prefix.
-		string output_prefix = "";
-
-		// Additional run configurations.
-		if (pt_config.get_optional<bool>("run.num_participants_survey") == false) {
-			pt_config.put("run.num_participants_survey", 1);
-		}
+		config_tree.put("run.regions.region.<xmlattr>.name", "Belgium");
+		config_tree.put("run.regions.region.rng_seed", 1U);
+		config_tree.put("run.regions.region.population", "bigpop.xml");
 
 		// Create simulators
-		m_sim1 = SimulatorBuilder::build(pt_config, num_threads, false);
-		m_sim2 = SimulatorBuilder::build(pt_config, num_threads, false);
-		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1.get());
-		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2.get());
+		m_sim1 = SimulatorBuilder::build(config_tree);
+		m_sim2 = SimulatorBuilder::build(config_tree);
+		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1);
+		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2);
 
-		m_l1->setId(1);
-		m_l2->setId(2);
+		m_sim1->setName("1");
+		m_sim2->setName("2");
 
-		map<uint, AsyncSimulator*> sender_map1;
-		sender_map1[2] = m_l2.get();
+		map<string, AsyncSimulator*> sender_map1;
+		sender_map1["2"] = m_l2.get();
 
-		map<uint, AsyncSimulator*> sender_map2;
-		sender_map2[1] = m_l1.get();
+		map<string, AsyncSimulator*> sender_map2;
+		sender_map2["1"] = m_l1.get();
 
-		m_l1->setCommunicationMap(sender_map1);
-		m_l2->setCommunicationMap(sender_map2);
+		m_sim1->setCommunicationMap(sender_map1);
+		m_sim2->setCommunicationMap(sender_map2);
 
 		// Migrate 10 people for 10 days
-		m_l1->sendNewTravellers(10, 10, 2, "Antwerp", "ANR");
+		m_sim1->sendNewTravellers(10, 10, "2", "Antwerp", "ANR");
 
 		// Keep a vector of id's of people who are on vacation
 		vector<unsigned int> m_ids;
@@ -113,7 +114,7 @@ protected:
 	virtual void TearDown() {}
 };
 
-TEST_F(UnitTests__AsyncSimulatorTest, returnHome) {
+TEST_F(UnitTests__MR_SimulatorTest, returnHome) {
 	for (unsigned int i = 0; i < 11; i++) {
 		// Test whether they are present in the population of the hosting region
 		EXPECT_EQ(m_sim2->getPopulation()->m_visitors.getDay(10 - i)->size(), 10U);
@@ -123,13 +124,11 @@ TEST_F(UnitTests__AsyncSimulatorTest, returnHome) {
 			EXPECT_FALSE(person.isOnVacation());
 		}
 
-		vector<future<bool>> fut_results;
-		fut_results.push_back(m_l1->timeStep());
-		fut_results.push_back(m_l2->timeStep());
-		future_pool(fut_results);
-
-		m_l1->returnForeignTravellers();
-		m_l2->returnForeignTravellers();
+		m_sim1->timeStep();
+		m_sim2->timeStep();
+		
+		m_sim1->returnForeignTravellers();
+		m_sim2->returnForeignTravellers();
 
 		for (unsigned int j = 0; j < m_sim1->getPlanner().getAgenda().size(); ++j) {
 			auto it = m_sim2->getPlanner().getAgenda().begin();
@@ -163,7 +162,7 @@ TEST_F(UnitTests__AsyncSimulatorTest, returnHome) {
 	}
 }
 
-TEST_F(UnitTests__AsyncSimulatorTest, peopleMoved) {
+TEST_F(UnitTests__MR_SimulatorTest, peopleMoved) {
 	// Test if the people arrived in the destination simulator
 	for (unsigned int i = 0; i < m_sim2->getPopulation()->m_visitors.getAgenda().size(); ++i) {
 		auto it = m_sim2->getPopulation()->m_visitors.getAgenda().begin();
@@ -185,7 +184,7 @@ TEST_F(UnitTests__AsyncSimulatorTest, peopleMoved) {
 	}
 }
 
-TEST_F(UnitTests__AsyncSimulatorTest, destinationClusters) {
+TEST_F(UnitTests__MR_SimulatorTest, destinationClusters) {
 	// Test clusters of the target simulator, the travellers must be in the clusters
 	for (unsigned int i = 0; i < m_sim2->getPopulation()->m_visitors.getAgenda().back()->size(); ++i) {
 		auto& person = m_sim2->getPopulation()->m_visitors.getAgenda().back()->at(i);
@@ -217,7 +216,7 @@ TEST_F(UnitTests__AsyncSimulatorTest, destinationClusters) {
 		it = find_if(m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().begin(),
 						m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end(),
 						search_person);
-		
+
 		EXPECT_NE(it, m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end());
 	}
 }

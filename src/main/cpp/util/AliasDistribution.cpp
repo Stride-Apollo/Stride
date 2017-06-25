@@ -6,16 +6,16 @@ using namespace stride;
 using namespace util;
 
 AliasDistribution::AliasDistribution(const vector<double>& _probs)
-		: m_blocks(_probs.size()), m_diceroll(0, _probs.size()-1) {
-	double factor = 1.0/std::accumulate(_probs.begin(), _probs.end(), 0.0);
+		: m_blocks(_probs.size()), m_diceroll(0, _probs.size() - 1) {
+	double factor = 1.0 / std::accumulate(_probs.begin(), _probs.end(), 0.0);
 
 	unsigned int n = _probs.size();
 	assert(n > 0);
 	vector<double> probs(n);
-	for (unsigned int i=0; i<n; i++) probs[i] = _probs[i] * factor * n;
+	for (unsigned int i = 0; i < n; i++) probs[i] = _probs[i] * factor * n;
 
 	deque<unsigned int> small, large;
-	for (unsigned int i=0; i<n; i++) {
+	for (unsigned int i = 0; i < n; i++) {
 		(probs[i] < 1.0 ? small : large).push_back(i);
 	}
 
@@ -36,7 +36,7 @@ AliasDistribution::AliasDistribution(const vector<double>& _probs)
 	for (unsigned int i: small) m_blocks[i].prob = 1.0;
 }
 
-uniform_real_distribution<double> AliasDistribution::g_coinflip = uniform_real_distribution<double>(0,1);
+uniform_real_distribution<double> AliasDistribution::g_coinflip = uniform_real_distribution<double>(0, 1);
 
 template<typename K, typename V>
 vector<V> map_values(const map<K, V>& m) {

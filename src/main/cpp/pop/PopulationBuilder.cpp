@@ -20,24 +20,10 @@
 
 #include "PopulationBuilder.h"
 
-#include "core/Health.h"
-#include "pop/Person.h"
-#include "pop/Population.h"
 #include "util/InstallDirs.h"
-#include "util/Random.h"
 #include "util/StringUtils.h"
 
-#include <spdlog/spdlog.h>
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
 
 namespace stride {
 
@@ -49,6 +35,7 @@ using namespace stride::util;
 shared_ptr<Population> PopulationBuilder::build(
 		const boost::property_tree::ptree& pt_config,
 		const boost::property_tree::ptree& pt_disease,
+		const boost::property_tree::ptree& pt_pop,
 		util::Random& rng) {
 	//------------------------------------------------
 	// Setup.
@@ -56,9 +43,9 @@ shared_ptr<Population> PopulationBuilder::build(
 	// TODO first determine how many people are needed (by scanning the file twice)
 	const auto pop = make_shared<Population>();
 	Population::VectorType& population = pop->m_original;
-	const double seeding_rate = pt_config.get<double>("run.seeding_rate");
-	const double immunity_rate = pt_config.get<double>("run.immunity_rate");
-	const string disease_config_file = pt_config.get<string>("run.disease_config_file");
+	const double seeding_rate = pt_config.get<double>("run.disease.seeding_rate");
+	const double immunity_rate = pt_config.get<double>("run.disease.immunity_rate");
+	const string disease_config_file = pt_config.get<string>("run.disease.config");
 
 	//------------------------------------------------
 	// check input.
@@ -71,14 +58,14 @@ shared_ptr<Population> PopulationBuilder::build(
 	//------------------------------------------------
 	// Add persons to population.
 	//------------------------------------------------
-	const auto file_name = pt_config.get<string>("run.population_file");;
+	const auto file_name = pt_pop.get<string>("population.people");
 	const auto file_path = InstallDirs::getDataDir() /= file_name;
 	if (!is_regular_file(file_path)) {
 		throw runtime_error(string(__func__)
-							+ "> Population file " + file_path.string() + " not present.");
+							+ "> Population (people) file " + file_path.string() + " not present.");
 	}
 
-	boost::filesystem::ifstream pop_file;
+	std::ifstream pop_file;
 	pop_file.open(file_path.string());
 	if (!pop_file.is_open()) {
 		throw runtime_error(string(__func__)
@@ -96,22 +83,23 @@ shared_ptr<Population> PopulationBuilder::build(
 	while (getline(pop_file, line)) {
 		// Make use of stochastic disease characteristics.
 		const auto start_infectiousness = sample(rng, distrib_start_infectiousness);
-		const auto start_symptomatic    = sample(rng, distrib_start_symptomatic);
-		const auto time_infectious      = sample(rng, distrib_time_infectious);
-		const auto time_symptomatic     = sample(rng, distrib_time_symptomatic);
+		const auto start_symptomatic = sample(rng, distrib_start_symptomatic);
+		const auto time_infectious = sample(rng, distrib_time_infectious);
+		const auto time_symptomatic = sample(rng, distrib_time_symptomatic);
 		const auto values = StringUtils::split(line, ",");
 		auto risk_averseness = 0.0;
 		if (values.size() > 6) {
 			risk_averseness = StringUtils::fromString<double>(values[6]);
 		}
 		population.emplace_back(Simulator::PersonType(person_id,
-			StringUtils::fromString<unsigned int>(values[0]),
-			StringUtils::fromString<unsigned int>(values[1]),
-			StringUtils::fromString<unsigned int>(values[2]),
-			StringUtils::fromString<unsigned int>(values[3]),
-			StringUtils::fromString<unsigned int>(values[4]),
-			StringUtils::fromString<unsigned int>(values[5]),
-			start_infectiousness, start_symptomatic, time_infectious, time_symptomatic, risk_averseness));
+													  StringUtils::fromString<unsigned int>(values[0]),
+													  StringUtils::fromString<unsigned int>(values[1]),
+													  StringUtils::fromString<unsigned int>(values[2]),
+													  StringUtils::fromString<unsigned int>(values[3]),
+													  StringUtils::fromString<unsigned int>(values[4]),
+													  StringUtils::fromString<unsigned int>(values[5]),
+													  start_infectiousness, start_symptomatic, time_infectious,
+													  time_symptomatic, risk_averseness));
 		++person_id;
 	}
 
@@ -130,17 +118,17 @@ shared_ptr<Population> PopulationBuilder::build(
 	//------------------------------------------------
 	const string log_level = pt_config.get<string>("run.log_level", "None");
 	if (log_level == "Contacts") {
-		const unsigned int num_participants = pt_config.get<double>("run.num_participants_survey");
+		const unsigned int num_participants = pt_config.get<double>("run.outputs.participants_survey.<xmlattr>.num");
 
 		// use a while-loop to obtain 'num_participant' unique participants (default sampling is with replacement)
 		// A for loop will not do because we might draw the same person twice.
+		// TODO: getting a hold of a proper logger here is very difficult
 		unsigned int num_samples = 0;
-		const shared_ptr<spdlog::logger> logger = spdlog::get("contact_logger");
 		while (num_samples < num_participants) {
 			Simulator::PersonType& p = population[rng(max_population_index)];
 			if (!p.isParticipatingInSurvey()) {
 				p.participateInSurvey();
-				logger->info("[PART] {} {} {}", p.getId(), p.getAge(), p.getGender());
+				//logger.info("[PART] {} {} {}", p.getId(), p.getAge(), p.getGender());
 				num_samples++;
 			}
 		}

@@ -19,7 +19,7 @@ using namespace std;
  * Used by Simulator for remembering when people have to return home from
  * their travels. (The 'event' is a traveller.)
  */
-template <typename T>
+template<typename T>
 class SimplePlanner {
 public:
 	using Block = vector<unique_ptr<T>>;
@@ -29,8 +29,8 @@ public:
 		Block* block;
 		if (days >= m_agenda.size()) {
 			// make sure there are enough blocks in place
-			uint new_blocks =  (days+1) - m_agenda.size();
-			for (unsigned int i=0; i < new_blocks; i++) {
+			uint new_blocks = (days + 1) - m_agenda.size();
+			for (unsigned int i = 0; i < new_blocks; i++) {
 				block = new Block();
 				m_agenda.emplace_back(block);
 			}
@@ -91,7 +91,7 @@ private:
 };
 
 // look at how elegant C++ templates are
-template <typename T>
+template<typename T>
 typename SimplePlanner<T>::Block SimplePlanner<T>::g_empty_day = SimplePlanner<T>::Block();
 
 }

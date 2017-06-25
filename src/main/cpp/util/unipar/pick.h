@@ -21,27 +21,28 @@
 
 #if UNIPAR_IMPL == UNIPAR_DUMMY
 
-	#include "dummy.h"
-	namespace unipar {
-		using Parallel = unipar::DummyParallel;
-	}
+#include "dummy.h"
+
+namespace unipar {
+using Parallel = unipar::DummyParallel;
+}
 
 #elif UNIPAR_IMPL == UNIPAR_TBB
 
-	#include "tbb.h"
-	namespace unipar {
-		using Parallel = unipar::TbbParallel;
-	}
+#include "tbb.h"
+namespace unipar {
+	using Parallel = unipar::TbbParallel;
+}
 
 #elif UNIPAR_IMPL == UNIPAR_OPENMP
 
-	#include "openmp.h"
-	namespace unipar {
-		using Parallel = unipar::OpenmpParallel;
-	}
-	
+#include "openmp.h"
+namespace unipar {
+	using Parallel = unipar::OpenmpParallel;
+}
+
 #else
 
-	#error Unknown Unipar Implementation
+#error Unknown Unipar Implementation
 
 #endif

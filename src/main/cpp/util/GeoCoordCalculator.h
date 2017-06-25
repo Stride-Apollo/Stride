@@ -17,7 +17,7 @@ public:
 	static const GeoCoordCalculator& getInstance();
 
 	double getDistance(const GeoCoordinate& coord1, const GeoCoordinate& coord2) const;
-	/// Result is in kilometres
+	/// Result is in kilometers
 	/// Uses the haversine formula
 	/// See: http://www.movable-type.co.uk/scripts/latlong.html
 
@@ -26,7 +26,7 @@ public:
 			const GeoCoordinate& coord,
 			double radius,
 			T rng) const {
-		/// Partially the inverse of GeoCoordCalculator::getDistance, therefore i use the same variable names
+		/// Partially the inverse of GeoCoordCalculator::getDistance, therefore I use the same variable names
 		/// For future improvements, use this: http://gis.stackexchange.com/questions/25877/generating-random-locations-nearby
 		double temp2 = radius / 6371;
 		double temp1 = sin(temp2 / 2.0) * sin(temp2 / 2.0);
@@ -39,15 +39,17 @@ public:
 
 		std::uniform_real_distribution<double> dist_longitude(-max_delta_longitude, max_delta_longitude);
 		std::uniform_real_distribution<double> dist_latitude(-max_delta_latitude, max_delta_latitude);
-		// trng::uniform_dist<double> dist_longitude(-max_delta_longitude, max_delta_longitude);
-		// trng::uniform_dist<double> dist_latitude(-max_delta_latitude, max_delta_latitude);
 		GeoCoordinate random_coordinate;
 
 		do {
 			double new_longitude = coord.m_longitude + dist_longitude(rng);
 			double new_latitude = coord.m_latitude + dist_latitude(rng);
+
+
 			random_coordinate.m_longitude = new_longitude;
 			random_coordinate.m_latitude = new_latitude;
+			this->convertToRegularCoordinates(new_latitude, new_longitude);
+
 		} while (getDistance(coord, random_coordinate) > radius);
 		return random_coordinate;
 	}
@@ -66,18 +68,22 @@ public:
 		double x = cos(lat2_rad) * cos(lon_diff);
 		double y = cos(lat2_rad) * sin(lon_diff);
 
-		double center_lat = atan2( sin(lat1_rad) + sin(lat2_rad), sqrt((cos(lat1_rad) + x) * (cos(lat1_rad) + x) + y * y) );
+		double center_lat = atan2(sin(lat1_rad) + sin(lat2_rad),
+								  sqrt((cos(lat1_rad) + x) * (cos(lat1_rad) + x) + y * y));
 		double center_lon = lon1_rad + atan2(y, cos(lat1_rad) + x);
 
 		return GeoCoordinate(center_lat * 180 / PI, center_lon * 180 / PI);
 	}
 
-private:
-	GeoCoordCalculator(){}
+	void convertToRegularCoordinates(double& latitude, double& longitude) const;
 
-	~GeoCoordCalculator(){}
+private:
+	GeoCoordCalculator() {}
+
+	~GeoCoordCalculator() {}
 
 	GeoCoordCalculator(GeoCoordCalculator const&) = delete;
+
 	void operator=(GeoCoordCalculator const&)  = delete;
 };
 

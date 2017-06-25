@@ -49,7 +49,7 @@ protected:
 	const double         m_seeding_rate                = 0.0001;
 	const double         m_immunity_rate               = 0.0;
 	const string         m_disease_config_file         = "disease_influenza.xml";
-	const string         m_output_prefix         	   = "test";
+	const string         m_name			         	   = "test";
 	const string         m_holidays_file               = "holidays_none.json";
 	const unsigned int   m_num_participants_survey     = 10;
 	const string         m_start_date                  = "2017-01-01";
@@ -84,31 +84,32 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 
 	// Setup configuration.
 	boost::property_tree::ptree pt_config;
-	pt_config.put("run.rng_seed", m_rnm_seed);
+	pt_config.put("run.regions.region.rng_seed", m_rnm_seed);
 	pt_config.put("run.r0", m_r0);
-	pt_config.put("run.seeding_rate", m_seeding_rate);
-	pt_config.put("run.immunity_rate", m_immunity_rate);
-	pt_config.put("run.population_file", m_population_file);
+	pt_config.put("run.disease.seeding_rate", m_seeding_rate);
+	pt_config.put("run.disease.immunity_rate", m_immunity_rate);
+	pt_config.put("run.regions.region.raw_population", m_population_file);
+	pt_config.put("run.num_threads", num_threads);
 	pt_config.put("run.num_days", m_num_days);
-	pt_config.put("run.output_prefix", m_output_prefix);
-	pt_config.put("run.disease_config_file",m_disease_config_file);
-	pt_config.put("run.num_participants_survey",m_num_participants_survey);
-	pt_config.put("run.start_date",m_start_date);
-	pt_config.put("run.holidays_file",m_holidays_file);
+	pt_config.put("run.<xmlattr>.name", m_name);
+	pt_config.put("run.disease.config", m_disease_config_file);
+	pt_config.put("run.outputs.participants_survey.<xmlattr>.num", m_num_participants_survey);
+	pt_config.put("run.start_date", m_start_date);
+	pt_config.put("run.holidays", m_holidays_file);
 	pt_config.put("run.age_contact_matrix_file","contact_matrix_average.xml");
-	pt_config.put("run.log_level","None");
+	pt_config.put("run.outputs.log.<xmlattr>.log_level", "None");
 	bool track_index_case = false;
 
 	// Override scenario settings.
 	if (test_tag == "default") {
 		// do nothing
 	} else if (test_tag == "seeding_rate") {
-		pt_config.put("run.seeding_rate", m_seeding_rate_adapted);
+		pt_config.put("run.disease.seeding_rate", m_seeding_rate_adapted);
 	} else if (test_tag == "immunity_rate") {
-		pt_config.put("run.seeding_rate", 1-m_immunity_rate_adapted);
-		pt_config.put("run.immunity_rate", m_immunity_rate_adapted);
+		pt_config.put("run.disease.seeding_rate", 1-m_immunity_rate_adapted);
+		pt_config.put("run.disease.immunity_rate", m_immunity_rate_adapted);
 	} else if (test_tag == "measles") {
-		pt_config.put("run.disease_config_file", m_disease_config_file_adapted);
+		pt_config.put("run.disease.config", m_disease_config_file_adapted);
 		pt_config.put("run.r0", m_transmission_rate_measles);
 	} else if (test_tag == "maximum") {
 		pt_config.put("run.r0", m_transmission_rate_maximum);
@@ -118,7 +119,7 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 
 	// initialize the logger.
 	spdlog::set_async_mode(1048576);
-	auto file_logger = spdlog::rotating_logger_mt("contact_logger", m_output_prefix + "_logfile",
+	auto file_logger = spdlog::rotating_logger_mt("contact_logger", m_name + "_logfile",
 			std::numeric_limits<size_t>::max(),  std::numeric_limits<size_t>::max());
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
 
@@ -128,7 +129,7 @@ TEST_P( Scenarios__BatchDemos, Run ) {
 	defer(spdlog::drop_all());
 
 	// initialize the simulation.
-	auto sim = SimulatorBuilder::build(pt_config, num_threads, track_index_case);
+	auto sim = SimulatorBuilder::build(pt_config);
 
 	// Run the simulation.
 	const unsigned int num_days = pt_config.get<unsigned int>("run.num_days");

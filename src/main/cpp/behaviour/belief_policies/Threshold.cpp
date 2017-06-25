@@ -9,8 +9,13 @@
 
 namespace stride {
 
-template class Threshold<true, false>;
-template class Threshold<false, true>;
-template class Threshold<true, true>;
+template
+class Threshold<true, false>;
+
+template
+class Threshold<false, true>;
+
+template
+class Threshold<true, true>;
 
 } /* namespace stride */

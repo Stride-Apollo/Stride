@@ -2,7 +2,9 @@
 
 #include <vector>
 #include <string>
+#include <boost/property_tree/ptree.hpp>
 
+#include "calendar/Calendar.h"
 #include "AsyncSimulator.h"
 #include "util/TravellerScheduleReader.h"
 
@@ -13,32 +15,24 @@ using namespace util;
 
 class Coordinator {
 public:
-	template <typename Iter>
-	Coordinator(const Iter& sims, const string& filename = "") : m_sims(sims.begin(), sims.end()) {
-		if (filename != "") {
-			TravellerScheduleReader reader;
-			m_traveller_schedule = reader.readSchedule(filename);
-		}
-		initializeSimulators();
-	}
-
-	Coordinator(initializer_list<AsyncSimulator*> sims)
-		: m_sims(sims.begin(), sims.end()) {initializeSimulators();}
-
-	void initializeSimulators() {
-		// TODO: also give the simulators a name
-		uint id = 0;
-		for (auto sim: m_sims) {
-			sim->setId(id);
-			++id;
+	Coordinator(const map<string, shared_ptr<AsyncSimulator>>& sims, const string& schedule,
+				boost::property_tree::ptree& config)
+			: m_sims(sims), m_calendar(config) {
+		if (schedule != "") {
+			// TODO Fix traveller schedule
+			m_traveller_schedule = TravellerScheduleReader().readSchedule(schedule);
 		}
 	}
 
-	void timeStep();
+	// TODO: Make this return a list of infected counts?
+	vector<SimulatorStatus> timeStep();
+
 
 private:
-	vector<AsyncSimulator*> m_sims;
 	Schedule m_traveller_schedule;
+	map<string, shared_ptr<AsyncSimulator>> m_sims;
+	// TODO: Calendars are saved for every Simulator *and* the Coordinator
+	Calendar m_calendar;
 };
 
 }

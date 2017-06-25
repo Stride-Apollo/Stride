@@ -59,7 +59,7 @@ public:
 	}
 
 	/// Check if two individuals have transmission.
-	bool hasTransmission(double transmission_rate)  {
+	bool hasTransmission(double transmission_rate) {
 		return nextDouble() < rateToProbability(transmission_rate);
 	}
 

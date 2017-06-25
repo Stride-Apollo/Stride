@@ -13,7 +13,7 @@ using uint = unsigned int;
 
 class TransportFacilityReader {
 public:
-	vector<pair<string, string> > readFacilities(string filename);
+	vector<pair<string, string>> readFacilities(string filename);
 
 private:
 	pair<string, string> parseFacility(string row);

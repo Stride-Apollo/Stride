@@ -1,26 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<run>
-    <rng_seed>1</rng_seed>
+<run name="run_flanders">
     <r0>11</r0>
-    <seeding_rate>0.002</seeding_rate>
-    <immunity_rate>0.8</immunity_rate>
-    <population_file>pop_flanders.csv</population_file>
-    <cluster_location_file>clusters_flanders.csv</cluster_location_file>
-    <district_file>districts_flanders.csv</district_file>
-    <sphere_of_influence>
-        <speed>100.0</speed>
-        <size>7</size>
-        <minimum>20.0</minimum>
-    </sphere_of_influence>
-    <facility_file>transportation_facilities.csv</facility_file>
-    <num_days>50</num_days>
-    <output_prefix></output_prefix>
-    <disease_config_file>disease_measles.xml</disease_config_file>
-    <generate_person_file>1</generate_person_file>
-    <num_participants_survey>10</num_participants_survey>
     <start_date>2017-01-01</start_date>
-    <holidays_file>holidays_none.json</holidays_file>
+    <num_days>50</num_days>
+    <holidays>holidays_flanders_2017.json</holidays>
     <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
-    <log_level>None</log_level>
-	<visualization>1</visualization>
+    <track_index_case>0</track_index_case>
+    <num_threads>4</num_threads>
+    <information_policy>Global</information_policy>
+
+    <outputs>
+        <log level="Transmissions"/>
+        <person_file/>
+        <participants_survey num="10"/>
+        <visualization/>
+        <checkpointing frequency="1"/>
+    </outputs>
+
+    <disease>
+        <seeding_rate>0.002</seeding_rate>
+        <immunity_rate>0.8</immunity_rate>
+        <config>disease_measles.xml</config>
+    </disease>
+
+    <regions>
+        <region name="Flanders">
+            <rng_seed>123</rng_seed>
+            <population>bigpop.xml</population>
+        </region>
+    </regions>
 </run>

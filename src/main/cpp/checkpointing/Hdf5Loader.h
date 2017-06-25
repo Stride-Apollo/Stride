@@ -5,7 +5,12 @@
 * Header file for the Loader class for the checkpointing functionality
 */
 
+#ifdef HDF5_USED
+
 #include "H5Cpp.h"
+
+#endif
+
 #include "util/Observer.h"
 #include "sim/Simulator.h"
 #include <boost/property_tree/xml_parser.hpp>
@@ -19,9 +24,10 @@ using std::string;
 
 namespace stride {
 
-class Loader {
+class Hdf5Loader {
+#ifdef HDF5_USED
 public:
-	Loader(const char* filename, unsigned int num_threads);
+	Hdf5Loader(const char* filename);
 
 	/// Load from timestep, if the specified timestep is present in the hdf5 file.
 	void loadFromTimestep(unsigned int timestep, shared_ptr<Simulator> sim) const;
@@ -34,9 +40,10 @@ public:
 
 public:
 	ptree getConfig() const { return m_pt_config; }
+
 	ptree getDisease() const { return m_pt_disease; }
+
 	ptree getContact() const { return m_pt_contact; }
-	bool getTrackIndexCase() const { return m_track_index_case; }
 
 	/// Retrieves the last saved timestep index in the hdf5 file.
 	unsigned int getLastSavedTimestep() const;
@@ -47,14 +54,12 @@ public:
 
 
 private:
-	/// Creates and sets the population for the simulator.
-	void setupPopulation(shared_ptr<Simulator> sim) const;
-
 	/// Sets the cluster immune indices to their maximum, so that sortCluster will definitely sort all members.
 	void updateClusterImmuneIndices(shared_ptr<Simulator> sim) const;
 
 	/// Reoders the cluster member positions according to the loaded timestep data.
-	void loadClusters(H5::H5File& file, string full_dataset_name, std::vector<Cluster>& cluster, shared_ptr<Population> pop) const;
+	void loadClusters(H5::H5File& file, string full_dataset_name, std::vector<Cluster>& cluster,
+					  shared_ptr<Simulator> sim) const;
 
 	/// Loads the calendar data.
 	void loadCalendar(H5::H5File& file, string dataset_name, shared_ptr<Simulator> sim) const;
@@ -65,20 +70,44 @@ private:
 	/// Load the rng state (NOTE only happens when stride runs without parallelisation).
 	void loadRngState(H5::H5File& file, string dataset_name, shared_ptr<Simulator> sim) const;
 
+	/// Loads the travellers if present.
+	void loadTravellers(H5::H5File& file, string dataset_name, shared_ptr<Simulator> sim) const;
+
 	/// Loads the configuration files from the hdf5 file (stored as class attributes).
 	void loadConfigs();
 
-	/// Loads the track index case from the hdf5 file (stored as class attribute).
-	void loadTrackIndexCase();
 
 private:
 	const char* m_filename;
-	bool m_track_index_case;
-	unsigned int m_num_threads;
+
 	ptree m_pt_config;
 	ptree m_pt_disease;
 	ptree m_pt_contact;
+#endif
+#ifndef HDF5_USED
+	// These dummy headers are used as an interface for when no hdf5 is included, but everything still needs to compile.
+	public:
+		Hdf5Loader(const char* filename) {}
 
+		/// Load from timestep, if the specified timestep is present in the hdf5 file.
+		void loadFromTimestep(unsigned int timestep, shared_ptr<Simulator> sim) const {}
+
+		/// Extend the simulation at the last saved timestep.
+		void extendSimulation(shared_ptr<Simulator> sim) const {}
+
+
+	public:
+		ptree getConfig() const { ptree result; return result; }
+		ptree getDisease() const { ptree result; return result; }
+		ptree getContact() const { ptree result; return result; }
+
+		/// Retrieves the last saved timestep index in the hdf5 file.
+		unsigned int getLastSavedTimestep() const { return 0; }
+
+	public:
+		/// Extract the configuration files saved in the hdf5 file.
+		static void extractConfigs(string filename) {}
+#endif
 };
 
 }

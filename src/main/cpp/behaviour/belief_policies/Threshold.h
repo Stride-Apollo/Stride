@@ -9,7 +9,7 @@ namespace stride {
 template<typename BehaviourPolicy, typename BeliefPolicy>
 class Person;
 
-template <bool threshold_infected, bool threshold_adopted>
+template<bool threshold_infected, bool threshold_adopted>
 class Threshold {
 public:
 	using Data = ThresholdData;
@@ -26,8 +26,9 @@ public:
 	static void update(Data& belief_data, Health& health_data) {}
 
 	template<typename BehaviourPolicy>
-	static void update(Data& belief_data, const Person<BehaviourPolicy, Threshold<threshold_infected, threshold_adopted> >* p) {
-		belief_data.contact<BehaviourPolicy, Threshold<threshold_infected, threshold_adopted> >(p);
+	static void
+	update(Data& belief_data, const Person<BehaviourPolicy, Threshold<threshold_infected, threshold_adopted>>* p) {
+		belief_data.contact<BehaviourPolicy, Threshold<threshold_infected, threshold_adopted>>(p);
 	}
 
 	static bool hasAdopted(const Data& belief_data) {
@@ -48,8 +49,13 @@ public:
 };
 
 /// Explicit instantiations in .cpp file
-extern template class Threshold<true, false>;
-extern template class Threshold<false, true>;
-extern template class Threshold<true, true>;
+extern template
+class Threshold<true, false>;
+
+extern template
+class Threshold<false, true>;
+
+extern template
+class Threshold<true, true>;
 
 }

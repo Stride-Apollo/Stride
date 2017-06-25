@@ -37,7 +37,7 @@ class Population;
 // Writing your own iterator 101
 // Forward? Backward? Random access? Constness?
 // PopT is either `Population` or `const Population`
-template <typename PopT, typename IterT>
+template<typename PopT, typename IterT>
 class _PopulationIterator {
 protected:
 	_PopulationIterator(PopT& pop, unsigned int index, bool in_planner = false, unsigned int day = 0)
@@ -80,7 +80,7 @@ protected:
 			if (isEnd()) {
 				return;
 			}
-			if (m_in_planner or (not (*(*this)).isOnVacation())) {
+			if (m_in_planner or (not(*(*this)).isOnVacation())) {
 				return;
 			}
 		}
@@ -89,17 +89,18 @@ protected:
 public:
 
 	void operator++(int) { trueNext(); }
+
 	void operator++() { trueNext(); }
 
-	bool operator== (const _PopulationIterator& other) const {
+	bool operator==(const _PopulationIterator& other) const {
 		return &m_pop == &(other.m_pop)
-				and m_in_planner == other.m_in_planner
-				and m_index == other.m_index
-				and m_day == other.m_day;
+			   and m_in_planner == other.m_in_planner
+			   and m_index == other.m_index
+			   and m_day == other.m_day;
 	}
 
-	bool operator!= (const _PopulationIterator& other) const {
-		return not (*this == other);
+	bool operator!=(const _PopulationIterator& other) const {
+		return not(*this == other);
 	}
 
 	const typename PopT::PersonType& operator*() const {
@@ -109,8 +110,8 @@ public:
 
 	bool isEnd() {
 		return m_in_planner
-			and m_index == 0
-			and m_day == m_pop.m_visitors.days();
+			   and m_index == 0
+			   and m_day == m_pop.m_visitors.days();
 	}
 
 protected:
@@ -122,6 +123,7 @@ protected:
 };
 
 class PopulationIterator;
+
 class ConstPopulationIterator;
 
 /**
@@ -150,9 +152,11 @@ public:
 	unsigned int getAdoptedCount() const;
 
 	PopulationIterator begin();
+
 	PopulationIterator end();
 
 	ConstPopulationIterator begin() const;
+
 	ConstPopulationIterator end() const;
 
 	// These are public, since otherwise I'd have to proxy literally every operation.
@@ -166,25 +170,30 @@ public:
 
 
 using _PopIter = _PopulationIterator<Population, Population::PlannerType::Agenda::iterator>;
+
 class PopulationIterator : public _PopIter {
 public:
 	friend class Population;
+
 	using _PopIter::_PopulationIterator;
+
 	Population::PersonType& operator*() const;
 };
 
 
 using _ConstPopIter = _PopulationIterator<const Population, Population::PlannerType::Agenda::const_iterator>;
+
 class ConstPopulationIterator : public _ConstPopIter {
 public:
 	friend class Population;
+
 	using _ConstPopIter::_PopulationIterator;
 };
 
 template<typename BeliefPolicy>
 unsigned int Population::getAdoptedCount() const {
 	unsigned int total {0U};
-	//for (const_iterator& it = this->begin(); not it.isEnd(); it++) {
+
 	for (const auto& p: *this) {
 		auto belief_data = p.getBeliefData();
 		bool adopted = BeliefPolicy::hasAdopted(belief_data);

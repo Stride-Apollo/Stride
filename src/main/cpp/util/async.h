@@ -38,7 +38,7 @@ public:
 	inline void wait() const {
 		unique_lock<mutex> lock(m_mut);
 		if (m_flag) return;
-		m_cv.wait(lock, [this]{ return m_flag; });
+		m_cv.wait(lock, [this] { return m_flag; });
 	}
 
 private:

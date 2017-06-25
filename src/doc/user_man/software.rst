@@ -70,7 +70,7 @@ build the software is stored in the directory ``./src``:
 
     -  ``src/doc/doxygen_ref_man``: files needed to generate the reference documentation with Doxygen
 
-    -  ``src/doc/latex_man``: files needed to generate the user manual with Latex
+    -  ``src/doc/user_man``: files needed to generate the user manual with Sphinx
 
   * ``src/test``: test related files (scripts, regression files, ...)
 
@@ -117,10 +117,6 @@ The software can generates different output files:
 
 cases.csv
     | Cumulative number of cases per day.
-
-summary.csv
-    | Aggregated results on the number of cases, configuration details
-      and timings.
 
 person.csv
     | Individual details on infection characteristics.

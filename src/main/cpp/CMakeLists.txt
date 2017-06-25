@@ -19,12 +19,12 @@
 # Sources.
 #============================================================================
 set(LIB_SRC
-#---
+	#---
 	behaviour/belief_data/ThresholdData.cpp
 	behaviour/belief_policies/Threshold.cpp
-#---
-    calendar/Calendar.cpp
-#---
+	#---
+	calendar/Calendar.cpp
+	#---
 	core/Cluster.cpp
 	core/ClusterType.cpp
 	core/ContactProfile.cpp
@@ -32,66 +32,65 @@ set(LIB_SRC
 	core/Health.cpp
 	core/Infector.cpp
 	core/LogMode.cpp
-#---
+	#---
 	output/CasesFile.cpp
 	output/PersonFile.cpp
-	output/SummaryFile.cpp
-#---
+	#---
 	pop/Person.cpp
 	pop/PopulationBuilder.cpp
 	pop/Population.cpp
-
-#---
-	sim/run_stride.cpp
+	#---
+	sim/Coordinator.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
-	sim/Coordinator.cpp
 	sim/SimulatorRunMode.cpp
 	sim/SimulatorSetup.cpp
-#---
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
 	util/TravellerScheduleReader.cpp
 	util/TransportFacilityReader.cpp
-#---
-	patterns/Publisher.cpp
-#---
+	#---
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
-#---
-	checkpointing/Saver.cpp
-	checkpointing/Loader.cpp
-#---
- 	vis/ClusterSaver.cpp
-#---
-    
-)
+	#---
+	vis/ClusterSaver.cpp
+	#---
+	run/Runner.cpp
+	)
+
+if (NOT STRIDE_FORCE_NO_HDF5)
+	list(APPEND LIB_SRC checkpointing/Hdf5Saver.cpp checkpointing/Hdf5Loader.cpp)
+endif ()
+
+if (NOT STRIDE_FORCE_NO_MPI)
+	list(APPEND LIB_SRC sim/RemoteSimulatorSender.cpp sim/RemoteSimulatorReceiver.cpp)
+endif ()
 
 set(POPGEN_SRC
-#---
+	#---
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
 	util/GeoCoordCalculator.cpp
-#---
+	#---
 	core/ClusterType.cpp
-#---
+	#---
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp
-)
+	)
 
 set(MAIN_SRC
-	sim/main.cpp
-)
+	run/main.cpp
+	)
 
 set(POPGEN_MAIN_SRC
 	popgen/main.cpp
-)
+	)
 
 #============================================================================
 # Build & install the executable.
@@ -99,7 +98,7 @@ set(POPGEN_MAIN_SRC
 add_library(libstride ${LIB_SRC})
 #target_compile_options(libstride PUBLIC "-flto")
 add_executable(stride ${MAIN_SRC} $<TARGET_OBJECTS:trng>)
-target_link_libraries(stride libstride)
+target_link_libraries(stride libstride ${MPI_LIBRARIES})
 #target_compile_options(stride PUBLIC "-flto")
 
 add_library(libpopgen ${POPGEN_SRC})
@@ -107,9 +106,9 @@ add_executable(pop_generator ${POPGEN_MAIN_SRC})
 target_link_libraries(pop_generator libpopgen ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 
 target_link_libraries(stride ${LIBS})
-if(NOT HDF5_FOUND)
+if (NOT HDF5_FOUND)
 	add_dependencies(stride hdf5_local)
-endif()
+endif ()
 #set_target_properties(stride PROPERTIES LINK_FLAGS_RELEASE "-flto")
 
 install(TARGETS stride DESTINATION ${BIN_INSTALL_LOCATION})

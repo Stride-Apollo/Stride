@@ -11,7 +11,7 @@
 
 namespace stride {
 
-template <typename PersonType>
+template<typename PersonType>
 class LocalDiscussion {
 public:
 	static void update(PersonType* p1, PersonType* p2) {

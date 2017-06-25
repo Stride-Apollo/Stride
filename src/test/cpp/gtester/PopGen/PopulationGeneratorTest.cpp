@@ -271,15 +271,16 @@ TEST(PopulationGeneratorTest, HappyDay_default) {
 	PopulationGenerator<mt19937> gen {"happy_day.xml", 1, false};
 
 	// TODO check cluster file
-	gen.generate("cities.csv", "pop.csv", "hh.csv", "clusters.csv");
+	//gen.generate("cities.csv", "pop.csv", "hh.csv", "clusters.csv");
+	gen.generate("test");
 
-	vector<vector<string> > csv = readCSV("cities.csv");
+	vector<vector<string> > csv = readCSV("test_districts.csv");
 
 	checkHappyDayCities(csv);
 
-	checkHappyDayPop("pop.csv", "households_flanders.txt");
+	checkHappyDayPop("test_people.csv", "households_flanders.txt");
 
-	checkHappyDayHouseHolds("hh.csv", "pop.csv");
+	checkHappyDayHouseHolds("test_households.csv", "test_people.csv");
 
 }
 

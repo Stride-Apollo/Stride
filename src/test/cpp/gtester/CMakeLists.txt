@@ -1,7 +1,7 @@
 #############################################################################
 #  This is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by 
-#  the Free Software Foundation, either version 3 of the License, or any 
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or any
 #  later version.
 #  The software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,13 +23,14 @@ set( SRC
 		BatchRuns.cpp
 		UtilTests.cpp
 		PopulationTests.cpp
-		# Segfault, pls fix
-		#LocalSimulatorAdapterTests.cpp
-		AsyncSimulatorTests.cpp
+		MR_SimulatorTest.cpp
 		TravelSchedulerTest.cpp
 		TransportFacilityTest.cpp
 		InfluenceTests.cpp
 		DistrictTests.cpp
+		Hdf5Base.cpp
+		Hdf5UnitTests.cpp
+		Hdf5ScenarioTests.cpp
 		PopGen/PopulationGeneratorTest.cpp
 		PopGen/FamilyParserTest.cpp
 		PopGen/GeoCalculatorTest.cpp
@@ -38,6 +39,9 @@ set( SRC
 		Hdf5ScenarioTests.cpp
 		Hdf5Base.cpp
 )
+if( NOT STRIDE_FORCE_NO_HDF5 )
+	set(SRC ${SRC} Hdf5Base.cpp Hdf5UnitTests.cpp Hdf5ScenarioTests.cpp)
+endif()
 
 add_executable(${EXEC}   ${SRC} $<TARGET_OBJECTS:trng>)
 target_link_libraries(${EXEC} libstride)

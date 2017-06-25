@@ -43,7 +43,7 @@ path     InstallDirs::g_current_dir;
 path     InstallDirs::g_data_dir;
 path     InstallDirs::g_exec_path;
 path     InstallDirs::g_root_dir;
-path	 InstallDirs::g_output_dir;
+path     InstallDirs::g_output_dir;
 
 
 inline void InstallDirs::check() {
@@ -67,7 +67,7 @@ void InstallDirs::initialize() {
 				g_exec_path = canonical(system_complete(exePath));
 		}
 		#elif defined(__linux__)
-		char exePath[PATH_MAX+1];
+		char exePath[PATH_MAX + 1];
 		size_t size = ::readlink("/proc/self/exe", exePath, sizeof(exePath));
 		exePath[size] = '\0';
 		if (size > 0 && size != sizeof(exePath)) {

@@ -1,8 +1,9 @@
-#include "checkpointing/Saver.h"
+#ifdef HDF5_USED
+#include "checkpointing/Hdf5Saver.h"
 #include "sim/SimulatorBuilder.h"
 #include "sim/Simulator.h"
 #include "pop/Population.h"
-#include "checkpointing/customDataTypes/ConfDataType.h"
+#include "checkpointing/datatypes/ConfigDataType.h"
 #include "util/InstallDirs.h"
 #include "util/async.h"
 #include "util/etc.h"
@@ -24,7 +25,6 @@ using namespace H5;
 namespace Tests {
 
 class UnitTests__HDF5 : public Hdf5Base {};
-
 /**
  *	Test case that checks the amount of timestaps created in the H5 file.
  */
@@ -35,24 +35,20 @@ TEST_P(UnitTests__HDF5, AmtCheckpoints) {
 	unsigned int num_days = 10;
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config);
+	auto saverInstance = std::make_shared<Hdf5Saver>
+		(Hdf5Saver(h5filename.c_str(), pt_config, checkpointing_frequency));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, saverInstance, std::placeholders::_1);
+	sim->registerObserver(saverInstance, fnCaller);
 
-	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	auto saverInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, checkpointing_frequency, false));
-	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saverInstance, std::placeholders::_1);
-	local_sim->registerObserver(saverInstance, fnCaller);
-
-	saverInstance->forceSave(*local_sim);
+	saverInstance->forceSave(*sim);
 
 	for (unsigned int i = 0; i < num_days; i++) {
-		vector<future<bool>> fut_results;
-		fut_results.push_back(local_sim->timeStep());
-		future_pool(fut_results);
+		sim->timeStep();
 	}
 
 	if (checkpointing_frequency == 0) {
-		saverInstance->forceSave(*local_sim, num_days);
+		saverInstance->forceSave(*sim, num_days);
 	}
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
@@ -82,34 +78,40 @@ TEST_F(UnitTests__HDF5, CheckConfigTree) {
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
-	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
+	Hdf5Saver hdf5_saver = Hdf5Saver(h5filename.c_str(), pt_config, 1);
 
 	/// Retrieve the configuration settings from the Hdf5 file.
 	StrType h5_str (0, H5T_VARIABLE);
-	ConfDataType configData[1];
+	ConfigDataType configData[1];
 
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
-	DataSet dataset = h5file.openDataSet("configuration/configuration");
-	dataset.read(configData, ConfDataType::getCompType());
-	istringstream iss(configData[0].conf_content);
+	DataSet dataset = h5file.openDataSet("Configuration/configuration");
+	dataset.read(configData, ConfigDataType::getCompType());
+	istringstream iss(configData[0].m_config_content);
 	ptree pt_config_hdf5;
 	xml_parser::read_xml(iss, pt_config_hdf5);
 
 	/// Check if the stored data conforms to the original data
 	#define ASSERT_CONFIG_EQUAL(type, key) ASSERT_EQ(pt_config.get<type>(key), pt_config_hdf5.get<type>(key))
-	ASSERT_CONFIG_EQUAL(string, "run.population_file");
+	ASSERT_CONFIG_EQUAL(string, "run.<xmlattr>.name");
 	ASSERT_CONFIG_EQUAL(double, "run.r0");
-	ASSERT_CONFIG_EQUAL(unsigned int, "run.num_days");
-	ASSERT_CONFIG_EQUAL(unsigned int, "run.rng_seed");
-	ASSERT_CONFIG_EQUAL(double, "run.seeding_rate");
-	ASSERT_CONFIG_EQUAL(double, "run.immunity_rate");
-	ASSERT_CONFIG_EQUAL(string, "run.output_prefix");
-	ASSERT_CONFIG_EQUAL(unsigned int, "run.num_participants_survey");
 	ASSERT_CONFIG_EQUAL(string, "run.start_date");
-	ASSERT_CONFIG_EQUAL(string, "run.log_level");
-	ASSERT_CONFIG_EQUAL(unsigned int, "run.generate_person_file");
-	ASSERT_CONFIG_EQUAL(string, "run.checkpointing_file");
-	ASSERT_CONFIG_EQUAL(int, "run.checkpointing_frequency");
+	ASSERT_CONFIG_EQUAL(unsigned int, "run.num_days");
+	ASSERT_CONFIG_EQUAL(unsigned int, "run.track_index_case");
+	ASSERT_CONFIG_EQUAL(unsigned int, "run.num_threads");
+	ASSERT_CONFIG_EQUAL(string, "run.information_policy");
+
+	ASSERT_CONFIG_EQUAL(string, "run.outputs.log.<xmlattr>.level");
+	ASSERT_CONFIG_EQUAL(unsigned int, "run.outputs.participants_survey.<xmlattr>.num");
+	ASSERT_CONFIG_EQUAL(int, "run.outputs.checkpointing.<xmlattr>.frequency");
+
+	ASSERT_CONFIG_EQUAL(double, "run.disease.seeding_rate");
+	ASSERT_CONFIG_EQUAL(double, "run.disease.immunity_rate");
+	ASSERT_CONFIG_EQUAL(string, "run.disease.config");
+
+	ASSERT_CONFIG_EQUAL(string, "run.regions.region.<xmlattr>.name");
+	ASSERT_CONFIG_EQUAL(unsigned int, "run.regions.region.rng_seed");
+	ASSERT_CONFIG_EQUAL(string, "run.regions.region.population");
 	#undef ASSERT_CONFIG_EQUAL
 }
 
@@ -120,7 +122,7 @@ TEST_F(UnitTests__HDF5, CheckConfigTree) {
 TEST_F(UnitTests__HDF5, CreateSaver) {
 	auto pt_config = getConfigTree();
 	const string h5filename = "testOutput.h5";
-	Saver saver = Saver(h5filename.c_str(), pt_config, 1, false);
+	Hdf5Saver hdf5_saver = Hdf5Saver(h5filename.c_str(), pt_config, 1);
 }
 
 
@@ -131,20 +133,17 @@ TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 	const string h5filename = "testOutput.h5";
 	auto pt_config = getConfigTree();
 
-	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config, 1, false);
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	auto classInstance = std::make_shared<Saver>
-		(Saver(h5filename.c_str(), pt_config, 1, false));
-	std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, classInstance, std::placeholders::_1);
-	local_sim->registerObserver(classInstance, fnCaller);
-	local_sim->notify(*local_sim);
+	shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config);
+	auto classInstance = std::make_shared<Hdf5Saver>
+		(Hdf5Saver(h5filename.c_str(), pt_config, 1));
+	std::function<void(const Simulator&)> fnCaller = std::bind(&Hdf5Saver::update, classInstance, std::placeholders::_1);
+	sim->registerObserver(classInstance, fnCaller);
+	sim->notify(*sim);
 
-	vector<future<bool>> fut_results;
-	fut_results.push_back(local_sim->timeStep());
-	future_pool(fut_results);
+	sim->timeStep();
 	H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
 
-	DataSet dataset = DataSet(h5file.openDataSet("personsTI"));
+	DataSet dataset = DataSet(h5file.openDataSet("person_time_independent"));
 	DataSpace dataspace = dataset.getSpace();
 	const int amt_dims = dataspace.getSimpleExtentNdims();
 
@@ -159,9 +158,55 @@ TEST_F(UnitTests__HDF5, CheckAmtPersons) {
 	EXPECT_EQ(sim->getPopulation().get()->m_original.size(), dims[0]);
 }
 
+/**
+ *	Test correct saving of smaller populations
+ */
+ TEST_F(UnitTests__HDF5, SaveSmallPop) {
+	 const string h5filename = "testOutput.h5";
+	 auto pt_config = getConfigTree();
+
+	 // Adjust the population to use a small population file
+	 pt_config.put("run.regions.region.population", "smallpop.xml");
+
+	 shared_ptr<Simulator> sim = SimulatorBuilder::build(pt_config);
+	 auto classInstance = std::make_shared<Hdf5Saver>(Hdf5Saver(h5filename.c_str(), pt_config, 1));
+	 auto fnCaller = std::bind(&Hdf5Saver::update, classInstance, std::placeholders::_1);
+	 sim->registerObserver(classInstance, fnCaller);
+	 sim->notify(*sim);
+
+	 sim->timeStep();
+	 H5File h5file (h5filename.c_str(), H5F_ACC_RDONLY);
+
+	 DataSet dataset = DataSet(h5file.openDataSet("person_time_independent"));
+	 DataSpace dataspace = dataset.getSpace();
+	 int amt_dims = dataspace.getSimpleExtentNdims();
+	 EXPECT_EQ(amt_dims, 1);
+
+	 hsize_t dims_person_TI[amt_dims];
+	 dataspace.getSimpleExtentDims(dims_person_TI, NULL);
+
+	 dataset.close();
+	 dataspace.close();
+
+	 dataset = DataSet(h5file.openDataSet("Timestep_000001/person_time_dependent"));
+	 dataspace = dataset.getSpace();
+	 amt_dims = dataspace.getSimpleExtentNdims();
+	 EXPECT_EQ(amt_dims, 1);
+
+	 hsize_t dims_person_TD[amt_dims];
+	 dataspace.getSimpleExtentDims(dims_person_TD, NULL);
+
+	 dataspace.close();
+	 dataset.close();
+	 h5file.close();
+
+	 EXPECT_EQ(dims_person_TI[0], dims_person_TD[0]);
+	 EXPECT_EQ(sim->getPopulation().get()->m_original.size(), dims_person_TI[0]);
+}
+
 
 unsigned int checkpointing_frequencies[] { 1U, 2U, 0U };
 
 INSTANTIATE_TEST_CASE_P(HDF5UnitTestsAmtCheckpoints, UnitTests__HDF5, ::testing::ValuesIn(checkpointing_frequencies));
-
 }
+#endif

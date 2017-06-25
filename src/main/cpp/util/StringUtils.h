@@ -20,6 +20,7 @@
  */
 
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
@@ -122,6 +123,11 @@ public:
 	static std::string trim(std::string const& source, std::string const& t = " ") {
 		std::string str = source;
 		return trimLeft(trimRight(str, t), t);
+	}
+
+	/// Replace all occurences of a string with another
+	static std::string replace(std::string source, std::string from, std::string to) {
+		return boost::replace_all_copy(source, from, to);
 	}
 };
 

@@ -34,16 +34,16 @@ app.controller('OverViewController', ['$scope', '$location', function($scope, $l
 	// Load clusters
 	$scope.clusterClick = function(ID) {
 		var dir = $location.search().directory;
-		var config = {directory: dir.slice(__dirname.length)};
-		loadCluster(ID, config, filenames, $location.search().currentDay);
+		var config = {directory: dir.slice($location.search().outputDir.length)};
+		loadCluster(ID, config, filenames, $location.search().currentDay, $location.search().randomFile, $location.search().outputDir);
 	}
 
 	$scope.loadFromInput = function() {
 		var dir = $location.search().directory;
-		var config = {directory: dir.slice(__dirname.length)};
+		var config = {directory: dir.slice($location.search().outputDir.length)};
 		for (var i in $scope.clusters) {
 			if ($scope.clusters[i].ID == $scope.inputID) {
-				loadCluster($scope.inputID, config, filenames, $location.search().currentDay);
+				loadCluster($scope.inputID, config, filenames, $location.search().currentDay, $location.search().randomFile, $location.search().outputDir);
 			}
 		}
 	}

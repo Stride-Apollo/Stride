@@ -48,7 +48,6 @@ void Cluster::addPerson(Simulator::PersonType* p) {
 }
 
 std::size_t Cluster::getInfectedCount() const {
-	// TODO can optimize this with precondition that cluster must be sorted
 	size_t num_cases = 0;
 	for (auto& member : m_members) {
 		auto health = member.first->getHealth();
@@ -71,7 +70,7 @@ void Cluster::removePerson(unsigned int id) {
 std::size_t Cluster::getActiveClusterMembers() const {
 	std::size_t total = 0;
 	for (const auto& person: m_members) {
-		if (! person.first->isOnVacation()) {
+		if (!person.first->isOnVacation()) {
 			++total;
 		}
 	}
