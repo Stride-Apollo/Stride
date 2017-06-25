@@ -105,7 +105,7 @@ void Hdf5Saver::saveTimestep(const Simulator& sim) {
 		this->saveCalendar(group, sim);
 
 		// try {
-		// 	this->savePersonTDData(group, sim);
+		this->savePersonTDData(group, sim);
 		// } catch (Exception& e) {
 		// 	cout << endl << "I haz Exception" << endl;
 		// 	// cout << endl << e << endl;
@@ -236,7 +236,9 @@ void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 	DSetCreatPropList plist = DSetCreatPropList();
 	hsize_t chunk_dims[1] = {10000};
 	plist.setChunk(1, chunk_dims);
-	DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace, plist));
+	// DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace, plist));
+	// TODO verify (stijn)
+	DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace));
 
 	using PersonType = Simulator::PersonType;
 	const std::vector<PersonType>& population = sim.getPopulation()->m_original;
