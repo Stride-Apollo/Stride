@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <exception>
-#include <mpi.h>
 #include <thread>
+#include <cstddef>
 #include <spdlog/spdlog.h>
 #include "util/InstallDirs.h"
 #include "sim/LocalSimulatorAdapter.h"
@@ -104,6 +104,7 @@ void Runner::initSimulators() {
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		if (remote) {
 			#ifdef MPI_USED
+				makeSetupStruct();
 				initMpi();
 			#else
 				throw runtime_error("MPI support is not enabled in this build");
@@ -197,6 +198,8 @@ void Runner::initMpi() {
 			if (remote) {
 				if (remote.get() == m_processor_name) {
 					// TODO Anthony: send the SimulatorWorldrank!
+					SimulatorWorldrank setup {it.second.get<string>("<xmlattr>.name"), m_world_rank};
+					MPI_Send(&setup, 1, MPI_INT, 0, 20, MPI_COMM_WORLD); // Tag 20 = setup related MPI message
 				}
 			} else if (m_is_master) {
 				worldranks.emplace_back(it.second.get<string>("<xmlattr>.name"), 0);
@@ -205,8 +208,13 @@ void Runner::initMpi() {
 
 		if (m_is_master) {
 			// TODO Anthony: collect all SimulatorWorldranks into worldranks
+			for (int i=1; i<m_world_size; i++){
+				SimulatorWorldrank data {"",0};
+				MPI_Recv(&data, 1, MPI_INT, i, 20, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				worldranks.push_back(data);
+			}
 			for (SimulatorWorldrank& swr: worldranks) {
-				string& name = swr.simulator_name;
+				char* name = swr.simulator_name;
 				int rank = swr.world_rank;
 				bool unique_name = m_worldranks.left.find(name) == m_worldranks.left.end();
 				bool unique_rank = m_worldranks.right.find(rank) == m_worldranks.right.end();
@@ -225,6 +233,22 @@ void Runner::initMpi() {
 			// TODO Anthony: collect m_worldranks and set it accordingly
 		}
 	}
+#endif
+}
+
+void Runner::makeSetupStruct(){
+#ifdef MPI_USED
+		// TODO fix string, now its a single char
+		MPI_Datatype type[2] = {MPI_CHAR, MPI_INT};
+		/** Number of occurence of each type */
+		int blocklen[2] = {20, 1};
+		/** Position offset from struct starting address */
+		MPI_Aint disp[2];
+		disp[0] = offsetof(SimulatorWorldrank, simulator_name);
+		disp[1] = offsetof(SimulatorWorldrank, world_rank);
+		/** Create the type */
+		MPI_Type_create_struct(2, blocklen, disp, type, &m_setup_message);
+		MPI_Type_commit(&m_setup_message);
 #endif
 }
 
