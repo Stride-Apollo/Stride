@@ -74,7 +74,7 @@ void Simulator::updateClusters() {
 	}
 }
 
-void Simulator::timeStep() {
+SimulatorStatus Simulator::timeStep() {
 	// Advance the "calendar" of the districts (for the sphere of influence)
 	for (auto& district: m_districts) {
 		district.advanceInfluencesRecords();
@@ -123,6 +123,8 @@ void Simulator::timeStep() {
 	m_calendar->advanceDay();
 	m_planner.nextDay();
 	this->notify(*this);
+	return SimulatorStatus(m_population->getInfectedCount(),
+						   m_population->getAdoptedCount<Simulator::BeliefPolicy>());
 }
 
 const vector<Cluster>& Simulator::getClusters(ClusterType cluster_type) const {

@@ -13,10 +13,9 @@ using namespace util;
 LocalSimulatorAdapter::LocalSimulatorAdapter(shared_ptr<Simulator> sim)
 	: m_sim(sim.get()) {}
 
-future<bool> LocalSimulatorAdapter::timeStep() {
+future<SimulatorStatus> LocalSimulatorAdapter::timeStep() {
 	return async([&](){
-		m_sim->timeStep();
-		return true;
+		return m_sim->timeStep();
 	});
 }
 

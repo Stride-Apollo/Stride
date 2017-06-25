@@ -1,5 +1,6 @@
 #include "RemoteSimulatorSender.h"
-#include "mpi.h"
+#include <mpi.h>
+#include "SimulatorStatus.h"
 
 using namespace stride;
 using namespace std;
@@ -9,7 +10,7 @@ RemoteSimulatorSender::RemoteSimulatorSender(const string& name, const int remot
 
 // TODO
 // https://stackoverflow.com/questions/14836560/thread-safety-of-mpi-send-using-threads-created-with-stdasync
-future<bool> RemoteSimulatorSender::timeStep(){
+future<SimulatorStatus> RemoteSimulatorSender::timeStep(){
   std::cout << "Timestep @ RemoteSimulatorSender" << std::endl;
   return async([&](){
       int tag = 4;  // Tag 4 = the remote simulator must execute a timestep and we need to wait until it's done
@@ -17,7 +18,7 @@ future<bool> RemoteSimulatorSender::timeStep(){
       MPI_Send(nullptr, 0, MPI_INT, m_id_mpi, tag, MPI_COMM_WORLD);
       MPI_Recv(nullptr, 0, MPI_INT, m_id_mpi, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       std::cout << "Received message from remote sim @process "<< m_id_mpi << std::endl;
-			return true;
+			return SimulatorStatus(0, 0); // TODO Anthony
 		});
 }
 

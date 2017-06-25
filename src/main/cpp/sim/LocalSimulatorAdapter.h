@@ -7,6 +7,7 @@
 
 #include "AsyncSimulator.h"
 #include "Simulator.h"
+#include "SimulatorStatus.h"
 #include "util/SimplePlanner.h"
 #include "pop/Traveller.h"
 
@@ -32,7 +33,7 @@ public:
 
 	virtual string getName() const override { return m_sim->getName(); };
 
-	virtual future<bool> timeStep() override;
+	virtual future<SimulatorStatus> timeStep() override;
 
 	virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) override;
 

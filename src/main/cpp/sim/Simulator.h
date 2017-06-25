@@ -26,6 +26,7 @@
 #include "behaviour/belief_policies/NoBelief.h"
 #include "behaviour/behaviour_policies/NoBehaviour.h"
 
+#include "sim/SimulatorStatus.h"
 #include "core/DiseaseProfile.h"
 #include "core/LogMode.h"
 #include "core/District.h"
@@ -84,7 +85,7 @@ public:
 	void setCommunicationMap(const std::map<string, AsyncSimulator*>& comm_map) {m_communication_map = comm_map;}
 
 	/// Run one time step, computing full simulation (default) or only index case.
-	void timeStep();
+	SimulatorStatus timeStep();
 
 	/// Return the calendar of this simulator
 	const Calendar& getCalendar() const {return *m_calendar;}
@@ -174,7 +175,7 @@ public:	// TODO write getters or set friend class for ClusterSaver
 	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
 	string m_name;	///< Name of the simulator (the region it simulates)
 
-	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
+	SimplePlanner<Traveller<Simulator::PersonType>> m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;

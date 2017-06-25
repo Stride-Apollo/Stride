@@ -25,7 +25,7 @@ public:
 	}
 
 	// TODO: Make this return a list of infected counts?
-	void timeStep();
+	vector<SimulatorStatus> timeStep();
 
 
 private:

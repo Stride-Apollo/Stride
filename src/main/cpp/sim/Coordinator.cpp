@@ -2,8 +2,7 @@
 #include "util/async.h"
 #include "util/TravellerScheduleReader.h"
 #include "calendar/Calendar.h"
-#include "sim/LocalSimulatorAdapter.h"
-#include "sim/RemoteSimulatorSender.h"
+#include "sim/SimulatorStatus.h"
 
 #include <vector>
 
@@ -11,14 +10,14 @@ using namespace stride;
 using namespace util;
 using namespace std;
 
-void Coordinator::timeStep() {
-	vector<future<bool>> fut_results;
+vector<SimulatorStatus> Coordinator::timeStep() {
+	vector<future<SimulatorStatus>> fut_results;
 
 	// Run the simulator for the day
 	for (auto& it: m_sims) {
 		fut_results.push_back(it.second->timeStep());
 	}
-	future_pool(fut_results);
+	auto results = future_pool(fut_results);
 
 	int weekday = m_calendar.getDayOfTheWeek();
 
@@ -35,4 +34,5 @@ void Coordinator::timeStep() {
 	// }
 
 	m_calendar.advanceDay();
+	return results;
 }
