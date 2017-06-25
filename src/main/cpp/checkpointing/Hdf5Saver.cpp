@@ -93,17 +93,15 @@ void Hdf5Saver::saveTimestep(const Simulator& sim) {
 		if (m_current_step == 0) {
 			this->savePersonTIData(file, sim);
 		}
-
 		stringstream ss;
 		ss << "/Timestep_" << std::setfill('0') << std::setw(6) << m_timestep;
 		Group group(file.createGroup(ss.str()));
 
+
 		if (sim.m_rng != nullptr) {
 			saveRngState(group, sim);
 		}
-
 		this->saveCalendar(group, sim);
-
 		this->savePersonTDData(group, sim);
 
 		this->saveTravellers(group, sim);
@@ -395,7 +393,8 @@ void Hdf5Saver::saveRngState(Group& group, const Simulator& sim) const {
 
 	stringstream ss;
 	ss << *sim.m_rng;
-	string rng_state[1] {ss.str()};
+	string cppString = ss.str();
+	const char* rng_state[1] {cppString.c_str()};
 
 	dataset.write(rng_state, StrType(0, H5T_VARIABLE));
 	dataset.close();
