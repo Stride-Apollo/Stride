@@ -148,6 +148,12 @@ void Runner::initSimulators() {
 		}
 	}
 
+	std::map<string, AsyncSimulator*> comm_map;
+	for (auto& it: m_async_simulators) comm_map[it.first] = it.second.get();
+	for (auto& it: m_local_simulators) {
+		it.second->setCommunicationMap(comm_map);
+	}
+
 	cout << endl;
 
 	if (m_uses_mpi and m_local_simulators.size() > 1) {
