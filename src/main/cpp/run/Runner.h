@@ -56,6 +56,7 @@ private:
 	int m_world_rank;
 	int m_world_size;
 	int m_provided_threads;
+	string m_slave;
 	shared_ptr<RemoteSimulatorReceiver> m_local_receiver;
 	thread m_listen_thread;
 

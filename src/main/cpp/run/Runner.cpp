@@ -107,21 +107,21 @@ void Runner::initSimulators() {
 			if (not remote) {
 				addLocalSimulator(sim_name, sim_config);
 			} else {
-				addRemoteSimulator(sim_name, sim_config);
+				addRemoteSimulator(sim_name, it.second);
 			}
 		} else {
  			if (not remote) {
  				// This is a simulator running at the master
  				// TODO: get Master's contact info?
  				// Then, do MPI stuff
- 				addRemoteSimulator(sim_name, sim_config);
+ 				addRemoteSimulator(sim_name, it.second);
  			} else {
  				if (sim_name == m_slave) {
  					// This is our (unique) local simulator
  					addLocalSimulator(sim_name, sim_config);
  				} else {
  					// This is just another remote simulator
- 					addRemoteSimulator(sim_name, sim_config);
+ 					addRemoteSimulator(sim_name, it.second);
  				}
  			}
 		}
@@ -158,9 +158,11 @@ shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost:
 
 void Runner::initMpi() {
 	if (not m_uses_mpi) {
-		int provided;
-		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
-		if (provided != MPI_THREAD_MULTIPLE) throw runtime_error("We need multiple thread support in MPI");
+		int provided = 0;
+		MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
+		std::cout << "Provided " << provided << std::endl;
+		std::cout << "Required " << MPI_THREAD_SERIALIZED << std::endl;
+		if (provided != MPI_THREAD_SERIALIZED) throw runtime_error("We need serialized thread support in MPI");
 		MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
 		m_uses_mpi = true;
@@ -170,6 +172,8 @@ void Runner::initMpi() {
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
 	initMpi();
 	// TODO: DO MPI STUFF
+	boost::optional<string> remote = config.get_optional<string>("remote");
+	m_async_simulators[name] = make_shared<RemoteSimulatorSender>(name, stoi(remote.get()));
 }
 
 void Runner::initOutputs(Simulator& sim) {
@@ -232,7 +236,7 @@ void Runner::run() {
 // }
 
 	// Close the MPI environment properly
-	if (m_distributed_run){
+	if (m_uses_mpi){
 		if (m_world_rank == 0){
 			// Send message from system 0 (coordinator) to all other systems to terminate their listening thread
 			for (int i = 0; i < m_world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
