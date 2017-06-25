@@ -52,7 +52,7 @@ Meaning of the attributes in this file
 
    * ``population.cities.city.airport::name``: The name of an airport situated in this city
 
-   * ``population.villages::radius``: When calculating the position of a village, the generator first calulates the middle of the cities. Then it calculates the maximum distance between this middle and any city. The radius is then used as a factor to determine the maximum distance a village is located from the middle.
+   * ``population.villages::radius``: When calculating the position of a village, the generator first calulates the weighted middle (average latitude and longitude) of the cities. Then it calculates the maximum distance between this middle and any city. The radius is then used as a factor to determine the maximum distance a village is located from the middle.
 
    * ``population.villages.village``: This contains a template of a village. When a village is needed, the generator will pick a random template
 
@@ -68,41 +68,41 @@ Meaning of the attributes in this file
 
    * ``population.education.mandatory::cluster_size``: Size of a group within a mandatory school
 
-   * ``population.education.Optional``: It's attributes and purpose are the same as mandatory schools
+   * ``population.education.optional``: It's attributes and purpose are the same as mandatory schools
 
-   * ``population.education.Optional::total_size``: Size of an optiona school
+   * ``population.education.optional::total_size``: Size of an optiona school
 
-   * ``population.education.Optional::cluster_size``: Size of a group within an optional school
+   * ``population.education.optional::cluster_size``: Size of a group within an optional school
 
-   * ``population.education.Optional.Far::fraction``: Fraction of students that goes to a school that is further away from his home
+   * ``population.education.optional.far::fraction``: Fraction of students that goes to a school that is further away from his home
 
-   * ``population.Work::size``: The size of a workplace
+   * ``population.work::size``: The size of a workplace
 
-   * ``population.Work.Far::fraction``: The fraction of working people that goes to workplaces that are located far away from their homes
+   * ``population.work.far::fraction``: The fraction of working people that goes to workplaces that are located far away from their homes
 
-   * ``population.Community::size``: The size of a community
+   * ``population.community::size``: The size of a community
 
-   * ``population.Community:: average_per_person``: Currently not used
+   * ``population.community:: average_per_person``: Currently not used
 
-   * ``population.School_work_profile.mandatory::min``: The minimum age for
+   * ``population.school_work_profile.mandatory::min``: The minimum age for
      students on a mandatory school
 
-   * ``population.School_work_profile.mandatory::max``: The maximum age for
+   * ``population.school_work_profile.mandatory::max``: The maximum age for
      students on a mandatory school
 
-   * ``population.School_work_profile.Employable::fraction``: Fraction of
+   * ``population.school_work_profile.employable::fraction``: Fraction of
      people that is employed. The others are either students on an optional
      school, or unemployed.
 
-   * ``population.School_work_profile.Employable.Young_employee::min``: Minimum age for students at an optional school
+   * ``population.school_work_profile.employable.young_employee::min``: Minimum age for students at an optional school
 
-   * ``population.School_work_profile.Employable.Young_employee::max``: Maximum age for students at an optional school
+   * ``population.school_work_profile.employable.young_employee::max``: Maximum age for students at an optional school
 
-   * ``population.School_work_profile.Employable.Young_employee::fraction``: Fraction of people within the age range of students that have a job
+   * ``population.school_work_profile.employable.young_employee::fraction``: Fraction of people within the age range of students that have a job
 
-   * ``population.School_work_profile.Employable.Employee::min``: Minimum age of a working person (that is too old for any school)
+   * ``population.school_work_profile.employable.employee::min``: Minimum age of a working person (that is too old for any school)
 
-   * ``population.School_work_profile.Employable.Employee::max``: Maximum age of a working person (that is too old for any school)
+   * ``population.school_work_profile.employable.employee::max``: Maximum age of a working person (that is too old for any school)
 
 Restrictions / options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
