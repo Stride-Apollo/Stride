@@ -202,6 +202,8 @@ PersonTDDatatype (time dependent)
 
 -  H5T\_NATIVE\_UINT - disease\_counter
 
+-  H5T\_NATIVE\_UINT - on\_vacation
+
 CalendarDatatype
 ^^^^^^^^^^^^^^^^
 

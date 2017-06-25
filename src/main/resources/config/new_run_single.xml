@@ -27,7 +27,7 @@
     <regions>
         <region name="Nassau">
             <rng_seed>123</rng_seed>
-            <raw_population>pop_nassau.csv</raw_population>
+            <raw_population>pop_antwerp.csv</raw_population>
         </region>
     </regions>
 </run>
