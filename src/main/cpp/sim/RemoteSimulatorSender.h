@@ -15,6 +15,7 @@ using namespace std;
 using namespace util;
 
 class RemoteSimulatorSender: public AsyncSimulator{
+#ifdef MPI_USED
 public:
   RemoteSimulatorSender(const string& m_name, const int mpi_id);
   ~RemoteSimulatorSender() = default;
@@ -55,6 +56,18 @@ private:
 
   friend class Simulator;
   friend class Coordinator;
+#endif
+#ifndef MPI_USED
+  RemoteSimulatorSender(const string& m_name, const int mpi_id) {}
+  ~RemoteSimulatorSender() = default;
+
+  virtual string getName() const override { return ""; };
+  virtual future<bool> timeStep() override {return async([&](){return true;});}
+  virtual void welcomeHomeTravellers(const pair<vector<uint>, vector<Health>>& travellers) override {}
+  virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, const string& destination_district, const string& destination_facility) override {}
+  virtual void sendNewTravellers(uint amount, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility) override {}
+  virtual void returnForeignTravellers() override {}
+#endif
 };
 
 }
