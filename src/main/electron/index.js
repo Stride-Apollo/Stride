@@ -8,6 +8,101 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		container: 'map',
 		style: 'mapbox://styles/mapbox/streets-v9'
 	});
+
+	function formatFacilityData(data) {
+		var facFeatures = [];
+		console.log(data)
+		for (var i = 0; i < data.facilities.length; ++i) {
+			var facility = data.facilities[i];
+
+			var decoratedFacility = {
+				type: "Feature",
+				geometry: {
+					type: "Point",
+					coordinates: [facility.location.lon, facility.location.lat]
+				},
+				properties: {
+					"name": facility.name,
+					"city": facility.city,
+					"icon": "airport",
+					"passengers_today": facility.passengers_today,
+					"passengers_x_days": facility.passengers_x_days,
+					"x_days": facility.x_days,
+					"influence": facility.influence
+				}
+			};
+
+			facFeatures.push(decoratedFacility);
+		}
+
+		return {
+			"type": "FeatureCollection",
+			"features": facFeatures
+		};
+	}
+
+	function formatSphereOfInfluence(data) {
+		var facFeatures = [];
+
+		for (var i = 0; i < data.facilities.length; ++i) {
+			var facility = data.facilities[i];
+
+			/*var decoratedFacility = {
+				type: "Feature",
+				geometry: {
+					type: "Point",
+					coordinates: [facility.location.lon, facility.location.lat]
+				},
+				properties: {
+					"radius": facility.influence
+				}
+			};
+
+			facFeatures.push(decoratedFacility);*/
+			facFeatures.push(createGeoJSONCircle(facility.location, facility.influence, 512));
+		}
+		result = {
+			"type": "FeatureCollection",
+			"features": facFeatures
+		};
+		console.log(result);
+
+		return result;
+	}
+	var createGeoJSONCircle = function(center, radiusInKm, points) {
+		if(!points) points = 64;
+
+		var coords = {
+			latitude: parseFloat(center.lat),
+			longitude: parseFloat(center.lon)
+		};
+
+		var km = parseFloat(radiusInKm);
+
+		var ret = [];
+		var distanceX = km/(111.320*Math.cos(coords.latitude*Math.PI/180));
+		var distanceY = km/110.574;
+
+		var theta, x, y;
+		for(var i=0; i<points; i++) {
+			theta = (i/points)*(2*Math.PI);
+			x = distanceX*Math.cos(theta);
+			y = distanceY*Math.sin(theta);
+
+			ret.push([coords.longitude+x, coords.latitude+y]);
+		}
+		ret.push(ret[0]);
+
+		return {
+				"type": "Feature",
+				"geometry": {
+					"type": "Polygon",
+					"coordinates": [ret]
+				}
+		};
+	};
+
+
 	var files = [];	// file-text_of_file pairs
 	var filenames = [];
 	$scope.currentDay = 0;
@@ -15,7 +110,8 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	$scope.save = function() {
 		console.log("Saving");
 		var saveString = "{\"directory\": \"" + config.directory.toString()
-			+ "\",\"population_directory\": \"" + $scope.population_directory + "\",\"color_no_infected\": \""
+			+ "\",\"population_directory\": \"" + $scope.population_directory
+			+ "\",\"airport_directory\": \"" + $scope.airport_directory + "\",\"color_no_infected\": \""
 			+ getHexColor($scope.no_infected_color).toString() + "\",\"color_min_infected\": \""
 			+ getHexColor($scope.min_infected_color).toString() + "\",\"color_max_infected\": \""
 			+ getHexColor($scope.max_infected_color).toString() + "\",\"circle_opacity\": "
@@ -29,30 +125,37 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	var config;
 	var loaded = false;
 	var block = false;
+	var airport_files = [];
+	var airport_filenames = [];
 	fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
 		if (err) return console.log(err);
 		config = setupConfig(data);
-		fs.readdir(__dirname + "/" + config.directory, function(err, content){
-			if (err) {
-				return console.error(err);
-			}
+		var dircontent = fs.readdirSync(__dirname + "/" + config.directory);
 
-			content.forEach( function (file){
-				var data = fs.readFileSync(__dirname + "/" + config.directory + "/" + file, 'utf8');
-				files.push(data);
-				filenames.push(file);
-			});
-			map.on('load', function() {
-				makeClusters(parseCSVFile(files[$scope.currentDay]));
-				loaded = true;
-			});
+		dircontent.forEach( function (file){
+			var data = fs.readFileSync(__dirname + "/" + config.directory + "/" + file, 'utf8');
+			files.push(data);
+			filenames.push(file);
 		});
 
+		dircontent = fs.readdirSync(__dirname + "/" + config.airport_directory);
+
+		dircontent.forEach( function (file){
+			var data = fs.readFileSync(__dirname + "/" + config.airport_directory + "/" + file, 'utf8');
+			airport_files.push(data);
+			airport_filenames.push(file);
+		});
+		map.on('load', function() {
+			makeClusters(parseCSVFile(files[$scope.currentDay]));
+			drawAirports(JSON.parse(airport_files[$scope.currentDay]));
+			loaded = true;
+		});
 	});
 
 	function setupConfig(data) {
 		config = JSON.parse(data);
 		$scope.population_directory = config.population_directory;
+		$scope.airport_directory = config.airport_directory;
 		$scope.no_infected_color = config.color_no_infected;
 		$scope.min_infected_color = config.color_min_infected;
 		$scope.max_infected_color = config.color_max_infected;
@@ -124,24 +227,24 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			$interval.cancel($scope.simulation_run);
 			$scope.simulation_run = undefined;
 		} else {
-			updateMap(parseCSVFile(files[$scope.currentDay]));
+			updateMap(parseCSVFile(files[$scope.currentDay]), JSON.parse(airport_files[$scope.currentDay]));
 		}
 	}
 
 	$scope.previousDay = function() {
-		if (--$scope.currentDay <= 0) {
+		if (--$scope.currentDay < 0) {
 			$scope.currentDay = 0;
 			$interval.cancel($scope.simulation_rewind);
 			$scope.simulation_rewind = undefined
 		} else {
-			updateMap(parseCSVFile(files[$scope.currentDay]))
+			updateMap(parseCSVFile(files[$scope.currentDay]), JSON.parse(airport_files[$scope.currentDay]));
 		}
 	}
 
-	function updateMap(data) {
+	function updateMap(data, airportdata) {
 		// Kind of sleep until map is done rendering, so you can update the data.
 		if (block) {
-			$timeout(updateMap(data), 50);
+			$timeout(updateMap(data, airportdata), 50);
 		} else {
 			var decoratedData = getDecoratedData(data);
 			var neededData =
@@ -150,24 +253,50 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 					features: []
 				};
 
-			if ($scope.clusterCheckBoxes[0] == true) {
+			if ($scope.clusterCheckBoxes[1] == true) {
 				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.household).features);
 			}
-			if ($scope.clusterCheckBoxes[1] == true) {
+			if ($scope.clusterCheckBoxes[2] == true) {
 				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.school).features);
 			}
-			if ($scope.clusterCheckBoxes[2] == true) {
+			if ($scope.clusterCheckBoxes[3] == true) {
 				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.work).features);
 			}
-			if ($scope.clusterCheckBoxes[3] == true) {
+			if ($scope.clusterCheckBoxes[4] == true) {
 				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.primary_community).features);
 			}
-			if ($scope.clusterCheckBoxes[4] == true) {
+			if ($scope.clusterCheckBoxes[5] == true) {
 				neededData.features = neededData.features.concat(decoratedData.getClusters(cluster_type.secondary_community).features);
 			}
 
 
 			map.getSource("cluster_data").setData(neededData);
+
+			decoratedData = airportdata;
+			neededData = {
+				type: "FeatureCollection",
+				features: []
+			};
+
+			if ($scope.clusterCheckBoxes[0] == true) {
+				neededData.features = neededData.features.concat(formatFacilityData(decoratedData).features);
+			}
+
+			map.getSource("airport_data").setData(neededData);
+
+
+			decoratedData = airportdata;
+			neededData = {
+				type: "FeatureCollection",
+				features: []
+			};
+
+			if ($scope.clusterCheckBoxes[0] == true) {
+				neededData.features = neededData.features.concat(formatSphereOfInfluence(decoratedData).features);
+			}
+
+			map.getSource("sphere_data").setData(neededData);
+
 			fitView(neededData);
 		}
 	}
@@ -203,6 +332,33 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 						stops: [[-1, no_infected_color],[0, min_infected_color],[1, max_infected_color]]
 					},
 					"circle-opacity": $scope.opacity
+				}
+			});
+
+			map.removeLayer("circle");
+			map.addLayer({
+				"id": "circle",
+				"type": "line",
+				"source": "sphere_data",
+				"layout": {},
+				"paint": {
+					"line-color": "blue",
+					"line-opacity": 1
+				}
+			});
+
+			map.removeLayer("airports");
+			map.addLayer({
+				"id": "airports",
+				"type": "symbol",
+				"source": "airport_data",
+				"layout": {
+					"icon-image": "{icon}-15",
+					"icon-size": 1.25,
+					"text-field": "{name}",
+					"text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+					"text-offset": [0, 0.6],
+					"text-anchor": "top"
 				}
 			});
 			block = true;
@@ -243,11 +399,94 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	//////////////////////////////////////
 	// Checkbox stuff					//
 	//////////////////////////////////////
-	$scope.clusterCheckBoxes = [true, true, true, true, true];
+	$scope.clusterCheckBoxes = [true, true, true, true, true, true];
 
 	$scope.changeBox = function() {
-		updateMap(parseCSVFile(files[$scope.currentDay]));
+		updateMap(parseCSVFile(files[$scope.currentDay]), JSON.parse(airport_files[$scope.currentDay]));
 	}
+
+
+	function drawAirports(airport_data) {
+		$scope.airport_data = formatFacilityData(airport_data);
+		$scope.sphere_data = formatSphereOfInfluence(airport_data);
+		map.addSource("airport_data", {
+			"type": "geojson",
+			"data": $scope.airport_data
+		});
+
+		map.addSource("sphere_data", {
+			"type": "geojson",
+			"data": $scope.sphere_data
+		});
+
+		map.addLayer({
+			"id": "airports",
+			"type": "symbol",
+			"source": "airport_data",
+			"layout": {
+				"icon-image": "{icon}-15",
+				"icon-size": 1.25,
+				"text-field": "{name}",
+				"text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+				"text-offset": [0, 0.6],
+				"text-anchor": "top"
+			}
+		});
+
+		map.addLayer({
+			"id": "circle",
+			"type": "line",
+			"source": "sphere_data",
+			"layout": {},
+			"paint": {
+				"line-color": "blue",
+				"line-opacity": 1/*
+				"circle-radius": {
+				stops: [
+					[0, 0],
+					//[20, metersToPixelsAtMaxZoom({"size"}, 51.122999999999998)]
+				],
+				base: 2
+				},
+				"circle-opacity": 0,
+				"circle-stroke-width": 1,
+				"circle-stroke-color": "#000"*/
+			}
+		});
+
+		// Create a popup, but don't add it to the map yet.
+		var popup = new mapboxgl.Popup({
+			closeButton: false,
+			closeOnClick: false
+		});
+
+		map.on('mouseenter', 'airports', function(e) {
+			// Change the cursor style as a UI indicator.
+
+			var coords = e.features[0].geometry.coordinates;
+			map.getCanvas().style.cursor = 'pointer';
+
+			var htmlText = "<h3 class='center'>" + e.features[0].properties.name + "</h3><h5 class='center'>" + e.features[0].properties.city + " Airport</h5><br>"
+				+ "Passengers today: " + e.features[0].properties.passengers_today + "<br>"
+				+ "Passengers in the last " + e.features[0].properties.x_days + " days: " + e.features[0].properties.passengers_x_days
+				+ "<br>Radius of influence: " + e.features[0].properties.influence + " km"
+				+ "<br>Coordinates: (" + coords[0] + ", " + coords[1] + ")";
+
+			// Populate the popup and set its coordinates
+			// based on the feature found.
+			popup.setLngLat(coords)
+				.setHTML(htmlText)
+				.addTo(map);
+		});
+
+		map.on('mouseleave', 'airports', function() {
+			map.getCanvas().style.cursor = '';
+			popup.remove();
+		});
+	}
+
+	const metersToPixelsAtMaxZoom = (meters, latitude) =>
+	meters / 0.075 / Math.cos(latitude * Math.PI / 180)
 
 	function makeClusters(cluster_data) {
 		$scope.cluster_data = cluster_data;
@@ -285,8 +524,8 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			var coords = e.features[0].geometry.coordinates;
 			map.getCanvas().style.cursor = 'pointer';
 
-			var htmlText = "Cluster " + e.features[0].properties.id.toString()
-				+ "<br>Size: " + e.features[0].properties.size.toString()
+			var htmlText = "<h5 class='center'>Cluster " + e.features[0].properties.id.toString()
+				+ "</h5><br>Size: " + e.features[0].properties.size.toString()
 				+ "<br>Infected: " + e.features[0].properties.infected.toString()
 				+ "<br>Coordinates: (" + coords[0] + ", " + coords[1] + ")";
 
@@ -326,7 +565,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		overview_day = $scope.currentDay;
 		overview.webContents.on('did-finish-load', ()=>{
 			overview.show();
-			overview.webContents.openDevTools();
+			//overview.webContents.openDevTools();
 			overview.focus();
 		});
 		overview.on('closed', function () {

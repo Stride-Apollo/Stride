@@ -31,8 +31,9 @@ using std::to_string;
 
 namespace stride {
 
-ClusterSaver::ClusterSaver(string file_name, string pop_file_name)
-		: m_sim_day(0), m_file_name(file_name), m_pop_file_name(pop_file_name)  {
+ClusterSaver::ClusterSaver(string file_name, string pop_file_name, string facility_file_name) :
+		m_sim_day(0), m_file_name(file_name), m_pop_file_name(pop_file_name), m_facility_file_name(facility_file_name)  {
+
 	#if defined(__linux__)
 		m_file_dir = "vis/resources/app/data";
 	#elif defined(__APPLE__)
@@ -49,15 +50,21 @@ ClusterSaver::ClusterSaver(string file_name, string pop_file_name)
 	}
 
 	m_pop_file_dir = m_file_dir + "/populationData";
+	m_facility_file_dir = m_file_dir + "/transportFacilityData";
 	m_file_dir = m_file_dir + "/clusterData";
 	// Create the subdirectory if it does not exist.
 	if (!boost::filesystem::exists(boost::filesystem::path(m_file_dir))) {
 		boost::filesystem::create_directory(boost::filesystem::path(m_file_dir));
 	}
-  
+
 	// Create the subdirectory if it does not exist.
 	if (!boost::filesystem::exists(boost::filesystem::path(m_pop_file_dir))) {
 		boost::filesystem::create_directory(boost::filesystem::path(m_pop_file_dir));
+	}
+
+	// Create the subdirectory if it does not exist.
+	if (!boost::filesystem::exists(boost::filesystem::path(m_facility_file_dir))) {
+		boost::filesystem::create_directory(boost::filesystem::path(m_facility_file_dir));
 	}
 }
 
@@ -301,6 +308,34 @@ map<uint, uint> ClusterSaver::getAgeMap(const Simulator& local_sim) const {
 	}
 
 	return result;
+}
+
+void ClusterSaver::saveTransportationFacilities(const Simulator& local_sim) const {
+	ptree result;
+	ptree children;
+
+	for (const auto& district: local_sim.m_districts) {
+		for (const auto& facility: district.m_transportations_facilities) {
+			ptree facility_config;
+			facility_config.put("city", district.getName());
+			facility_config.put("name", facility.first);
+			facility_config.put("location.lat", district.getLocation().m_latitude);
+			facility_config.put("location.lon", district.getLocation().m_longitude);
+			facility_config.put("influence", facility.second.getInfluence());
+			facility_config.put("passengers_today", facility.second.m_deque.front());
+			facility_config.put("passengers_x_days", facility.second.getScore());
+			facility_config.put("x_days", facility.second.m_deque.size());
+
+			children.push_back(make_pair("", facility_config));
+		}
+	}
+
+	result.add_child("facilities", children);
+
+	stringstream ss;
+	ss << setfill('0') << setw(5) << m_sim_day;
+	string file_name = m_facility_file_dir + "/" + m_facility_file_name + "_" + ss.str() + ".json";
+	write_json(file_name.c_str(), result);
 }
 
 }
