@@ -282,7 +282,7 @@ void Runner::initOutputs(Simulator& sim) {
 
 	// Logs (we had to refactor some stuff for this)
 	sim.m_logger = spdlog::rotating_logger_mt(sim.m_name + "_logger",
-											  (m_output_dir / (sim.m_name + "_log.txt")).string(),
+											  (m_output_dir / (sim.m_name + "_log")).string(),
 											  std::numeric_limits<size_t>::max(),
 											  std::numeric_limits<size_t>::max());
 
@@ -330,7 +330,7 @@ void Runner::run() {
 			cout << "--> We are running locally,";
 		cout << " printing infected/adopted." << endl;
 		int num_days = m_config.get<int>("run.num_days");
-		cout << endl << "day  | ";
+		cout << endl << " day | ";
 		int total = 0;
 		for (auto& it: m_region_configs) {
 			cout << it.first;
