@@ -76,16 +76,16 @@ void ClusterSaver::saveClustersCSV(const Simulator& sim) const {
 	// Format of the csv file
 	csv_file << "id,size,infected,infected_percent,lat,lon,type" << endl;
 
-	for (const auto& cluster : sim.m_primary_community) {
+	for (const auto& cluster : sim.getPrimaryCommunities()) {
 		this->saveClusterCSV(cluster, csv_file);
 	}
-	for (const auto& cluster : sim.m_secondary_community) {
+	for (const auto& cluster : sim.getSecondaryCommunities()) {
 		this->saveClusterCSV(cluster, csv_file);
 	}
 
-	this->saveAggrClustersCSV(sim.m_households, csv_file);
-	this->saveAggrClustersCSV(sim.m_work_clusters, csv_file);
-	this->saveAggrClustersCSV(sim.m_school_clusters, csv_file);
+	this->saveAggrClustersCSV(sim.getHouseholds(), csv_file);
+	this->saveAggrClustersCSV(sim.getWorkClusters(), csv_file);
+	this->saveAggrClustersCSV(sim.getSchoolClusters(), csv_file);
 
 	csv_file.close();
 }
@@ -146,22 +146,22 @@ void ClusterSaver::saveClusterGroup(const vector<Cluster>& households, const vec
 
 
 void ClusterSaver::saveClustersJSON(const Simulator& sim) const {
-	ptree clusters;
-	clusters.put("type", "FeatureCollection");
-	{
-		ptree clusters_primaries;
-		// First cluster is always empty
-		for (unsigned int i = 1; i < sim.m_primary_community.size(); i++) {
-			pair<ptree, ptree> cluster_pair = this->getClusterJSON(sim.m_primary_community.at(i));
-			ptree cluster_primary;
-			cluster_primary.put("type", "Feature");
-			cluster_primary.push_back(std::make_pair("geometry", cluster_pair.first));
-			cluster_primary.push_back(std::make_pair("properties", cluster_pair.second));
-
-			clusters_primaries.push_back(std::make_pair("", cluster_primary));
-		}
-		clusters.add_child("features", clusters_primaries);
-	}
+	// ptree clusters;
+	// clusters.put("type", "FeatureCollection");
+	// {
+	// 	ptree clusters_primaries;
+	// 	// First cluster is always empty
+	// 	for (unsigned int i = 1; i < sim.m_primary_community.size(); i++) {
+	// 		pair<ptree, ptree> cluster_pair = this->getClusterJSON(sim.m_primary_community.at(i));
+	// 		ptree cluster_primary;
+	// 		cluster_primary.put("type", "Feature");
+	// 		cluster_primary.push_back(std::make_pair("geometry", cluster_pair.first));
+	// 		cluster_primary.push_back(std::make_pair("properties", cluster_pair.second));
+	//
+	// 		clusters_primaries.push_back(std::make_pair("", cluster_primary));
+	// 	}
+	// 	clusters.add_child("features", clusters_primaries);
+	// }
 	// {
 	// 	ptree clusters_secondaries;
 	// 	for (unsigned int i = 0; i < sim.m_secondary_community.size(); i++) {
@@ -175,9 +175,9 @@ void ClusterSaver::saveClustersJSON(const Simulator& sim) const {
 	// 	}
 	// 	clusters.add_child("Secondary_communities", clusters_secondaries);
 	// }
-	stringstream ss;
-	ss << setfill('0') << setw(5) << m_sim_day;
-	write_json(util::InstallDirs::getOutputDir().string() + "/" + m_file_name + "_" + ss.str() + ".json", clusters);
+	// stringstream ss;
+	// ss << setfill('0') << setw(5) << m_sim_day;
+	// write_json(util::InstallDirs::getOutputDir().string() + "/" + m_file_name + "_" + ss.str() + ".json", clusters);
 }
 
 pair<ptree, ptree> ClusterSaver::getClusterJSON(const Cluster& cluster) const {
@@ -285,7 +285,7 @@ double ClusterSaver::getPopCount(const Simulator& local_sim) const {
 	// TODO only people that are not on vacation
 	uint total = 0;
 
-	for (const auto& cluster: local_sim.m_primary_community) {
+	for (const auto& cluster: local_sim.getPrimaryCommunities()) {
 		total += cluster.getSize();
 	}
 
@@ -295,7 +295,7 @@ double ClusterSaver::getPopCount(const Simulator& local_sim) const {
 map<uint, uint> ClusterSaver::getAgeMap(const Simulator& local_sim) const {
 	map<uint, uint> result;
 
-	for (const auto& cluster: local_sim.m_primary_community) {
+	for (const auto& cluster: local_sim.getPrimaryCommunities()) {
 		for (const auto& person: cluster.getMembers()) {
 			if (result.find(person.first->getAge()) == result.end()) {
 				result[person.first->getAge()] = 0;
@@ -312,7 +312,7 @@ void ClusterSaver::saveTransportationFacilities(const Simulator& local_sim) cons
 	ptree result;
 	ptree children;
 
-	for (const auto& district: local_sim.m_districts) {
+	for (const auto& district: local_sim.getDistricts()) {
 		for (const auto& facility: district.m_transportations_facilities) {
 			ptree facility_config;
 			facility_config.put("city", district.getName());

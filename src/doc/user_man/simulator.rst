@@ -79,35 +79,57 @@ Run the simulator
 -----------------
 
 From the workspace directory, the simulator can be started with default
-configuration using the command . Settings can be passed to the
+configuration using the command ``./bin/stride``. Settings can be passed to the
 simulator using one or more command line arguments:
 
   * ``-c`` or ``--config``: The configuration file.
-
-  * ``-r`` or ``--r0``: To obtain the basic reproduction number, no tertiary infections.
-
+  
   * ``-m`` or ``--mode``: The simulation run mode (defaults to ``Extend`` mode).
 
-  * ``-f`` or ``--frequency``: The checkpointing frequency.
+  * ``-f`` or ``--hdf5_file``: The HDF5 file (only used for mode 'extract')
 
-  * ``-h`` or ``--hdf5``: The hdf5 file used by checkpointing.
-
-  * ``-o`` or ``--hdf5output``: Output file for checkpointing over ``h`` argument if specified.
+  * ``-o`` or ``--override``: Override configuration file options in the command line.
 
   * ``-t`` or ``--timestamp``: The timestep from which ``Replay`` mode is replayed.
 
+* The usage of a configuration file is necessary unless you choose the extract mode * from this configuration file all the necessary files will be read.
 
-Python Wrapper
---------------
+Configuration File
+------------------
 
-A Python wrapper is provided to perform multiple runs with the C++
-executable. The wrapper is designed to be used with .json
-configuration files and examples are provided with the source code.
-For example::
 
-  ./bin/wrapper_sim –config ./config/wrapper_default.json
+.. code-block:: xml
 
-will start the simulator with each configuration in the file. It is
-important to note the input notation: values given inside brackets can
-be extended (e.g., ``"rng_seeds"=[1,2,3]``) but single values can only be
-replaced by one other value (e.g., ``"days": 100``).
+  <?xml version="1.0" encoding="utf-8"?>
+    <run name="default">
+    <r0>11</r0>
+    <start_date>2017-01-01</start_date>
+    <num_days>50</num_days>
+    <holidays>holidays_none.json</holidays>
+    <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
+    <track_index_case>1</track_index_case>
+    <num_threads>1</num_threads>
+    <information_policy>Global</information_policy>
+    <outputs>
+        <log level="Transmissions"/>
+        <person_file/>
+        <participants_survey num="10"/>
+        <visualization/>
+        <!-- <checkpointing frequency="1"/> -->
+    </outputs>
+    <disease>
+        <seeding_rate>0.002</seeding_rate>
+        <immunity_rate>0.8</immunity_rate>
+        <config>disease_measles.xml</config>
+    </disease>
+    <regions>
+        <region name="Belgium">
+            <rng_seed>1</rng_seed>
+            <raw_population>pop_nassau.csv</population>
+        </region>
+    </regions>
+  </run>
+
+
+use multiple regions for the multi region feature.
+The output tags ``<visualization/>`` and ``<checkpointing_frequency/>`` enable the saving of hdf5 or visualization files.

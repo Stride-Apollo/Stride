@@ -216,9 +216,9 @@ Person data which is similair over both simulators is only saved once (such as g
 
 Other than that, the data type also contains metadata information:
 
-- H5T\_NATIVE\_UINT - home\_sim\_id
+- H5T\_NATIVE\_VARIABLE - home\_sim\_name
 
-- H5T\_NATIVE\_UINT - dest\_sim\_id
+- H5T\_NATIVE\_VARIABLE - dest\_sim\_name
 
 - H5T\_NATIVE\_UINT - home\_sim\_index
 
