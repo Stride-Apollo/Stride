@@ -344,7 +344,12 @@ void Runner::run() {
 		}
 		cout << endl;
 
-		for (int day = 0; day < m_timestep + num_days; day++) {
+		int start_day = 0;
+		if (m_mode == RunMode::Replay) {
+			start_day += m_timestep;
+		}
+
+		for (int day = start_day; day < m_timestep + num_days; day++) {
 			cout << setw(4) << day << " | ";
 			// Assumes same order!
 			vector<SimulatorStatus> results = m_coord->timeStep();

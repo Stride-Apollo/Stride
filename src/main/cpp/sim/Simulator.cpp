@@ -202,6 +202,7 @@ bool Simulator::hostForeignTravellers(const vector<Simulator::TravellerType>& tr
 	}
 
 	if (!found_airport) {
+		cerr << "\nWarning: facility " << destination_facility << " not found in district " << destination_district << endl;
 		return false;
 	}
 
