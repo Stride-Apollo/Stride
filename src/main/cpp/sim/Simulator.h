@@ -175,7 +175,7 @@ public:	// TODO write getters or set friend class for ClusterSaver
 	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
 	string m_name;	///< Name of the simulator (the region it simulates)
 
-	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
+	SimplePlanner<Traveller<Simulator::PersonType>> m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 	friend class SimulatorBuilder;
 	friend class LocalSimulatorAdapter;
