@@ -41,6 +41,7 @@ set(LIB_SRC
 	pop/PopulationBuilder.cpp
 	pop/Population.cpp
 #---
+	sim/Coordinator.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
