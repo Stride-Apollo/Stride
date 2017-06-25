@@ -49,19 +49,25 @@ void Runner::parseConfig() {
 	for (auto& override: m_overrides) {
 		m_config.put(override.first, override.second);
 	}
-
+	bool has_raw_population = false;
 	for (auto& it: m_config.get_child("run.regions")) {
 		if (it.first == "region") {
 			pt::ptree& region_config = it.second;
 			string name = region_config.get<string>("<xmlattr>.name");
 			m_region_configs[name] = region_config;
 			m_region_order.push_back(name);
+
+			if (region_config.count("raw_population") != 0) {
+				has_raw_population = true;
+			}
 		}
 	}
 	if (m_region_configs.size() == 0) {
 		throw runtime_error("You need at least one region");
+	} else if (m_region_configs.size() > 1 && has_raw_population) {
+		throw runtime_error("One of the regions does not contain the necessary information to work in a multi region environment (districts, cities, ...)");
 	}
-	m_travel_schedule = m_config.get<string>("run.regions.<xmlattr>.travel_schedule");
+	m_travel_schedule = m_config.get<string>("run.regions.<xmlattr>.travel_schedule", "");
 	m_config.get_child("run").erase("regions");
 
 	m_name = m_config.get<string>("run.<xmlattr>.name");
