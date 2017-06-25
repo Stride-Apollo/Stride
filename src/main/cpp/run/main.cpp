@@ -35,6 +35,8 @@ using namespace TCLAP;
 int main(int argc, char** argv) {
 	int exit_status = EXIT_SUCCESS;
 	try {
+		Runner::setup();
+
 		// Parse command line.
 		CmdLine cmd("stride", ' ', "2.0", false);
 		ValueArg<string> config_file_Arg("c", "config", "Config File", false,

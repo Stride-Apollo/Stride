@@ -42,6 +42,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <spdlog/logger.h>
 
 namespace stride {
 
@@ -50,6 +51,7 @@ class Calendar;
 class Cluster;
 class AsyncSimulator;
 using uint = unsigned int;
+namespace run { class Runner; }
 
 /**
  * Main class that contains and direct the virtual world.
@@ -75,9 +77,9 @@ public:
 	/// Change track_index_case setting.
 	void setTrackIndexCase(bool track_index_case);
 
-	void setId(uint id) {m_id = id;}
+	void setName(string name) { m_name = name; }
 
-	uint getId() const {return m_id;}
+	string getName() const { return m_name; }
 
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
@@ -125,7 +127,6 @@ public:
 
 private:
 	// Information about travellers
-	// original ID ->
 	std::map<unsigned int, Simulator::TravellerType> m_trav_elsewhere;
 	std::map<unsigned int, Simulator::TravellerType> m_trav_hosting;
 
@@ -150,6 +151,7 @@ private:
 
 	std::shared_ptr<util::Random> 		m_rng;
 	LogMode                             m_log_level;            ///< Specifies logging mode.
+	std::shared_ptr<spdlog::logger>		m_logger;
 	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
 
 public:	// TODO write getters or set friend class for ClusterSaver
@@ -169,7 +171,7 @@ public:	// TODO write getters or set friend class for ClusterSaver
 
 	uint m_next_id;		///< The ID of the next traveller that arrives.
 	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
-	uint m_id;	///< ID of the simulator.
+	string m_name;	///< Name of the simulator (the region it simulates)
 
 	AsyncSimulator* m_async_sim;
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
@@ -178,7 +180,7 @@ public:	// TODO write getters or set friend class for ClusterSaver
 	friend class LocalSimulatorAdapter;
 	friend class Hdf5Saver;
 	friend class Hdf5Loader;
+	friend class Runner;
 };
-
 
 }

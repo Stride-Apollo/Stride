@@ -19,6 +19,7 @@
  */
 
 // TODO: put functionality in Runner
+/*
 
 #include "run_stride.h"
 
@@ -76,11 +77,7 @@ void run_stride(bool track_index_case,
 	// General contacts:  [CNT] <person1ID> <person1AGE> <person2AGE>  <at_home> <at_work> <at_school> <at_other>
 	// Note, the logger here is kinda like a global variable, but checked at runtime :(
 	// This is somewhat common practice in loggers, but I'd still prefer an alternative approach
-	spdlog::set_async_mode(1048576);
-	auto file_logger = spdlog::rotating_logger_mt("contact_logger", output_prefix + "_logfile",
-												  std::numeric_limits<size_t>::max(),
-												  std::numeric_limits<size_t>::max());
-	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
+
 
 	// Create simulator.
 	Stopwatch<> total_clock("total_clock", true);

@@ -55,8 +55,6 @@ set(LIB_SRC
 	util/TravellerScheduleReader.cpp
 	util/TransportFacilityReader.cpp
 #---
-	patterns/Publisher.cpp
-#---
 	popgen/PopulationGenerator.cpp
 	popgen/utils.cpp
 	popgen/FamilyParser.cpp

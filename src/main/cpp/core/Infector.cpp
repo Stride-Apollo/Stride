@@ -108,11 +108,10 @@ public:
 template<LogMode log_level, bool track_index_case, typename local_information_policy>
 void Infector<log_level, track_index_case, local_information_policy>::execute(
 		Cluster& cluster, DiseaseProfile disease_profile,
-		util::Random& contact_handler, shared_ptr<const Calendar> calendar) {
+		util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
 	cluster.updateMemberPresence();
 
 	// set up some stuff
-	auto logger = spdlog::get("contact_logger");
 	const auto c_type = cluster.m_cluster_type;
 	const auto& c_members = cluster.m_members;
 	const auto transmission_rate = disease_profile.getTransmissionRate();
@@ -162,7 +161,7 @@ void Infector<log_level, track_index_case, local_information_policy>::execute(
 template<LogMode log_level, bool track_index_case>
 void Infector<log_level, track_index_case, NoLocalInformation>::execute(
         Cluster& cluster, DiseaseProfile disease_profile,
-        util::Random& contact_handler, shared_ptr<const Calendar> calendar){
+        util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
 
 	// check if the cluster has infected members and sort
 	bool infectious_cases;
@@ -173,7 +172,6 @@ void Infector<log_level, track_index_case, NoLocalInformation>::execute(
 		cluster.updateMemberPresence();
 
 		// set up some stuff
-		auto logger = spdlog::get("contact_logger");
 		const auto c_type = cluster.m_cluster_type;
 		const auto c_immune = cluster.m_index_immune;
 		const auto& c_members = cluster.m_members;
@@ -211,12 +209,11 @@ void Infector<log_level, track_index_case, NoLocalInformation>::execute(
 template<bool track_index_case>
 void Infector<LogMode::Contacts, track_index_case, NoLocalInformation>::execute(
         Cluster& cluster, DiseaseProfile disease_profile,
-        util::Random& contact_handler, shared_ptr<const Calendar> calendar) {
+        util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
 
         cluster.updateMemberPresence();
 
 	// set up some stuff
-	auto logger = spdlog::get("contact_logger");
 	const auto c_type = cluster.m_cluster_type;
 	const auto& c_members = cluster.m_members;
 	const auto transmission_rate = disease_profile.getTransmissionRate();

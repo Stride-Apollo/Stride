@@ -8,6 +8,7 @@
 #include <boost/filesystem/path.hpp>
 #include "sim/Coordinator.h"
 #include "checkpointing/Hdf5Saver.h"
+#include "vis/ClusterSaver.h"
 #include "sim/SimulatorRunMode.h"
 #include "sim/Simulator.h"
 #include "sim/AsyncSimulator.h"
@@ -19,21 +20,23 @@ namespace run {
 class Runner {
 public:
 	// The different steps we do:
+	static void setup();
 	Runner(const std::vector<std::string>& overrides_list, const std::string& config_file,
            const RunMode& mode, int timestep);
 	void printInfo();
 	void initSimulators();
-	void initOutputs();
     void run();
 
 	boost::property_tree::ptree getConfig();
 	boost::property_tree::ptree getRegionsConfig(const std::vector<string>& names);
+
 	void write(std::ostream& out, const boost::property_tree::ptree&);
 
 	static boost::property_tree::xml_writer_settings<string> g_xml_settings;
 
 private:
 	void parseConfig();  // done by constructor
+	void initOutputs(Simulator& sim);
 
 	boost::filesystem::path hdf5Path(const string& name);
 
@@ -53,6 +56,9 @@ private:
 	// Some important configuration keys, used a lot
 	std::string m_name;
 	boost::filesystem::path m_output_dir;
+
+	std::map<std::string, std::shared_ptr<Hdf5Saver>> m_hdf5_savers;
+	std::map<std::string, std::shared_ptr<ClusterSaver>> m_vis_savers;
 };
 
 /// Manages HDF5 etc

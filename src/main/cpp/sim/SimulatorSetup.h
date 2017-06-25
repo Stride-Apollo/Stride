@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <boost/property_tree/xml_parser.hpp>
 #include <string>
 #include <memory>
+#include <boost/property_tree/xml_parser.hpp>
 #include "sim/Simulator.h"
 #include "sim/SimulatorRunMode.h"
 
