@@ -280,7 +280,7 @@ TEST(PopulationGeneratorTest, HappyDay_default) {
 
 	checkHappyDayPop("test_people.csv", "households_flanders.txt");
 
-	checkHappyDayHouseHolds("test_households.csv", "pop.csv");
+	checkHappyDayHouseHolds("test_households.csv", "test_people.csv");
 
 }
 
