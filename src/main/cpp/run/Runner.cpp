@@ -92,7 +92,7 @@ void Runner::initSimulators() {
 	}
 
 	for (auto& it: m_region_configs) {
-		cout << "\rInitializing simulators [" << i << "/" << m_region_configs.size() << "]";
+		cout << "\rInitializing simulators [" << i << "/" << m_region_configs.size() << "]" << endl;
 		cout.flush();
 
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
@@ -125,6 +125,7 @@ void Runner::initSimulators() {
 			// TODO: DO MPI STUFF
 		}
 	}
+	cout << endl;
 
 	// Also set up the Coordinator
 	// TODO allow a single simulator without schedule
