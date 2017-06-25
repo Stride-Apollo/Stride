@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <string>
-#include <map>
 
 #include "AsyncSimulator.h"
 #include "util/TravellerScheduleReader.h"

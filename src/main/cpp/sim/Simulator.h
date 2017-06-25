@@ -42,7 +42,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <spdlog/logger.h>
 
 namespace stride {
 
@@ -121,7 +120,7 @@ public:
 	/// Return people that are here FROM abroad
 	void returnForeignTravellers();
 
-	void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility);
+	void sendNewTravellers(uint amount, uint days, const string& destination_sim_id, string destination_district, string destination_facility);
 
 	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
 
@@ -182,5 +181,6 @@ public:	// TODO write getters or set friend class for ClusterSaver
 	friend class Hdf5Loader;
 	friend class Runner;
 };
+
 
 }

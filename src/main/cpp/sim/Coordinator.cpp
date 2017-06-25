@@ -3,6 +3,7 @@
 #include "util/TravellerScheduleReader.h"
 #include "calendar/Calendar.h"
 #include "sim/LocalSimulatorAdapter.h"
+#include "sim/RemoteSimulatorSender.h"
 
 #include <vector>
 
@@ -14,7 +15,6 @@ void Coordinator::timeStep() {
 	vector<future<bool>> fut_results;
 
 	// Run the simulator for the day
-
 	for (AsyncSimulator* sim: m_sims) {
 		fut_results.push_back(sim->timeStep());
 	}
@@ -23,9 +23,12 @@ void Coordinator::timeStep() {
 	// Give each simulator a planning containing todays travellers
 	// The simulators will exchange travellers
 	// TODO fix the thing with this dynamic cast
-
-	auto some_sim = dynamic_cast<LocalSimulatorAdapter*>(m_sims.at(0));
-	uint current_day = some_sim->m_sim->getCalendar().getDayOfTheWeek();
+	// TODO temporary change for MPI
+	//auto some_sim = dynamic_cast<LocalSimulatorAdapter*>(m_sims.at(0));
+	auto some_sim = dynamic_cast<RemoteSimulatorSender*>(m_sims.at(0));
+	std::cout << "Before cur day\n";
+	//uint current_day = some_sim->m_sim->getCalendar().getDayOfTheWeek();uint current_day = 1;
+	std::cout << "After cur day\n";
 
 	for (uint i = 0; i < m_traveller_schedule.at(current_day).size(); ++i) {
 		// TODO multithreaded, check sim index out of range

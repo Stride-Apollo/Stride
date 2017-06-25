@@ -35,7 +35,7 @@ class UnitTests__AsyncSimulatorTest: public ::testing::Test {
 public:
 	/// TestCase set up.
 	static void SetUpTestCase() {
-		
+
 	}
 
 protected:
@@ -82,20 +82,20 @@ protected:
 		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1);
 		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2);
 
-		m_l1->setId(1);
-		m_l2->setId(2);
+		m_l1->setId("1");
+		m_l2->setId("2");
 
-		map<uint, AsyncSimulator*> sender_map1;
-		sender_map1[2] = m_l2.get();
+		map<string, AsyncSimulator*> sender_map1;
+		sender_map1["2"] = m_l2.get();
 
-		map<uint, AsyncSimulator*> sender_map2;
-		sender_map2[1] = m_l1.get();
+		map<string, AsyncSimulator*> sender_map2;
+		sender_map2["1"] = m_l1.get();
 
 		m_l1->setCommunicationMap(sender_map1);
 		m_l2->setCommunicationMap(sender_map2);
 
 		// Migrate 10 people for 10 days
-		m_l1->sendNewTravellers(10, 10, 2, "Antwerp", "ANR");
+		m_l1->sendNewTravellers(10, 10, "2", "Antwerp", "ANR");
 
 		// Keep a vector of id's of people who are on vacation
 		vector<unsigned int> m_ids;
@@ -217,7 +217,7 @@ TEST_F(UnitTests__AsyncSimulatorTest, destinationClusters) {
 		it = find_if(m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().begin(),
 						m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end(),
 						search_person);
-		
+
 		EXPECT_NE(it, m_sim2->getClusters(ClusterType::SecondaryCommunity).at(sec_comm_index).getMembers().end());
 	}
 }
