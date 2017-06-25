@@ -5,6 +5,7 @@
 #include "sim/SimulatorStatus.h"
 
 #include <vector>
+#include <iostream>
 
 using namespace stride;
 using namespace util;
@@ -28,12 +29,16 @@ vector<SimulatorStatus> Coordinator::timeStep() {
 	
 	for (uint i = 0; i < m_traveller_schedule.at(weekday).size(); ++i) {
 		Flight& new_flight = m_traveller_schedule[weekday].at(i);
-
-		m_sims.at(new_flight.m_source_sim)->sendNewTravellers(new_flight.m_amount,
-															new_flight.m_duration,
-															m_sims.at(new_flight.m_destination_sim)->getName(),
-															new_flight.m_district,
-															new_flight.m_facility);
+		try {
+			m_sims.at(new_flight.m_source_sim)->sendNewTravellers(new_flight.m_amount,
+																new_flight.m_duration,
+																m_sims.at(new_flight.m_destination_sim)->getName(),
+																new_flight.m_district,
+																new_flight.m_facility);
+		} catch(...) {
+			// Map out of bounds / wrong schedule results in an exception which is caught and ignored here
+			cerr << "\nWarning: travelling from " << new_flight.m_source_sim << " to " << new_flight.m_destination_sim << " failed because one of them doesn't exist.\n";
+		}
 	}
 
 	m_calendar.advanceDay();
