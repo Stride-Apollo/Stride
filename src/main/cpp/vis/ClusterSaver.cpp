@@ -84,6 +84,8 @@ void ClusterSaver::saveClustersCSV(const Simulator& sim) const {
 	}
 
 	this->saveAggrClustersCSV(sim.m_households, csv_file);
+	this->saveAggrClustersCSV(sim.m_work_clusters, csv_file);
+	this->saveAggrClustersCSV(sim.m_school_clusters, csv_file);
 
 	csv_file.close();
 }

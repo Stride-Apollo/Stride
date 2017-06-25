@@ -47,6 +47,7 @@ private:
 
 	std::map<std::string, std::string> m_overrides;
 	std::string m_config_file;
+	std::string m_slave;
 	RunMode m_mode;
 	bool m_uses_mpi;
 	int m_timestep;

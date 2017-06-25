@@ -27,7 +27,7 @@ void Runner::setup() {
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 			   const RunMode& mode, const string& slave, int timestep)
-        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0) {
+        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0), m_uses_mpi(false) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
