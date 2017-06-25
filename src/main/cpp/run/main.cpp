@@ -49,6 +49,8 @@ int main(int argc, char** argv) {
 		                               "", "filename", cmd);
 		MultiArg<string> overrides_Arg("o", "override", "Override the configuration", false,
 		                               "string", cmd);
+		ValueArg<string> slave_Arg("s", "slave", "Name of region I should be", false,
+								   "", "name", cmd);
 		cmd.parse(argc, argv);
 
 		auto run_mode = SimulatorRunMode::getRunMode(simulator_mode_Arg.getValue());
@@ -66,8 +68,8 @@ int main(int argc, char** argv) {
 			// TODO: where to write this?
 			Hdf5Loader::extractConfigs(hdf5_file_Arg.getValue());
 		} else {
-			Runner runner(overrides_Arg.getValue(), config_file_Arg.getValue(),
-						  run_mode, timestamp_replay_Arg.getValue());
+			Runner runner(overrides_Arg.getValue(), config_file_Arg.getValue(), run_mode,
+						  slave_Arg.getValue(), timestamp_replay_Arg.getValue());
 			runner.printInfo();
 			runner.initSimulators();
 			runner.run();
