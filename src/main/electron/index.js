@@ -118,7 +118,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	var block = false;
 	var airport_files = [];
 	var airport_filenames = [];
-	var output_dir = global.location.search.substr(5);
+	var output_dir = decodeURI(global.location.search.substr(5));
 	console.log(output_dir);
 
 	fs.readFile(__dirname + "/data/config.json", 'utf8', function (err, data) {
@@ -557,9 +557,9 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			overview_day = undefined;
 		})
 		var url = "file://" + __dirname + '/OverviewContent.html?data='
-			+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
-			+ "&directory=" + __dirname + "/" + config.directory
-			+ "&population=" + __dirname + "/" + config.population_directory
+			+ output_dir + "/" + config.directory + "/" + filenames[$scope.currentDay]
+			+ "&directory=" + output_dir + "/" + config.directory
+			+ "&population=" + output_dir + "/" + config.population_directory
 			+ "&currentDay=" + $scope.currentDay;
 		overview.loadURL(url);
 	}
@@ -572,9 +572,9 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			} else if (overview_day != $scope.currentDay) {
 				overview_day = $scope.currentDay;
 				var url = "file://" + __dirname + '/OverviewContent.html?data='
-					+ __dirname + "/" + config.directory + "/" + filenames[$scope.currentDay]
-					+ "&directory=" + __dirname + "/" + config.directory
-					+ "&population=" + __dirname + "/" + config.population_directory
+					+ output_dir + "/" + config.directory + "/" + filenames[$scope.currentDay]
+					+ "&directory=" + output_dir + "/" + config.directory
+					+ "&population=" + output_dir + "/" + config.population_directory
 					+ "&currentDay=" + $scope.currentDay;
 				overview.loadURL(url);
 				overview.focus();
@@ -692,9 +692,9 @@ function loadCluster(id, config, filenames, currentDay) {
 		});
 
 		var url = "file://" + __dirname + '/ClusterContent.html?data='
-			+ __dirname + "/" + config.directory + "/" + filenames[currentDay]
+			+ output_dir + "/" + config.directory + "/" + filenames[currentDay]
 			+ "&cluster=" + id
-			+ "&directory=" + __dirname + "/" + config.directory
+			+ "&directory=" + output_dir + "/" + config.directory
 			+ "&currentDay=" + currentDay;
 		win.loadURL(url);
 

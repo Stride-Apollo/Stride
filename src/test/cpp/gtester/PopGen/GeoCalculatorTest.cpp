@@ -74,7 +74,7 @@ TEST(UnitTests_GeoCalculatorTest, convertToRegularCoordinates_default) {
 
 	GeoCoordinate ref = GeoCoordinate(50.0, -53.84);
 
-	GeoCoordinate test = GeoCoordinate(345.0, -120.5);
+	GeoCoordinate test = GeoCoordinate(345.0, -580.5);
 	double distance_before = calc.getDistance(ref, test);
 
 	calc.convertToRegularCoordinates(test.m_latitude, test.m_longitude);

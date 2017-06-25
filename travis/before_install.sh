@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Expand all environment shorthands
-
+export STRIDE_FORCE_NO_MPI=ON
 # compiler
 if [ "$compiler" = "gcc" ]; then
 	export CXX=g++-5
