@@ -3,9 +3,12 @@
 
 #include <iostream>
 #include <exception>
+#include <mpi.h>
+#include <thread>
 #include <spdlog/spdlog.h>
 #include "util/InstallDirs.h"
 #include "sim/LocalSimulatorAdapter.h"
+#include "sim/RemoteSimulatorSender.h"
 #include "sim/SimulatorSetup.h"
 #include "sim/SimulatorBuilder.h"
 #include "util/StringUtils.h"
@@ -23,8 +26,8 @@ void Runner::setup() {
 }
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
-			   const RunMode& mode, int timestep)
-        : m_config_file(config_file), m_mode(mode), m_timestep(timestep) {
+			   const RunMode& mode, const string& slave, int timestep)
+        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -38,6 +41,7 @@ Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 	fs::path base_dir = InstallDirs::getOutputDir();
 	parseConfig();
 	m_output_dir = base_dir / m_name;
+	if (m_slave != "") m_uses_mpi = true;
 }
 
 void Runner::parseConfig() {
@@ -92,44 +96,80 @@ void Runner::initSimulators() {
 	}
 
 	for (auto& it: m_region_configs) {
-		cout << "\rInitializing simulators [" << i << "/" << m_region_configs.size() << "]" << endl;
+		cout << "\rInitializing simulators [" << i << "/" << m_region_configs.size() << "]";
+		i++;
 		cout.flush();
 
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		pt::ptree sim_config = getRegionsConfig({it.first});
-		if (not remote) {
-			auto sim = SimulatorBuilder::build(sim_config);
-			sim->m_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
-
-			if (m_mode == RunMode::Replay || m_mode == RunMode::Extend) {
-				// adjust the state of the simulator
-				Hdf5Loader loader = Hdf5Loader(hdf5Path(it.first).string().c_str());
-
-				int timestep = m_mode == RunMode::Extend ?
-					loader.getLastSavedTimestep() : m_timestep;
-
-				loader.loadFromTimestep(timestep, sim);
+		string sim_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
+		if (m_slave == "") {
+			if (not remote) {
+				addLocalSimulator(sim_name, sim_config);
+			} else {
+				addRemoteSimulator(sim_name, sim_config);
 			}
-
-			initOutputs(*sim.get());
-			// TODO Enable HDF5 again
-			// build a Simulator...
-			//#ifdef HDF5_USED
-			//auto sim = SimulatorSetup(sim_config, hdf5Path(it.first).string(),
-			//						  m_mode, m_timestep).getSimulator();
-			//#else
-			//#endif
-			m_local_simulators[it.first] = sim;
-			m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
 		} else {
-			// TODO: DO MPI STUFF
+ 			if (not remote) {
+ 				// This is a simulator running at the master
+ 				// TODO: get Master's contact info?
+ 				// Then, do MPI stuff
+ 				addRemoteSimulator(sim_name, sim_config);
+ 			} else {
+ 				if (sim_name == m_slave) {
+ 					// This is our (unique) local simulator
+ 					addLocalSimulator(sim_name, sim_config);
+ 				} else {
+ 					// This is just another remote simulator
+ 					addRemoteSimulator(sim_name, sim_config);
+ 				}
+ 			}
 		}
 	}
-	cout << endl;
+
+	if (m_uses_mpi and m_local_simulators.size() > 1) {
+		throw runtime_error("You can't have multiple simulators in one system when working with MPI");
+	}
 
 	// Also set up the Coordinator
 	// TODO allow a single simulator without schedule
-	m_coord = make_shared<Coordinator>(m_async_simulators, m_travel_schedule, m_config);
+	if (m_world_rank == 0) m_coord = make_shared<Coordinator>(m_async_simulators, m_travel_schedule, m_config);
+}
+
+shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost::property_tree::ptree& config) {
+	auto sim = SimulatorBuilder::build(config);
+	sim->m_name = config.get<string>("run.regions.region.<xmlattr>.name");
+
+	if (m_mode == RunMode::Replay || m_mode == RunMode::Extend) {
+		// adjust the state of the simulator
+		Hdf5Loader loader = Hdf5Loader(hdf5Path(name).string().c_str());
+
+		int timestep = m_mode == RunMode::Extend ?
+					   loader.getLastSavedTimestep() : m_timestep;
+
+		loader.loadFromTimestep(timestep, sim);
+	}
+
+	initOutputs(*sim.get());
+	m_local_simulators[name] = sim;
+	m_async_simulators[name] = make_shared<LocalSimulatorAdapter>(sim);
+	return sim;
+}
+
+void Runner::initMpi() {
+	if (not m_uses_mpi) {
+		int provided;
+		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+		if (provided != MPI_THREAD_MULTIPLE) throw runtime_error("We need multiple thread support in MPI");
+		MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
+		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
+		m_uses_mpi = true;
+	}
+}
+
+shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
+	initMpi();
+	// TODO: DO MPI STUFF
 }
 
 void Runner::initOutputs(Simulator& sim) {
@@ -167,7 +207,8 @@ void Runner::initOutputs(Simulator& sim) {
 		// We need to save to m_output_dir / ...<something that makes sense in the context of visualisation>...
 		// See hdf5Path for inspiration, but since we only consider output (whereas hdf5 is also input) there's
 		// no need to write a separate method for it.
-		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output");
+		std::string vis_output_dir = fs::system_complete(m_output_dir / (string("vis_") + sim.m_name)).string();
+		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output", vis_output_dir);
 		auto fn = bind(&ClusterSaver::update, vis_saver, std::placeholders::_1);
 		sim.registerObserver(vis_saver, fn);
 		vis_saver->update(sim);
@@ -181,15 +222,25 @@ void Runner::run() {
 	int num_days = m_config.get<int>("run.num_days");
 	for (int day=0; day < m_timestep + num_days; day++) {
 		std::cout << "Simulating day: " << setw(5) << day;
-		m_coord->timeStep();
+		if (m_world_rank == 0) m_coord->timeStep();
 		std::cout << "\tDone, infected count: TODO" << endl;
 	}
 
-	// TODO only save at last timestep if freq == 0
-	// for (auto& it: m_hdf5_savers) {
-	// 	Simulator& sim = *m_local_simulators[it.first];
-	// 	it.second->forceSave(sim, m_timestep + num_days);
-	// }
+// TODO only save at last timestep if freq == 0
+// for (auto& it: m_hdf5_savers) {
+// 	Simulator& sim = *m_local_simulators[it.first];
+// 	it.second->forceSave(sim, m_timestep + num_days);
+// }
+
+	// Close the MPI environment properly
+	if (m_distributed_run){
+		if (m_world_rank == 0){
+			// Send message from system 0 (coordinator) to all other systems to terminate their listening thread
+			for (int i = 0; i < m_world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
+		}
+		m_listen_thread.join(); // Join and terminate listening thread
+		MPI_Finalize();
+	}
 }
 
 pt::ptree Runner::getConfig() {

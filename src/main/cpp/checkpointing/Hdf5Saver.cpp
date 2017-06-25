@@ -104,13 +104,7 @@ void Hdf5Saver::saveTimestep(const Simulator& sim) {
 
 		this->saveCalendar(group, sim);
 
-		// try {
 		this->savePersonTDData(group, sim);
-		// } catch (Exception& e) {
-		// 	cout << endl << "I haz Exception" << endl;
-		// 	// cout << endl << e << endl;
-		// 	// nothing
-		// }
 
 		this->saveTravellers(group, sim);
 
@@ -230,15 +224,20 @@ void Hdf5Saver::savePersonTIData(H5File& file, const Simulator& sim) const {
 void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 	hsize_t dims[1] { sim.getPopulation().get()->m_original.size() };
 	CompType type_person_TD = PersonTDDataType::getCompType();
+	const unsigned int CHUNK_SIZE = 10000;
 
 	// Dataspace can fit all persons but is chunked in parts of 10000 persons
 	DataSpace dataspace = DataSpace(1, dims);
 	DSetCreatPropList plist = DSetCreatPropList();
-	hsize_t chunk_dims[1] = {10000};
+	hsize_t chunk_dims[1] = {CHUNK_SIZE};
 	plist.setChunk(1, chunk_dims);
-	// DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace, plist));
-	// TODO verify (stijn)
-	DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace));
+
+	DataSet dataset;
+	if (dims[0] > CHUNK_SIZE) {
+		dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace, plist));
+	} else {
+		dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace));
+	}
 
 	using PersonType = Simulator::PersonType;
 	const std::vector<PersonType>& population = sim.getPopulation()->m_original;

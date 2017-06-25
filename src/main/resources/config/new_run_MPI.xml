@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<run name="default">
+<run name="MPI">
     <r0>11</r0>
     <start_date>2017-01-01</start_date>
     <num_days>50</num_days>
@@ -13,7 +13,7 @@
         <log level="Transmissions"/>
         <person_file/>
         <participants_survey num="10"/>
-        <visualization/>
+        <!-- <visualization/> -->
         <!-- <checkpointing frequency="1"/> -->
     </outputs>
 
@@ -23,13 +23,15 @@
         <config>disease_measles.xml</config>
     </disease>
 
-    <regions travel_schedule="traveller_schedule_new_config.xml">
+    <regions travel_schedule="schedule_file_todo.xml">
         <region name="Belgium">
+            <remote>0</remote>
             <rng_seed>123</rng_seed>
             <population>bigpop.xml</population>
         </region>
 
         <region name="NotBelgium">
+            <remote>1</remote>
             <rng_seed>456</rng_seed>
             <population>smallpop.xml</population>
         </region>
