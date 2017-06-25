@@ -64,6 +64,7 @@ private:
   friend class Coordinator;
 #endif
 #ifndef MPI_USED
+public:
   RemoteSimulatorSender(const string& m_name, const int mpi_id) {}
   ~RemoteSimulatorSender() = default;
 
