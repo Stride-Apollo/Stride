@@ -60,7 +60,7 @@ private:
 
 	map<uint, uint> getAgeMap(const Simulator& local_sim) const;
 
-	void saveTransportationFacilities(const LocalSimulatorAdapter& local_sim) const;
+	void saveTransportationFacilities(const Simulator& local_sim) const;
 
 
 private:

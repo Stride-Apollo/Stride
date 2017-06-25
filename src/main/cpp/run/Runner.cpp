@@ -36,8 +36,8 @@ Runner::Runner(const vector<string>& overrides_list, const string& config_file,
         m_overrides[key] = StringUtils::trim(parts[1]);
     }
 	fs::path base_dir = InstallDirs::getOutputDir();
-	m_output_dir = base_dir / m_name;
 	parseConfig();
+	m_output_dir = base_dir / m_name;
 }
 
 void Runner::parseConfig() {
@@ -98,16 +98,27 @@ void Runner::initSimulators() {
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		pt::ptree sim_config = getRegionsConfig({it.first});
 		if (not remote) {
+			auto sim = SimulatorBuilder::build(sim_config);
+			sim->m_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
+
+			if (m_mode == RunMode::Replay || m_mode == RunMode::Extend) {
+				// adjust the state of the simulator
+				Hdf5Loader loader = Hdf5Loader(hdf5Path(it.first).string().c_str());
+
+				int timestep = m_mode == RunMode::Extend ?
+					loader.getLastSavedTimestep() : m_timestep;
+
+				loader.loadFromTimestep(timestep, sim);
+			}
+
+			initOutputs(*sim.get());
 			// TODO Enable HDF5 again
 			// build a Simulator...
 			//#ifdef HDF5_USED
 			//auto sim = SimulatorSetup(sim_config, hdf5Path(it.first).string(),
 			//						  m_mode, m_timestep).getSimulator();
 			//#else
-		  	auto sim = SimulatorBuilder::build(sim_config);
 			//#endif
-			sim->m_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
-			initOutputs(*sim.get());
 			m_local_simulators[it.first] = sim;
 			m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
 		} else {
@@ -155,7 +166,7 @@ void Runner::initOutputs(Simulator& sim) {
 		// We need to save to m_output_dir / ...<something that makes sense in the context of visualisation>...
 		// See hdf5Path for inspiration, but since we only consider output (whereas hdf5 is also input) there's
 		// no need to write a separate method for it.
-		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output");
+		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output");
 		auto fn = bind(&ClusterSaver::update, vis_saver, std::placeholders::_1);
 		sim.registerObserver(vis_saver, fn);
 		vis_saver->update(sim);
@@ -173,10 +184,11 @@ void Runner::run() {
 		std::cout << "\tDone, infected count: TODO" << endl;
 	}
 
-	for (auto& it: m_hdf5_savers) {
-		Simulator& sim = *m_local_simulators[it.first];
-		it.second->forceSave(sim, m_timestep + num_days);
-	}
+	// TODO only save at last timestep if freq == 0
+	// for (auto& it: m_hdf5_savers) {
+	// 	Simulator& sim = *m_local_simulators[it.first];
+	// 	it.second->forceSave(sim, m_timestep + num_days);
+	// }
 }
 
 pt::ptree Runner::getConfig() {
@@ -198,7 +210,7 @@ void Runner::write(std::ostream& out, const pt::ptree& tree) {
 }
 
 fs::path Runner::hdf5Path(const string& name) {
-	return fs::system_complete(m_output_dir / (string("cp_") + name + ".hdf5"));
+	return fs::system_complete(m_output_dir / (string("cp_") + name + ".h5"));
 }
 
 pt::xml_writer_settings<string> Runner::g_xml_settings = pt::xml_writer_make_settings<string>('\t', 1);

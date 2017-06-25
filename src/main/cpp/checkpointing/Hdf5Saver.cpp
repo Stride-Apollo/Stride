@@ -103,7 +103,15 @@ void Hdf5Saver::saveTimestep(const Simulator& sim) {
 		}
 
 		this->saveCalendar(group, sim);
-		this->savePersonTDData(group, sim);
+
+		// try {
+		// 	this->savePersonTDData(group, sim);
+		// } catch (Exception& e) {
+		// 	cout << endl << "I haz Exception" << endl;
+		// 	// cout << endl << e << endl;
+		// 	// nothing
+		// }
+
 		this->saveTravellers(group, sim);
 
 		this->saveClusters(group, "household_clusters", sim.m_households);

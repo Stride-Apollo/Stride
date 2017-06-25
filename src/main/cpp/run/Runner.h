@@ -40,26 +40,26 @@ private:
 
 	boost::filesystem::path hdf5Path(const string& name);
 
-	std::map<std::string, std::string> m_overrides;
-	std::string m_config_file;
-	RunMode m_mode;
-	int m_timestep;
-	boost::property_tree::ptree m_config;
-	std::map<std::string, boost::property_tree::ptree> m_region_configs;
-	std::vector<std::string> m_region_order;
+	std::map<std::string, std::string> 						m_overrides;
+	std::string 											m_config_file;
+	RunMode						 							m_mode;
+	int 													m_timestep;
+	boost::property_tree::ptree 							m_config;
+	std::map<std::string, boost::property_tree::ptree> 		m_region_configs;
+	std::vector<std::string> 								m_region_order;
 
-	std::map<std::string, shared_ptr<Simulator>> m_local_simulators;
+	std::map<std::string, shared_ptr<Simulator>> 			m_local_simulators;
 	//std::map<std::string, shared_ptr<RemoteSimulatorSender>> m_remote_senders;
-	std::map<std::string, shared_ptr<AsyncSimulator>> m_async_simulators;
+	std::map<std::string, shared_ptr<AsyncSimulator>> 		m_async_simulators;
 	std::shared_ptr<Coordinator> m_coord;
 
 	// Some important configuration keys, used a lot
-	std::string m_name;
-	boost::filesystem::path m_output_dir;
-	std::string m_travel_schedule;
+	std::string 											m_name;
+	boost::filesystem::path 								m_output_dir;
+	std::string 											m_travel_schedule;
 
-	std::map<std::string, std::shared_ptr<Hdf5Saver>> m_hdf5_savers;
-	std::map<std::string, std::shared_ptr<ClusterSaver>> m_vis_savers;
+	std::map<std::string, std::shared_ptr<Hdf5Saver>> 		m_hdf5_savers;
+	std::map<std::string, std::shared_ptr<ClusterSaver>> 	m_vis_savers;
 };
 
 /// Manages HDF5 etc
