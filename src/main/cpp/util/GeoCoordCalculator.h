@@ -44,8 +44,13 @@ public:
 		do {
 			double new_longitude = coord.m_longitude + dist_longitude(rng);
 			double new_latitude = coord.m_latitude + dist_latitude(rng);
+
+			
+
 			random_coordinate.m_longitude = new_longitude;
 			random_coordinate.m_latitude = new_latitude;
+			this->convertToRegularCoordinates(new_latitude, new_longitude);
+
 		} while (getDistance(coord, random_coordinate) > radius);
 		return random_coordinate;
 	}
@@ -69,6 +74,8 @@ public:
 
 		return GeoCoordinate(center_lat * 180 / PI, center_lon * 180 / PI);
 	}
+
+	void convertToRegularCoordinates(double& latitude, double& longitude) const;
 
 private:
 	GeoCoordCalculator(){}

@@ -19,7 +19,7 @@ using namespace ::testing;
 
 namespace Tests {
 
-TEST(GeoCalculatorTest, SingletonPattern_default) {
+TEST(UnitTests_GeoCalculatorTest, SingletonPattern_default) {
 	// Test whether this is actually written according to the singleton pattern
 
 	const GeoCoordCalculator& calc1 = GeoCoordCalculator::getInstance();
@@ -27,7 +27,7 @@ TEST(GeoCalculatorTest, SingletonPattern_default) {
 	EXPECT_EQ(&calc1, &calc2);
 }
 
-TEST(GeoCalculatorTest, distance_default) {
+TEST(UnitTests_GeoCalculatorTest, distance_default) {
 	auto solutions = vector<uint> {0, 9627, 20015, 0, 11646, 4994, 5202, 14812, 15204, 15204};
 	const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
 
@@ -65,6 +65,24 @@ TEST(GeoCalculatorTest, distance_default) {
 	// This might seem trivial, but the calculation has to be independant of the coordinates
 	EXPECT_EQ(calc.getDistance(GeoCoordinate(43.21, 65.2), GeoCoordinate(-52.142, 180.0)),
 				calc.getDistance(GeoCoordinate(-52.142, 180.0), GeoCoordinate(43.21, 65.2)));
+}
+
+TEST(UnitTests_GeoCalculatorTest, convertToRegularCoordinates_default) {
+	// Test whether this is actually written according to the singleton pattern
+
+	const GeoCoordCalculator& calc = GeoCoordCalculator::getInstance();
+
+	GeoCoordinate ref = GeoCoordinate(50.0, -53.84);
+
+	GeoCoordinate test = GeoCoordinate(345.0, -120.5);
+	double distance_before = calc.getDistance(ref, test);
+
+	calc.convertToRegularCoordinates(test.m_latitude, test.m_longitude);
+	EXPECT_NEAR(distance_before, calc.getDistance(test, ref), 1);
+	EXPECT_GE(180, test.m_longitude);
+	EXPECT_LE(-180, test.m_longitude);
+	EXPECT_GE(90, test.m_latitude);
+	EXPECT_LE(-90, test.m_latitude);
 }
 
 } //end-of-namespace-Tests
