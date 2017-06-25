@@ -3,8 +3,9 @@
 #include <future>
 #include <string>
 #include <map>
+#ifdef MPI_USED
 #include <mpi.h>
-
+#endif
 #include "AsyncSimulator.h"
 #include "Simulator.h"
 #include "pop/Traveller.h"
