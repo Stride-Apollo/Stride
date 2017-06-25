@@ -7,7 +7,7 @@ using namespace H5;
 /**
  * Time Independent Person DataType
  */
-namespace {
+namespace stride {
 struct PersonTIDataType {
 	static CompType getCompType() {
 		CompType type_person_TI(sizeof(PersonTIDataType));

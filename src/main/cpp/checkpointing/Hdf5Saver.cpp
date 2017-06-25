@@ -257,6 +257,7 @@ void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 			person_data[j].m_participant = person.m_is_participant;
 			person_data[j].m_health_status = (unsigned int) person.m_health.getHealthStatus();
 			person_data[j].m_disease_counter = (unsigned int) person.m_health.getDiseaseCounter();
+			person_data[j].m_on_vacation = person.m_is_on_vacation;
 			person_index++;
 		}
 

@@ -3,7 +3,7 @@
 #include "H5Cpp.h"
 using namespace H5;
 
-namespace {
+namespace stride {
 struct ConfigDataType {
 	static CompType getCompType() {
 		StrType str_type(0, H5T_VARIABLE);

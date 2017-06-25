@@ -239,6 +239,7 @@ void Hdf5Loader::loadPersonTDData(H5File& file, string dataset_name, shared_ptr<
 		sim->m_population->m_original.at(i).m_is_participant = person[0].m_participant;
 		sim->m_population->m_original.at(i).m_health.m_status = HealthStatus(person[0].m_health_status);
 		sim->m_population->m_original.at(i).m_health.m_disease_counter = person[0].m_disease_counter;
+		sim->m_population->m_original.at(i).m_is_on_vacation = person[0].m_on_vacation;
 		memspace.close();
 		dataspace.close();
 	}
