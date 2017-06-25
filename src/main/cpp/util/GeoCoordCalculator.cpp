@@ -25,3 +25,50 @@ double GeoCoordCalculator::getDistance(const GeoCoordinate& coord1, const GeoCoo
 
 	return earth_radius * temp2;
 }
+
+void GeoCoordCalculator::convertToRegularCoordinates(double& latitude, double& longitude) const {
+	bool changed = false;
+
+	while (latitude > 270) {
+		latitude -= 360;
+	}
+
+	while (latitude < -270) {
+		latitude += 360;
+	}
+
+	while (longitude > 180) {
+		longitude -= 360;
+	}
+
+	while (longitude < -180) {
+		longitude += 360;
+	}
+
+	if (latitude < -90.0) {
+		latitude += 180;
+		latitude = - latitude;
+		longitude += 180;
+		changed = true;
+	}
+
+	if (latitude > 90) {
+		latitude -= 180;
+		latitude = - latitude;
+		longitude += 180;
+		changed = true;
+	}
+
+	if (longitude < -180.0) {
+		changed = true;
+	}
+
+	if (longitude > 180) {
+		longitude -= 180.0;
+		changed = true;
+	}
+
+	if (changed) {
+		convertToRegularCoordinates(latitude, longitude);
+	}
+}

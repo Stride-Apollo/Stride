@@ -27,7 +27,7 @@ void Runner::setup() {
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 			   const RunMode& mode, const string& slave, int timestep)
-        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0) {
+        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0), m_uses_mpi(false) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -211,7 +211,8 @@ void Runner::initOutputs(Simulator& sim) {
 		// We need to save to m_output_dir / ...<something that makes sense in the context of visualisation>...
 		// See hdf5Path for inspiration, but since we only consider output (whereas hdf5 is also input) there's
 		// no need to write a separate method for it.
-		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output");
+		std::string vis_output_dir = fs::system_complete(m_output_dir / (string("vis_") + sim.m_name)).string();
+		auto vis_saver = make_shared<ClusterSaver>("vis_output", "vis_pop_output", "vis_facility_output", vis_output_dir);
 		auto fn = bind(&ClusterSaver::update, vis_saver, std::placeholders::_1);
 		sim.registerObserver(vis_saver, fn);
 		vis_saver->update(sim);

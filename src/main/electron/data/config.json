@@ -1,7 +1,7 @@
 {
-	"directory": "data/clusterData",
-    "population_directory": "data/populationData",
-    "airport_directory": "data/transportFacilityData",
+	"directory": "clusterData",
+    "population_directory": "populationData",
+    "airport_directory": "transportFacilityData",
 	"color_no_infected": "#00FF00",
 	"color_min_infected": "#FFFF00",
 	"color_max_infected": "#FF0000",
