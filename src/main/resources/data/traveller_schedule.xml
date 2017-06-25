@@ -1,0 +1,34 @@
+<travel_schedule>
+    <flight  amount="10" duration="20" day_of_the_week="0">
+        <direction src="0" dest="1" />
+        <arrival district="Antwerp" facility="ANR"/>
+    </flight>
+    <flight  amount="20" duration="40" day_of_the_week="1">
+        <direction src="1" dest="2" />
+        <arrival district="Antwerp" facility="ANR"/>
+    </flight>
+    <flight  amount="30" duration="60" day_of_the_week="2">
+        <direction src="2" dest="3" />
+        <arrival district="Antwerp" facility="ANR"/>
+    </flight>
+    <flight  amount="40" duration="80" day_of_the_week="3">
+        <direction src="3" dest="4" />
+        <arrival district="Antwerp" facility="ANR"/>
+    </flight>
+    <flight  amount="50" duration="100" day_of_the_week="4">
+        <direction src="4" dest="5" />
+        <arrival district="Antwerp" facility="ANR"/>
+    </flight>
+    <flight  amount="60" duration="120" day_of_the_week="5">
+        <direction src="5" dest="6" />
+        <arrival district="Antwerp" facility="ANR"/>
+    </flight>
+    <flight  amount="70" duration="140" day_of_the_week="6">
+        <direction src="6" dest="7" />
+        <arrival district="Antwerp" facility="ANR"/>
+    </flight>
+    <flight  amount="80" duration="160" day_of_the_week="0">
+        <direction src="0" dest="1" />
+        <arrival district="Antwerp" facility="ANR"/>
+    </flight>
+</travel_schedule>

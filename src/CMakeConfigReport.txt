@@ -52,6 +52,9 @@ message( STATUS "" )
 message( STATUS "   HDF5_LIBRARIES              : ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES} ${HDF5_HL_LIBRARIES}")
 
 message( STATUS "" )
+message( STATUS "   MPI_LIBRARIES               : ${MPI_LIBRARIES}")
+
+message( STATUS "" )
 if ( STRIDE_INCLUDE_DOC )
 	message( STATUS "   DOXYGEN_FOUND               : ${DOXYGEN_FOUND} "              )
 	message( STATUS "   DOXYGEN_DOT_FOUND           : ${DOXYGEN_DOT_FOUND} "          )

@@ -20,7 +20,7 @@ Schedule TravellerScheduleReader::readSchedule(string filename) {
 	parseTree(filename);
 
 	Schedule schedule;
-	auto schedule_config = m_pt.get_child("Schedule");
+	auto schedule_config = m_pt.get_child("travel_schedule");
 
 	// Loop over all flights
 	for (auto it = schedule_config.begin(); it != schedule_config.end(); it++) {
@@ -32,48 +32,35 @@ Schedule TravellerScheduleReader::readSchedule(string filename) {
 }
 
 void TravellerScheduleReader::parseTree(string filename) {
-	// Check if the file exists
-	ifstream f(filename.c_str());
-	if (!f.good()) {
-		throw invalid_argument("Invalid schedule file.");
-	}
-
 	// Parse the file
 	try {
-		boost::property_tree::read_json(filename, m_pt);
+		boost::property_tree::read_xml(filename, m_pt);
 	} catch(...) {
 		throw invalid_argument("In TravellerScheduleReader: Error while parsing.");
 	}
 }
 
 Flight TravellerScheduleReader::parseFlight(boost::property_tree::ptree& node) const {
-	int source_sim = node.get<int>("source_sim");
-	if (source_sim < 0) {
-		throw invalid_argument("In TravellerScheduleReader: Unexpected simulator index.");
-	}
-	
-	int destination_sim = node.get<int>("destination_sim");
-	if (destination_sim < 0) {
-		throw invalid_argument("In TravellerScheduleReader: Unexpected simulator index.");
-	}
-	
-	int amount = node.get<int>("amount");
+	string source_sim = node.get<string>("direction.<xmlattr>.src");
+	string destination_sim = node.get<string>("direction.<xmlattr>.dest");
+
+	int amount = node.get<int>("<xmlattr>.amount");
 	if (amount < 0) {
 		throw invalid_argument("In TravellerScheduleReader: Invalid amount of travellers.");
 	}
-	
-	int duration = node.get<int>("duration");
+
+	int duration = node.get<int>("<xmlattr>.duration");
 	if (duration < 0) {
 		throw invalid_argument("In TravellerScheduleReader: Invalid duration.");
 	}
-	
-	int day_of_the_week = node.get<int>("day_of_the_week");
+
+	int day_of_the_week = node.get<int>("<xmlattr>.day_of_the_week");
 	if (day_of_the_week < 0 || day_of_the_week > 6) {
 		throw invalid_argument("In TravellerScheduleReader: Invalid day of the week.");
 	}
-	
-	string district = node.get<string>("district");
-	string facility = node.get<string>("facility");
 
-	return Flight(uint(source_sim), uint(destination_sim), uint(amount), uint(duration), uint(day_of_the_week), district, facility);
+	string district = node.get<string>("arrival.<xmlattr>.district");
+	string facility = node.get<string>("arrival.<xmlattr>.facility");
+
+	return Flight(source_sim, destination_sim, uint(amount), uint(duration), uint(day_of_the_week), district, facility);
 }

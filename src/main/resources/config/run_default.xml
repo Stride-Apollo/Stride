@@ -16,5 +16,5 @@
     <log_level>Transmissions</log_level>
     <checkpointing_frequency>1</checkpointing_frequency>
     <checkpointing_file>simulator_save.h5</checkpointing_file>
-	<visualization>1</visualization>
+    <visualization>1</visualization>
 </run>

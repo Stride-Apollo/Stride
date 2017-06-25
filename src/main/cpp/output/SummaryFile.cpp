@@ -50,7 +50,7 @@ void SummaryFile::print(
 
 	m_fstream
 			<< pt_config.get<string>("run.population_file") << ","
-			<< pt_config.get<unsigned int> ("run.num_days") << ","
+			<< pt_config.get<unsigned int> ("coordination.num_days") << ","
 			<< population_size << ","
 			<< pt_config.get<double>("run.seeding_rate") << ","
 			<< pt_config.get<double>("run.r0") << ","

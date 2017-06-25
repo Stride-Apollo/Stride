@@ -16,20 +16,13 @@
 
 namespace stride {
 
-/*
- *
- */
 enum class HealthStatus {
 	Susceptible = 0U, Exposed = 1U, Infectious = 2U,
 	Symptomatic = 3U, InfectiousAndSymptomatic = 4U, Recovered = 5U, Immune = 6U, Null
 };
 
-/*
- *
- */
+
 class Health {
-friend class Loader;
-friend class Saver;
 public:
 	///
 	Health(unsigned int start_infectiousness, unsigned int start_symptomatic,
@@ -110,7 +103,9 @@ private:
 	unsigned int m_end_infectiousness;           ///< Days after infection to end infectious state.
 	unsigned int m_end_symptomatic;              ///< Days after infection to end symptomatic state.
 
+private:
+	friend class Hdf5Loader;
+	friend class Hdf5Saver;
 };
 
 }
-

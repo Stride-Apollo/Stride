@@ -49,6 +49,7 @@ using namespace stride::util;
 shared_ptr<Population> PopulationBuilder::build(
 		const boost::property_tree::ptree& pt_config,
 		const boost::property_tree::ptree& pt_disease,
+		const boost::property_tree::ptree& pt_pop,
 		util::Random& rng) {
 	//------------------------------------------------
 	// Setup.
@@ -56,9 +57,9 @@ shared_ptr<Population> PopulationBuilder::build(
 	// TODO first determine how many people are needed (by scanning the file twice)
 	const auto pop = make_shared<Population>();
 	Population::VectorType& population = pop->m_original;
-	const double seeding_rate = pt_config.get<double>("run.seeding_rate");
-	const double immunity_rate = pt_config.get<double>("run.immunity_rate");
-	const string disease_config_file = pt_config.get<string>("run.disease_config_file");
+	const double seeding_rate = pt_config.get<double>("run.disease.seeding_rate");
+	const double immunity_rate = pt_config.get<double>("run.disease.immunity_rate");
+	const string disease_config_file = pt_config.get<string>("run.disease.config");
 
 	//------------------------------------------------
 	// check input.
@@ -71,11 +72,11 @@ shared_ptr<Population> PopulationBuilder::build(
 	//------------------------------------------------
 	// Add persons to population.
 	//------------------------------------------------
-	const auto file_name = pt_config.get<string>("run.population_file");;
+	const auto file_name = pt_pop.get<string>("population.people");
 	const auto file_path = InstallDirs::getDataDir() /= file_name;
 	if (!is_regular_file(file_path)) {
 		throw runtime_error(string(__func__)
-							+ "> Population file " + file_path.string() + " not present.");
+							+ "> Population (people) file " + file_path.string() + " not present.");
 	}
 
 	boost::filesystem::ifstream pop_file;
@@ -130,17 +131,17 @@ shared_ptr<Population> PopulationBuilder::build(
 	//------------------------------------------------
 	const string log_level = pt_config.get<string>("run.log_level", "None");
 	if (log_level == "Contacts") {
-		const unsigned int num_participants = pt_config.get<double>("run.num_participants_survey");
+		const unsigned int num_participants = pt_config.get<double>("run.outputs.participants_survey.<xmlattr>.num");
 
 		// use a while-loop to obtain 'num_participant' unique participants (default sampling is with replacement)
 		// A for loop will not do because we might draw the same person twice.
+		// TODO: getting a hold of a proper logger here is very difficult
 		unsigned int num_samples = 0;
-		const shared_ptr<spdlog::logger> logger = spdlog::get("contact_logger");
 		while (num_samples < num_participants) {
 			Simulator::PersonType& p = population[rng(max_population_index)];
 			if (!p.isParticipatingInSurvey()) {
 				p.participateInSurvey();
-				logger->info("[PART] {} {} {}", p.getId(), p.getAge(), p.getGender());
+				//logger.info("[PART] {} {} {}", p.getId(), p.getAge(), p.getGender());
 				num_samples++;
 			}
 		}

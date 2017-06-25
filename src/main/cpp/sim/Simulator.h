@@ -19,6 +19,7 @@
  * Header for the Simulator class.
  */
 
+#include "behaviour/information_policies/InformationPolicy.h"
 #include "behaviour/behaviour_policies/Vaccination.h"
 #include "behaviour/information_policies/NoLocalInformation.h"
 #include "behaviour/information_policies/NoGlobalInformation.h"
@@ -37,6 +38,7 @@
 #include "util/SimplePlanner.h"
 #include "behaviour/belief_policies/NoBelief.h"
 #include <boost/property_tree/ptree.hpp>
+#include <spdlog/spdlog.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -47,13 +49,13 @@ namespace stride {
 class Population;
 class Calendar;
 class Cluster;
-class AsyncSimulator;
 using uint = unsigned int;
+namespace run { class Runner; }
 
 /**
  * Main class that contains and direct the virtual world.
  */
-class Simulator {
+class Simulator : public Subject<Simulator> {
 public:
 	using GlobalInformationPolicy = NoGlobalInformation;
 	using LocalInformationPolicy = NoLocalInformation;
@@ -74,9 +76,9 @@ public:
 	/// Change track_index_case setting.
 	void setTrackIndexCase(bool track_index_case);
 
-	void setId(uint id) {m_id = id;}
+	void setName(string name) { m_name = name; }
 
-	uint getId() const {return m_id;}
+	string getName() const { return m_name; }
 
 	/// Run one time step, computing full simulation (default) or only index case.
 	void timeStep();
@@ -93,8 +95,6 @@ public:
 
 	/// Set the states of the rng's
 	void setRngStates(std::vector<std::string> states);
-
-	void setAsyncSimulator(AsyncSimulator* async_sim) {m_async_sim = async_sim;}
 
 	/// Return an index to a cluster in the given vector
 	/// Current policy: search for the first cluster with equal coordinates
@@ -118,13 +118,12 @@ public:
 	/// Return people that are here FROM abroad
 	void returnForeignTravellers();
 
-	void sendNewTravellers(uint amount, uint days, uint destination_sim_id, string destination_district, string destination_facility);
+	void sendNewTravellers(uint amount, uint days, const string& destination_sim_id, string destination_district, string destination_facility);
 
 	const SimplePlanner<Traveller<Simulator::PersonType> >& getPlanner() const {return m_planner;}
 
 private:
 	// Information about travellers
-	// original ID ->
 	std::map<unsigned int, Simulator::TravellerType> m_trav_elsewhere;
 	std::map<unsigned int, Simulator::TravellerType> m_trav_hosting;
 
@@ -134,10 +133,7 @@ private:
 	void updateClusters();
 
 private:
-	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
-
-private:
-	unsigned int                        m_num_threads;          ///< The number of  threads(as a hint)
+	unsigned int                        m_num_threads;          ///< The number of threads(as a hint)
 
 	#if UNIPAR_IMPL == UNIPAR_DUMMY
 		using RandomRef = util::Random*;
@@ -150,8 +146,11 @@ private:
 	std::shared_ptr<util::Random> 		m_rng;
 	LogMode                             m_log_level;            ///< Specifies logging mode.
 	std::shared_ptr<Calendar>           m_calendar;             ///< Management of calendar.
-
 public:	// TODO write getters or set friend class for ClusterSaver
+
+	boost::property_tree::ptree m_config_pt;            ///< Configuration property tree.
+	boost::property_tree::ptree m_config_pop;
+	std::shared_ptr<spdlog::logger>		m_logger;
 	std::shared_ptr<Population> m_population;	 ///< Pointer to the Population.
 
 	std::vector<Cluster> m_households;           ///< Container with household Clusters.
@@ -168,15 +167,15 @@ public:	// TODO write getters or set friend class for ClusterSaver
 
 	uint m_next_id;		///< The ID of the next traveller that arrives.
 	uint m_next_hh_id;	///< The household ID of the next traveller that arrives.
-	uint m_id;	///< ID of the simulator.
+	string m_name;	///< Name of the simulator (the region it simulates)
 
-	AsyncSimulator* m_async_sim;
 	SimplePlanner<Traveller<Simulator::PersonType> > m_planner;		///< The Planner, responsible for the timing of travellers (when do they return home?).
 
 	friend class SimulatorBuilder;
-	friend class Saver;
-	friend class Loader;
+	friend class LocalSimulatorAdapter;
+	friend class Hdf5Saver;
+	friend class Hdf5Loader;
+	friend class Runner;
 };
-
 
 }

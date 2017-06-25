@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<population>
+	<people>smallpop_people.csv</people>
+	<districts>smallpop_cities.csv</districts>
+	<clusters>smallpop_clusters.csv</clusters>
+	<households>smallpop_households.csv</households>
+	<cities>
+		<CITY name="Antwerp" pop="5000" lat="51.123" lon="4.567"/>
+		<CITY name="Brussels" pop="10000" lat="50.850" lon="4.348"/>
+	</cities>
+</population>

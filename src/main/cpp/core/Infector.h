@@ -26,6 +26,7 @@
 #include "core/LogMode.h"
 
 #include <memory>
+#include <spdlog/logger.h>
 
 namespace stride {
 
@@ -40,7 +41,8 @@ template<LogMode log_level, bool track_index_case, typename local_information_po
 class Infector {
 public:
 	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
-						util::Random& contact_handler, std::shared_ptr<const Calendar> calendar);
+						util::Random& contact_handler, std::shared_ptr<const Calendar> calendar,
+						spdlog::logger& logger);
 };
 
 /**
@@ -50,7 +52,8 @@ template<LogMode log_level, bool track_index_case>
 class Infector<log_level, track_index_case, NoLocalInformation> {
 public:
 	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
-			util::Random& contact_handler, std::shared_ptr<const Calendar> calendar);
+			util::Random& contact_handler, std::shared_ptr<const Calendar> calendar,
+			spdlog::logger& logger);
 };
 
 /**
@@ -60,7 +63,8 @@ template<bool track_index_case>
 class Infector<LogMode::Contacts, track_index_case, NoLocalInformation> {
 public:
 	static void execute(Cluster& cluster, DiseaseProfile disease_profile,
-			util::Random& contact_handler, std::shared_ptr<const Calendar> calendar);
+			util::Random& contact_handler, std::shared_ptr<const Calendar> calendar,
+			spdlog::logger& logger);
 };
 
 

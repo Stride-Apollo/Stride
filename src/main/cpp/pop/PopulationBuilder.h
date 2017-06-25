@@ -23,6 +23,7 @@
 #include "util/Random.h"
 
 #include <boost/property_tree/ptree.hpp>
+#include <spdlog/spdlog.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -47,6 +48,7 @@ public:
 	static std::shared_ptr<Population> build(
 			const boost::property_tree::ptree& pt_config,
 			const boost::property_tree::ptree& pt_disease,
+			const boost::property_tree::ptree& pt_pop,
 			util::Random& rng);
 
 private:

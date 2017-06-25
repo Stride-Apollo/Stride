@@ -1,10 +1,11 @@
 
 #include "sim/SimulatorSetup.h"
 #include "sim/SimulatorBuilder.h"
-#include "checkpointing/Loader.h"
+
+#include "checkpointing/Hdf5Loader.h"
 #include "sim/Simulator.h"
 #include <boost/filesystem.hpp>
-
+#include <iostream>
 
 using namespace boost::filesystem;
 using namespace boost::property_tree;
@@ -12,53 +13,31 @@ using namespace std;
 
 namespace stride {
 
-SimulatorSetup::SimulatorSetup(string conf_file, string hdf5_file, RunMode run_mode,
-							   int num_threads, bool track_index_case, const unsigned int timestamp_replay)
-	: m_conf_file(conf_file), m_hdf5_file(hdf5_file), m_num_threads(num_threads),
-	  m_timestamp_replay(timestamp_replay), m_track_index_case(track_index_case), m_run_mode(run_mode) {
+SimulatorSetup::SimulatorSetup(const ptree& config, string hdf5_file, RunMode run_mode,
+							   const unsigned int timestamp_replay)
+	: m_pt_config(config), m_hdf5_file(hdf5_file),
+	  m_timestamp_replay(timestamp_replay), m_run_mode(run_mode) {
 
-	m_conf_file_exists = fileExists(m_conf_file);
 	m_hdf5_file_exists = fileExists(m_hdf5_file);
-
-	if (run_mode == RunMode::Initial) {
-		this->constructConfigTreeInitial();
-	} else if (run_mode == RunMode::Extend || run_mode == RunMode::Replay) {
-		this->constructConfigTreeExtend();
-	}
 }
-
 
 shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 	if (m_run_mode == RunMode::Initial) {
-		// Build the simulator either from the provided configuration file or the initial data in the hdf5 file.
-		if (m_conf_file_exists) {
-			return SimulatorBuilder::build(m_pt_config, m_num_threads, m_track_index_case);
-		} else {
-			// Check for file validity
-			const auto file_path_hdf5 = canonical(system_complete(m_hdf5_file));
-			if (!is_regular_file(file_path_hdf5)) {
-				throw runtime_error("Hdf5 file '" +
-					system_complete(m_hdf5_file).string() +
-					"' is not a regular file. Aborting");
-			}
-
-			// Construct the simulator according to the saved configuration data in the hdf5 file.
-			Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-			m_timestamp_replay = 0;
-			return SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
-		}
+		return SimulatorBuilder::build(m_pt_config);
 	} else if (m_run_mode == RunMode::Extend || m_run_mode == RunMode::Replay) {
 		// Build the simulator and adjust it to the most recent/specified saved checkpoint in the hdf5 file.
-		const auto file_path_hdf5 = canonical(system_complete(m_hdf5_file));
-		if (!is_regular_file(file_path_hdf5)) {
-			throw runtime_error("Hdf5 file '" +
-				system_complete(m_hdf5_file).string() +
-				"' is not a regular file. Aborting");
+
+		Hdf5Loader loader(m_hdf5_file.c_str());
+
+		string name = m_pt_config.get_value("run.regions.region.<xmlattr>.name");
+		if (loader.getConfig() != m_pt_config) {
+			std::cerr << "WARNING: While setting up simulator for the region '" << name << "':" << endl;
+			std::cerr << "         The configuration in the HDF5 file differs from the one given." << endl;
+			std::cerr << "         Use the extract mode to get the configuration saved in the HDF5 file." << endl;
+			std::cerr << "         Proceeding with the given configuration (not from HDF5)." << endl;
 		}
 
-		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-		m_pt_config = loader.getConfig();
-		auto sim = SimulatorBuilder::build(loader.getConfig(), loader.getDisease(), loader.getContact(), m_num_threads, m_track_index_case);
+		auto sim = SimulatorBuilder::build(m_pt_config, loader.getDisease(), loader.getContact());
 		if (m_run_mode == RunMode::Extend) {
 			loader.extendSimulation(sim);
 			m_timestamp_replay = loader.getLastSavedTimestep();
@@ -67,67 +46,11 @@ shared_ptr<Simulator> SimulatorSetup::getSimulator() {
 		}
 		return sim;
 	}
-
 	return nullptr;
 }
 
-void SimulatorSetup::constructConfigTreeInitial() {
-	if (!m_conf_file_exists && !m_hdf5_file_exists) {
-		throw runtime_error("Config file '" + system_complete(m_conf_file).string()
-			+ "' and Hdf5 file '" + system_complete(m_hdf5_file).string()
-			+ "' both not present. Aborting.");
-	}
-
-	if (m_conf_file_exists) {
-		// Construct the config tree directly from the configuration file.
-		const auto file_path_config = canonical(system_complete(m_conf_file));
-		if (!is_regular_file(file_path_config)) {
-			throw runtime_error("Configuration file '" +
-				system_complete(m_conf_file).string() +
-				"' is not a regular file. Aborting");
-		}
-		read_xml(file_path_config.string(), m_pt_config);
-	} else {
-		// Construct the config tree from the initial state saved in the Hdf5 file.
-		const auto file_path_hdf5 = canonical(system_complete(m_hdf5_file));
-		if (!is_regular_file(file_path_hdf5)) {
-			throw runtime_error("Hdf5 file '" +
-				system_complete(m_hdf5_file).string() +
-				"' is not a regular file. Aborting");
-		}
-		Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-		m_pt_config = loader.getConfig();
-		m_track_index_case = loader.getTrackIndexCase();
-	}
-
-	// Additional run configurations.
-	if (m_pt_config.get_optional<bool>("run.num_participants_survey") == false) {
-		m_pt_config.put("run.num_participants_survey", 1);
-	}
-}
-
-void SimulatorSetup::constructConfigTreeExtend() {
-	// Get the config tree from the Hdf5 file.
-	if (!m_hdf5_file_exists) {
-		throw runtime_error("Trying to run simulator in 'Extend' mode, without Hdf5 file '" +
-			system_complete(m_hdf5_file).string() + "' present. Aborting.");
-	}
-
-	const auto file_path_hdf5 = canonical(system_complete(m_hdf5_file));
-	if (!is_regular_file(file_path_hdf5)) {
-		throw runtime_error("Hdf5 file '" + system_complete(m_hdf5_file).string() + "' is not a regular file. Aborting.");
-	}
-
-	Loader loader(file_path_hdf5.string().c_str(), m_num_threads);
-	m_pt_config = loader.getConfig();
-	m_track_index_case = loader.getTrackIndexCase();
-}
-
-
 bool SimulatorSetup::fileExists(string filename) const {
-	return exists(system_complete(filename));
+	return exists(filename) and is_regular_file(filename);
 }
-
-
 
 }

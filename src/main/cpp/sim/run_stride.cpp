@@ -18,6 +18,8 @@
  * Actually run the simulator.
  */
 
+/* HDF5 run_stride, deprecated
+
 #include "run_stride.h"
 
 #include "output/CasesFile.h"
@@ -72,9 +74,52 @@ void run_stride(bool track_index_case,
 	SimulatorSetup setup = SimulatorSetup(config_file_name, hdf5_file_name, run_mode, num_threads, track_index_case, timestamp_replay);
 	ptree pt_config = setup.getConfigTree();
 
+	// Code for distributed simulations with MPI
+	bool distributedRun = true;
+	int world_rank = 0;
+	int world_size = 0;
+	if (distributedRun){
+		cout << "Initializing the MPI environment" << endl << endl;
+		// Initialize the MPI environment
+		int provided = num_threads;
+		// TODO set MPI_THREAD to funneled, serialized or multiple?
+		MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+		MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+		MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+		cout << "Done initializing the MPI environment (size = " << world_size << ")" << endl;
+	}
+
+	cout << "Building the simulator." << endl << endl;
+
+	shared_ptr<Simulator> sim = setup.getSimulator();
+	// auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
+	auto local_sim = make_shared<RemoteSimulatorSender>("coordinator",world_rank);
+	// Initialize remote simulators
+	std::vector<RemoteSimulatorSender*> remoteSenders;
+	// remoteSenders.push_back(local_sim.get());
+	for (int i = 1; i < world_size; i++){
+		// shared_ptr<RemoteSimulatorSender> remoteSender(new RemoteSimulatorSender(i));
+		// remoteSenders.push_back(remoteSender.get());
+		remoteSenders.push_back(new RemoteSimulatorSender("simulator"+to_string(i),i)); // TODO fix this with shared ptrs
+	}
+	remoteSenders.push_back(local_sim.get());
+	Coordinator coord({remoteSenders});
+
+	cout << "Done building the simulator. " << endl << endl;
+
+	cout << "Setting up a thread for the receiver" << endl;
+	auto local_receiver = RemoteSimulatorReceiver(sim.get());
+	thread listenThread(&RemoteSimulatorReceiver::listen, local_receiver);
+	cout << "Done setting up receiving thread" << endl;
+
+	unsigned int start_day = setup.getStartDay();
+
 	// Set output path prefix.
 	string output_prefix = pt_config.get<string>("run.output_prefix", TimeStamp().toTag());
 	cout << "Project output tag:  " << output_prefix << endl << endl;
+
+	// Track index case setting.
+	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
 
 	// Create logger
 	// Transmissions:     [TRANSMISSION] <infecterID> <infectedID> <clusterID> <day>
@@ -86,18 +131,6 @@ void run_stride(bool track_index_case,
 												  std::numeric_limits<size_t>::max(),
 												  std::numeric_limits<size_t>::max());
 	file_logger->set_pattern("%v"); // Remove meta data from log => time-stamp of logging
-
-	cout << "Building the simulator." << endl << endl;
-
-	shared_ptr<Simulator> sim = setup.getSimulator();
-	auto local_sim = make_shared<LocalSimulatorAdapter>(sim.get());
-	Coordinator coord({local_sim.get()});
-
-	cout << "Done building the simulator. " << endl << endl;
-	unsigned int start_day = setup.getStartDay();
-
-	// Track index case setting.
-	cout << "Setting for track_index_case:  " << boolalpha << track_index_case << endl;
 
 	// Create simulator.
 	Stopwatch<> total_clock("total_clock", true);
@@ -122,11 +155,14 @@ void run_stride(bool track_index_case,
 				(Saver(output_file.c_str(), pt_config, frequency, track_index_case, run_mode, (start_day == 0) ? 0 : start_day + 1));
 		std::function<void(const LocalSimulatorAdapter&)> fnCaller = std::bind(&Saver::update, saver, std::placeholders::_1);
 		local_sim->registerObserver(saver, fnCaller);
+		auto classInstance = std::make_shared<ClusterSaver>("cluster_output");
+		std::function<void(const LocalSimulatorAdapter&)> fnCaller2 = std::bind(&ClusterSaver::update, classInstance, std::placeholders::_1);
+		local_sim->registerObserver(classInstance, fnCaller2);
 	}
 
 
 	if (pt_config.get<bool>("run.visualization", false) == true) {
-		auto ClusterSaver_instance = make_shared<ClusterSaver>(output_prefix + "cluster_output", output_prefix + "pop_output");
+		auto ClusterSaver_instance = make_shared<ClusterSaver>("cluster_output");
 		auto fn_caller_ClusterSaver = bind(&ClusterSaver::update, ClusterSaver_instance, std::placeholders::_1);
 		local_sim->registerObserver(ClusterSaver_instance, fn_caller_ClusterSaver);
 
@@ -151,8 +187,7 @@ void run_stride(bool track_index_case,
 		cout << "     Done, infected count: ";
 		cases.at(i-start_day) = sim->getPopulation()->getInfectedCount();
 		unsigned int adopters = sim->getPopulation()->getAdoptedCount<Simulator::BeliefPolicy>();
-		unsigned int total = sim->getPopulation()->size();
-		cout << setw(7) << cases.at(i-start_day)  << "     Adopters count: " << setw(7) << adopters << endl;
+		cout << setw(7) << cases.at(i-start_day) << "     Adopters count: " << setw(7) << adopters << endl;
 	}
 
 	if (saver != nullptr && checkpointing_frequency == 0) {
@@ -181,6 +216,19 @@ void run_stride(bool track_index_case,
 	// print final message to command line.
 	cout << endl << endl;
 	cout << "  total time: " << total_clock.toString() << endl << endl;
+
+	if (distributedRun) {
+		if (world_rank == 0){
+			// Send MPI message to terminate all systems
+			for (int i = 0; i < world_size; i++) MPI_Send(nullptr, 0, MPI_INT, i, 10, MPI_COMM_WORLD);
+			local_receiver.stopListening();
+		}
+		cout << "Before joining thread@" << world_rank << endl;
+		listenThread.join(); // Join and terminate listening thread
+		cout << "After joining thread@" << world_rank << endl;
+		MPI_Finalize();
+	}
 }
 
 }
+ */

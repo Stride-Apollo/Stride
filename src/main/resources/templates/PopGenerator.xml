@@ -1,43 +1,46 @@
-<POPULATION total='10000000' provinces='10'>
-	<RANDOM generator='MT19937' seed='74128'/>
+<population total='10000000' provinces='10'>
+	<family file="households_flanders.txt"/>
+	<commutingdata start_radius='10' factor="2.0"/>
 	
-	<FAMILY file="resources/data/households.txt"/>
-	<COMMUTINGDATA start_radius='10' factor="2.0"/>
+	<cities>
+		<city name="Antwerp" pop="500000" lat="51.123" lon="4.567">
+			<airport name="ANR"/>
+			<airport name="ANR2"/>
+		</city>
+		<city name="Brussels" pop="1000000" lat="54.567" lon="5.890">
+			<airport name="BRU"/>
+		</city>
+	</cities>
 	
-	<CITIES>
-		<CITY name="Antwerp" pop="500000" lat="51.123" lon="4.567"/>
-		<CITY name="Brussels" pop="1000000" lat="54.567" lon="5.890"/>
-	</CITIES>
-	
-	<VILLAGES radius="1.5">  <!-- i.e. 1.5 times the distance from center 
+	<villages radius="1.5">  <!-- i.e. 1.5 times the distance from center 
 		of all cities to the furthest city -->
-		<VILLAGE min="5" max="100" fraction="10"/>
-		<VILLAGE min="100" max="300" fraction="15"/>
-		<VILLAGE min="300" max="1000" fraction="25"/>
-		<VILLAGE min="1000" max="2000" fraction="50"/>
-	</VILLAGES>
+		<village min="5" max="100" fraction="10"/>
+		<village min="101" max="300" fraction="15"/>
+		<village min="301" max="1000" fraction="25"/>
+		<village min="1001" max="2000" fraction="50"/>
+	</villages>
 	
-	<EDUCATION>
-		<MANDATORY total_size="500" cluster_size="20"/>
-		<OPTIONAL total_size="3000" cluster_size="50">
-			<FAR fraction="30"/>
-		</OPTIONAL>
-	</EDUCATION>
+	<education>
+		<mandatory total_size="500" cluster_size="20"/>
+		<optional total_size="3000" cluster_size="50">
+			<far fraction="30"/>
+		</optional>
+	</education>
 
-	<WORK size="20">
-		<FAR fraction="30"/>
-	</WORK>
+	<work size="20">
+		<far fraction="30"/>
+	</work>
 
-	<COMMUNITY size='2000' average_per_person='1.5'/>
+	<community size='2000' average_per_person='1.5'/>
 	
-	<SCHOOL_WORK_PROFILE>
-		<MANDATORY min='3' max='17'/>
-		<EMPLOYABLE fraction='70'>
+	<school_work_profile>
+		<mandatory min='3' max='17'/>
+		<employable fraction='70'>
 			<!-- Among the employable population (excluding students), 70% works -->
-			<YOUNG_EMPLOYEE min='18' max='26' fraction='50'/>
+			<young_employee min='18' max='26' fraction='50'/>
 			<!-- fraction = amount of people of that age that is employable, the others are students -->
-			<EMPLOYEE min='26' max='65'/>
+			<employee min='27' max='65'/>
 			<!-- The category that does not overlap with students -->
-		</EMPLOYABLE>
-	</SCHOOL_WORK_PROFILE>
-</POPULATION>
+		</employable>
+	</school_work_profile>
+</population>

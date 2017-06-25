@@ -37,7 +37,7 @@ public:
 
 	/// Generates a population, writes the result to the files found in the data directory
 	/// Output files are respectively formatted according to the following template files: belgium_population.csv, pop_miami.csv, pop_miami_geo.csv
-	void generate(const string& target_cities, const string& target_pop, const string& target_households, const string& target_clusters);
+	void generate(const string& prefix);
 
 private:
 	/// Writes the cities to the file, see PopulationGenerator::generate, recently, the villages have been added to this
@@ -49,7 +49,7 @@ private:
 	/// Writes the households to the file, see PopulationGenerator::generate
 	void writeHouseholds(const string& target_households) const;
 
-	/// Writes the clusters to the file (tŷpe, ID and coordinates), see PopulationGenerator::generate
+	/// Writes the clusters to the file (type, ID and coordinates), see PopulationGenerator::generate
 	void writeClusters(const string& target_clusters) const;
 
 	/// Checks the xml on correctness, this includes only semantic errors, no syntax errors

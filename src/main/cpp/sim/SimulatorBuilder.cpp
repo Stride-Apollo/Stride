@@ -30,6 +30,7 @@
 #include "util/TransportFacilityReader.h"
 #include "core/Cluster.h"
 #include "core/ClusterType.h"
+#include "behaviour/information_policies/InformationPolicy.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/optional/optional.hpp>
@@ -50,27 +51,11 @@ using namespace boost::filesystem;
 using namespace boost::property_tree;
 using namespace stride::util;
 
-shared_ptr<Simulator> SimulatorBuilder::build(const string& config_file_name,
-											  unsigned int num_threads, bool track_index_case) {
-	// Configuration file.
-	ptree pt_config;
-	const auto file_path = InstallDirs::getCurrentDir() /= config_file_name;
-	if (!is_regular_file(file_path)) {
-		throw runtime_error(string(__func__)
-							+ ">Config file " + file_path.string() + " not present. Aborting.");
-	}
-	read_xml(file_path.string(), pt_config);
-
-	// Done.
-	return build(pt_config, num_threads, track_index_case);
-}
-
-shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
-											  unsigned int num_threads, bool track_index_case) {
+shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config) {
 	// Disease file.
 	ptree pt_disease;
-	const auto file_name_d {pt_config.get<string>("run.disease_config_file")};
-	const auto file_path_d {InstallDirs::getDataDir() /= file_name_d};
+	const string file_name_d = pt_config.get<string>("run.disease.config");
+	const auto file_path_d = (InstallDirs::getDataDir() /= file_name_d);
 	if (!is_regular_file(file_path_d)) {
 		throw runtime_error(std::string(__func__) + "> No file " + file_path_d.string());
 	}
@@ -78,46 +63,49 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 
 	// Contact file.
 	ptree pt_contact;
-	const auto file_name_c {pt_config.get("run.age_contact_matrix_file", "contact_matrix.xml")};
-	const auto file_path_c {InstallDirs::getDataDir() /= file_name_c};
+	const string file_name_c = pt_config.get("run.age_contact_matrix_file", "contact_matrix.xml");
+	const auto file_path_c = (InstallDirs::getDataDir() /= file_name_c);
 	if (!is_regular_file(file_path_c)) {
 		throw runtime_error(string(__func__) + "> No file " + file_path_c.string());
 	}
 	read_xml(file_path_c.string(), pt_contact);
 
 	// Done.
-	return build(pt_config, pt_disease, pt_contact, num_threads, track_index_case);
+	return build(pt_config, pt_disease, pt_contact);
 }
 
 shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
-											  const ptree& pt_disease, const ptree& pt_contact,
-											  unsigned int number_of_threads, bool track_index_case) {
+											  const ptree& pt_disease, const ptree& pt_contact) {
 	auto sim = make_shared<Simulator>();
 
 	// initialize config ptree.
 	sim->m_config_pt = pt_config;
 
 	// initialize track_index_case policy
-	sim->m_track_index_case = track_index_case;
+	sim->m_track_index_case = pt_config.get("run.track_index_case", false);
 
 	// initialize number of threads.
-	sim->m_num_threads = number_of_threads;
-	sim->m_parallel.setNumThreads(number_of_threads);
+	sim->m_num_threads = pt_config.get("run.num_threads", -1);
+	sim->m_parallel.setNumThreads(sim->m_num_threads);
 
 	// initialize calendar.
 	sim->m_calendar = make_shared<Calendar>(pt_config);
 
 	// get log level.
-	const string l = pt_config.get<string>("run.log_level", "None");
+	const string l = pt_config.get<string>("run.outputs.log.<xmlattr>.level", "None");
 	sim->m_log_level = isLogMode(l) ? toLogMode(l) : throw runtime_error(
 			string(__func__) + "> Invalid input for LogMode.");
 
-	//  Rng's.
-	int seed = pt_config.get<double>("run.rng_seed");
-	sim->m_rng = make_shared<util::Random >(seed);
+	// Rng's.
+	int seed = pt_config.get<int>("run.regions.region.rng_seed");
+	sim->m_rng = make_shared<util::Random>(seed);
 
 	// Build population.
-	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, *sim->m_rng);
+	ptree pt_pop;
+	read_xml((InstallDirs::getDataDir() / pt_config.get<string>("run.regions.region.population")).string(),
+			 pt_pop, xml_parser::trim_whitespace);
+	sim->m_population = PopulationBuilder::build(pt_config, pt_disease, pt_pop, *sim->m_rng);
+	sim->m_config_pop = pt_pop;
 
 	// Get the next id for new travellers
 	unsigned int max_id = 0;

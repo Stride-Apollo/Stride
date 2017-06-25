@@ -61,7 +61,7 @@ public:
 template<LogMode log_level = LogMode::None>
 class LOG_POLICY {
 public:
-	static void execute(shared_ptr<spdlog::logger> logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
+	static void execute(spdlog::logger& logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
 						ClusterType cluster_type, shared_ptr<const Calendar> environ) {}
 };
 
@@ -71,9 +71,9 @@ public:
 template<>
 class LOG_POLICY<LogMode::Transmissions> {
 public:
-	static void execute(shared_ptr<spdlog::logger> logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
+	static void execute(spdlog::logger& logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
 						ClusterType cluster_type, shared_ptr<const Calendar> environ) {
-		logger->info("[TRAN] {} {} {} {}",
+		logger.info("[TRAN] {} {} {} {}",
 					 p1->getId(), p2->getId(), toString(cluster_type), environ->getSimulationDay());
 	}
 };
@@ -84,7 +84,7 @@ public:
 template<>
 class LOG_POLICY<LogMode::Contacts> {
 public:
-	static void execute(shared_ptr<spdlog::logger> logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
+	static void execute(spdlog::logger& logger, Simulator::PersonType* p1, Simulator::PersonType* p2,
 						ClusterType cluster_type, shared_ptr<const Calendar> calendar) {
 		unsigned int home = (cluster_type == ClusterType::Household);
 		unsigned int work = (cluster_type == ClusterType::Work);
@@ -92,7 +92,7 @@ public:
 		unsigned int primary_community = (cluster_type == ClusterType::PrimaryCommunity);
 		unsigned int secundary_community = (cluster_type == ClusterType::SecondaryCommunity);
 
-		logger->info("[CONT] {} {} {} {} {} {} {} {} {}",
+		logger.info("[CONT] {} {} {} {} {} {} {} {} {}",
 					 p1->getId(), p1->getAge(), p2->getAge(), home, school, work, primary_community,
 					 secundary_community,
 					 calendar->getSimulationDay());
@@ -108,11 +108,10 @@ public:
 template<LogMode log_level, bool track_index_case, typename local_information_policy>
 void Infector<log_level, track_index_case, local_information_policy>::execute(
 		Cluster& cluster, DiseaseProfile disease_profile,
-		util::Random& contact_handler, shared_ptr<const Calendar> calendar) {
+		util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
 	cluster.updateMemberPresence();
 
 	// set up some stuff
-	auto logger = spdlog::get("contact_logger");
 	const auto c_type = cluster.m_cluster_type;
 	const auto& c_members = cluster.m_members;
 	const auto transmission_rate = disease_profile.getTransmissionRate();
@@ -162,7 +161,7 @@ void Infector<log_level, track_index_case, local_information_policy>::execute(
 template<LogMode log_level, bool track_index_case>
 void Infector<log_level, track_index_case, NoLocalInformation>::execute(
         Cluster& cluster, DiseaseProfile disease_profile,
-        util::Random& contact_handler, shared_ptr<const Calendar> calendar){
+        util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
 
 	// check if the cluster has infected members and sort
 	bool infectious_cases;
@@ -173,7 +172,6 @@ void Infector<log_level, track_index_case, NoLocalInformation>::execute(
 		cluster.updateMemberPresence();
 
 		// set up some stuff
-		auto logger = spdlog::get("contact_logger");
 		const auto c_type = cluster.m_cluster_type;
 		const auto c_immune = cluster.m_index_immune;
 		const auto& c_members = cluster.m_members;
@@ -211,12 +209,11 @@ void Infector<log_level, track_index_case, NoLocalInformation>::execute(
 template<bool track_index_case>
 void Infector<LogMode::Contacts, track_index_case, NoLocalInformation>::execute(
         Cluster& cluster, DiseaseProfile disease_profile,
-        util::Random& contact_handler, shared_ptr<const Calendar> calendar) {
+        util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
 
         cluster.updateMemberPresence();
 
 	// set up some stuff
-	auto logger = spdlog::get("contact_logger");
 	const auto c_type = cluster.m_cluster_type;
 	const auto& c_members = cluster.m_members;
 	const auto transmission_rate = disease_profile.getTransmissionRate();
