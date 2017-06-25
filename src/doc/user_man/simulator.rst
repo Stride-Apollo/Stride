@@ -17,56 +17,56 @@ Binaries in directory ``<project_dir>/bin``
 
 -  ``gtester``: regression tests for the sequential code.
 
--  ``wrapper\_sim.py``: Python simulation wrapper
+-  ``wrapper_sim.py``: Python simulation wrapper
 
 Configuration files (xml and json) in directory ``<project_dir>/config``
 
--  ``run\_default.xml``: default configuration file for Stride to
+-  ``run_default.xml``: default configuration file for Stride to
    perform a Nassau simulation.
 
--  ``run\_miami\_weekend.xml``: configuration file for Stride to
+-  ``run_miami_weekend.xml``: configuration file for Stride to
    perform Miami simulations with uniform social contact rates in the
    community clusters.
 
 -  ``wrapper_miami.json``: default configuration file for the
-   wrapper\_sim binary to perform Miami simulations with different
+   wrapper_sim binary to perform Miami simulations with different
    attack rates.
 
 -  ...
 
 Data files (csv) in directory ``<project_dir>/data``
 
--  ``belgium\_commuting``: Belgian commuting data for the active
-   populations. The fraction of residents from “city\_depart” that are
-   employed in “city\_arrival”. Details are provided for all cities and
+-  ``belgium_commuting``: Belgian commuting data for the active
+   populations. The fraction of residents from “city_depart” that are
+   employed in “city_arrival”. Details are provided for all cities and
    for 13 major cities.
 
--  ``belgium\_population``: Relative Belgian population per city.
+-  ``belgium_population``: Relative Belgian population per city.
    Details are provided for all cities and for 13 major cities.
 
--  ``contact\_matrix_average``: Social contact rates, given the
+-  ``contact_matrix_average``: Social contact rates, given the
    cluster type. Community clusters have average (week/weekend) rates.
 
--  ``contact\_matrix_week``: Social contact rates, given the cluster
+-  ``contact_matrix_week``: Social contact rates, given the cluster
    type. Community clusters have week rates.
 
--  ``contact\_matrix_week``: Social contact rates, given the cluster
+-  ``contact_matrix_week``: Social contact rates, given the cluster
    type. Primary Community cluster has weekend rates, Secondary
    Community has week rates.
 
--  ``disease\_xxx``: Disease characteristics (incubation and
+-  ``disease_xxx``: Disease characteristics (incubation and
    infectious period) for xxx.
 
--  ``holidays\_xxx``: Holiday characteristics for xxx.
+-  ``holidays_xxx``: Holiday characteristics for xxx.
 
--  ``pop\_xxx``: Synthetic population data extracted from the 2010
+-  ``pop_xxx``: Synthetic population data extracted from the 2010
    U.S. Synthetic Population Database (Version 1) from RTI International
    for xxx :cite:`wheaton2014a`, :cite:`wheaton2014b`.
 
--  ``ref\_2011``: Reference data from EUROSTAT on the Belgian
+-  ``ref_2011``: Reference data from EUROSTAT on the Belgian
    population of 2011. Population ages and household sizes.
 
--  ``ref\_fl2010\_xxx``: Reference data on social contacts for
+-  ``ref_fl2010_xxx``: Reference data on social contacts for
    Belgium, 2011.
 
 Documentation files in directory ``./target/installed/doc``
@@ -92,16 +92,30 @@ simulator using one or more command line arguments:
 
   * ``-t`` or ``--timestamp``: The timestep from which ``Replay`` mode is replayed.
 
-* The usage of a configuration file is necessary unless you choose the extract mode * from this configuration file all the necessary files will be read.
+The usage of a configuration file is necessary unless you choose the extract mode * from this configuration file all the necessary files will be read.
+
+Overrides can be used to quickly override a certain value in the configuration. Multiple ``-o`` flags can be given. This is based on the API of the Boost property tree, with the following exceptions:
+
+  * The first element is always ``run``, so this is implicit.
+  
+  * To get an XML attribute, you can use ``@`` instead of ``<xmlattr>.``.
+  
+Some typical examples:
+
+  * ``-o @name=other_name`` to change the name of the current run (and therefore the output directory)
+  
+  * ``-o disease.config=other_disease.xml`` to try another disease.
+
+Output can be found in ``output/<name>``. Mind the fact that you will overwrite your previous run if you don't change the name.
+
 
 Configuration File
 ------------------
 
-
 .. code-block:: xml
 
   <?xml version="1.0" encoding="utf-8"?>
-    <run name="default">
+  <run name="default">
     <r0>11</r0>
     <start_date>2017-01-01</start_date>
     <num_days>50</num_days>
@@ -115,7 +129,7 @@ Configuration File
         <person_file/>
         <participants_survey num="10"/>
         <visualization/>
-        <!-- <checkpointing frequency="1"/> -->
+        <checkpointing frequency="1"/>
     </outputs>
     <disease>
         <seeding_rate>0.002</seeding_rate>
@@ -125,11 +139,37 @@ Configuration File
     <regions>
         <region name="Belgium">
             <rng_seed>1</rng_seed>
-            <raw_population>pop_nassau.csv</population>
+            <raw_population>pop_nassau.csv</raw_population>
+        </region>
+        <region name="">
+            <rng_seed>1</rng_seed>
+            <population>pop.xml</population>
         </region>
     </regions>
   </run>
 
+The population, as referenced in a ``<region>`` can be either a ``<raw_population>`` or a ``<population>``. The first option is a simple csv, the second one an XML file with the following format:
 
-use multiple regions for the multi region feature.
+.. code-block:: xml
+
+  <?xml version="1.0" encoding="utf-8"?>
+  <population>
+      <people>people.csv</people>
+      <districts>cities.csv</districts>
+      <sphere_of_influence speed="100" size="20" min="5"/>
+      <clusters>clusters.csv</clusters>
+      <households>households.csv</households>
+      <cities>
+          <city name="Antwerp" pop="5000" lat="51.123" lon="4.567">
+              <airport name="ANR"/>
+          </city>
+          <city name="Brussels" pop="10000" lat="50.850" lon="4.348">
+              <airport name="BRU"/>
+          </city>
+      </cities>
+  </population>
+
+Here, the ``<people>`` tag refers to the same kind of file as a ``<raw_population>``.
+  
+You can use multiple regions for the multi region feature.
 The output tags ``<visualization/>`` and ``<checkpointing_frequency/>`` enable the saving of hdf5 or visualization files.

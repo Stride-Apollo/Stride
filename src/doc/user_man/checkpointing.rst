@@ -4,11 +4,11 @@ Checkpointing
 Configuring checkpointing
 -------------------------
 
-*Checkpointing is configured using command line options and/or
+Checkpointing is configured using command line options and/or
 specifying certain parameters in the configuration file. These options
 are specified in the chapters above.* *For more detailed information on
 how to configure checkpointing, read the Simulator chapter (Run the
-simulator part).*
+simulator part).
 
 Checkpointing enables the ability to save the state of the simulator
 multiple times during the simulation itself. The simulator state is
@@ -46,15 +46,11 @@ Simulator run mode
 The simulator can be run in different modes. Currently, the following run
 modes are supported:
 
-.. todo::
-
-No starting from checkpointed file in initial mode?.
+No starting from checkpointed file in initial mode.
 
 -  Initial - The simulator is built from scratch using the configuration
    file, and is saved every x timesteps according to the checkpointing
-   frequency. If no configuration file is present, the initial saved
-   state in the checkpointing file is used to start the simulation.
-
+   frequency.
 
 -  Extend - The simulation is extended from the last saved checkpoint in
    the checkpointing file.
