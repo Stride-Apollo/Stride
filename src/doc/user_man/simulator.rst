@@ -8,8 +8,7 @@ By default, Stride is installed in ``./target/installed/`` inside the
 project directory though this can be modified using the
 CMakeLocalConfig.txt file (example is given in
 ``./src/main/resources/make``). Compilation and installation of the
-software will create the following files and directories: (illustrated
-in Figure [fig:workspace]):
+software will create the following files and directories:
 
 Binaries in directory ``<project_dir>/bin``
 
@@ -92,7 +91,7 @@ simulator using one or more command line arguments:
 
   * ``-t`` or ``--timestamp``: The timestep from which ``Replay`` mode is replayed.
 
-The usage of a configuration file is necessary unless you choose the extract mode * from this configuration file all the necessary files will be read.
+The usage of a configuration file is necessary unless you choose the extract mode. From this configuration file all the necessary files will be read.
 
 Overrides can be used to quickly override a certain value in the configuration. Multiple ``-o`` flags can be given. This is based on the API of the Boost property tree, with the following exceptions:
 
@@ -107,7 +106,6 @@ Some typical examples:
   * ``-o disease.config=other_disease.xml`` to try another disease.
 
 Output can be found in ``output/<name>``. Mind the fact that you will overwrite your previous run if you don't change the name.
-
 
 Configuration File
 ------------------

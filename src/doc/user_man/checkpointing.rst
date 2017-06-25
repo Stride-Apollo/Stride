@@ -6,7 +6,7 @@ Configuring checkpointing
 
 Checkpointing is configured using command line options and/or
 specifying certain parameters in the configuration file. These options
-are specified in the chapters above.* *For more detailed information on
+are specified in the chapters above. For more detailed information on
 how to configure checkpointing, read the Simulator chapter (Run the
 simulator part).
 
