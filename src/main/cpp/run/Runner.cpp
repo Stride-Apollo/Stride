@@ -23,8 +23,8 @@ void Runner::setup() {
 }
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
-			   const RunMode& mode, int timestep)
-        : m_config_file(config_file), m_mode(mode), m_timestep(timestep) {
+			   const RunMode& mode, const string& slave, int timestep)
+        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -37,6 +37,7 @@ Runner::Runner(const vector<string>& overrides_list, const string& config_file,
     }
 	fs::path base_dir = InstallDirs::getOutputDir();
 	m_output_dir = base_dir / m_name;
+	if (m_slave != "") m_uses_mpi = true;
 	parseConfig();
 }
 
@@ -91,33 +92,66 @@ void Runner::initSimulators() {
 		cout << "Using existing output directory at " << output_dir << ", will overwrite." << endl << endl;
 	}
 
+
 	for (auto& it: m_region_configs) {
 		cout << "\rInitializing simulators [" << i << "/" << m_region_configs.size() << "]";
 		cout.flush();
 
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		pt::ptree sim_config = getRegionsConfig({it.first});
-		if (not remote) {
-			// TODO Enable HDF5 again
-			// build a Simulator...
-			//#ifdef HDF5_USED
-			//auto sim = SimulatorSetup(sim_config, hdf5Path(it.first).string(),
-			//						  m_mode, m_timestep).getSimulator();
-			//#else
-		  	auto sim = SimulatorBuilder::build(sim_config);
-			//#endif
-			sim->m_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
-			initOutputs(*sim.get());
-			m_local_simulators[it.first] = sim;
-			m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
+		string sim_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
+		if (m_slave == "") {
+			if (not remote) {
+				addLocalSimulator(sim_name, sim_config);
+			} else {
+				addRemoteSimulator(sim_name, sim_config);
+			}
 		} else {
-			// TODO: DO MPI STUFF
+			if (not remote) {
+				// This is a simulator running at the master
+				// TODO: get Master's contact info?
+				// Then, do MPI stuff
+				addRemoteSimulator(sim_name, sim_config);
+			} else {
+				if (sim_name == m_slave) {
+					// This is our (unique) local simulator
+					addLocalSimulator(sim_name, sim_config);
+				} else {
+					// This is just another remote simulator
+					addRemoteSimulator(sim_name, sim_config);
+				}
+			}
 		}
+	}
+
+	if (m_uses_mpi and m_local_simulators.size() > 1) {
+		throw runtime_error("You can't have multiple simulators in one system when working with MPI");
 	}
 
 	// Also set up the Coordinator
 	// TODO allow a single simulator without schedule
 	m_coord = make_shared<Coordinator>(m_async_simulators, m_travel_schedule, m_config);
+}
+
+shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost::property_tree::ptree& config) {
+	// TODO Enable HDF5 again
+	// build a Simulator...
+	//#ifdef HDF5_USED
+	//auto sim = SimulatorSetup(sim_config, hdf5Path(it.first).string(),
+	//						  m_mode, m_timestep).getSimulator();
+	//#else
+	auto sim = SimulatorBuilder::build(config);
+	//#endif
+	sim->m_name = name;
+	initOutputs(*sim.get());
+	m_local_simulators[name] = sim;
+	m_async_simulators[name] = make_shared<LocalSimulatorAdapter>(sim);
+	return sim;
+}
+
+shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
+	m_uses_mpi = true;
+	// TODO: DO MPI STUFF
 }
 
 void Runner::initOutputs(Simulator& sim) {
