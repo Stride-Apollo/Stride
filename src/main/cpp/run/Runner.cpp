@@ -144,7 +144,7 @@ void Runner::initSimulators() {
  			}
 		}
 	}
-	
+
 	cout << endl;
 
 	if (m_uses_mpi and m_local_simulators.size() > 1) {
@@ -197,9 +197,8 @@ void Runner::initMpi() {
 			boost::optional<string> remote = it.second.get_optional<string>("remote");
 			if (remote) {
 				if (remote.get() == m_processor_name) {
-					// TODO Anthony: send the SimulatorWorldrank!
 					SimulatorWorldrank setup {it.second.get<string>("<xmlattr>.name"), m_world_rank};
-					MPI_Send(&setup, 1, MPI_INT, 0, 20, MPI_COMM_WORLD); // Tag 20 = setup related MPI message
+					MPI_Send(&setup, 1, MPI_INT, 0, 30, MPI_COMM_WORLD); // Tag 30 = setup related MPI message
 				}
 			} else if (m_is_master) {
 				worldranks.emplace_back(it.second.get<string>("<xmlattr>.name"), 0);
@@ -210,7 +209,7 @@ void Runner::initMpi() {
 			// TODO Anthony: collect all SimulatorWorldranks into worldranks
 			for (int i=1; i<m_world_size; i++){
 				SimulatorWorldrank data {"",0};
-				MPI_Recv(&data, 1, MPI_INT, i, 20, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				MPI_Recv(&data, 21, m_setup_message, i, 30, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 				worldranks.push_back(data);
 			}
 			for (SimulatorWorldrank& swr: worldranks) {
@@ -219,7 +218,7 @@ void Runner::initMpi() {
 				bool unique_name = m_worldranks.left.find(name) == m_worldranks.left.end();
 				bool unique_rank = m_worldranks.right.find(rank) == m_worldranks.right.end();
 				if (unique_name and unique_rank) {
-					m_worldranks.insert(decltype(m_worldranks)::value_type(name, rank));
+					m_worldranks.insert(decltype(m_worldranks)::value_type(std::string(name), rank));
 				}
 			}
 
@@ -228,9 +227,18 @@ void Runner::initMpi() {
 									+ to_string(m_region_configs.size()) + " regions.");
 			}
 
-			// TODO Anthony: send m_worldranks to every other node
+			for (int i=0; i<m_world_size; i++){
+					for (auto iter = m_worldranks.begin(), iend = m_worldranks.end(); iter != iend; ++iter){
+							SimulatorWorldrank data{iter->left, iter->right};
+							MPI_Send(&data, 21, m_setup_message, i, 31, MPI_COMM_WORLD); // Tag 31 = send worldranks to each node
+					}
+			}
 		} else {
-			// TODO Anthony: collect m_worldranks and set it accordingly
+			for (int i = 0; i<m_world_size; i++){
+				if (i == m_world_size) continue;
+				SimulatorWorldrank data {"",0};
+				MPI_Recv(&data, 21, m_setup_message, i, 31, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			}
 		}
 	}
 #endif
@@ -238,7 +246,6 @@ void Runner::initMpi() {
 
 void Runner::makeSetupStruct(){
 #ifdef MPI_USED
-		// TODO fix string, now its a single char
 		MPI_Datatype type[2] = {MPI_CHAR, MPI_INT};
 		/** Number of occurence of each type */
 		int blocklen[2] = {20, 1};
@@ -255,7 +262,6 @@ void Runner::makeSetupStruct(){
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
 	// TODO: DO MPI STUFF
 	boost::optional<string> remote = config.get_optional<string>("run.regions.region.remote");
-	cout << "Remote:" << remote << endl;
 	m_async_simulators[name] = make_shared<RemoteSimulatorSender>(name, stoi(remote.get()));
 }
 
