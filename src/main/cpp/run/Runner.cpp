@@ -27,7 +27,7 @@ void Runner::setup() {
 
 Runner::Runner(const vector<string>& overrides_list, const string& config_file,
 			   const RunMode& mode, const string& slave, int timestep)
-        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_distributed_run(false), m_world_rank(0), m_uses_mpi(false) {
+        : m_config_file(config_file), m_slave(slave), m_mode(mode), m_timestep(timestep), m_uses_mpi(false), m_world_rank(0) {
     for (const string& kv: overrides_list) {
         vector<string> parts = StringUtils::split(kv, "=");
         if (parts.size() != 2) {
@@ -107,21 +107,21 @@ void Runner::initSimulators() {
 			if (not remote) {
 				addLocalSimulator(sim_name, sim_config);
 			} else {
-				addRemoteSimulator(sim_name, it.second);
+				addRemoteSimulator(sim_name, sim_config);
 			}
 		} else {
  			if (not remote) {
  				// This is a simulator running at the master
  				// TODO: get Master's contact info?
  				// Then, do MPI stuff
- 				addRemoteSimulator(sim_name, it.second);
+ 				addRemoteSimulator(sim_name, sim_config);
  			} else {
  				if (sim_name == m_slave) {
  					// This is our (unique) local simulator
  					addLocalSimulator(sim_name, sim_config);
  				} else {
  					// This is just another remote simulator
- 					addRemoteSimulator(sim_name, it.second);
+ 					addRemoteSimulator(sim_name, sim_config);
  				}
  			}
 		}
@@ -172,7 +172,8 @@ void Runner::initMpi() {
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
 	initMpi();
 	// TODO: DO MPI STUFF
-	boost::optional<string> remote = config.get_optional<string>("remote");
+	boost::optional<string> remote = config.get_optional<string>("run.regions.region.remote");
+	cout << "Remote:" << remote << endl;
 	m_async_simulators[name] = make_shared<RemoteSimulatorSender>(name, stoi(remote.get()));
 }
 
