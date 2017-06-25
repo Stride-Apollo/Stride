@@ -97,7 +97,7 @@ shared_ptr<Simulator> SimulatorBuilder::build(const ptree& pt_config,
 			string(__func__) + "> Invalid input for LogMode.");
 
 	// Rng's.
-	int seed = pt_config.get<double>("run.regions.region.rng_seed");
+	int seed = pt_config.get<int>("run.regions.region.rng_seed");
 	sim->m_rng = make_shared<util::Random>(seed);
 
 	// Build population.

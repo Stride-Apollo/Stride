@@ -56,6 +56,7 @@ private:
 	// Some important configuration keys, used a lot
 	std::string m_name;
 	boost::filesystem::path m_output_dir;
+	std::string m_travel_schedule;
 
 	std::map<std::string, std::shared_ptr<Hdf5Saver>> m_hdf5_savers;
 	std::map<std::string, std::shared_ptr<ClusterSaver>> m_vis_savers;

@@ -57,6 +57,7 @@ void Runner::parseConfig() {
 	if (m_region_configs.size() == 0) {
 		throw runtime_error("You need at least one region");
 	}
+	m_travel_schedule = m_config.get<string>("run.regions.<xmlattr>.travel_schedule");
 	m_config.get_child("run").erase("regions");
 
 	m_name = m_config.get<string>("run.<xmlattr>.name");
@@ -72,7 +73,7 @@ void Runner::printInfo() {
 		if (remote)
 			cout << "    - '" << it.first << "' running at " << remote << endl;
 		else
-			cout << "    - '" << it.first << " running locally" << endl;
+			cout << "    - '" << it.first << "' running locally" << endl;
 	}
 	cout << endl;
 }
@@ -97,13 +98,15 @@ void Runner::initSimulators() {
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		pt::ptree sim_config = getRegionsConfig({it.first});
 		if (not remote) {
+			// TODO Enable HDF5 again
 			// build a Simulator...
-			#ifdef HDF5_USED
-			auto sim = SimulatorSetup(sim_config, hdf5Path(it.first).string(),
-									  m_mode, m_timestep).getSimulator();
-			#else
+			//#ifdef HDF5_USED
+			//auto sim = SimulatorSetup(sim_config, hdf5Path(it.first).string(),
+			//						  m_mode, m_timestep).getSimulator();
+			//#else
 		  	auto sim = SimulatorBuilder::build(sim_config);
-			#endif
+			//#endif
+			sim->m_name = sim_config.get<string>("run.regions.region.<xmlattr>.name");
 			initOutputs(*sim.get());
 			m_local_simulators[it.first] = sim;
 			m_async_simulators[it.first] = make_shared<LocalSimulatorAdapter>(sim);
@@ -114,7 +117,7 @@ void Runner::initSimulators() {
 
 	// Also set up the Coordinator
 	// TODO allow a single simulator without schedule
-	m_coord = make_shared<Coordinator>(m_async_simulators, m_config.get<string>("run.regions.<xmlattr>.travel_schedule"));
+	m_coord = make_shared<Coordinator>(m_async_simulators, m_travel_schedule, m_config);
 }
 
 void Runner::initOutputs(Simulator& sim) {
@@ -122,6 +125,7 @@ void Runner::initOutputs(Simulator& sim) {
 	// So far, we only have output per Simulator
 
 	// Logs (we had to refactor some stuff for this)
+	cout << "Logger name " << (sim.m_name + "_logger") << endl;
 	sim.m_logger = spdlog::rotating_logger_mt(sim.m_name + "_logger",
 											  (m_output_dir / (sim.m_name + "_log.txt")).string(),
 											  std::numeric_limits<size_t>::max(),
@@ -132,7 +136,7 @@ void Runner::initOutputs(Simulator& sim) {
 
 	auto checkpointing = m_config.get_child_optional("run.outputs.checkpointing");
 	if (checkpointing) {
-		int freq = checkpointing.get().get<int>("frequency");
+		int freq = checkpointing.get().get<int>("<xmlattr>.frequency");
 		auto saver = make_shared<Hdf5Saver>(hdf5Path(sim.m_name).string().c_str(), sim.m_config_pt,
 											freq, m_mode, m_timestep);
 		auto fn = std::bind(&Hdf5Saver::update, saver, std::placeholders::_1);

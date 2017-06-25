@@ -13,8 +13,8 @@
         <log level="Transmissions"/>
         <person_file/>
         <participants_survey num="10"/>
-        <visualization/>
-        <checkpointing frequency="1"/>
+        <!-- <visualization/> -->
+        <!-- <checkpointing frequency="1"/> -->
     </outputs>
 
     <disease>

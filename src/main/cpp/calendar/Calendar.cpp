@@ -33,7 +33,7 @@ using namespace stride::util;
 Calendar::Calendar(const boost::property_tree::ptree& pt_config)
 		: m_day(0) {
 	// Set start date
-	const string start_date {pt_config.get<string>("coordination.start_date", "2016-01-01")};
+	const string start_date {pt_config.get<string>("run.start_date", "2016-01-01")};
 	m_date = boost::gregorian::from_simple_string(start_date);
 
 	// Set holidays & school holidays
@@ -49,7 +49,7 @@ void Calendar::initializeHolidays(const boost::property_tree::ptree& pt_config) 
 	// Load json file
 	boost::property_tree::ptree pt_holidays;
 	{
-		const auto file_name {pt_config.get<string>("run.holidays_file", "holidays_flanders_2016.json")};
+		const auto file_name {pt_config.get<string>("run.holidays", "holidays_flanders_2016.json")};
 		const auto file_path {InstallDirs::getDataDir() /= file_name};
 		if (!is_regular_file(file_path)) {
 			throw runtime_error(string(__func__) + "Holidays file " + file_path.string() + " not present.");

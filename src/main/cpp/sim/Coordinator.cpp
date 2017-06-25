@@ -20,7 +20,7 @@ void Coordinator::timeStep() {
 	}
 	future_pool(fut_results);
 
-	int weekday = m_calendar->getDayOfTheWeek();
+	int weekday = m_calendar.getDayOfTheWeek();
 
 	/*
 	for (uint i = 0; i < m_traveller_schedule.at(weekday).size(); ++i) {
@@ -37,5 +37,5 @@ void Coordinator::timeStep() {
 		}
 	}*/
 
-	m_calendar->advanceDay();
+	m_calendar.advanceDay();
 }

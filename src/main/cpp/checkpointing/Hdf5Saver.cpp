@@ -441,14 +441,14 @@ void Hdf5Saver::saveConfigs(H5File& file, const ptree& pt_config) const {
 
 	string content_config = getStringXmlPtree(pt_config);
 	configData[0].m_config_content = content_config.c_str();
-	string content_disease = getStringXmlPtree(getPtreeXmlFile(pt_config.get<string>("run.disease_config_file")));
+	string content_disease = getStringXmlPtree(getPtreeXmlFile(pt_config.get<string>("run.disease.config")));
 	configData[0].m_disease_content = content_disease.c_str();
 	string content_age = getStringXmlPtree(getPtreeXmlFile(pt_config.get<string>("run.age_contact_matrix_file")));
 	configData[0].m_age_contact_content = content_age.c_str();
 
 
 	ptree json_tree;
-	string filename = pt_config.get<string>("run.holidays_file");
+	string filename = pt_config.get<string>("run.holidays");
 	const auto filepath {InstallDirs::getDataDir() /= filename};
 	if (!is_regular_file(filepath))
 		throw std::runtime_error(string(__func__) + "> File " + filepath.string() + " not present/regular.");
