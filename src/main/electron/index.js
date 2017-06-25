@@ -1,7 +1,6 @@
 const os = require('os')
 const fs = require('fs')
 var app = angular.module('VisualizationApp', []);
-
 const random_seed = parseInt(Math.floor(Math.random()*100000+1).toFixed(6));
 const random_temp_file = os.tmpdir() + "/visualization_data_" + random_seed;
 app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope, $timeout, $interval) {
@@ -535,7 +534,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 
 	map.on('click', 'clusters', function(e) {
 		for(var i in e.features){
-			loadCluster(e.features[i].properties.id, config, filenames, $scope.currentDay);
+			loadCluster(e.features[i].properties.id, config, filenames, $scope.currentDay, random_temp_file, output_dir);
 		}
 	});
 
@@ -549,7 +548,7 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 		overview_day = $scope.currentDay;
 		overview.webContents.on('did-finish-load', ()=>{
 			overview.show();
-			//overview.webContents.openDevTools();
+			// overview.webContents.openDevTools();
 			overview.focus();
 		});
 		overview.on('closed', function () {
@@ -560,7 +559,9 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 			+ output_dir + "/" + config.directory + "/" + filenames[$scope.currentDay]
 			+ "&directory=" + output_dir + "/" + config.directory
 			+ "&population=" + output_dir + "/" + config.population_directory
-			+ "&currentDay=" + $scope.currentDay;
+			+ "&currentDay=" + $scope.currentDay
+			+ "&outputDir=" + output_dir
+			+ "&randomFile=" + random_temp_file;
 		overview.loadURL(url);
 	}
 
@@ -575,7 +576,9 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 					+ output_dir + "/" + config.directory + "/" + filenames[$scope.currentDay]
 					+ "&directory=" + output_dir + "/" + config.directory
 					+ "&population=" + output_dir + "/" + config.population_directory
-					+ "&currentDay=" + $scope.currentDay;
+					+ "&currentDay=" + $scope.currentDay
+					+ "&outputDir=" + output_dir
+					+ "&randomFile=" + random_temp_file;
 				overview.loadURL(url);
 				overview.focus();
 			} else {
@@ -677,17 +680,18 @@ app.controller('Controller', ['$scope', '$timeout', '$interval', function($scope
 	}
 }]);
 
-function loadCluster(id, config, filenames, currentDay) {
+function loadCluster(id, config, filenames, currentDay, random_temp_file, output_dir) {
 	var electron = require('electron').remote;
 	const BrowserWindow = electron.BrowserWindow;
 	var windows = JSON.parse(fs.readFileSync(random_temp_file)).windows;
+	console.log("Load cluster!")
 	if (!containsWin(windows, id)) {
 		var win = new BrowserWindow({ width: 800, height: 600 });
 		windows.push({id: id, window: win.id, day: currentDay});
 
 		win.webContents.on('did-finish-load', ()=>{
 			win.show();
-			//win.webContents.openDevTools();
+			// win.webContents.openDevTools();
 			win.focus();
 		});
 
@@ -710,7 +714,7 @@ function loadCluster(id, config, filenames, currentDay) {
 					windows.splice(i, 1);
 					var content = "{\"windows\": " + JSON.stringify(windows) + "}";
 					fs.writeFileSync(random_temp_file, content);
-					loadCluster(id, config, filenames, currentDay);
+					loadCluster(id, config, filenames, currentDay, random_temp_file, output_dir);
 				} else {
 					BrowserWindow.fromId(windows[i].window).focus();
 				}
