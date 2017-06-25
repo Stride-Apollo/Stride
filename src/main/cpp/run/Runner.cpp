@@ -409,12 +409,6 @@ pt::ptree Runner::getRegionsConfig(const std::vector<string>& names) {
 	return new_config;
 }
 
-void Runner::write(std::ostream& out, const pt::ptree& tree) {
-	pt::write_xml(out, tree, g_xml_settings);
-}
-
 fs::path Runner::hdf5Path(const string& name) {
 	return fs::system_complete(m_output_dir / (string("cp_") + name + ".h5"));
 }
-
-pt::xml_writer_settings<string> Runner::g_xml_settings = pt::xml_writer_make_settings<string>('\t', 1);
