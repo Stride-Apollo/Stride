@@ -44,8 +44,6 @@ private:
 
 	std::map<std::string, std::string> m_overrides;
 	std::string m_config_file;
-	std::string m_slave;
-	bool m_uses_mpi = false;
 	RunMode m_mode;
 	int m_timestep;
 	boost::property_tree::ptree m_config;

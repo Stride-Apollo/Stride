@@ -1,0 +1,6 @@
+<travel_schedule>
+    <flight  amount="10" duration="5" day_of_the_week="3">
+        <direction src="Belgium" dest="NotBelgium" />
+        <arrival district="Antwerp" facility="ANR"/>
+    </flight>
+</travel_schedule>

@@ -41,6 +41,7 @@ set(LIB_SRC
 	pop/PopulationBuilder.cpp
 	pop/Population.cpp
 #---
+	sim/Coordinator.cpp
 	sim/Simulator.cpp
 	sim/SimulatorBuilder.cpp
 	sim/LocalSimulatorAdapter.cpp
@@ -62,7 +63,6 @@ set(LIB_SRC
  	vis/ClusterSaver.cpp
 #---
     run/Runner.cpp
-	run/run_stride.cpp
 )
 
 if ( NOT STRIDE_FORCE_NO_HDF5 )

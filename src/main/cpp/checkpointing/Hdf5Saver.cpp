@@ -98,13 +98,20 @@ void Hdf5Saver::saveTimestep(const Simulator& sim) {
 		ss << "/Timestep_" << std::setfill('0') << std::setw(6) << m_timestep;
 		Group group(file.createGroup(ss.str()));
 
-		// Only save when unipar dummy implementation is used, otherwise sim.m_rng == nullptr
 		if (sim.m_rng != nullptr) {
 			saveRngState(group, sim);
 		}
 
 		this->saveCalendar(group, sim);
+
+		// try {
 		this->savePersonTDData(group, sim);
+		// } catch (Exception& e) {
+		// 	cout << endl << "I haz Exception" << endl;
+		// 	// cout << endl << e << endl;
+		// 	// nothing
+		// }
+
 		this->saveTravellers(group, sim);
 
 		this->saveClusters(group, "household_clusters", sim.m_households);
@@ -224,12 +231,14 @@ void Hdf5Saver::savePersonTDData(Group& group, const Simulator& sim) const {
 	hsize_t dims[1] { sim.getPopulation().get()->m_original.size() };
 	CompType type_person_TD = PersonTDDataType::getCompType();
 
-	// Dataspace can fit all persons but is chunked in parts of 100 persons
+	// Dataspace can fit all persons but is chunked in parts of 10000 persons
 	DataSpace dataspace = DataSpace(1, dims);
 	DSetCreatPropList plist = DSetCreatPropList();
 	hsize_t chunk_dims[1] = {10000};
 	plist.setChunk(1, chunk_dims);
-	DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace, plist));
+	// DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace, plist));
+	// TODO verify (stijn)
+	DataSet dataset = DataSet(group.createDataSet("person_time_dependent", type_person_TD, dataspace));
 
 	using PersonType = Simulator::PersonType;
 	const std::vector<PersonType>& population = sim.getPopulation()->m_original;
@@ -278,7 +287,6 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	using Block = SimplePlanner<Simulator::TravellerType>::Block;
 	using Agenda = SimplePlanner<Simulator::TravellerType>::Agenda;
 
-	// const auto& travellers = sim.m_population->m_visitors.getAgenda();
 	const Agenda& travellers = sim.m_planner.getAgenda();
 	hsize_t dims[1] { sim.m_planner.size() };
 	CompType type_traveller = TravellerDataType::getCompType();
@@ -288,7 +296,7 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	auto traveller_data = make_unique<std::vector<TravellerDataType>>(dims[0]);
 
 
-	// TODO optimize further?
+	// Obtain the travellers in a single vector, more convenient for index calculations
 	vector<Simulator::PersonType*> travellers_seq;
 	for (auto&& day : sim.m_planner.getAgenda()) {
 		for (auto&& traveller : *(day)) {
@@ -303,10 +311,13 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 		const Block& current_day = *(day);
 		for (auto&& person: current_day) {
 			TravellerDataType traveller;
+
+			string home_sim_name = person->getHomeSimulatorId();
+			string dest_sim_name = person->getDestinationSimulatorId();
+
 			traveller.m_days_left = list_index;
-			// TODO replace by actual strings! (See also Hdf5Loader.cpp:190)
-			traveller.m_home_sim_id = 0xDEADBEEF; //person->getHomeSimulatorId();
-			traveller.m_dest_sim_id = 0xDEADBEEF; //person->getDestinationSimulatorId();
+			traveller.m_home_sim_name = home_sim_name.c_str();
+			traveller.m_dest_sim_name = dest_sim_name.c_str();
 			traveller.m_home_sim_index = person->getHomeSimulatorIndex();
 			traveller.m_dest_sim_index = sim.m_population->m_original.size() + (std::find(travellers_seq.begin(), travellers_seq.end(), person->getNewPerson()) - travellers_seq.begin());
 
@@ -337,7 +348,6 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 			traveller.m_new_work_id = current_person.m_work_id;
 			traveller.m_new_prim_comm_id = current_person.m_primary_community_id;
 			traveller.m_new_sec_comm_id = current_person.m_secondary_community_id;
-
 
 			(*traveller_data)[current_index++] = traveller;
 		}

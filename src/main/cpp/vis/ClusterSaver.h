@@ -20,20 +20,22 @@ using std::pair;
 using std::ofstream;
 using std::vector;
 using std::map;
+using std::pair;
 
 class ClusterSaver : public util::Observer<Simulator> {
 public:
-	ClusterSaver(string file_name, string pop_file_name);
+	ClusterSaver(string file_name, string pop_file_name, string facility_file_name);
 
 	virtual void update(const Simulator& sim) {
 		saveClustersCSV(sim);
 		savePopDataJSON(sim);
+		saveTransportationFacilities(sim);
 		m_sim_day++;
 	}
 
 private:
 	using uint = unsigned int;
-  
+
 	/// Saves cluster information for Households (aggregated), Primary Communities and Secondary Communities.
 	void saveClustersCSV(const Simulator& sim) const;
 
@@ -58,6 +60,8 @@ private:
 
 	map<uint, uint> getAgeMap(const Simulator& local_sim) const;
 
+	void saveTransportationFacilities(const Simulator& local_sim) const;
+
 
 private:
 	uint m_sim_day = 0;
@@ -65,6 +69,8 @@ private:
 	string m_file_dir;
 	string m_pop_file_name;
 	string m_pop_file_dir;
+	string m_facility_file_name;
+	string m_facility_file_dir;
 };
 
 template<ClusterType type>

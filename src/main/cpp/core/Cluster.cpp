@@ -48,7 +48,6 @@ void Cluster::addPerson(Simulator::PersonType* p) {
 }
 
 std::size_t Cluster::getInfectedCount() const {
-	// TODO can optimize this with precondition that cluster must be sorted
 	size_t num_cases = 0;
 	for (auto& member : m_members) {
 		auto health = member.first->getHealth();
@@ -99,7 +98,7 @@ tuple<bool, size_t> Cluster::sortMembers() {
 				}
 			}
 		}
-			// else, if not susceptible, move to front
+		// else, if not susceptible, move to front
 		else if (!m_members[i_member].first->getHealth().isSusceptible()) {
 			if (!infectious_cases && m_members[i_member].first->getHealth().isInfectious()) {
 				infectious_cases = true;

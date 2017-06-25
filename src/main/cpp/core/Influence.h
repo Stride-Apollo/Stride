@@ -16,6 +16,8 @@ namespace stride {
 
 using uint = unsigned int;
 
+class ClusterSaver;
+
 class Influence {
 public:
 	Influence(uint size, double speed, double minimum): m_deque(deque<uint>(size, 0)), m_speed(speed), m_minimum(minimum) {
@@ -62,6 +64,8 @@ private:
 	deque<uint> m_deque;
 	double m_speed;
 	double m_minimum;
+
+	friend class ClusterSaver;
 };
 
 }

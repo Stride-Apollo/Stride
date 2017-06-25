@@ -155,7 +155,6 @@ void Simulator::setRngStates(vector<string> states) {
 }
 
 uint Simulator::chooseCluster(const GeoCoordinate& coordinate, const vector<Cluster>& clusters, double influence) {
-	// TODO extend with sphere of influence
 	double current_influence = influence;
 
 	if (clusters.size() == 0) {
@@ -294,11 +293,11 @@ void Simulator::returnForeignTravellers() {
 		m_primary_community.at(prim_comm_index).removePerson(returning_person->getId());
 		m_secondary_community.at(sec_comm_index).removePerson(returning_person->getId());
 
-		string destination_sim_id = traveller.getHomeSimulatorId();
+		string destination_sim = traveller.getHomeSimulatorId();
 
 		// Make the output
-		result.at(destination_sim_id).first.push_back(traveller.getHomePerson().getId());
-		result.at(destination_sim_id).second.push_back(traveller.getNewPerson()->getHealth());
+		result.at(destination_sim).first.push_back(traveller.getHomePerson().getId());
+		result.at(destination_sim).second.push_back(traveller.getNewPerson()->getHealth());
 	}
 
 	m_planner.nextDay();
@@ -307,13 +306,12 @@ void Simulator::returnForeignTravellers() {
   // Give the data to the senders
   for (auto it = result.begin(); it != result.end(); ++it) {
   	if (it->second.second.size() != 0) {
-		// TODO: Again, what the actual fuck
-  		//m_async_sim->returnForeignTravellers(it->second, it->first);
+  		m_communication_map[it->first]->welcomeHomeTravellers(it->second);
   	}
   }
 }
 
-void Simulator::sendNewTravellers(uint amount, uint days, const string& destination_sim_id, string destination_district, string destination_facility) {
+void Simulator::sendNewTravellers(uint amount, uint days, const string& destination_sim, string destination_district, string destination_facility) {
 	list<Simulator::PersonType*> working_people;
 
 	// Get the working people
@@ -326,8 +324,8 @@ void Simulator::sendNewTravellers(uint amount, uint days, const string& destinat
 	}
 
 	if (amount > working_people.size()) {
-		// TODO throw exception
-		cout << "Warning, more people to send than actual people in region.\n";
+		cout << "Warning, more people to send than actual people in region. Sending all people.\n";
+		amount = working_people.size();
 	}
 
 	vector<Simulator::TravellerType> chosen_people;
@@ -342,14 +340,13 @@ void Simulator::sendNewTravellers(uint amount, uint days, const string& destinat
 		person->setOnVacation(true);
 
 		// Make the traveller and make sure he can't be sent twice
-		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, m_name, destination_sim_id, person->getId());
+		Simulator::TravellerType new_traveller = Simulator::TravellerType(*person, nullptr, m_name, destination_sim, person->getId());
 		chosen_people.push_back(new_traveller);
 		working_people.erase(next(working_people.begin(), index));
 
 	}
 
-	// TODO wtf was the meaning of this?
-	//m_async_sim->sendNewTravellers(chosen_people, days, destination_sim_id, destination_district, destination_facility);
+	m_communication_map[destination_sim]->hostForeignTravellers(chosen_people, days, destination_district, destination_facility);
 }
 
 }

@@ -49,10 +49,12 @@ public:
 private:
 	/// Send specifically chosen travellers to the destination region
 	/// This function is used by the Simulator to give the signal to send people
+	// TODO remove?
 	virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility) = 0;
 
 	/// Send foreign travellers to the original region
 	/// This function is used by the Simulator to give the signal to send people
+	// TODO remove?
 	virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health>>& travellers, const string& home_sim_id) = 0;
 
 };

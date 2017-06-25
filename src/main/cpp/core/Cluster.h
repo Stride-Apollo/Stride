@@ -31,7 +31,6 @@
 #include <array>
 #include <cstddef>
 #include <vector>
-//#include <memory>
 
 namespace stride {
 
@@ -47,9 +46,6 @@ class Cluster {
 public:
 	/// Constructor
 	Cluster(std::size_t cluster_id, ClusterType cluster_type, GeoCoordinate coordinate = GeoCoordinate(0, 0));
-
-	/// Constructor
-	//Cluster(const Cluster& rhs);
 
 	/// Add the given Person to the Cluster.
 	void addPerson(Simulator::PersonType* p);
