@@ -53,32 +53,33 @@ protected:
 
 	/// Set up for the test fixture
 	virtual void SetUp() {
-		ptree pt_config;
-		const auto file_path = InstallDirs::getDataDir() /= string("../config/run_flanders.xml");
+		boost::property_tree::ptree config_tree;
+		config_tree.put("run.<xmlattr>.name", "testHdf5");
 
-		std::ifstream my_file;
-		my_file.open(file_path.string());
+		config_tree.put("run.r0", 11.0);
+		config_tree.put("run.start_date", "2017-01-01");
+		config_tree.put("run.num_days", 50U);
+		config_tree.put("run.holidays", "holidays_none.json");
+		config_tree.put("run.age_contact_matrix_file", "contact_matrix_average.xml");
+		config_tree.put("run.track_index_case", 0);
+		config_tree.put("run.num_threads", 4);
+		config_tree.put("run.information_policy", "Global");
 
-		if (my_file.bad()) {
-			throw runtime_error(string(__func__)
-								+ "> Config file " + file_path.string() + " not present. Aborting.");
-		}
-		read_xml(file_path.string(), pt_config);
+		config_tree.put("run.outputs.log.<xmlattr>.level", "None");
+		config_tree.put("run.outputs.participants_survey.<xmlattr>.num", 10);
+		config_tree.put("run.outputs.checkpointing.<xmlattr>.frequency", 1);
 
-		// TODO Unipar
-		pt_config.put("run.num_threads", 1);
+		config_tree.put("run.disease.seeding_rate", 0.002);
+		config_tree.put("run.disease.immunity_rate", 0.8);
+		config_tree.put("run.disease.config", "disease_measles.xml");
 
-		// Set output path prefix.
-		string output_prefix = "";
-
-		// Additional run configurations.
-		if (pt_config.get_optional<bool>("run.outputs.participants_survey.<xml_attr>.num") == false) {
-			pt_config.put("run.outputs.participants_survey.<xml_attr>.num", 1);
-		}
+		config_tree.put("run.regions.region.<xmlattr>.name", "Belgium");
+		config_tree.put("run.regions.region.rng_seed", 1U);
+		config_tree.put("run.regions.region.population", "bigpop.xml");
 
 		// Create simulators
-		m_sim1 = SimulatorBuilder::build(pt_config);
-		m_sim2 = SimulatorBuilder::build(pt_config);
+		m_sim1 = SimulatorBuilder::build(config_tree);
+		m_sim2 = SimulatorBuilder::build(config_tree);
 		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1);
 		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2);
 
@@ -95,7 +96,7 @@ protected:
 		m_sim2->setCommunicationMap(sender_map2);
 
 		// Migrate 10 people for 10 days
-		m_l1->sendNewTravellers(10, 10, "2", "Antwerp", "ANR");
+		m_sim1->sendNewTravellers(10, 10, "2", "Antwerp", "ANR");
 
 		// Keep a vector of id's of people who are on vacation
 		vector<unsigned int> m_ids;
@@ -123,13 +124,11 @@ TEST_F(UnitTests__MR_SimulatorTest, returnHome) {
 			EXPECT_FALSE(person.isOnVacation());
 		}
 
-		vector<future<bool>> fut_results;
-		fut_results.push_back(m_l1->timeStep());
-		fut_results.push_back(m_l2->timeStep());
-		future_pool(fut_results);
-
-		m_l1->returnForeignTravellers();
-		m_l2->returnForeignTravellers();
+		m_sim1->timeStep();
+		m_sim2->timeStep();
+		
+		m_sim1->returnForeignTravellers();
+		m_sim2->returnForeignTravellers();
 
 		for (unsigned int j = 0; j < m_sim1->getPlanner().getAgenda().size(); ++j) {
 			auto it = m_sim2->getPlanner().getAgenda().begin();

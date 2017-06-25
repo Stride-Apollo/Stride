@@ -12,6 +12,9 @@
 #include "sim/SimulatorSetup.h"
 #include "sim/SimulatorBuilder.h"
 #include "util/StringUtils.h"
+#include "util/Stopwatch.h"
+#include "output/CasesFile.h"
+#include "output/PersonFile.h"
 
 using namespace stride;
 using namespace util;
@@ -104,7 +107,6 @@ void Runner::initSimulators() {
 		boost::optional<string> remote = it.second.get_optional<string>("remote");
 		if (remote) {
 			#ifdef MPI_USED
-				makeSetupStruct();
 				initMpi();
 			#else
 				throw runtime_error("MPI support is not enabled in this build");
@@ -143,6 +145,12 @@ void Runner::initSimulators() {
  				}
  			}
 		}
+	}
+
+	std::map<string, AsyncSimulator*> comm_map;
+	for (auto& it: m_async_simulators) comm_map[it.first] = it.second.get();
+	for (auto& it: m_local_simulators) {
+		it.second->setCommunicationMap(comm_map);
 	}
 
 	cout << endl;
@@ -187,6 +195,7 @@ void Runner::initMpi() {
 		MPI_Comm_rank(MPI_COMM_WORLD, &m_world_rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
 		m_uses_mpi = true;
+		makeSetupStruct();
 		m_is_master = (m_world_rank == 0);
 
 		char processor_name[MPI_MAX_PROCESSOR_NAME];
@@ -308,16 +317,17 @@ void Runner::initOutputs(Simulator& sim) {
 		vis_saver->update(sim);
 		m_vis_savers[sim.m_name] = vis_saver;
 	}
-
-	// TODO other output files (cases, summary, persons, participants survey?)
 }
 
 void Runner::run() {
+	map<string, vector<unsigned int>> cases;
 	if (m_is_master) {
+		Stopwatch<> run_clock("run_clock");
+
 		if (m_uses_mpi)
-			cout << m_processor_name << " is running,";
+			cout << "--> " << m_processor_name << " is running,";
 		else
-			cout << "We are running locally,";
+			cout << "--> We are running locally,";
 		cout << " printing infected/adopted." << endl;
 		int num_days = m_config.get<int>("run.num_days");
 		cout << endl << "day  | ";
@@ -336,21 +346,19 @@ void Runner::run() {
 
 		for (int day = 0; day < m_timestep + num_days; day++) {
 			cout << setw(4) << day << " | ";
+			// Assumes same order!
 			vector<SimulatorStatus> results = m_coord->timeStep();
-			for (auto& ss: results) {
-				cout << setw(7) << ss.infected << " " << setw(7) << ss.adopted << " | ";
+			int i = 0;
+			for (auto& it: m_async_simulators) {
+				cout << setw(7) << results[i].infected << " " << setw(7) << results[i].adopted << " | ";
+				cases[it.first].push_back(results[i].infected);
+				i++;
 			}
 			cout << endl;
 		}
 	} else {
 		cout << m_processor_name << " awaits messages." << endl;
 	}
-
-	// TODO only save at last timestep if freq == 0
-	// for (auto& it: m_hdf5_savers) {
-	// 	Simulator& sim = *m_local_simulators[it.first];
-	// 	it.second->forceSave(sim, m_timestep + num_days);
-	// }
 
 #ifdef MPI_USED
 	// Close the MPI environment properly
@@ -363,6 +371,28 @@ void Runner::run() {
 		MPI_Finalize();
 	}
 #endif
+
+	// More output!
+	// TODO only save at last timestep if freq == 0
+	// for (auto& it: m_hdf5_savers) {
+	// 	Simulator& sim = *m_local_simulators[it.first];
+	// 	it.second->forceSave(sim, m_timestep + num_days);
+	// }
+
+	auto cases_conf = m_config.get_child_optional("run.outputs.cases");
+	auto person_conf = m_config.get_child_optional("run.outputs.persons");
+
+	for (auto& it: m_local_simulators) {
+		if (cases_conf) {
+			output::CasesFile((m_output_dir / (string("cases_") + it.first)).string())
+					.print(cases[it.first]);
+		}
+
+		if (person_conf) {
+			output::PersonFile((m_output_dir / (string("persons_") + it.first)).string())
+					.print(it.second->getPopulation());
+		}
+	}
 }
 
 pt::ptree Runner::getConfig() {

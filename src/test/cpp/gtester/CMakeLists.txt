@@ -23,7 +23,7 @@ set( SRC
 		BatchRuns.cpp
 		UtilTests.cpp
 		PopulationTests.cpp
-		#MR_SimulatorTest.cpp
+		MR_SimulatorTest.cpp
 		TravelSchedulerTest.cpp
 		TransportFacilityTest.cpp
 		InfluenceTests.cpp

@@ -35,7 +35,6 @@ set(LIB_SRC
 #---
 	output/CasesFile.cpp
 	output/PersonFile.cpp
-	output/SummaryFile.cpp
 #---
 	pop/Person.cpp
 	pop/PopulationBuilder.cpp
