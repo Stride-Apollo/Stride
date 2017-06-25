@@ -240,7 +240,6 @@ void Runner::initOutputs(Simulator& sim) {
 	// So far, we only have output per Simulator
 
 	// Logs (we had to refactor some stuff for this)
-	cout << "Logger name " << (sim.m_name + "_logger") << endl;
 	sim.m_logger = spdlog::rotating_logger_mt(sim.m_name + "_logger",
 											  (m_output_dir / (sim.m_name + "_log.txt")).string(),
 											  std::numeric_limits<size_t>::max(),
@@ -282,18 +281,40 @@ void Runner::initOutputs(Simulator& sim) {
 }
 
 void Runner::run() {
-	int num_days = m_config.get<int>("run.num_days");
-	for (int day=0; day < m_timestep + num_days; day++) {
-		std::cout << "Simulating day: " << setw(5) << day;
-		if (m_world_rank == 0) m_coord->timeStep();
-		std::cout << "\tDone, infected count: TODO" << endl;
+	if (m_is_master) {
+		std::cout << m_processor_name << " is running, printing infected/adopted." << endl;
+		int num_days = m_config.get<int>("run.num_days");
+		std::cout << endl << "day  | ";
+		int total = 0;
+		for (auto& it: m_region_configs) {
+			std::cout << it.first;
+			for (int i=15 - it.first.size(); i>0; i--) std::cout << ' ';
+			std::cout << " | ";
+		}
+
+		std::cout << endl << "-----+";
+		for (auto& it: m_region_configs) {
+			std::cout << "-----------------+";
+		}
+		std::cout << endl;
+
+		for (int day = 0; day < m_timestep + num_days; day++) {
+			std::cout << setw(4) << day << " | ";
+			vector<SimulatorStatus> results = m_coord->timeStep();
+			for (auto& ss: results) {
+				std::cout << setw(7) << ss.infected << " " << setw(7) << ss.adopted << " | ";
+			}
+			std::cout << endl;
+		}
+	} else {
+		std::cout << m_processor_name << " awaits messages." << endl;
 	}
 
-// TODO only save at last timestep if freq == 0
-// for (auto& it: m_hdf5_savers) {
-// 	Simulator& sim = *m_local_simulators[it.first];
-// 	it.second->forceSave(sim, m_timestep + num_days);
-// }
+	// TODO only save at last timestep if freq == 0
+	// for (auto& it: m_hdf5_savers) {
+	// 	Simulator& sim = *m_local_simulators[it.first];
+	// 	it.second->forceSave(sim, m_timestep + num_days);
+	// }
 
 #ifdef MPI_USED
 	// Close the MPI environment properly
