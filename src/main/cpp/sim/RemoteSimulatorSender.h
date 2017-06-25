@@ -74,6 +74,13 @@ public:
   virtual void hostForeignTravellers(const vector<stride::Simulator::TravellerType>& travellers, uint days, const string& destination_district, const string& destination_facility) override {}
   virtual void sendNewTravellers(uint amount, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility) override {}
   virtual void returnForeignTravellers() override {}
+
+private:
+  virtual void sendNewTravellers(const vector<Simulator::TravellerType>& travellers, uint days, const string& destination_sim_id, const string& destination_district, const string& destination_facility) override {}
+  virtual void returnForeignTravellers(const pair<vector<uint>, vector<Health>>& travellers, const string& home_sim_id) override {}
+
+  void makeSimulatorStatus() {}
+  void makeTravellersReturningStruct() {}
 #endif
 };
 
