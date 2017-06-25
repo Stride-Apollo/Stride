@@ -31,7 +31,7 @@ using namespace boost::property_tree;
 
 namespace Tests {
 
-class UnitTests__AsyncSimulatorTest: public ::testing::Test {
+class UnitTests__MR_SimulatorTest: public ::testing::Test {
 public:
 	/// TestCase set up.
 	static void SetUpTestCase() {
@@ -49,7 +49,7 @@ protected:
 
 protected:
 	/// Destructor has to be virtual.
-	virtual ~UnitTests__AsyncSimulatorTest() {}
+	virtual ~UnitTests__MR_SimulatorTest() {}
 
 	/// Set up for the test fixture
 	virtual void SetUp() {
@@ -82,8 +82,8 @@ protected:
 		m_l1 = make_unique<LocalSimulatorAdapter>(m_sim1);
 		m_l2 = make_unique<LocalSimulatorAdapter>(m_sim2);
 
-		m_l1->setId("1");
-		m_l2->setId("2");
+		m_sim1->setName("1");
+		m_sim2->setName("2");
 
 		map<string, AsyncSimulator*> sender_map1;
 		sender_map1["2"] = m_l2.get();
@@ -91,8 +91,8 @@ protected:
 		map<string, AsyncSimulator*> sender_map2;
 		sender_map2["1"] = m_l1.get();
 
-		m_l1->setCommunicationMap(sender_map1);
-		m_l2->setCommunicationMap(sender_map2);
+		m_sim1->setCommunicationMap(sender_map1);
+		m_sim2->setCommunicationMap(sender_map2);
 
 		// Migrate 10 people for 10 days
 		m_l1->sendNewTravellers(10, 10, "2", "Antwerp", "ANR");
@@ -113,7 +113,7 @@ protected:
 	virtual void TearDown() {}
 };
 
-TEST_F(UnitTests__AsyncSimulatorTest, returnHome) {
+TEST_F(UnitTests__MR_SimulatorTest, returnHome) {
 	for (unsigned int i = 0; i < 11; i++) {
 		// Test whether they are present in the population of the hosting region
 		EXPECT_EQ(m_sim2->getPopulation()->m_visitors.getDay(10 - i)->size(), 10U);
@@ -163,7 +163,7 @@ TEST_F(UnitTests__AsyncSimulatorTest, returnHome) {
 	}
 }
 
-TEST_F(UnitTests__AsyncSimulatorTest, peopleMoved) {
+TEST_F(UnitTests__MR_SimulatorTest, peopleMoved) {
 	// Test if the people arrived in the destination simulator
 	for (unsigned int i = 0; i < m_sim2->getPopulation()->m_visitors.getAgenda().size(); ++i) {
 		auto it = m_sim2->getPopulation()->m_visitors.getAgenda().begin();
@@ -185,7 +185,7 @@ TEST_F(UnitTests__AsyncSimulatorTest, peopleMoved) {
 	}
 }
 
-TEST_F(UnitTests__AsyncSimulatorTest, destinationClusters) {
+TEST_F(UnitTests__MR_SimulatorTest, destinationClusters) {
 	// Test clusters of the target simulator, the travellers must be in the clusters
 	for (unsigned int i = 0; i < m_sim2->getPopulation()->m_visitors.getAgenda().back()->size(); ++i) {
 		auto& person = m_sim2->getPopulation()->m_visitors.getAgenda().back()->at(i);
