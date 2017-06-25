@@ -3,7 +3,7 @@
 #include "H5Cpp.h"
 using namespace H5;
 
-
+namespace stride {
 struct CalendarDataType {
 	static CompType getCompType() {
 		StrType str_type(0, H5T_VARIABLE);
@@ -17,3 +17,4 @@ struct CalendarDataType {
 	std::size_t m_day;
 	const char* m_date;
 };
+}

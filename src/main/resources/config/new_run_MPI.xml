@@ -5,7 +5,7 @@
     <num_days>50</num_days>
     <holidays>holidays_flanders_2017.json</holidays>
     <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
-    <track_index_case>1</track_index_case>
+    <track_index_case>0</track_index_case>
     <num_threads>4</num_threads>
     <information_policy>Global</information_policy>
 

@@ -344,11 +344,17 @@ void Runner::run() {
 		}
 		cout << endl;
 
-		for (int day = 0; day < m_timestep + num_days; day++) {
+		int start_day = 0;
+		if (m_mode == RunMode::Replay) {
+			start_day += m_timestep;
+		}
+
+		for (int day = start_day; day < m_timestep + num_days; day++) {
 			cout << setw(4) << day << " | ";
 			// Assumes same order!
 			vector<SimulatorStatus> results = m_coord->timeStep();
 			int i = 0;
+
 			for (auto& it: m_async_simulators) {
 				cout << setw(7) << results[i].infected << " " << setw(7) << results[i].adopted << " | ";
 				cases[it.first].push_back(results[i].infected);
@@ -409,12 +415,6 @@ pt::ptree Runner::getRegionsConfig(const std::vector<string>& names) {
 	return new_config;
 }
 
-void Runner::write(std::ostream& out, const pt::ptree& tree) {
-	pt::write_xml(out, tree, g_xml_settings);
-}
-
 fs::path Runner::hdf5Path(const string& name) {
 	return fs::system_complete(m_output_dir / (string("cp_") + name + ".h5"));
 }
-
-pt::xml_writer_settings<string> Runner::g_xml_settings = pt::xml_writer_make_settings<string>('\t', 1);

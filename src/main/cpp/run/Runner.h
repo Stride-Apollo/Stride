@@ -47,8 +47,6 @@ public:
 
 	void write(std::ostream& out, const boost::property_tree::ptree&);
 
-	static boost::property_tree::xml_writer_settings<string> g_xml_settings;
-
 private:
 	void parseConfig();  // done by constructor
 	void initOutputs(Simulator& sim);

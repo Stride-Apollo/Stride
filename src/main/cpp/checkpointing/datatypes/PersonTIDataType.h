@@ -7,10 +7,11 @@ using namespace H5;
 /**
  * Time Independent Person DataType
  */
+namespace {
 struct PersonTIDataType {
 	static CompType getCompType() {
 		CompType type_person_TI(sizeof(PersonTIDataType));
-		#define insertMemberTI(name, attribute, type) type_person_TI.insertMember(H5std_string(name), HOFFSET(PersonTIDataType, attribute), type)
+#define insertMemberTI(name, attribute, type) type_person_TI.insertMember(H5std_string(name), HOFFSET(PersonTIDataType, attribute), type)
 		insertMemberTI("id", m_id, PredType::NATIVE_UINT);
 		insertMemberTI("age", m_age, PredType::NATIVE_DOUBLE);
 		insertMemberTI("gender", m_gender, PredType::NATIVE_CHAR);
@@ -23,15 +24,15 @@ struct PersonTIDataType {
 		insertMemberTI("time_infectiousness", m_time_infectiousness, PredType::NATIVE_UINT);
 		insertMemberTI("start_symptomatic", m_start_symptomatic, PredType::NATIVE_UINT);
 		insertMemberTI("time_symptomatic", m_time_symptomatic, PredType::NATIVE_UINT);
-		#undef insertMemberTI
+#undef insertMemberTI
 
 		return type_person_TI;
 	}
 
 
 	unsigned int m_id;
-	double 		 m_age;
-	char 		 m_gender;
+	double m_age;
+	char m_gender;
 	unsigned int m_household_id;
 	unsigned int m_school_id;
 	unsigned int m_work_id;
@@ -42,3 +43,4 @@ struct PersonTIDataType {
 	unsigned int m_start_symptomatic;
 	unsigned int m_time_symptomatic;
 };
+}

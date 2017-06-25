@@ -145,6 +145,11 @@ void Hdf5Loader::loadTravellers(H5File& file, string dataset_name, shared_ptr<Si
 		const unsigned int amt_travellers = dims_travellers[0];
 		dataspace.close();
 
+		if (amt_travellers == 0) {
+			dataset.close();
+			return;
+		}
+
 		auto travellers = make_unique<std::vector<TravellerDataType>>(amt_travellers);
 
 		dataset.read(travellers->data(), TravellerDataType::getCompType());

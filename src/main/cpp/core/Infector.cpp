@@ -212,7 +212,7 @@ void Infector<LogMode::Contacts, track_index_case, NoLocalInformation>::execute(
         Cluster& cluster, DiseaseProfile disease_profile,
         util::Random& contact_handler, shared_ptr<const Calendar> calendar, spdlog::logger& logger) {
 
-        cluster.updateMemberPresence();
+	cluster.updateMemberPresence();
 
 	// set up some stuff
 	const auto c_type = cluster.m_cluster_type;
