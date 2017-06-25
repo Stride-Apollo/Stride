@@ -121,7 +121,7 @@ SimulatorStatus Simulator::timeStep() {
 	}
 
 	m_calendar->advanceDay();
-	m_planner.nextDay();
+	returnForeignTravellers();
 	this->notify(*this);
 	return SimulatorStatus(m_population->getInfectedCount(),
 						   m_population->getAdoptedCount<Simulator::BeliefPolicy>());
@@ -278,9 +278,9 @@ void Simulator::returnForeignTravellers() {
 	// Get the people that return home today (according to the planner in the population of this simulator)
 	SimplePlanner<Simulator::TravellerType>::Block* returning_people = m_planner.getModifiableDay(0);
 
-  map<string, pair<vector<uint>, vector<Health>> > result;
+	map<string, pair<vector<uint>, vector<Health>> > result;
 
-  for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
+	for (auto it = returning_people->begin(); it != returning_people->end(); ++it) {
 		auto& traveller = **it;
 
 		Simulator::PersonType* returning_person = traveller.getNewPerson();
@@ -298,19 +298,19 @@ void Simulator::returnForeignTravellers() {
 		string destination_sim = traveller.getHomeSimulatorId();
 
 		// Make the output
-		result.at(destination_sim).first.push_back(traveller.getHomePerson().getId());
+		result[destination_sim].first.push_back(traveller.getHomePerson().getId());
 		result.at(destination_sim).second.push_back(traveller.getNewPerson()->getHealth());
 	}
 
 	m_planner.nextDay();
 	m_population->m_visitors.nextDay();
 
-  // Give the data to the senders
-  for (auto it = result.begin(); it != result.end(); ++it) {
-  	if (it->second.second.size() != 0) {
-  		m_communication_map[it->first]->welcomeHomeTravellers(it->second);
-  	}
-  }
+	// Give the data to the senders
+	for (auto it = result.begin(); it != result.end(); ++it) {
+		if (it->second.second.size() != 0) {
+			m_communication_map[it->first]->welcomeHomeTravellers(it->second);
+		}
+	}
 }
 
 void Simulator::sendNewTravellers(uint amount, uint days, const string& destination_sim, string destination_district, string destination_facility) {

@@ -26,50 +26,7 @@
     <regions travel_schedule="traveller_schedule.xml">
         <region name="0">
             <rng_seed>123</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9001</remote>
-        </region>
-
-        <region name="1">
-            <rng_seed>456</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9002</remote>
-        </region>
-
-        <region name="2">
-            <rng_seed>123</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9003</remote>
-        </region>
-
-        <region name="3">
-            <rng_seed>123</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9004</remote>
-        </region>
-
-        <region name="4">
-            <rng_seed>123</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9005</remote>
-        </region>
-
-        <region name="5">
-            <rng_seed>123</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9006</remote>
-        </region>
-
-        <region name="6">
-            <rng_seed>123</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9007</remote>
-        </region>
-
-        <region name="7">
-            <rng_seed>123</rng_seed>
-            <population>population_todo_file.xml</population>
-            <remote>192.166.1.12:9008</remote>
+            <population>bigpop.xml</population>
         </region>
     </regions>
 </run>
