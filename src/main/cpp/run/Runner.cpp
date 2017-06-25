@@ -163,6 +163,7 @@ shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost:
 }
 
 void Runner::initMpi() {
+#ifdef MPI_USED
 	if (not m_uses_mpi) {
 		int provided = 0;
 		MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
@@ -173,6 +174,7 @@ void Runner::initMpi() {
 		MPI_Comm_size(MPI_COMM_WORLD, &m_world_size);
 		m_uses_mpi = true;
 	}
+#endif
 }
 
 shared_ptr<AsyncSimulator> Runner::addRemoteSimulator(const string& name, const boost::property_tree::ptree& config) {
@@ -243,6 +245,7 @@ void Runner::run() {
 // 	it.second->forceSave(sim, m_timestep + num_days);
 // }
 
+#ifdef MPI_USED
 	// Close the MPI environment properly
 	if (m_uses_mpi){
 		if (m_world_rank == 0){
@@ -252,6 +255,7 @@ void Runner::run() {
 		m_listen_thread.join(); // Join and terminate listening thread
 		MPI_Finalize();
 	}
+#endif
 }
 
 pt::ptree Runner::getConfig() {

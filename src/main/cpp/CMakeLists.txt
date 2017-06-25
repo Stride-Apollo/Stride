@@ -47,8 +47,6 @@ set(LIB_SRC
 	sim/LocalSimulatorAdapter.cpp
 	sim/SimulatorRunMode.cpp
 	sim/SimulatorSetup.cpp
-	sim/RemoteSimulatorSender.cpp
-	sim/RemoteSimulatorReceiver.cpp
 	util/InstallDirs.cpp
 	util/AliasDistribution.cpp
 	util/GeoCoordinate.cpp
@@ -67,6 +65,10 @@ set(LIB_SRC
 
 if ( NOT STRIDE_FORCE_NO_HDF5 )
 	list(APPEND LIB_SRC checkpointing/Hdf5Saver.cpp checkpointing/Hdf5Loader.cpp)
+endif()
+
+if ( NOT STRIDE_FORCE_NO_MPI )
+    list(APPEND LIB_SRC sim/RemoteSimulatorSender.cpp sim/RemoteSimulatorReceiver.cpp)
 endif()
 
 set(POPGEN_SRC
