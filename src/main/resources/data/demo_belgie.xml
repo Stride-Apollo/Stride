@@ -1,0 +1,46 @@
+<population total='15000' provinces='1'>
+	<family file="households_flanders.txt"/>
+	<commutingdata start_radius='2' factor="2.0"/>
+
+	<cities>
+		<city name="Merksem" pop="4200" lat="51.25" lon="4.45">
+		</city>
+		<city name="Borgerhout" pop="4160" lat="51.22" lon="4.44">
+		</city>
+		<city name="Deurne" pop="3500" lat="51.22" lon="4.46">
+			<airport name="ANR"/>
+		</city>
+	</cities>
+
+	<villages radius="1.5">  <!-- i.e. 1.5 times the distance from center
+		of all cities to the furthest city -->
+		<village min="5" max="100" fraction="10"/>
+		<village min="100" max="300" fraction="15"/>
+		<village min="300" max="1000" fraction="25"/>
+		<village min="1000" max="2000" fraction="50"/>
+	</villages>
+
+	<education>
+		<mandatory total_size="500" cluster_size="20"/>
+		<optional total_size="3000" cluster_size="50">
+			<far fraction="30"/>
+		</optional>
+	</education>
+
+	<work size="20">
+		<far fraction="30"/>
+	</work>
+
+	<community size='2000' average_per_person='1.5'/>
+
+	<school_work_profile>
+		<mandatory min='3' max='17'/>
+		<employable fraction='40'>
+			<!-- Among the employable population (excluding students), 70% works -->
+			<young_employee min='18' max='25' fraction='50'/>
+			<!-- fraction = amount of people of that age that is employable, the others are students -->
+			<employee min='26' max='65'/>
+			<!-- The category that does not overlap with students -->
+		</employable>
+	</school_work_profile>
+</population>

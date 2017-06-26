@@ -1,0 +1,14 @@
+<travel_schedule>
+    <flight  amount="50" duration="3" day_of_the_week="0">
+        <direction src="Luxemburg" dest="Belgie" />
+        <arrival district="Deurne" facility="ANR"/>
+    </flight>
+    <flight  amount="50" duration="3" day_of_the_week="1">
+        <direction src="Belgie" dest="Nederland" />
+        <arrival district="Amersfoort" facility="AME"/>
+    </flight>
+    <flight  amount="50" duration="3" day_of_the_week="2">
+        <direction src="Nederland" dest="Luxemburg" />
+        <arrival district="Luxemburg" facility="LUX"/>
+    </flight>
+</travel_schedule>
