@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<population><people>belgie_people.csv</people><districts>belgie_districts.csv</districts><clusters>belgie_clusters.csv</clusters><households>belgie_households.csv</households><cities><city name="Merksem" pop="4200" lat="51.25" lon="4.45"/><city name="Borgerhout" pop="4160" lat="51.22" lon="4.44"/><city name="Deurne" pop="3500" lat="51.22" lon="4.46"><airport name="ANR"/></city></cities>
+	<sphere_of_influence speed="10" size="20" min="5"/>
+</population>

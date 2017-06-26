@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<population><people>luxemburg_people.csv</people><districts>luxemburg_districts.csv</districts><clusters>luxemburg_clusters.csv</clusters><households>luxemburg_households.csv</households><cities><city name="Luxemburg" pop="11500" lat="49.61" lon="6.13"><airport name="LUX"/></city><city name="Niederanven" pop="545" lat="49.65" lon="6.26"><airport name="NA"/></city><city name="Mamer" pop="800" lat="49.62833" lon="6.026"/></cities>
+	<sphere_of_influence speed="10" size="20" min="5"/>
+</population>

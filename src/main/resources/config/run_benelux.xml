@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<run name="run_benelux">
+    <r0>11</r0>
+    <start_date>2017-01-01</start_date>
+    <num_days>50</num_days>
+    <holidays>holidays_none.json</holidays>
+    <age_contact_matrix_file>contact_matrix_average.xml</age_contact_matrix_file>
+    <track_index_case>0</track_index_case>
+    <num_threads>1</num_threads>
+    <information_policy>Global</information_policy>
+
+    <outputs>
+        <log level="Transmissions"/>
+        <person_file/>
+        <participants_survey num="10"/>
+        <visualization/>
+        <checkpointing frequency="1"/>
+    </outputs>
+
+    <disease>
+        <seeding_rate>0.002</seeding_rate>
+        <immunity_rate>0.8</immunity_rate>
+        <config>disease_measles.xml</config>
+    </disease>
+
+    <regions traveller_schedule="traveller_schedule_benelux.xml">
+        <region name="Nederland">
+            <rng_seed>1</rng_seed>
+            <population>nederland.xml</population>
+        </region>
+        <region name="Luxemburg">
+            <rng_seed>1</rng_seed>
+            <population>luxemburg.xml</population>
+        </region>
+        <region name="Belgie">
+            <rng_seed>1</rng_seed>
+            <population>belgie.xml</population>
+        </region>
+    </regions>
+</run>

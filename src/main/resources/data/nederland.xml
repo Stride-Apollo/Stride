@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<population><people>nederland_people.csv</people><districts>nederland_districts.csv</districts><clusters>nederland_clusters.csv</clusters><households>nederland_households.csv</households><cities><city name="Utrecht" pop="33000" lat="52.09" lon="5.12"><airport name="UTR"/></city><city name="Bunnik" pop="1450" lat="52.07" lon="5.20"/><city name="Amersfoort" pop="15000" lat="52.16" lon="5.39"><airport name="AME"/></city></cities>
+	<sphere_of_influence speed="10" size="20" min="5"/>
+</population>
