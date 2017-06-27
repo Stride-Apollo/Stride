@@ -309,17 +309,18 @@ void Hdf5Saver::saveTravellers(Group& group, const Simulator& sim) const {
 	unsigned int current_index = 0;
 	unsigned int list_index = 0;
 
+	vector<pair<string,string>> sim_names(travellers_seq.size());
+
 	for (auto&& day : travellers) {
 		const Block& current_day = *(day);
 		for (auto&& person: current_day) {
 			TravellerDataType traveller;
 
-			string home_sim_name = person->getHomeSimulatorId();
-			string dest_sim_name = person->getDestinationSimulatorId();
+			sim_names.at(current_index) = make_pair(person->getHomeSimulatorId(), person->getDestinationSimulatorId());
 
 			traveller.m_days_left = list_index;
-			traveller.m_home_sim_name = home_sim_name.c_str();
-			traveller.m_dest_sim_name = dest_sim_name.c_str();
+			traveller.m_home_sim_name = sim_names.at(current_index).first.c_str();
+			traveller.m_dest_sim_name = sim_names.at(current_index).second.c_str();
 			traveller.m_home_sim_index = person->getHomeSimulatorIndex();
 			traveller.m_dest_sim_index = sim.m_population->m_original.size() +
 										 (std::find(travellers_seq.begin(), travellers_seq.end(),
