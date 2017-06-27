@@ -19,7 +19,7 @@
 
     <disease>
         <seeding_rate>0.002</seeding_rate>
-        <immunity_rate>0.8</immunity_rate>
+        <immunity_rate>0.4</immunity_rate>
         <config>disease_measles.xml</config>
     </disease>
 
