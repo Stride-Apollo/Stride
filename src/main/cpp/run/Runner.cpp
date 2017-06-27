@@ -178,7 +178,6 @@ shared_ptr<Simulator> Runner::addLocalSimulator(const string& name, const boost:
 					   loader.getLastSavedTimestep() : m_timestep;
 
 		loader.loadFromTimestep(timestep, sim);
-		std::cout << "Done" << std::endl;
 	}
 
 	initOutputs(*sim.get());
