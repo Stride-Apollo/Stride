@@ -155,6 +155,7 @@ matrix:
 branches:
   except:
     - Visualization  # No tests written for GUI's, so don't bother
+    - hdf5MultiThreaded  # just used for final demo
 
 before_install:
   - . ./travis/before_install.sh  # thanks https://github.com/travis-ci/travis-ci/issues/1313
